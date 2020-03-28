@@ -1,0 +1,20 @@
+# IDE
+.idea
+
+# ServerManager
+target
+
+# BungeePlugin
+BungeePlugin/target
+BungeePlugin/docker
+
+# Commons
+Commons/target
+
+# Server
+Server/target
+Server/server/configs/*
+Server/server/images/*
+Server/server/internal/security/api-certs/*
+Server/server/internal/security/registry-certs/*
+Server/server/internal/workdirs/dns/*

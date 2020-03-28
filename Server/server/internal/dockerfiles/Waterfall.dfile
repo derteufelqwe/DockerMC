@@ -1,0 +1,5 @@
+FROM rr59/waterfall
+
+ADD . /server
+
+CMD ["/usr/bin/run-waterfall.sh"]

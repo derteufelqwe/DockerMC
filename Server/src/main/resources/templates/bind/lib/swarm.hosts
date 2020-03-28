@@ -1,0 +1,21 @@
+$ORIGIN swarm.
+$ttl 38400
+swarm.	IN	SOA	ns.swarm. test.test.de. (
+			1583790398
+			10800
+			3600
+			604800
+			38400 )
+;
+; name servers - NS records
+				IN		NS		ns.swarm.
+
+; name servers - A records
+ns.swarm.		IN		A		192.168.178.2
+
+
+; Normal Records - Can't be edited by user
+$INCLUDE /data/bind/lib/swarm.entrys_system
+
+; Normal Records - Can be edited by user
+$INCLUDE /data/bind/lib/swarm.entrys_user
