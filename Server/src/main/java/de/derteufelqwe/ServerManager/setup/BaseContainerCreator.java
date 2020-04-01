@@ -6,11 +6,11 @@ import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.WaitContainerResultCallback;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.*;
-import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
+import de.derteufelqwe.commons.Constants;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class BaseContainerCreator {
@@ -36,6 +35,7 @@ public class BaseContainerCreator {
 
     /**
      * Tries to find the DNS container.
+     *
      * @return Found (true) or not found (false)
      */
     public boolean findDns() {
@@ -56,6 +56,7 @@ public class BaseContainerCreator {
 
     /**
      * Creates the DNS container and confirms that it's up and running
+     *
      * @param removeOldData Overwrite previous DNS settings
      * @return Successfully created (true) or failed (false)
      */
@@ -83,6 +84,7 @@ public class BaseContainerCreator {
 
     /**
      * Creates a DNS container with no checks if it's actually running
+     *
      * @return ContainerID
      */
     private String createDnsContainer(boolean deleteOldData) {
@@ -163,6 +165,7 @@ public class BaseContainerCreator {
 
     /**
      * Tries to find the Registry container.
+     *
      * @return Found (true) or not found (false)
      */
     public boolean findRegistry() {
@@ -183,6 +186,7 @@ public class BaseContainerCreator {
 
     /**
      * Creates the Registry container and confirms that it's up and running
+     *
      * @return Successfully created (true) or failed (false)
      */
     public boolean createRegistry() {
@@ -206,8 +210,10 @@ public class BaseContainerCreator {
     }
 
     // ToDo: check if the certificates do exist
+
     /**
      * Creates a Registry container with no checks if it's actually running
+     *
      * @return ContainerID
      */
     private String createRegistryContainer() {
@@ -245,6 +251,7 @@ public class BaseContainerCreator {
 
     /**
      * Tries to find the overnet network.
+     *
      * @return Found (true) or not found (false)
      */
     public boolean findNetworkOvernet() {
@@ -266,6 +273,7 @@ public class BaseContainerCreator {
 
     /**
      * Creates the overnet network and confirms that it's up and running
+     *
      * @return Successfully created (true) or failed (false)
      */
     public boolean createNetworkOvernet() {
@@ -291,6 +299,7 @@ public class BaseContainerCreator {
 
     /**
      * Creates a overnet network with no checks if it's actually running
+     *
      * @return ContainerID
      */
     private String createNetworkOvernetContainer() {
@@ -311,6 +320,7 @@ public class BaseContainerCreator {
 
     /**
      * Tries to find the api_net network.
+     *
      * @return Found (true) or not found (false)
      */
     public boolean findNetworkApiNet() {
@@ -331,6 +341,7 @@ public class BaseContainerCreator {
 
     /**
      * Creates the api_net network and confirms that it's up and running
+     *
      * @return Successfully created (true) or failed (false)
      */
     public boolean createNetworkApiNet() {
@@ -356,6 +367,7 @@ public class BaseContainerCreator {
 
     /**
      * Creates an api_net network with no checks if it's actually running
+     *
      * @return ContainerID
      */
     private String createNetworkApiNetContainer() {
@@ -376,6 +388,7 @@ public class BaseContainerCreator {
 
     /**
      * Tries to find the api_proxy container.
+     *
      * @return Found (true) or not found (false)
      */
     public boolean findAPIProxy() {
@@ -396,10 +409,12 @@ public class BaseContainerCreator {
 
     /**
      * Creates the api_proxy container and confirms that it's up and running
+     *
      * @return Successfully created (true) or failed (false)
      */
     public boolean createAPIProxy(boolean createCerts) {
         String containerID = this.createAPIProxyContainer(createCerts);
+
         try {
             docker.getDocker().waitContainerCmd(containerID)
                     .exec(new WaitContainerResultCallback())
@@ -420,6 +435,7 @@ public class BaseContainerCreator {
 
     /**
      * Creates a api_proxy container with no checks if it's actually running
+     *
      * @return ContainerID
      */
     private String createAPIProxyContainer(boolean generateCerts) {
@@ -440,12 +456,14 @@ public class BaseContainerCreator {
                 .exec();
 
         if (apiProxyContainers.size() > 1) {
-            throw new FatalDockerMCError("Found multiple API-proxy containers.");
+            System.out.println("[Info] Found multiple APIProxy containers.");
+        }
 
-        } else if (apiProxyContainers.size() == 1) {
-            docker.getDocker().removeContainerCmd(apiProxyContainers.get(0).getId()).exec();
+        for (Container apiProxyContainer : apiProxyContainers) {
+            docker.getDocker().removeContainerCmd(apiProxyContainer.getId()).exec();
             System.out.println("Removed existing API-proxy container.");
         }
+
 
         CreateContainerResponse response = docker.getDocker().createContainerCmd(Constants.Images.API_PROXY.image())
                 .withLabels(Utils.quickLabel(Constants.ContainerType.API_PROXY))
@@ -454,7 +472,7 @@ public class BaseContainerCreator {
                 .withEnv(envs)
                 .exec();
 
-        // ToDo: Change to NETW_API_NAME
+        // ToDo: Change to NETW_API_NAME. When started from commandline, it can only attach one network
         docker.getDocker().connectToNetworkCmd()
                 .withNetworkId(Constants.NETW_OVERNET_NAME)
                 .withContainerId(response.getId())
@@ -463,6 +481,85 @@ public class BaseContainerCreator {
         docker.getDocker().startContainerCmd(response.getId()).exec();
 
         System.out.println("Created API proxy " + response.getId() + ".");
+
+        return response.getId();
+    }
+
+
+
+    public boolean findConfigWebserver() {
+        List<Container> registryContainers = docker.getDocker().listContainersCmd()
+                .withLabelFilter(Utils.quickLabel(Constants.ContainerType.CONFIG_WEBSERVER))
+                .exec();
+
+        if (registryContainers.size() > 1) {
+            throw new FatalDockerMCError("Found multiple running config webserver containers.");
+
+        } else if (registryContainers.size() == 1) {
+            return true;
+
+        } else {
+            return false;
+        }
+    }
+
+    public boolean createConfigWebserver() {
+        String containerID = this.createConfigWebserverContainer();
+
+        try {
+            docker.getDocker().waitContainerCmd(containerID)
+                    .exec(new WaitContainerResultCallback())
+                    .awaitStarted(CONTAINER_START_DELAY, TimeUnit.SECONDS);
+
+            TimeUnit.SECONDS.sleep(1);
+
+            InspectContainerResponse r = docker.getDocker().inspectContainerCmd(containerID)
+                    .exec();
+
+            return r.getState().getRunning() == null ? false : r.getState().getRunning();
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private String createConfigWebserverContainer() {
+
+        List<Bind> binds = Arrays.asList(
+                new Bind(Constants.CONFIG_PATH, new Volume("/webserver/data"), AccessMode.ro)
+        );
+
+        List<Container> webserverContainer = docker.getDocker().listContainersCmd()
+                .withLabelFilter(Utils.quickLabel(Constants.ContainerType.CONFIG_WEBSERVER))
+                .withShowAll(true)
+                .exec();
+
+        if (webserverContainer.size() > 1) {
+            System.out.println("[Info] Found multiple APIProxy containers.");
+        }
+
+        for (Container apiProxyContainer : webserverContainer) {
+            docker.getDocker().removeContainerCmd(apiProxyContainer.getId()).exec();
+            System.out.println("Removed existing config webserver container.");
+        }
+
+
+        CreateContainerResponse response = docker.getDocker().createContainerCmd(Constants.Images.CONFIG_WEBSERVER.image())
+                .withLabels(Utils.quickLabel(Constants.ContainerType.CONFIG_WEBSERVER))
+                .withName(Constants.WEBSERVER_CONTAINER_NAME)
+                .withBinds(binds)
+                .exec();
+
+        // ToDo: Change to NETW_API_NAME. When started from commandline, it can only attach one network
+        docker.getDocker().connectToNetworkCmd()
+                .withNetworkId(Constants.NETW_OVERNET_NAME)
+                .withContainerId(response.getId())
+                .exec();
+
+        docker.getDocker().startContainerCmd(response.getId()).exec();
+
+        System.out.println("Created webserver container " + response.getId() + ".");
 
         return response.getId();
     }

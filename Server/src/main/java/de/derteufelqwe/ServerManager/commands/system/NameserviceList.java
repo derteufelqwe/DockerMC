@@ -19,7 +19,7 @@ public class NameserviceList implements Runnable {
     @CommandLine.Option(names = {"-a", "--all"}, description = "Also show system defined (not editable) dns entries.")
     private boolean showAll = false;
 
-    private BindConfigurator bindConfigurator = new BindConfigurator();
+    private BindConfigurator bindConfigurator = new BindConfigurator(true);
 
     @Override
     public void run() {

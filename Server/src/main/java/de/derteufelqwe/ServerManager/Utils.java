@@ -1,5 +1,6 @@
 package de.derteufelqwe.ServerManager;
 
+import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.utils.Pair;
 
 import java.util.Arrays;
@@ -38,6 +39,31 @@ public class Utils {
         labelsMap.put(Constants.CONTAINER_IDENTIFIER_KEY, containerType.name());
 
         return labelsMap;
+    }
+
+
+    /**
+     * Converts a String like 512M to the amount of bytes.
+     */
+    public static long convertMemoryString(String memoryString) {
+        String memString = memoryString.toUpperCase();
+        int len = memString.length();
+        String memChar = memString.substring(len - 1, len);
+        int memVal = Integer.parseInt(memString.substring(0, len - 1));
+
+        switch (memChar) {
+            case "B":
+                return (long) (memVal * Math.pow(1024, 0));
+            case "K":
+                return (long) (memVal * Math.pow(1024, 1));
+            case "M":
+                return (long) (memVal * Math.pow(1024, 2));
+            case "G":
+                return (long) (memVal * Math.pow(1024, 3));
+
+            default:
+                throw new FatalDockerMCError("The memory config " + memoryString + " is unknown.");
+        }
     }
 
 }

@@ -15,7 +15,7 @@ public class NameserviceRemove implements Runnable {
     @CommandLine.Parameters(index = "0", description = "Record name")
     private String dnsToRemove;
 
-    private BindConfigurator bindConfigurator = new BindConfigurator();
+    private BindConfigurator bindConfigurator = new BindConfigurator(true);
 
     @Override
     public void run() {

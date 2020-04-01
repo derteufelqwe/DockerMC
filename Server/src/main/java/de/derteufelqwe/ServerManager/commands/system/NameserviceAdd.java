@@ -18,7 +18,7 @@ public class NameserviceAdd implements Runnable {
     @CommandLine.Parameters(index = "1", description = "IP")
     private String ipToAdd;
 
-    private BindConfigurator bindConfigurator = new BindConfigurator();
+    private BindConfigurator bindConfigurator = new BindConfigurator(true);
 
     @Override
     public void run() {

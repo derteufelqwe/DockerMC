@@ -1,47 +1,60 @@
-package de.derteufelqwe.ServerManager.setup;
+package de.derteufelqwe.ServerManager.setup.servers;
 
-import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.CreateServiceResponse;
+import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.*;
+import de.derteufelqwe.ServerManager.Docker;
+import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.Utils;
-import de.derteufelqwe.ServerManager.config.configs.objects.LobbyServerPool;
+import de.derteufelqwe.ServerManager.config.configs.objects.ServerPool;
 import de.derteufelqwe.commons.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class LobbyPoolCreator extends CreatorBase {
+public class ServerPoolCreator extends CreatorBase {
 
-    public LobbyPoolCreator() {
+    public ServerPoolCreator() {
         super();
     }
 
-
     public void create() {
-        createContainer(this.config.getLobbyPool());
+        for (ServerPool pool : this.config.getPoolServers()) {
+            System.out.println("Creating Pool " + pool.getName() + ".");
+            createContainer(pool);
+        }
     }
 
-    private void createContainer(LobbyServerPool lobbyConfig) {
+    private Response createContainer(ServerPool lobbyConfig) {
         String imageName = "registry.swarm/" + lobbyConfig.getImage();
-        this.pullImage(imageName);
+        // this.pullImage(imageName);
 
         // Overnet network
         List<NetworkAttachmentConfig> networks = new ArrayList<>();
         networks.add(new NetworkAttachmentConfig().withTarget(Constants.NETW_OVERNET_NAME));
 
-        // Normal labels + name of the server
+        // Normal labels + name of the server (for Task)
         Map<String, String> containerLabels = Utils.quickLabel(Constants.ContainerType.MINECRAFT);
         containerLabels.put(Constants.SERVER_NAME_KEY, lobbyConfig.getName());
 
+        // Define the containers
         ContainerSpec containerSpec = new ContainerSpec()
                 .withLabels(containerLabels)
                 .withImage(imageName);
 
-        TaskSpec taskSpec = new TaskSpec()
-                .withContainerSpec(containerSpec);
+        // Limit the container usage
+        long nanoCpu = (long) (Double.parseDouble(lobbyConfig.getCpuLimit()) * 1000000000);
+        ResourceSpecs resourceSpecs = new ResourceSpecs()
+                .withMemoryBytes(Utils.convertMemoryString(lobbyConfig.getRamLimit()))
+                .withNanoCPUs(nanoCpu);
 
-        // Normal labels + name of the server
+        // Specify the tasks
+        TaskSpec taskSpec = new TaskSpec()
+                .withContainerSpec(containerSpec)
+                .withResources(new ResourceRequirements().withLimits(resourceSpecs));
+
+        // Normal labels + name of the server (for Service)
         Map<String, String> serviceLabels = Utils.quickLabel(Constants.ContainerType.MINECRAFT_POOL);
         serviceLabels.put(Constants.SERVER_NAME_KEY, lobbyConfig.getName());
 
@@ -49,6 +62,7 @@ public class LobbyPoolCreator extends CreatorBase {
         ServiceModeConfig serviceModeConfig = new ServiceModeConfig().withReplicated(
                 new ServiceReplicatedModeOptions().withReplicas(lobbyConfig.getReplications()));
 
+        // Create the service
         ServiceSpec serviceSpec = new ServiceSpec()
                 .withLabels(serviceLabels)
                 .withTaskTemplate(taskSpec)
@@ -59,6 +73,13 @@ public class LobbyPoolCreator extends CreatorBase {
                 .withAuthConfig(this.authConfig)
                 .exec();
 
+        return new Response(serviceResponse.getId());
     }
+
+
+    private boolean checkStatus(Response response) {
+        return true;
+    }
+
 
 }

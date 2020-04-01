@@ -21,6 +21,11 @@ import java.util.List;
  */
 public class BindConfigurator {
 
+    private boolean autoReload;
+
+    public BindConfigurator(boolean autoReload) {
+        this.autoReload = autoReload;
+    }
 
     /**
      * Adds a trailing dot if required
@@ -49,7 +54,7 @@ public class BindConfigurator {
     /**
      * Reloads the bind9 server to pick new entries up
      */
-    private void reloadBind() {
+    public void reloadBind() {
         String dnsContainerId = new ContainerGetter().getDNSContainer().getId();
 
         ServerManager.getDocker().execContainer(dnsContainerId, "/etc/init.d/bind9", "reload");
@@ -72,13 +77,14 @@ public class BindConfigurator {
 
         try {
             FileWriter writer = new FileWriter(file, true);
-            writer.write(line);
+            writer.write("\n" + line);
             writer.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        reloadBind();
+        if (this.autoReload)
+            reloadBind();
     }
 
     /**
@@ -113,7 +119,9 @@ public class BindConfigurator {
             e.printStackTrace();
         }
 
-        reloadBind();
+        if (this.autoReload)
+            reloadBind();
+
         return hasRemovedSomething;
     }
 
@@ -142,6 +150,7 @@ public class BindConfigurator {
 
         return null;
     }
+
 
     public enum Type {
         SYSTEM(Constants.DNS_SYSTEM_ENTRY_PATH),

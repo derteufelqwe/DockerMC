@@ -1,8 +1,5 @@
 package de.derteufelqwe.commons;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class Constants {
 
 
@@ -49,23 +46,28 @@ public class Constants {
     public static String DOCKER_SOCKET_PATH = "/var/run/docker.sock";
     public static String APIPROXY_CONTAINER_NAME = "APIProxy";
 
+    // -----  Webserver  -----
+    public static String WEBSERVER_CONTAINER_NAME = "ConfigServer";
+    public static int WEBSERVER_PORT = 8101;
+
     // -----  Tags  -----
     // Identifies a container, which belongs the DockerMC
     public static String DOCKER_IDENTIFIER_KEY = "Owner";
     public static String DOCKER_IDENTIFIER_VALUE = "DockerMC";
     // Name, which the container should have in Minecraft
     public static String SERVER_NAME_KEY = "ServerName";
-
     // Tag Key to identify types of Containers
     public static String CONTAINER_IDENTIFIER_KEY = "Type";
+
 
     // Values for the Tag CONTAINER_IDENTIFIER_KEY
     public enum ContainerType {
         REGISTRY,
+        REGISTRY_CERTS_GEN,
         DNS,
         API_PROXY,
         API_PROXY_CERTS_GEN,
-        REGISTRY_CERTS_GEN,
+        CONFIG_WEBSERVER,
 
         BUNGEE,
         MINECRAFT,
@@ -78,6 +80,7 @@ public class Constants {
         OPENSSL("frapsoft/openssl:latest"),
         BINDDNS("sameersbn/bind:latest"),
         API_PROXY("derteufelqwe/docker-api-proxy:latest"),
+        CONFIG_WEBSERVER("configwebserver")
         ;
 
         private String imageName;
@@ -88,6 +91,23 @@ public class Constants {
 
         public String image() {
             return this.imageName;
+        }
+    }
+
+    public enum Configs {
+        MAIN("MainConfig.yml"),
+        INFRASTRUCTURE("InfrastructureConfig.yml"),
+        RUNNING("RunningConfig.yml")
+        ;
+
+        private String fileName;
+
+        Configs(String name) {
+            this.fileName = name;
+        }
+
+        public String filename() {
+            return this.fileName;
         }
 
     }

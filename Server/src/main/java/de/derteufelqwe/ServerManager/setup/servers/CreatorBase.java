@@ -1,5 +1,6 @@
-package de.derteufelqwe.ServerManager.setup;
+package de.derteufelqwe.ServerManager.setup.servers;
 
+import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.AuthConfig;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
@@ -36,6 +37,32 @@ public class CreatorBase {
             docker.pullImage(imageName);
             this.pulledImages.add(imageName);
         }
+    }
+
+
+    public class Response {
+
+        private String containerID;
+        private Docker docker;
+
+        public Response(String containerID) {
+            this.containerID = containerID;
+            this.docker = ServerManager.getDocker();
+        }
+
+
+        public boolean successful() {
+            InspectContainerResponse response = this.docker.getDocker().inspectContainerCmd(this.containerID)
+                    .exec();
+
+            return response.getState().getRunning() == null ? false : response.getState().getRunning();
+        }
+
+
+        public String getLogs() {
+            return this.docker.getContainerLog(this.containerID);
+        }
+
     }
 
 }

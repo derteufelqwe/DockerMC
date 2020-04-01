@@ -1,6 +1,5 @@
 package de.derteufelqwe.ServerManager;
 
-import com.github.dockerjava.api.model.Service;
 import de.derteufelqwe.ServerManager.commands.*;
 import de.derteufelqwe.ServerManager.config.Config;
 import de.derteufelqwe.ServerManager.config.configs.InfrastructureConfig;
@@ -9,7 +8,6 @@ import de.derteufelqwe.ServerManager.config.configs.RunningConfig;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.setup.BaseContainerCreator;
 import de.derteufelqwe.ServerManager.setup.CertificateCreator;
-import de.derteufelqwe.ServerManager.setup.LobbyPoolCreator;
 import de.derteufelqwe.commons.Constants;
 import lombok.Getter;
 import picocli.CommandLine;
@@ -20,9 +18,9 @@ import java.util.Scanner;
 public class ServerManager {
 
     static {
-        Config.registerConfig(MainConfig.class, "", "MainConfig.yml");
-        Config.registerConfig(RunningConfig.class, "", "RunningConfig.yml");
-        Config.registerConfig(InfrastructureConfig.class, "", "InfrastructureConfig.yml");
+        Config.registerConfig(MainConfig.class, "", Constants.Configs.MAIN.filename());
+        Config.registerConfig(RunningConfig.class, "", Constants.Configs.RUNNING.filename());
+        Config.registerConfig(InfrastructureConfig.class, "", Constants.Configs.INFRASTRUCTURE.filename());
         Config.loadAll();
     }
 
@@ -62,7 +60,7 @@ public class ServerManager {
         CertificateCreator creator = new CertificateCreator();
         boolean removeOldDns = true;
         boolean createProxyCerts = false;
-        int serviceCount = 7;
+        int serviceCount = 8;
         int failedSetups = 0;
 
         System.out.println("Checking and setting up infrastructure...");
@@ -169,6 +167,20 @@ public class ServerManager {
             System.out.println("Found existing Registry container.");
         }
 
+        // 8 - Config webserver
+        if (!validator.findConfigWebserver()) {
+            System.out.println("Failed to find Config webserver container. Creating it...");
+            if (validator.createConfigWebserver()) {
+                System.out.println("Successfully created config webserver container.");
+
+            } else {
+                System.err.println("Failed to create config webserver container.");
+                failedSetups++;
+            }
+        } else {
+            System.out.println("Found existing config webserver container.");
+        }
+
 
         System.out.println(String.format("Successfully set %s/%s services.", serviceCount - failedSetups, serviceCount));
         if (failedSetups != 0)
@@ -254,7 +266,7 @@ public class ServerManager {
         try {
 //            serverManager.onStart();
 //            new BungeeProxyCreator().start();
-            new LobbyPoolCreator().create();
+//            new LobbyPoolCreator().create();
 
 
 //            serverManager.startCommandDispatcher();

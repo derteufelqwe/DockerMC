@@ -60,7 +60,7 @@ public class Constants_Old {
     // -----  API  -----
     public static String API_CERTS_PATH = WORKDIR + "server/internal/security/api-certs/";
     public static String DOCKER_SOCKET_PATH = "/var/run/docker.sock";
-    public static String APIPROXY_CONTAINER_NAME = "APIProxy";
+//    public static String APIPROXY_CONTAINER_NAME = "APIProxy";
 
 
     public enum ContainerType {

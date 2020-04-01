@@ -77,7 +77,7 @@ public class CertificateCreator {
                 .withLabels(Utils.quickLabel(Constants.ContainerType.API_PROXY_CERTS_GEN))
                 .withBinds(binds)
                 .withEnv(envs)
-                .withCmd("hostname")
+                .withCmd("hostname")    // To make the container exit after generation
                 .exec();
 
 

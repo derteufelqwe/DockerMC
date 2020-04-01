@@ -16,15 +16,24 @@ Basic container types have the key `Type` and the following values:
 - Certs in Image kopieren
 - ggf. Certs über Webservice verbreiten
 - Commands zum Erneuern der Zertifikate
+- Spigot Plugin mit api, um einen Shutdown des Servers zu verarbeiten
+
 - Testen ob Service wirklich gestartet ist
-- Player join order in der lobby
-- RAM / CPU limitieren
-- BungeeCord Plugin multithreaden
++ Player join order in der lobby
++ RAM / CPU limitieren
++ BungeeCord Plugin multithreaden
+- persistente Server (evtl an einen Host binden)
+- RAM / CPU von systemcontainern limitieren
 
 # Plan
 - Docker-API certs für das Plugin
 - Verteilung der Certs ohne Bind-Mount
 
+
+# Tags
+## Everything
+Owner = DockerMC
+## 
  
 
 

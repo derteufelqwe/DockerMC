@@ -1,9 +1,6 @@
 package de.derteufelqwe.ServerManager.config.configs;
 
-import de.derteufelqwe.ServerManager.config.configs.objects.BungeeProxy;
-import de.derteufelqwe.ServerManager.config.configs.objects.LobbyServerPool;
-import de.derteufelqwe.ServerManager.config.configs.objects.MinecraftServer;
-import de.derteufelqwe.ServerManager.config.configs.objects.ServerPool;
+import de.derteufelqwe.ServerManager.config.configs.objects.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -20,12 +17,19 @@ public class InfrastructureConfig {
     // BungeeCord servers
     private BungeeProxy proxy;
 
-    private LobbyServerPool lobbyPool;
+    // Lobby server
+    private ServerPool lobbyPool = new ServerPool();
 
     // Servers, which have multiple replicates
     private List<ServerPool> poolServers = new ArrayList<>();
 
     // Single servers
     private List<MinecraftServer> servers = new ArrayList<>();
+
+    // Multiple servers, persistent
+    private List<PersistentServerPool> persistentServerPool = new ArrayList<>();
+
+    // Single persistent server
+    private PersistentMinecraftServer persistentServers;
 
 }

@@ -2,7 +2,10 @@ package de.derteufelqwe.bungeeplugin;
 
 import com.google.common.base.Utf8;
 import com.google.common.collect.Iterables;
+import de.derteufelqwe.commons.Constants;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.*;
@@ -10,13 +13,24 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.connection.LoginResult;
 import net.md_5.bungee.event.EventHandler;
 
-import java.util.Collection;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Reihenfolge: Join -> Connect
  */
 
 public class Events implements Listener {
+
+    private String lobbyServerName;
+    private Integer lobbySoftPlayerLimit;
+
+    public Events() {
+        Map<String, Object> config = Utils.requestConfigFile(Constants.Configs.INFRASTRUCTURE);
+        Map<String, String> lobbyconfig = (Map<String, String>) config.get("lobbyPool");
+        this.lobbyServerName = lobbyconfig.get("name");
+        this.lobbySoftPlayerLimit = (Integer) (Object) lobbyconfig.get("softPlayerLimit");
+    }
 
     /**
      * Executed when a player connects to a server. This will send the player to the first available server.
@@ -25,12 +39,29 @@ public class Events implements Listener {
     public void playerConnect(ServerConnectEvent event) {
 
         if (event.getReason() == ServerConnectEvent.Reason.JOIN_PROXY) {
-            Collection<ServerInfo> servers = Utils.getServers().values();
+            List<ServerInfo> servers = Utils.getServers().values().stream()
+                    .filter(s -> s.getName().startsWith(this.lobbyServerName))
+                    .collect(Collectors.toList());
+
+            Collections.sort(servers, new Comparator<ServerInfo>() {
+                @Override
+                public int compare(ServerInfo o1, ServerInfo o2) {
+                    return o1.getName().compareTo(o2.getName());
+                }
+            });
 
             if (servers.size() > 0) {
-                ServerInfo serverInfo = Iterables.get(servers, 0);
-                event.setTarget(serverInfo);
+                for (ServerInfo serverInfo : servers) {
+                    if (serverInfo.getPlayers().size() < this.lobbySoftPlayerLimit) {
+                        event.setTarget(serverInfo);
+                        return;
+                    }
+                }
+
+                event.getPlayer().disconnect(new TextComponent(ChatColor.RED + "Server has no free slots in the lobby."));
             }
+
+            event.getPlayer().disconnect(new TextComponent(ChatColor.RED + "No lobby servers found."));
         }
     }
 

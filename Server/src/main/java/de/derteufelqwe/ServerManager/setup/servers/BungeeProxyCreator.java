@@ -1,23 +1,15 @@
-package de.derteufelqwe.ServerManager.setup;
+package de.derteufelqwe.ServerManager.setup.servers;
 
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.WaitContainerResultCallback;
-import com.github.dockerjava.api.model.AuthConfig;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.api.model.Ports;
 import de.derteufelqwe.commons.Constants;
-import de.derteufelqwe.ServerManager.Docker;
-import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.Utils;
-import de.derteufelqwe.ServerManager.config.Config;
-import de.derteufelqwe.ServerManager.config.configs.InfrastructureConfig;
-import de.derteufelqwe.ServerManager.config.configs.MainConfig;
 import de.derteufelqwe.ServerManager.config.configs.objects.BungeeProxy;
 import de.derteufelqwe.ServerManager.setup.objects.BungeeCreateResponse;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
