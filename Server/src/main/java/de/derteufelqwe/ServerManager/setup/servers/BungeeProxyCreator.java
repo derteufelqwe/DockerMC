@@ -5,10 +5,11 @@ import com.github.dockerjava.api.command.WaitContainerResultCallback;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.api.model.Ports;
+import de.derteufelqwe.ServerManager.setup.servers.responses.Response;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.config.configs.objects.BungeeProxy;
-import de.derteufelqwe.ServerManager.setup.objects.BungeeCreateResponse;
+import de.derteufelqwe.ServerManager.setup.servers.responses.BungeeResponse;
 
 import java.util.concurrent.TimeUnit;
 
@@ -23,17 +24,18 @@ public class BungeeProxyCreator extends CreatorBase {
     }
 
 
-    public void create() {
-        BungeeCreateResponse r = createContainer(this.config.getProxy());
+    public Response create() {
+        BungeeResponse r = createContainer(this.config.getProxy());
         if (!r.successful()) {
             System.err.println("Failed to create proxy");
             System.out.println(r.getLogs());
         }
 
+        return null;
     }
 
 
-    private BungeeCreateResponse createContainer(BungeeProxy proxyConfig) {
+    private BungeeResponse createContainer(BungeeProxy proxyConfig) {
         String imageName = "registry.swarm/" + proxyConfig.getImage();
         this.pullImage(imageName);
 
@@ -65,7 +67,7 @@ public class BungeeProxyCreator extends CreatorBase {
         } catch (InterruptedException e) {
         }
 
-        return new BungeeCreateResponse(containerID);
+        return new BungeeResponse(containerID);
     }
 
 

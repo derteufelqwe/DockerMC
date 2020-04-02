@@ -59,6 +59,11 @@ public class Constants {
     // Tag Key to identify types of Containers
     public static String CONTAINER_IDENTIFIER_KEY = "Type";
 
+    // -----  Timings  -----
+    // Time in seconds which containers have to get up and running
+    public static int CONTAINER_STARTUP_TIME = 10;
+    public static int SERVICE_STARTUP_TIME = 20;
+    public static int LOG_FETCH_TIME = 20;
 
     // Values for the Tag CONTAINER_IDENTIFIER_KEY
     public enum ContainerType {

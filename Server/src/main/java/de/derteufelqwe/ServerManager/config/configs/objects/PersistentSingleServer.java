@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class PersistentMinecraftServer {
+public class PersistentSingleServer {
 
 
 

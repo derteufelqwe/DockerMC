@@ -1,5 +1,6 @@
 package de.derteufelqwe.ServerManager;
 
+import com.github.dockerjava.api.model.Service;
 import de.derteufelqwe.ServerManager.commands.*;
 import de.derteufelqwe.ServerManager.config.Config;
 import de.derteufelqwe.ServerManager.config.configs.InfrastructureConfig;
@@ -8,6 +9,8 @@ import de.derteufelqwe.ServerManager.config.configs.RunningConfig;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.setup.BaseContainerCreator;
 import de.derteufelqwe.ServerManager.setup.CertificateCreator;
+import de.derteufelqwe.ServerManager.setup.servers.ServerPoolCreator;
+import de.derteufelqwe.ServerManager.setup.servers.responses.PoolResponse;
 import de.derteufelqwe.commons.Constants;
 import lombok.Getter;
 import picocli.CommandLine;
@@ -266,10 +269,13 @@ public class ServerManager {
         try {
 //            serverManager.onStart();
 //            new BungeeProxyCreator().start();
-//            new LobbyPoolCreator().create();
 
-
+//            PoolResponse r = (PoolResponse) new ServerPoolCreator().create(Config.get(InfrastructureConfig.class).getLobbyPool());
+//            System.out.println(r.successful());
 //            serverManager.startCommandDispatcher();
+
+
+
 
         } finally {
             serverManager.onExit();

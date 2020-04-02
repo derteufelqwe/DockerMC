@@ -12,6 +12,7 @@ import java.util.List;
 public class InfrastructureConfig {
 
     public InfrastructureConfig() {
+        this.servers.add(new SingleServer());
     }
 
     // BungeeCord servers
@@ -24,12 +25,12 @@ public class InfrastructureConfig {
     private List<ServerPool> poolServers = new ArrayList<>();
 
     // Single servers
-    private List<MinecraftServer> servers = new ArrayList<>();
+    private List<SingleServer> servers = new ArrayList<>();
 
     // Multiple servers, persistent
     private List<PersistentServerPool> persistentServerPool = new ArrayList<>();
 
     // Single persistent server
-    private PersistentMinecraftServer persistentServers;
+    private PersistentSingleServer persistentServers;
 
 }

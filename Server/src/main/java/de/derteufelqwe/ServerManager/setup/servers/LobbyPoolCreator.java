@@ -4,6 +4,8 @@ import com.github.dockerjava.api.command.CreateServiceResponse;
 import com.github.dockerjava.api.model.*;
 import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.config.configs.objects.ServerPool;
+import de.derteufelqwe.ServerManager.setup.servers.responses.Response;
+import de.derteufelqwe.ServerManager.setup.servers.responses.ServerResponse;
 import de.derteufelqwe.commons.Constants;
 
 import java.util.ArrayList;
@@ -11,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 
+@Deprecated
 public class LobbyPoolCreator extends CreatorBase {
 
     public LobbyPoolCreator() {
@@ -18,10 +21,12 @@ public class LobbyPoolCreator extends CreatorBase {
     }
 
 
-    public void create() {
+    public Response create() {
         createContainer(this.config.getLobbyPool());
+        return null;
     }
 
+    @Deprecated
     private Response createContainer(ServerPool lobbyConfig) {
         String imageName = "registry.swarm/" + lobbyConfig.getImage();
         this.pullImage(imageName);
@@ -69,7 +74,7 @@ public class LobbyPoolCreator extends CreatorBase {
                 .withAuthConfig(this.authConfig)
                 .exec();
 
-        return new Response(serviceResponse.getId());
+        return new ServerResponse("");
     }
 
 }

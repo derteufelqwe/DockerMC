@@ -1,12 +1,11 @@
 package de.derteufelqwe.ServerManager.setup.servers;
 
 import com.github.dockerjava.api.command.CreateServiceResponse;
-import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.*;
-import de.derteufelqwe.ServerManager.Docker;
-import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.config.configs.objects.ServerPool;
+import de.derteufelqwe.ServerManager.setup.servers.responses.PoolResponse;
+import de.derteufelqwe.ServerManager.setup.servers.responses.Response;
 import de.derteufelqwe.commons.Constants;
 
 import java.util.ArrayList;
@@ -19,15 +18,23 @@ public class ServerPoolCreator extends CreatorBase {
         super();
     }
 
-    public void create() {
-        for (ServerPool pool : this.config.getPoolServers()) {
-            System.out.println("Creating Pool " + pool.getName() + ".");
-            createContainer(pool);
-        }
+    /**
+     * Creates the server pool.
+     * Can be called multiple times.
+     * @return A response object, which says if the deployment was successful
+     */
+    public Response create(ServerPool pool) {
+        System.out.println("Creating Pool " + pool.getName() + ".");
+        return createService(pool);
     }
 
-    private Response createContainer(ServerPool lobbyConfig) {
-        String imageName = "registry.swarm/" + lobbyConfig.getImage();
+    /**
+     * Creates the actual instance of the service
+     * @param poolConfig Configuration of the pool
+     * @return Response object, which holds information about the success
+     */
+    private Response createService(ServerPool poolConfig) {
+        String imageName = "registry.swarm/" + poolConfig.getImage();
         // this.pullImage(imageName);
 
         // Overnet network
@@ -36,7 +43,7 @@ public class ServerPoolCreator extends CreatorBase {
 
         // Normal labels + name of the server (for Task)
         Map<String, String> containerLabels = Utils.quickLabel(Constants.ContainerType.MINECRAFT);
-        containerLabels.put(Constants.SERVER_NAME_KEY, lobbyConfig.getName());
+        containerLabels.put(Constants.SERVER_NAME_KEY, poolConfig.getName());
 
         // Define the containers
         ContainerSpec containerSpec = new ContainerSpec()
@@ -44,9 +51,9 @@ public class ServerPoolCreator extends CreatorBase {
                 .withImage(imageName);
 
         // Limit the container usage
-        long nanoCpu = (long) (Double.parseDouble(lobbyConfig.getCpuLimit()) * 1000000000);
+        long nanoCpu = (long) (Double.parseDouble(poolConfig.getCpuLimit()) * 1000000000);
         ResourceSpecs resourceSpecs = new ResourceSpecs()
-                .withMemoryBytes(Utils.convertMemoryString(lobbyConfig.getRamLimit()))
+                .withMemoryBytes(Utils.convertMemoryString(poolConfig.getRamLimit()))
                 .withNanoCPUs(nanoCpu);
 
         // Specify the tasks
@@ -56,11 +63,11 @@ public class ServerPoolCreator extends CreatorBase {
 
         // Normal labels + name of the server (for Service)
         Map<String, String> serviceLabels = Utils.quickLabel(Constants.ContainerType.MINECRAFT_POOL);
-        serviceLabels.put(Constants.SERVER_NAME_KEY, lobbyConfig.getName());
+        serviceLabels.put(Constants.SERVER_NAME_KEY, poolConfig.getName());
 
         // Specify the number of replications
         ServiceModeConfig serviceModeConfig = new ServiceModeConfig().withReplicated(
-                new ServiceReplicatedModeOptions().withReplicas(lobbyConfig.getReplications()));
+                new ServiceReplicatedModeOptions().withReplicas(poolConfig.getReplications()));
 
         // Create the service
         ServiceSpec serviceSpec = new ServiceSpec()
@@ -73,7 +80,7 @@ public class ServerPoolCreator extends CreatorBase {
                 .withAuthConfig(this.authConfig)
                 .exec();
 
-        return new Response(serviceResponse.getId());
+        return new PoolResponse(serviceResponse.getId());
     }
 
 
