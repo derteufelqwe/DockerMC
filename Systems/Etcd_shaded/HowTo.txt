@@ -1,0 +1,17 @@
+1. Why a shaded version?
+BungeeCord uses Guava version 21 and IBMs etcd-java uses Guava 28.2. Since BungeeCord only loads this plugin only Guava
+21 is available at runtime. This obviously causes errors
+
+2. Solution
+Recompile etcd-java and shaded guava 28.2. This renames it so there are two versions of Guava but with different names
+
+3. Create patched version
+Clone https://github.com/IBM/etcd-java, add the content of plugin.xml to the build/plugins section and package the project.
+Note: You might need to remove the "-SNAPSHOT"-part of the version tag
+
+4. Install version
+Replace {version} with the version and execute the following maven command:
+install:install-file -Dfile=./target/etcd-{version}-shaded.jar -DgroupId=com.ibm.etcd -DartifactId=etcd-java -Dversion={version}-shaded -Dpackaging=jar -Dmaven.test.skip=true -DpomFile=pom.xml
+
+5. Use dependency
+Set the version of the dependency to {version}-shaded when including the patched jar

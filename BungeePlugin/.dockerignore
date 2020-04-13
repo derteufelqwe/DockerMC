@@ -1,0 +1,11 @@
+# IDE
+BungeePlugin.iml
+patchJar.bat
+pom.xml
+
+# Sources
+src/
+
+# Target
+target/classes/
+target/generated-sources/

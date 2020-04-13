@@ -1,25 +1,15 @@
 package de.derteufelqwe.ServerManager.config.configs.objects;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class ServerPool {
+@AllArgsConstructor
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+public class ServerPool extends ServerObjBase {
 
-    // Name prefix
-    private String name;
-    // Image
-    private String image;
-    // Amount of replicas
-    private int replications;
     // Soft playerlimit
     private int softPlayerLimit;
-    // RAM limit per task, like 2G or 512M
-    private String ramLimit;
-    // CPU limit per task like 1
-    private String cpuLimit;
 
 }

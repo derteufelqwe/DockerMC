@@ -1,18 +1,15 @@
 package de.derteufelqwe.ServerManager.config.configs.objects;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class BungeeProxy {
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+public class BungeeProxy extends ServerObjBase {
 
-    // Name of the Proxy. Currently irrelevant.
-    private String name;
-    // Imagename without registry.swarm
-    private String image;
     // Port of the proxy
     private int port;
 

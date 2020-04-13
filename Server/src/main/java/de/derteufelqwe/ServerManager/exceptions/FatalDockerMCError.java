@@ -3,7 +3,7 @@ package de.derteufelqwe.ServerManager.exceptions;
 /**
  * Thrown when the code can't handle certain events
  */
-public class FatalDockerMCError extends RuntimeException {
+public class FatalDockerMCError extends DockerMCException {
 
     public FatalDockerMCError() {
         super();
@@ -11,6 +11,10 @@ public class FatalDockerMCError extends RuntimeException {
 
     public FatalDockerMCError(String message) {
         super(message);
+    }
+
+    public FatalDockerMCError(String message, Object... args) {
+        super(message, args);
     }
 
     public FatalDockerMCError(String message, Throwable cause) {

@@ -3,10 +3,10 @@ package de.derteufelqwe.ServerManager;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.utils.Pair;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import de.derteufelqwe.commons.Constants;
@@ -64,6 +64,29 @@ public class Utils {
             default:
                 throw new FatalDockerMCError("The memory config " + memoryString + " is unknown.");
         }
+    }
+
+
+    public List<String> getHostIPAddresses() {
+        List<String> resList = new ArrayList<>();
+
+        try {
+            Enumeration e = NetworkInterface.getNetworkInterfaces();
+            while(e.hasMoreElements())
+            {
+                NetworkInterface n = (NetworkInterface) e.nextElement();
+                Enumeration ee = n.getInetAddresses();
+                while (ee.hasMoreElements())
+                {
+                    InetAddress i = (InetAddress) ee.nextElement();
+                    resList.add(i.getHostAddress());
+                }
+            }
+        } catch (SocketException ex) {
+            ex.printStackTrace();
+        }
+
+        return resList;
     }
 
 }

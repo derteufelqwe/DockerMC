@@ -19,7 +19,9 @@ RUN set -x \
 	&& adduser -u 1000 -D -S -G waterfall waterfall \
 	&& addgroup waterfall wheel
 
+ADD docker/waterfall.jar /server/waterfall.jar
 ADD docker/config.yml /server/config.yml
-ADD docker/Waterfall.jar /server/Waterfall.jar
+ADD docker/run-waterfall.sh /server/run-waterfall.sh
+ADD target/artifacts/BungeePlugin.jar /server/plugins/BungeePlugin.jar
 
-CMD ["/usr/bin/run-waterfall.sh"]
+CMD ["java", "-Xmx512M", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005", "-jar", "waterfall.jar"]

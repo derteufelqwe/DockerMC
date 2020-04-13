@@ -1,6 +1,7 @@
 package de.derteufelqwe.bungeeplugin;
 
 import com.google.common.collect.HashBiMap;
+import com.google.protobuf.ByteString;
 import de.derteufelqwe.commons.Constants;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
@@ -14,6 +15,7 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.Map;
 
 public class Utils {
@@ -57,6 +59,14 @@ public class Utils {
         }
 
         return null;
+    }
+
+    public static ByteString toBs(String input) {
+        return ByteString.copyFrom(input, Charset.defaultCharset());
+    }
+
+    public static String fromBs(ByteString input) {
+        return input.toString(Charset.defaultCharset());
     }
 
 }

@@ -7,8 +7,8 @@
     <artifactId>Commons</artifactId>
 
     <parent>
+        <groupId>de.derteufelqwe.ServerManager</groupId>
         <artifactId>ServerManager</artifactId>
-        <groupId>ServerManager</groupId>
         <version>1.0</version>
     </parent>
 

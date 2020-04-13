@@ -20,8 +20,8 @@ public class ContainerProcessor extends Thread {
     private ProxyServer proxy;
     private Event item;
 
-    public ContainerProcessor(Event item) {
-        this.docker = BungeePlugin.getDocker();
+    public ContainerProcessor(Event item, Docker docker) {
+        this.docker = docker;
         this.proxy = ProxyServer.getInstance();
         this.item = item;
     }

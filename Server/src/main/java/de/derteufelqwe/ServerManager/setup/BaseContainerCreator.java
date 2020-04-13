@@ -12,9 +12,12 @@ import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.commons.Constants;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -133,24 +136,37 @@ public class BaseContainerCreator {
         File srcBindLibConfig = new File(classLoader.getResource("templates/bind/lib").getFile());
         File destBindLibConfig = new File(Constants.DNS_WORKDIR_PATH + "/bind/lib");
 
+        InputStream srcSwarmEntrysSystem = classLoader.getResourceAsStream("templates/bind/lib/swarm.entrys_system");
+        File destSwarmEntrysSystem = new File(Constants.DNS_WORKDIR_PATH + "bind/lib/swarm.entrys_system");
+        InputStream srcSwarmEntrysUser = classLoader.getResourceAsStream("templates/bind/lib/swarm.entrys_user");
+        File destSwarmEntrysUser = new File(Constants.DNS_WORKDIR_PATH + "bind/lib/swarm.entrys_user");
+        InputStream srcSwarmHosts = classLoader.getResourceAsStream("templates/bind/lib/swarm.hosts");
+        File destSwarmHosts = new File(Constants.DNS_WORKDIR_PATH + "bind/lib/swarm.hosts");
+
+
         // etc files
-        File srcNamedConfLocal = new File(classLoader.getResource("templates/bind/etc/named.conf.local").getFile());
-        File srcNamedConfOptions = new File(classLoader.getResource("templates/bind/etc/named.conf.options").getFile());
+        InputStream srcNamedConfLocal = classLoader.getResourceAsStream("templates/bind/etc/named.conf.local");
         File destNamedConfLocal = new File(Constants.DNS_WORKDIR_PATH + "/bind/etc/named.conf.local");
+        InputStream srcNamedConfOptions = classLoader.getResourceAsStream("templates/bind/etc/named.conf.options");
         File destNamedConfOptions = new File(Constants.DNS_WORKDIR_PATH + "/bind/etc/named.conf.options");
 
 
         try {
-            FileUtils.copyDirectory(srcBindLibConfig, destBindLibConfig);
-            FileUtils.copyFile(srcNamedConfLocal, destNamedConfLocal);
-            FileUtils.copyFile(srcNamedConfOptions, destNamedConfOptions);
+//            FileUtils.copyDirectory(srcBindLibConfig, destBindLibConfig);
+//            FileUtils.copyFile(srcNamedConfLocal, destNamedConfLocal);
+//            FileUtils.copyFile(srcNamedConfOptions, destNamedConfOptions);
+            FileUtils.copyInputStreamToFile(srcSwarmEntrysSystem, destSwarmEntrysSystem);
+            FileUtils.copyInputStreamToFile(srcSwarmEntrysUser, destSwarmEntrysUser);
+            FileUtils.copyInputStreamToFile(srcSwarmHosts, destSwarmHosts);
+            FileUtils.copyInputStreamToFile(srcNamedConfLocal, destNamedConfLocal);
+            FileUtils.copyInputStreamToFile(srcNamedConfOptions, destNamedConfOptions);
 
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         try {
-            TimeUnit.SECONDS.sleep(3);  // Muss > 1 sein, da der Reload sonst fehlschlägt
+            TimeUnit.SECONDS.sleep(5);  // Muss > 1 sein, da der Reload sonst fehlschlägt
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

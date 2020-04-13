@@ -119,7 +119,7 @@ public class CertificatesGen implements Runnable {
         MainConfig cfg = Config.get(MainConfig.class);
         List<String> cmd = Arrays.asList("-Bbn", cfg.getRegistryUsername(), cfg.getRegistryPassword());
 
-        docker.pullImage(Constants.Images.REGISTRY.name());
+//        docker.pullImage(Constants.Images.REGISTRY.name());
 
         CreateContainerResponse container = docker.getDocker().createContainerCmd(Constants.Images.REGISTRY.image())
                 .withLabels(labels)

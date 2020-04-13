@@ -65,6 +65,11 @@ public class Constants {
     public static int SERVICE_STARTUP_TIME = 20;
     public static int LOG_FETCH_TIME = 20;
 
+    // -----  etcd  -----
+    public static String ETCD_CONTAINER_NAME = "etcd";
+    public static int ETCD_PORT = 2379;
+    public static String ETCD_KEY = "clients";
+
     // Values for the Tag CONTAINER_IDENTIFIER_KEY
     public enum ContainerType {
         REGISTRY,
@@ -76,7 +81,8 @@ public class Constants {
 
         BUNGEE,
         MINECRAFT,
-        MINECRAFT_POOL
+        MINECRAFT_POOL,
+        MINECRAFT_POOL_PERSISTENT
         ;
     }
 

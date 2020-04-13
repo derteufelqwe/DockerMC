@@ -10,6 +10,7 @@ public enum  FailureCause {
     NO_NODE,                // No suitable node found
     SERVICE_NOT_STARTED,    // Service failed to start
     SERVICE_ZERO_TASKS,     // A Service is configured with 0 Tasks
-    CONTAINER_STARTUP_FAIL  // Conainer(s) failed to start
+    CONTAINER_STARTUP_FAIL, // Conainer(s) failed to start
+    SERVICE_NOT_FOUND       // Service doesn't exist
     ;
 }

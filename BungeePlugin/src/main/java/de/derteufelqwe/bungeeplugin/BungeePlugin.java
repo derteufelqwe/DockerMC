@@ -3,8 +3,6 @@ package de.derteufelqwe.bungeeplugin;
 import lombok.Getter;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.scheduler.ScheduledTask;
-import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.Yaml;
 
 public final class BungeePlugin extends Plugin {
 
@@ -15,12 +13,15 @@ public final class BungeePlugin extends Plugin {
     @Override
     public void onEnable() {
         DockerSignalHandler.listenTo("TERM");
-        docker = new Docker();
 
         getProxy().getPluginManager().registerListener(this, new Events());
 
         System.out.println("Starting eventhandler");
-        this.dockerHandler = getProxy().getScheduler().runAsync(this, new DockerEventHandler());
+//        this.dockerHandler = getProxy().getScheduler().runAsync(this, new DockerEventHandler());
+        DockerPoolHandler dockerPoolHandler = new DockerPoolHandler();
+        dockerPoolHandler.start();
+
+        System.out.println("Started eventhandler.");
 
     }
 

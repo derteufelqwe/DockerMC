@@ -2,6 +2,7 @@ package de.derteufelqwe.ServerManager.setup.servers.responses;
 
 import com.github.dockerjava.api.model.Container;
 import de.derteufelqwe.ServerManager.Utils;
+import de.derteufelqwe.ServerManager.config.configs.objects.ServerObjBase;
 import de.derteufelqwe.ServerManager.exceptions.TimeoutException;
 import de.derteufelqwe.commons.Constants;
 
@@ -14,19 +15,23 @@ import java.util.Map;
  */
 public class PoolResponse extends Response {
 
-    private List<Container> failedContainers = new ArrayList<>();
 
-
-    public PoolResponse(String containerID) {
-        super(containerID);
+    public PoolResponse(String containerID, ServerObjBase configObj) {
+        super(containerID, configObj);
     }
 
     @Override
     public boolean successful() {
         this.failedContainers.clear();
-        this.failureCause = FailureCause.NOT_FAILED;
+        this.failureCause = null;
         Map<String, String> labels = Utils.quickLabel(Constants.ContainerType.MINECRAFT);
         labels.put("com.docker.swarm.service.id", this.objectID);
+
+        // ServiceId is null or ""
+        if (this.objectID == null || this.objectID.equals("")) {
+            this.failureCause = FailureCause.SERVICE_NOT_FOUND;
+            return false;
+        }
 
         // Wait for service to spawn its tasks
         try {
@@ -50,6 +55,7 @@ public class PoolResponse extends Response {
         for (Container container : containers) {
             if (!this.checkSingleSuccessful(container)) {
                 this.failedContainers.add(container);
+                this.failureCause = FailureCause.CONTAINER_STARTUP_FAIL;
             }
         }
 
@@ -72,12 +78,6 @@ public class PoolResponse extends Response {
         return container.getState().equals("running");
     }
 
-    /**
-     * Returns a list of all containers that failed to start
-     */
-    public List<Container> getFailedContainers() {
-        return new ArrayList<>(this.failedContainers);
-    }
 
     @Override
     public String getLogs() {

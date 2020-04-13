@@ -6,14 +6,12 @@
 
     <groupId>BungeePlugin</groupId>
     <artifactId>BungeePlugin</artifactId>
-    <version>1.0</version>
-    <packaging>jar</packaging>
 
     <name>BungeePlugin</name>
 
     <parent>
+        <groupId>de.derteufelqwe.ServerManager</groupId>
         <artifactId>ServerManager</artifactId>
-        <groupId>ServerManager</groupId>
         <version>1.0</version>
     </parent>
 
@@ -89,7 +87,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>ServerManager</groupId>
+            <groupId>de.derteufelqwe.ServerManager</groupId>
             <artifactId>Commons</artifactId>
             <version>1.0</version>
         </dependency>
@@ -112,6 +110,13 @@
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <version>1.25</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.ibm.etcd/etcd-java -->
+        <dependency>
+            <groupId>com.ibm.etcd</groupId>
+            <artifactId>etcd-java</artifactId>
+            <version>0.0.15-shaded</version>
         </dependency>
 
     </dependencies>

@@ -1,0 +1,9 @@
+
+src/
+target/classes/
+target/generated-sources/
+target/generated-test-sources/
+target/test-classes/
+server/
+.dockerignore
+pom.xml

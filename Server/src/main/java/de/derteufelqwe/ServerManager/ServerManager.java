@@ -1,22 +1,38 @@
 package de.derteufelqwe.ServerManager;
 
-import com.github.dockerjava.api.model.Service;
+import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.model.*;
 import de.derteufelqwe.ServerManager.commands.*;
 import de.derteufelqwe.ServerManager.config.Config;
 import de.derteufelqwe.ServerManager.config.configs.InfrastructureConfig;
 import de.derteufelqwe.ServerManager.config.configs.MainConfig;
 import de.derteufelqwe.ServerManager.config.configs.RunningConfig;
+import de.derteufelqwe.ServerManager.config.configs.objects.BungeeProxy;
+import de.derteufelqwe.ServerManager.config.configs.objects.PersistentServerPool;
+import de.derteufelqwe.ServerManager.config.configs.objects.ServerPool;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.setup.BaseContainerCreator;
 import de.derteufelqwe.ServerManager.setup.CertificateCreator;
+import de.derteufelqwe.ServerManager.setup.MCServerCreator;
+import de.derteufelqwe.ServerManager.setup.servers.BungeeProxyCreator;
+import de.derteufelqwe.ServerManager.setup.servers.MCServerDestroyer;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPoolCreator;
+import de.derteufelqwe.ServerManager.setup.servers.responses.BungeeResponse;
 import de.derteufelqwe.ServerManager.setup.servers.responses.PoolResponse;
 import de.derteufelqwe.commons.Constants;
 import lombok.Getter;
+import org.bouncycastle.pqc.jcajce.provider.McEliece;
 import picocli.CommandLine;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class ServerManager {
 
@@ -29,8 +45,6 @@ public class ServerManager {
 
     @Getter
     private static Docker docker = new Docker();
-    @Getter
-    private static Logger logger = new Logger();
 
 
     public ServerManager() {
@@ -48,6 +62,7 @@ public class ServerManager {
 
 
     public void onExit() throws Exception {
+        System.out.println("Saving config...");
         Config.saveAll();
 
         // Required for Docker-Java to fully quit the execution. Will block otherwise.
@@ -59,8 +74,8 @@ public class ServerManager {
      * Checks if the required infrastructure exist and creates it if necessary.
      */
     private boolean checkAndCreateInfrastructure() {
-        BaseContainerCreator validator = new BaseContainerCreator();
-        CertificateCreator creator = new CertificateCreator();
+        BaseContainerCreator creator = new BaseContainerCreator();
+        CertificateCreator certCreator = new CertificateCreator();
         boolean removeOldDns = true;
         boolean createProxyCerts = false;
         int serviceCount = 8;
@@ -69,9 +84,9 @@ public class ServerManager {
         System.out.println("Checking and setting up infrastructure...");
 
         // 1 - Overnet network
-        if (!validator.findNetworkOvernet()) {
+        if (!creator.findNetworkOvernet()) {
             System.out.println(String.format("Failed to find network %s. Creating it...", Constants.NETW_OVERNET_NAME));
-            if (validator.createNetworkOvernet()) {
+            if (creator.createNetworkOvernet()) {
                 System.out.println(String.format("Successfully created network %s.", Constants.NETW_OVERNET_NAME));
 
             } else {
@@ -83,9 +98,9 @@ public class ServerManager {
         }
 
         // 2 - API_net network
-        if (!validator.findNetworkApiNet()) {
+        if (!creator.findNetworkApiNet()) {
             System.out.println(String.format("Failed to find network %s. Creating it...", Constants.NETW_API_NAME));
-            if (validator.createNetworkApiNet()) {
+            if (creator.createNetworkApiNet()) {
                 System.out.println(String.format("Successfully created network %s.", Constants.NETW_API_NAME));
 
             } else {
@@ -97,15 +112,16 @@ public class ServerManager {
         }
 
         // 3 - API-proxy certificates
-        if (!creator.findAPIProxyCerts()) {
+        if (!certCreator.findAPIProxyCerts()) {
             System.out.println("Couldn't find required certificates for the API-proxy. Generating them...");
-            creator.generateAPIProxyCerts(false);
+            String containerID = certCreator.generateAPIProxyCerts(false);
 
-            if (creator.findAPIProxyCerts()) {
+            if (certCreator.findAPIProxyCerts()) {
                 System.out.println("Successfully generated the certificates for the API-proxy.");
 
             } else {
                 System.err.println("Failed to create the API-proxy certificates.");
+                System.out.println(docker.getContainerLog(containerID));
                 failedSetups++;
             }
         } else {
@@ -113,9 +129,9 @@ public class ServerManager {
         }
 
         // 4 - API-proxy container
-        if (!validator.findAPIProxy()) {
+        if (!creator.findAPIProxy()) {
             System.out.println("Failed to find API-proxy container. Creating it...");
-            if (validator.createAPIProxy(createProxyCerts)) {
+            if (creator.createAPIProxy(createProxyCerts)) {
                 System.out.println("Successfully created API-proxy container.");
 
             } else {
@@ -127,9 +143,9 @@ public class ServerManager {
         }
 
         // 5 - DNS container
-        if (!validator.findDns()) {
+        if (!creator.findDns()) {
             System.out.println("Failed to find DNS container. Creating it...");
-            if (validator.createDns(removeOldDns)) {
+            if (creator.createDns(removeOldDns)) {
                 System.out.println("Successfully created DNS container.");
 
             } else {
@@ -141,11 +157,11 @@ public class ServerManager {
         }
 
         // 6 - Registry certificates
-        if (!creator.findRegistryCerts()) {
+        if (!certCreator.findRegistryCerts()) {
             System.out.println("Couldn't find required certificates for the registry. Creating them...");
-            creator.generateRegistryCerts(false);
+            certCreator.generateRegistryCerts(false);
 
-            if (creator.findRegistryCerts()) {
+            if (certCreator.findRegistryCerts()) {
                 System.out.println("Successfully generated the required certificates for the registry.");
 
             } else {
@@ -157,9 +173,9 @@ public class ServerManager {
         }
 
         // 7 - Registry container
-        if (!validator.findRegistry()) {
+        if (!creator.findRegistry()) {
             System.out.println("Failed to find Registry container. Creating it...");
-            if (validator.createRegistry()) {
+            if (creator.createRegistry()) {
                 System.out.println("Successfully created Registry container.");
 
             } else {
@@ -171,9 +187,9 @@ public class ServerManager {
         }
 
         // 8 - Config webserver
-        if (!validator.findConfigWebserver()) {
+        if (!creator.findConfigWebserver()) {
             System.out.println("Failed to find Config webserver container. Creating it...");
-            if (validator.createConfigWebserver()) {
+            if (creator.createConfigWebserver()) {
                 System.out.println("Successfully created config webserver container.");
 
             } else {
@@ -190,6 +206,91 @@ public class ServerManager {
             System.err.println(String.format("%s services failed to start. Fix the errors before you proceed.", failedSetups));
 
         return failedSetups == 0;
+    }
+
+    /**
+     * ToDo: Save logs when logger is added
+     * Creates all the servers specified in the InfrastructureConfig.yml.
+     * @return Successfully created all server or not
+     */
+    private boolean checkAndCreateMCServers() {
+        MCServerCreator creator = new MCServerCreator();
+        int successfulStarts = 0;
+        int failedStarts = 0;
+
+
+        // 1 - Bungee Proxy
+        List<BungeeResponse> proxyResponse = creator.createBungeeProxy();
+        for (BungeeResponse response : proxyResponse) {
+            if (response.getConfig() == null) {
+                failedStarts++;
+
+            } else if (!response.successful()) {
+                BungeeProxy cfg = (BungeeProxy) response.getConfig();
+                System.err.println(String.format("Failed to create service %s for proxy server %s with %s.",
+                        response.getObjectID(), cfg.getName(), response.getCause()));
+//                System.out.println("Log: " + response.getLogs());
+                System.out.println("Failed containers: " + response.getFailedContainers().stream().map(Container::getId).collect(Collectors.joining(", ")));
+
+                failedStarts++;
+
+            } else {
+                try {
+                    // Wait so the bungeecord proxy can actually start
+                    TimeUnit.SECONDS.sleep(20);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                successfulStarts++;
+            }
+        }
+
+
+        // 2 - Lobby Pool
+        List<PoolResponse> lobbyResponse = creator.createLobbyServers();
+        for (PoolResponse response : lobbyResponse) {
+            if (response.getConfig() == null) {
+                failedStarts++;
+
+            } else if (!response.successful()) {
+                ServerPool cfg = (ServerPool) response.getConfig();
+                System.err.println(String.format("Failed to create service %s for lobby server %s with %s.",
+                        response.getObjectID(), cfg.getName(), response.getCause()));
+//                System.out.println("Log: " + response.getLogs());
+                System.out.println("Failed containers: " + response.getFailedContainers().stream().map(Container::getId).collect(Collectors.joining(", ")));
+
+                failedStarts++;
+
+            } else {
+                successfulStarts++;
+            }
+        }
+
+
+        // 3 - Pool servers
+        List<PoolResponse> poolResponses = creator.createPoolServers();
+        for (PoolResponse response : lobbyResponse) {
+            if (response.getConfig() == null) {
+                failedStarts++;
+
+            } else if (!response.successful()) {
+                ServerPool cfg = (ServerPool) response.getConfig();
+                System.err.println(String.format("Failed to create service %s for pool server %s with %s.",
+                        response.getObjectID(), cfg.getName(), response.getCause()));
+//                System.out.println("Log: " + response.getLogs());
+                System.out.println("Failed containers: " + response.getFailedContainers().stream().map(Container::getId).collect(Collectors.joining(", ")));
+
+                failedStarts++;
+
+            } else {
+                successfulStarts++;
+            }
+        }
+
+
+        System.out.println(String.format("Successfully started %s / %s services.", successfulStarts, successfulStarts + failedStarts));
+
+        return failedStarts == 0 && successfulStarts > 0;
     }
 
 
@@ -263,19 +364,30 @@ public class ServerManager {
     }
 
 
+    private void killServices() {
+        MCServerDestroyer destroyer = new MCServerDestroyer();
+        System.out.println(destroyer.destroy("Lobby"));
+        System.out.println(destroyer.destroy("Build"));
+        System.out.println(destroyer.destroy("Creative"));
+        System.out.println(destroyer.destroy("Test"));
+    }
+
+
     public static void main(String[] args) throws Exception {
         ServerManager serverManager = new ServerManager();
 
         try {
 //            serverManager.onStart();
-//            new BungeeProxyCreator().start();
+//            serverManager.checkAndCreateMCServers();
 
-//            PoolResponse r = (PoolResponse) new ServerPoolCreator().create(Config.get(InfrastructureConfig.class).getLobbyPool());
-//            System.out.println(r.successful());
+
+            Service service = docker.getDocker().inspectServiceCmd("7a6g4c07bh8d").exec();
+            List<Container> container = docker.getDocker().listContainersCmd().exec();
+            Network network = docker.getDocker().inspectNetworkCmd().withNetworkId("omf7losexi8v").exec();
+
+            System.out.println("s");
+
 //            serverManager.startCommandDispatcher();
-
-
-
 
         } finally {
             serverManager.onExit();

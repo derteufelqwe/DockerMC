@@ -12,12 +12,15 @@ public class Docker {
 
     @Getter
     private DockerClient docker;
+    @Getter
+    private String host;
+    @Getter
+    private int port;
 
-    public Docker() {
-
-//        setupDocker("tcp", "localhost", "2375");
-//        setupDocker("tcp", "host.docker.internal", "2375");
-        setupDocker("tcp", Constants.APIPROXY_CONTAINER_NAME, "443");
+    public Docker(String host, int port) {
+        this.host = host;
+        this.port = port;
+        this.setupDocker("tcp", host, Integer.toString(port));
     }
 
     private void setupDocker(String protocol, String host, String port) {
@@ -25,8 +28,8 @@ public class Docker {
         DockerClientConfig dockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
                 .withDockerHost(String.format("%s://%s:%s", protocol, host, port))
                 .withApiVersion("1.40")
-                .withDockerTlsVerify(true)
-                .withDockerCertPath("/certs")
+                .withDockerTlsVerify(false)
+//                .withDockerCertPath("/certs")
                 .build();
 
         docker = DockerClientImpl.getInstance(dockerClientConfig)

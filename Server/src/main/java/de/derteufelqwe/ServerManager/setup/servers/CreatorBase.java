@@ -22,6 +22,7 @@ public abstract class CreatorBase {
 
     private List<String> pulledImages = new ArrayList<>();
 
+
     protected CreatorBase() {
         this.docker = ServerManager.getDocker();
         this.config = Config.get(InfrastructureConfig.class);
@@ -34,7 +35,7 @@ public abstract class CreatorBase {
 
     protected void pullImage(String imageName) {
         if (!this.pulledImages.contains(imageName)) {
-            docker.pullImage(imageName);
+//            docker.pullImage(imageName);
             this.pulledImages.add(imageName);
         }
     }
