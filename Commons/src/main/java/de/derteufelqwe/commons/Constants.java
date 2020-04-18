@@ -80,6 +80,7 @@ public class Constants {
         CONFIG_WEBSERVER,
 
         BUNGEE,
+        BUNGEE_POOL,
         MINECRAFT,
         MINECRAFT_POOL,
         MINECRAFT_POOL_PERSISTENT

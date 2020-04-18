@@ -37,9 +37,7 @@ public class Config {
         options.setPrettyFlow(true);
         options.setIndent(2);
 
-        CustomPropertyUtils customPropertyUtils = new CustomPropertyUtils();
         MyRepresenter customRepresenter = new MyRepresenter();
-        customRepresenter.setPropertyUtils(customPropertyUtils);
 
         return new CommentsYAML(customRepresenter, options);
     }

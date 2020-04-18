@@ -7,9 +7,28 @@ import lombok.*;
 @AllArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class PersistentServerPool extends ServerObjBase {
+public class PersistentServerPool extends ServerBase {
 
     // Soft playerlimit
     private int softPlayerLimit;
 
+    @Override
+    public ValidationResponse valid() {
+        return null;
+    }
+
+    @Override
+    public FindResponse find() {
+        return null;
+    }
+
+    @Override
+    public CreateResponse create() {
+        return null;
+    }
+
+    @Override
+    public DestroyResponse destroy() {
+        return null;
+    }
 }

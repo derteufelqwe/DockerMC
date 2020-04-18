@@ -3,7 +3,6 @@ package de.derteufelqwe.ServerManager.config.configs;
 import de.derteufelqwe.ServerManager.config.configs.objects.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +15,7 @@ public class InfrastructureConfig {
     }
 
     // BungeeCord servers
-    private BungeeProxy proxy;
+    private BungeePool bungeePool;
 
     // Lobby server
     private ServerPool lobbyPool;

@@ -13,15 +13,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class ServerPool extends ServerBase {
+public class BungeePool extends ServerBase {
 
-    // Soft playerlimit
-    private int softPlayerLimit;
+    // Port of the proxy
+    private int port;
 
 
     @Override
@@ -29,8 +30,8 @@ public class ServerPool extends ServerBase {
         ValidationResponse response = new ValidationResponse(true, this.name, "");
         List<String> nullParams = this.validateParamsNotNull();
 
-        if (this.softPlayerLimit == 0) {
-            nullParams.add("softPlayerLimit");
+        if (this.port == 0) {
+            nullParams.add("port");
         }
 
         if (nullParams.size() != 0) {
@@ -94,10 +95,11 @@ public class ServerPool extends ServerBase {
         return new ServerBase.DestroyResponse(false, null);
     }
 
+    // -----  Utility methods  -----
 
     @Override
     protected Map<String, String> getContainerLabels() {
-        Map<String, String> containerLabels = Utils.quickLabel(Constants.ContainerType.MINECRAFT);
+        Map<String, String> containerLabels = Utils.quickLabel(Constants.ContainerType.BUNGEE);
         containerLabels.put(Constants.SERVER_NAME_KEY, this.name);
 
         return containerLabels;
@@ -105,9 +107,38 @@ public class ServerPool extends ServerBase {
 
     @Override
     protected Map<String, String> getServiceLabels() {
-        Map<String, String> serviceLabels = Utils.quickLabel(Constants.ContainerType.MINECRAFT_POOL);
+        Map<String, String> serviceLabels = Utils.quickLabel(Constants.ContainerType.BUNGEE_POOL);
         serviceLabels.put(Constants.SERVER_NAME_KEY, this.name);
 
         return serviceLabels;
     }
+
+    private List<PortConfig> getPortConfigs() {
+        List<PortConfig> portList = new ArrayList<>();
+
+        portList.add(
+                new PortConfig().withProtocol(PortConfigProtocol.TCP)
+                        .withPublishedPort(this.port)
+                        .withTargetPort(25577)
+        );
+
+        return portList;
+    }
+
+    private EndpointSpec getEndpointSpec() {
+
+        EndpointSpec endpointSpec = new EndpointSpec()
+                .withPorts(this.getPortConfigs());
+
+        return endpointSpec;
+    }
+
+    @Override
+    protected ServiceSpec getServiceSpec() {
+        ServiceSpec serviceSpec = super.getServiceSpec()
+                .withEndpointSpec(this.getEndpointSpec());
+
+        return serviceSpec;
+    }
+
 }
