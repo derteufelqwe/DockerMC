@@ -1,10 +1,8 @@
-FROM ubuntu:trusty
-LABEL version=14
+FROM nginx
+LABEL version=1
 
-COPY startup.sh startup.sh
+EXPOSE 25577
 
-RUN chmod +x startup.sh
+COPY nginx.conf /etc/nginx/nginx.conf
 
-ENTRYPOINT ["/startup.sh"]
-
-CMD ["/bin/bash"]
+CMD ["nginx", "-g", "daemon off;"]

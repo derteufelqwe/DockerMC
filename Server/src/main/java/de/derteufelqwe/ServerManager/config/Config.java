@@ -2,6 +2,7 @@ package de.derteufelqwe.ServerManager.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import de.derteufelqwe.commons.Constants;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -37,7 +38,7 @@ public class Config {
         options.setIndent(2);
 
         CustomPropertyUtils customPropertyUtils = new CustomPropertyUtils();
-        Representer customRepresenter = new Representer();
+        MyRepresenter customRepresenter = new MyRepresenter();
         customRepresenter.setPropertyUtils(customPropertyUtils);
 
         return new CommentsYAML(customRepresenter, options);

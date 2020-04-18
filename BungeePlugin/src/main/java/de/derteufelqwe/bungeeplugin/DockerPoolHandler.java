@@ -38,9 +38,9 @@ public class DockerPoolHandler extends Thread {
     @SneakyThrows
     @Override
     public void run() {
-        getExistingEntrys();
+        this.getExistingEntrys();
 
-        startWatch();
+        this.startWatch();
 
         // Prevents this thread from exiting because the watch is async
         while (true) {

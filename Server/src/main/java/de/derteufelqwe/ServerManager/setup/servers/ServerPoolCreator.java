@@ -82,7 +82,8 @@ public class ServerPoolCreator extends CreatorBase {
                 .withAuthConfig(this.authConfig)
                 .exec();
 
-        return new PoolResponse(serviceResponse.getId(), poolConfig);
+//        return new PoolResponse(serviceResponse.getId(), poolConfig);
+        return null;
     }
 
 

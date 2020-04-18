@@ -30,5 +30,7 @@ public class DockerSignalHandler implements SignalHandler {
 
             ProxyServer.getInstance().stop("Externally forced shutdown");
         }
+
+        ProxyServer.getInstance().stop("Emergency shutdown.");
     }
 }

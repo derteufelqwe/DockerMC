@@ -16,9 +16,22 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.Map;
 
 public class Utils {
+
+    /**
+     * Creates the labels required for container identification.
+     * @return
+     */
+    public static Map<String, String> quickLabel(Constants.ContainerType containerType) {
+        Map<String, String> labelsMap = new HashMap<>();
+        labelsMap.put(Constants.DOCKER_IDENTIFIER_KEY, Constants.DOCKER_IDENTIFIER_VALUE);
+        labelsMap.put(Constants.CONTAINER_IDENTIFIER_KEY, containerType.name());
+
+        return labelsMap;
+    }
 
     public static Map<String, ServerInfo> getServers() {
         Map<String, ServerInfo> serverMap = HashBiMap.create();

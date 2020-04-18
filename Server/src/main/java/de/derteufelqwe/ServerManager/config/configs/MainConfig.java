@@ -1,5 +1,7 @@
 package de.derteufelqwe.ServerManager.config.configs;
 
+import com.google.gson.annotations.Expose;
+import de.derteufelqwe.ServerManager.config.Ignore;
 import de.derteufelqwe.ServerManager.config.YAMLComment;
 import de.derteufelqwe.ServerManager.config.configs.objects.CertificateCfg;
 import lombok.Data;

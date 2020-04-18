@@ -1,6 +1,7 @@
 package de.derteufelqwe.bungeeplugin;
 
 import com.github.dockerjava.api.async.ResultCallback;
+import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Event;
 import com.github.dockerjava.api.model.EventType;
 import com.github.dockerjava.core.command.EventsResultCallback;
@@ -9,6 +10,7 @@ import net.md_5.bungee.api.ProxyServer;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 public class DockerEventHandler extends Thread {
@@ -41,7 +43,7 @@ public class DockerEventHandler extends Thread {
 
             @Override
             public void onComplete() {
-
+                System.out.println("Complete");
             }
 
             @Override
@@ -51,6 +53,7 @@ public class DockerEventHandler extends Thread {
 
             @Override
             public void onNext(Event item) {
+                System.out.println("Event: Event");
                 if (item.getType() == EventType.CONTAINER) {
                     Map<String, String> attribs = item.getActor().getAttributes();
 
@@ -61,7 +64,7 @@ public class DockerEventHandler extends Thread {
 
                             // Add the servers in a new Thread to prevent
                             // 'io.netty.util.concurrent.BlockingOperationException: DefaultChannelPromise(incomplete)'
-                            ContainerProcessor processor = new ContainerProcessor(item, docker);
+                            ContainerProcessor processor = new ContainerProcessor(docker, item);
                             processor.start();
                         }
                     }
@@ -70,6 +73,22 @@ public class DockerEventHandler extends Thread {
         };
 
         this.docker.getDocker().eventsCmd().exec(callback);
+        this.findExistingContainers();
+    }
+
+    private void findExistingContainers() {
+        List<Container> containers = this.docker.getDocker().listContainersCmd()
+                .withLabelFilter(Utils.quickLabel(Constants.ContainerType.MINECRAFT))
+                .exec();
+
+        System.out.println("Found " + containers.size() + " running minecraft servers...");
+
+        for (Container container : containers) {
+            ContainerProcessor processor = new ContainerProcessor(docker, container);
+            processor.start();
+        }
+
+        System.out.println("Added " + containers.size() + " servers to BungeeCord.");
     }
 
     @Override

@@ -26,10 +26,13 @@ public class Events implements Listener {
     private Integer lobbySoftPlayerLimit;
 
     public Events() {
-        Map<String, Object> config = Utils.requestConfigFile(Constants.Configs.INFRASTRUCTURE);
-        Map<String, String> lobbyconfig = (Map<String, String>) config.get("lobbyPool");
-        this.lobbyServerName = lobbyconfig.get("name");
-        this.lobbySoftPlayerLimit = (Integer) (Object) lobbyconfig.get("softPlayerLimit");
+        // ToDo: Comment in or refactor
+//        Map<String, Object> config = Utils.requestConfigFile(Constants.Configs.INFRASTRUCTURE);
+//        Map<String, String> lobbyconfig = (Map<String, String>) config.get("lobbyPool");
+//        this.lobbyServerName = lobbyconfig.get("name");
+//        this.lobbySoftPlayerLimit = (Integer) (Object) lobbyconfig.get("softPlayerLimit");
+        this.lobbyServerName = "Lobby";
+        this.lobbySoftPlayerLimit = 2;
     }
 
     /**
@@ -37,7 +40,7 @@ public class Events implements Listener {
      */
     @EventHandler
     public void playerConnect(ServerConnectEvent event) {
-
+        System.out.println("Connect");
         if (event.getReason() == ServerConnectEvent.Reason.JOIN_PROXY) {
             List<ServerInfo> servers = Utils.getServers().values().stream()
                     .filter(s -> s.getName().startsWith(this.lobbyServerName))

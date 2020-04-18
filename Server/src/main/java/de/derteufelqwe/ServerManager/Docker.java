@@ -42,19 +42,24 @@ public class Docker {
     private DockerClient docker;
 
     public Docker() {
+        this(Config.get(MainConfig.class));
+    }
+
+    public Docker(MainConfig mainConfig) {
+        this(mainConfig.getDockerProtocol(), mainConfig.getDockerIP(), mainConfig.getDockerPort());
+    }
+
+    public Docker(String protocol, String host, int port) {
         MainConfig mainConfig = Config.get(MainConfig.class);
         DockerClientConfig dockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
-                .withDockerHost(String.format("%s://%s:%s", mainConfig.getDockerProtocol(), mainConfig.getDockerIP(), mainConfig.getDockerPort()))
+                .withDockerHost(String.format("%s://%s:%s", protocol, host, Integer.toString(port)))
                 .withDockerTlsVerify(mainConfig.isUseTLSVerify())
                 .withApiVersion(mainConfig.getAPIVersion())
                 .build();
 
         docker = DockerClientImpl.getInstance(dockerClientConfig)
                 .withDockerCmdExecFactory(new NettyDockerCmdExecFactory());
-
-
     }
-
 
     /**
      * Short version for the docker exec command.

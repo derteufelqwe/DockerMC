@@ -1,38 +1,20 @@
 package de.derteufelqwe.ServerManager;
 
-import com.github.dockerjava.api.command.CreateContainerResponse;
-import com.github.dockerjava.api.model.*;
 import de.derteufelqwe.ServerManager.commands.*;
 import de.derteufelqwe.ServerManager.config.Config;
 import de.derteufelqwe.ServerManager.config.configs.InfrastructureConfig;
 import de.derteufelqwe.ServerManager.config.configs.MainConfig;
 import de.derteufelqwe.ServerManager.config.configs.RunningConfig;
-import de.derteufelqwe.ServerManager.config.configs.objects.BungeeProxy;
-import de.derteufelqwe.ServerManager.config.configs.objects.PersistentServerPool;
-import de.derteufelqwe.ServerManager.config.configs.objects.ServerPool;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.setup.BaseContainerCreator;
 import de.derteufelqwe.ServerManager.setup.CertificateCreator;
-import de.derteufelqwe.ServerManager.setup.MCServerCreator;
-import de.derteufelqwe.ServerManager.setup.servers.BungeeProxyCreator;
 import de.derteufelqwe.ServerManager.setup.servers.MCServerDestroyer;
-import de.derteufelqwe.ServerManager.setup.servers.ServerPoolCreator;
-import de.derteufelqwe.ServerManager.setup.servers.responses.BungeeResponse;
-import de.derteufelqwe.ServerManager.setup.servers.responses.PoolResponse;
 import de.derteufelqwe.commons.Constants;
 import lombok.Getter;
-import org.bouncycastle.pqc.jcajce.provider.McEliece;
 import picocli.CommandLine;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 public class ServerManager {
 
@@ -44,7 +26,7 @@ public class ServerManager {
     }
 
     @Getter
-    private static Docker docker = new Docker();
+    private static Docker docker = new Docker("tcp", "192.168.178.28", 2375);
 
 
     public ServerManager() {
@@ -213,85 +195,85 @@ public class ServerManager {
      * Creates all the servers specified in the InfrastructureConfig.yml.
      * @return Successfully created all server or not
      */
-    private boolean checkAndCreateMCServers() {
-        MCServerCreator creator = new MCServerCreator();
-        int successfulStarts = 0;
-        int failedStarts = 0;
-
-
-        // 1 - Bungee Proxy
-        List<BungeeResponse> proxyResponse = creator.createBungeeProxy();
-        for (BungeeResponse response : proxyResponse) {
-            if (response.getConfig() == null) {
-                failedStarts++;
-
-            } else if (!response.successful()) {
-                BungeeProxy cfg = (BungeeProxy) response.getConfig();
-                System.err.println(String.format("Failed to create service %s for proxy server %s with %s.",
-                        response.getObjectID(), cfg.getName(), response.getCause()));
-//                System.out.println("Log: " + response.getLogs());
-                System.out.println("Failed containers: " + response.getFailedContainers().stream().map(Container::getId).collect(Collectors.joining(", ")));
-
-                failedStarts++;
-
-            } else {
-                try {
-                    // Wait so the bungeecord proxy can actually start
-                    TimeUnit.SECONDS.sleep(20);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                successfulStarts++;
-            }
-        }
-
-
-        // 2 - Lobby Pool
-        List<PoolResponse> lobbyResponse = creator.createLobbyServers();
-        for (PoolResponse response : lobbyResponse) {
-            if (response.getConfig() == null) {
-                failedStarts++;
-
-            } else if (!response.successful()) {
-                ServerPool cfg = (ServerPool) response.getConfig();
-                System.err.println(String.format("Failed to create service %s for lobby server %s with %s.",
-                        response.getObjectID(), cfg.getName(), response.getCause()));
-//                System.out.println("Log: " + response.getLogs());
-                System.out.println("Failed containers: " + response.getFailedContainers().stream().map(Container::getId).collect(Collectors.joining(", ")));
-
-                failedStarts++;
-
-            } else {
-                successfulStarts++;
-            }
-        }
-
-
-        // 3 - Pool servers
-        List<PoolResponse> poolResponses = creator.createPoolServers();
-        for (PoolResponse response : lobbyResponse) {
-            if (response.getConfig() == null) {
-                failedStarts++;
-
-            } else if (!response.successful()) {
-                ServerPool cfg = (ServerPool) response.getConfig();
-                System.err.println(String.format("Failed to create service %s for pool server %s with %s.",
-                        response.getObjectID(), cfg.getName(), response.getCause()));
-//                System.out.println("Log: " + response.getLogs());
-                System.out.println("Failed containers: " + response.getFailedContainers().stream().map(Container::getId).collect(Collectors.joining(", ")));
-
-                failedStarts++;
-
-            } else {
-                successfulStarts++;
-            }
-        }
-
-
-        System.out.println(String.format("Successfully started %s / %s services.", successfulStarts, successfulStarts + failedStarts));
-
-        return failedStarts == 0 && successfulStarts > 0;
-    }
+//    private boolean checkAndCreateMCServers() {
+//        MCServerCreator creator = new MCServerCreator();
+//        int successfulStarts = 0;
+//        int failedStarts = 0;
+//
+//
+//        // 1 - Bungee Proxy
+//        List<BungeeResponse> proxyResponse = creator.createBungeeProxy();
+//        for (BungeeResponse response : proxyResponse) {
+//            if (response.getConfig() == null) {
+//                failedStarts++;
+//
+//            } else if (!response.successful()) {
+//                BungeeProxy cfg = (BungeeProxy) response.getConfig();
+//                System.err.println(String.format("Failed to create service %s for proxy server %s with %s.",
+//                        response.getObjectID(), cfg.getName(), response.getCause()));
+////                System.out.println("Log: " + response.getLogs());
+//                System.out.println("Failed containers: " + response.getFailedContainers().stream().map(Container::getId).collect(Collectors.joining(", ")));
+//
+//                failedStarts++;
+//
+//            } else {
+//                try {
+//                    // Wait so the bungeecord proxy can actually start
+//                    TimeUnit.SECONDS.sleep(20);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//                successfulStarts++;
+//            }
+//        }
+//
+//
+//        // 2 - Lobby Pool
+//        List<PoolResponse> lobbyResponse = creator.createLobbyServers();
+//        for (PoolResponse response : lobbyResponse) {
+//            if (response.getConfig() == null) {
+//                failedStarts++;
+//
+//            } else if (!response.successful()) {
+//                ServerPool cfg = (ServerPool) response.getConfig();
+//                System.err.println(String.format("Failed to create service %s for lobby server %s with %s.",
+//                        response.getObjectID(), cfg.getName(), response.getCause()));
+////                System.out.println("Log: " + response.getLogs());
+//                System.out.println("Failed containers: " + response.getFailedContainers().stream().map(Container::getId).collect(Collectors.joining(", ")));
+//
+//                failedStarts++;
+//
+//            } else {
+//                successfulStarts++;
+//            }
+//        }
+//
+//
+//        // 3 - Pool servers
+//        List<PoolResponse> poolResponses = creator.createPoolServers();
+//        for (PoolResponse response : lobbyResponse) {
+//            if (response.getConfig() == null) {
+//                failedStarts++;
+//
+//            } else if (!response.successful()) {
+//                ServerPool cfg = (ServerPool) response.getConfig();
+//                System.err.println(String.format("Failed to create service %s for pool server %s with %s.",
+//                        response.getObjectID(), cfg.getName(), response.getCause()));
+////                System.out.println("Log: " + response.getLogs());
+//                System.out.println("Failed containers: " + response.getFailedContainers().stream().map(Container::getId).collect(Collectors.joining(", ")));
+//
+//                failedStarts++;
+//
+//            } else {
+//                successfulStarts++;
+//            }
+//        }
+//
+//
+//        System.out.println(String.format("Successfully started %s / %s services.", successfulStarts, successfulStarts + failedStarts));
+//
+//        return failedStarts == 0 && successfulStarts > 0;
+//    }
 
 
     /**
@@ -380,14 +362,6 @@ public class ServerManager {
 //            serverManager.onStart();
 //            serverManager.checkAndCreateMCServers();
 
-
-            Service service = docker.getDocker().inspectServiceCmd("7a6g4c07bh8d").exec();
-            List<Container> container = docker.getDocker().listContainersCmd().exec();
-            Network network = docker.getDocker().inspectNetworkCmd().withNetworkId("omf7losexi8v").exec();
-
-            System.out.println("s");
-
-//            serverManager.startCommandDispatcher();
 
         } finally {
             serverManager.onExit();
