@@ -20,6 +20,5 @@ ENV NODE_NAME="NO_NODE_NAME" \
     ETCDCTL_API=3 \
     ETCDCTL_ENDPOINTS="http://etcd:2379"
 
-ENTRYPOINT ["./startup.sh"]
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["./startup.sh"]

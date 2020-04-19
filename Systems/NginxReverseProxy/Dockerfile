@@ -10,10 +10,8 @@ RUN chmod +x /usr/local/bin/confd \
     && mkdir -p /etc/confd/{conf.d,templates}
 
 COPY startup.sh startup.sh
-COPY nginx.tmpl /etc/confd/conf.d/nginx.tmpl
-COPY nginx.toml /etc/confd/templates/nginx.toml
+COPY nginx.toml /etc/confd/conf.d/nginx.toml
+COPY nginx.tmpl /etc/confd/templates/nginx.tmpl
 
 
-ENTRYPOINT ["./startup.sh"]
-
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["./startup.sh"]

@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Fail hard and fast
-set -eo pipefail
-
 export ETCD_PORT=${ETCD_PORT:-2379}
 export HOST_IP=${HOST_IP:-http://etcd}
 export ETCD=$HOST_IP:$ETCD_PORT
@@ -20,12 +17,13 @@ done
 confd -interval ${RELOAD_INTERVAL} -backend etcdv3 -node $ETCD -config-file /etc/confd/conf.d/nginx.toml &
 echo "[Confd] Confd is listening for changes on etcd..."
 
-# Start nginx
-# echo "[nginx] starting nginx service..."
-# service nginx start
-
-# Infinite delay to make this work
-while true
+# Wait until a valid nginx config is generated. Otherwise nginx will fail to start when no bungeecord server exists
+echo "[nginx] Starting nginx..."
+until nginx -t
 do
- sleep 1
+  sleep $RELOAD_INTERVAL
 done
+
+nginx -g "daemon off;"
+
+echo "Ende"
