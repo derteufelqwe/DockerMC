@@ -1,0 +1,10 @@
+# IDE
+MinecraftPlugin.iml
+pom.xml
+
+# Sources
+src/
+
+# Target
+target/classes/
+target/generated-sources/

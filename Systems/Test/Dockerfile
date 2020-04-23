@@ -1,8 +1,8 @@
-FROM nginx
+FROM python
 LABEL version=1
 
-EXPOSE 25577
+EXPOSE 8000
 
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY webserver.py webserver.py
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["python", "webserver.py"]

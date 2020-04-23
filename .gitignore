@@ -8,6 +8,11 @@ target
 BungeePlugin/target
 BungeePlugin/docker
 
+# MinecraftPlugin
+MinecraftPlugin/target
+MinecraftPlugin/docker/server
+
+
 # Commons
 Commons/target
 

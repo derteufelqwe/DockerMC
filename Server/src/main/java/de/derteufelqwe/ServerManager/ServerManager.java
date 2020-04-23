@@ -1,5 +1,6 @@
 package de.derteufelqwe.ServerManager;
 
+import com.github.dockerjava.api.model.Container;
 import de.derteufelqwe.ServerManager.commands.*;
 import de.derteufelqwe.ServerManager.config.Config;
 import de.derteufelqwe.ServerManager.config.configs.InfrastructureConfig;
@@ -15,6 +16,8 @@ import de.derteufelqwe.commons.Constants;
 import lombok.Getter;
 import picocli.CommandLine;
 
+import java.awt.*;
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
@@ -294,32 +297,38 @@ public class ServerManager {
 //            serverManager.onStart();
 //            serverManager.checkAndCreateMCServers();
 
-            InfrastructureConfig config = Config.get(InfrastructureConfig.class);
+//            InfrastructureConfig config = Config.get(InfrastructureConfig.class);
+//
+//            ServerPool lobby = config.getLobbyPool();
+//
+//            if (lobby != null) {
+//                ServerBase.ValidationResponse validationResponse = lobby.valid();
+//                System.out.println(validationResponse);
+//
+//                if (validationResponse.isValid()) {
+//                    lobby.init(ServerManager.getDocker());
+//                    ServerBase.FindResponse lobbyResponse = lobby.find();
+//                    System.out.println(lobbyResponse);
+//
+//                    if (lobbyResponse.isFound()) {
+//                        lobby.destroy();
+//                        TimeUnit.SECONDS.sleep(1);
+//                        System.out.println(lobby.create());
+//
+//                    } else {
+//                        System.out.println(lobby.create());
+//                    }
+//
+//                } else {
+//                    System.out.println(validationResponse.getReason());
+//                }
+//            }
 
-            ServerPool lobby = config.getLobbyPool();
 
-            if (lobby != null) {
-                ServerBase.ValidationResponse validationResponse = lobby.valid();
-                System.out.println(validationResponse);
+            List<Container> container = docker.getDocker().listContainersCmd()
+                    .withIdFilter(Collections.singleton(""))
+                    .exec();
 
-                if (validationResponse.isValid()) {
-                    lobby.init(ServerManager.getDocker());
-                    ServerBase.FindResponse lobbyResponse = lobby.find();
-                    System.out.println(lobbyResponse);
-
-                    if (lobbyResponse.isFound()) {
-                        lobby.destroy();
-                        TimeUnit.SECONDS.sleep(1);
-                        System.out.println(lobby.create());
-
-                    } else {
-                        System.out.println(lobby.create());
-                    }
-
-                } else {
-                    System.out.println(validationResponse.getReason());
-                }
-            }
 
         } finally {
             serverManager.onExit();

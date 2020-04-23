@@ -1,0 +1,5 @@
+name: MinecraftPlugin
+version: ${project.version}
+main: minecraftplugin.minecraftplugin.MinecraftPlugin
+authors: [derteufelqwe]
+description: Essentials for DockerMC
