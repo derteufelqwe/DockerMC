@@ -8,11 +8,18 @@ import java.io.OutputStream;
 
 public class HealthHandler implements HttpHandler {
 
+    public static boolean healthy = true;
+
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
         OutputStream outputStream = httpExchange.getResponseBody();
 
-        httpExchange.sendResponseHeaders(200, 0);
+        if (healthy) {
+            httpExchange.sendResponseHeaders(200, 0);
+
+        } else {
+            httpExchange.sendResponseHeaders(500, 0);
+        }
 
         outputStream.write("".getBytes());
         outputStream.flush();

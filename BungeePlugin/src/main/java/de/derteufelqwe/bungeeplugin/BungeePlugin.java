@@ -4,6 +4,7 @@ import net.md_5.bungee.api.plugin.Plugin;
 
 public final class BungeePlugin extends Plugin {
 
+    private ConsulHandler consulHandler;
 
     @Override
     public void onEnable() {
@@ -12,15 +13,17 @@ public final class BungeePlugin extends Plugin {
         getProxy().getPluginManager().registerListener(this, new Events());
 
         System.out.println("Starting eventhandler");
-        DockerPoolHandler dockerPoolHandler = new DockerPoolHandler();
-        dockerPoolHandler.start();
+//        DockerPoolHandler dockerPoolHandler = new DockerPoolHandler();
+//        dockerPoolHandler.start();
+        consulHandler = new ConsulHandler();
+        consulHandler.startListener();
 
         System.out.println("Started eventhandler.");
     }
 
     @Override
     public void onDisable() {
-
+        consulHandler.stopListener();
     }
 
 
