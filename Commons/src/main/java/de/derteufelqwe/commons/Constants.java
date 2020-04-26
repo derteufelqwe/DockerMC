@@ -13,7 +13,8 @@ public class Constants {
             "                                                          __/ |          \n" +
             "                                                         |___/           ";
     public static String AUTHOR = "derteufelqwe";
-    public static String WORKDIR = System.getProperty("user.dir").replace('\\', '/') + "/Server/";
+//    public static String WORKDIR = System.getProperty("user.dir").replace('\\', '/') + "/Server/";
+    public static String WORKDIR = "/home/arne/DockerMC/Server/";
 
     public static String CONFIG_PATH = WORKDIR + "server/configs/";
 
@@ -46,10 +47,6 @@ public class Constants {
     public static String DOCKER_SOCKET_PATH = "/var/run/docker.sock";
     public static String APIPROXY_CONTAINER_NAME = "APIProxy";
 
-    // -----  Webserver  -----
-    public static String WEBSERVER_CONTAINER_NAME = "ConfigServer";
-    public static int WEBSERVER_PORT = 8101;
-
     // -----  Tags  -----
     // Identifies a container, which belongs the DockerMC
     public static String DOCKER_IDENTIFIER_KEY = "Owner";
@@ -77,7 +74,7 @@ public class Constants {
         DNS,
         API_PROXY,
         API_PROXY_CERTS_GEN,
-        CONFIG_WEBSERVER,
+        CONSUL,
 
         BUNGEE,
         BUNGEE_POOL,

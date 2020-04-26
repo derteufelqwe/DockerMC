@@ -19,6 +19,7 @@ import java.util.List;
 /**
  * Class to configure the entrys of a Bind9 DNS server
  */
+@Deprecated
 public class BindConfigurator {
 
     private boolean autoReload;

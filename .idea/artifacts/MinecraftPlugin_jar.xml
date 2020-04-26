@@ -1,6 +1,6 @@
 <component name="ArtifactManager">
   <artifact type="jar" name="MinecraftPlugin:jar">
-    <output-path>$PROJECT_DIR$/MinecraftPlugin/target</output-path>
+    <output-path>$PROJECT_DIR$/MinecraftPlugin/target/artifacts</output-path>
     <root id="archive" name="MinecraftPlugin.jar">
       <element id="module-output" name="MinecraftPlugin" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/google/guava/guava/28.2-jre/guava-28.2-jre.jar" path-in-jar="/" />

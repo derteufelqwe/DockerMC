@@ -2,6 +2,10 @@ package de.derteufelqwe.bungeeplugin;
 
 import com.google.common.base.Utf8;
 import com.google.common.collect.Iterables;
+import com.ibm.etcd.client.kv.KvClient;
+import com.orbitz.consul.AgentClient;
+import com.orbitz.consul.Consul;
+import com.orbitz.consul.KeyValueClient;
 import de.derteufelqwe.commons.Constants;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
@@ -13,6 +17,7 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.connection.LoginResult;
 import net.md_5.bungee.event.EventHandler;
 
+import java.net.Inet4Address;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,17 +27,32 @@ import java.util.stream.Collectors;
 
 public class Events implements Listener {
 
-    private String lobbyServerName;
-    private Integer lobbySoftPlayerLimit;
+    private KeyValueClient kvClient;
 
-    public Events() {
-        // ToDo: Comment in or refactor
-//        Map<String, Object> config = Utils.requestConfigFile(Constants.Configs.INFRASTRUCTURE);
-//        Map<String, String> lobbyconfig = (Map<String, String>) config.get("lobbyPool");
-//        this.lobbyServerName = lobbyconfig.get("name");
-//        this.lobbySoftPlayerLimit = (Integer) (Object) lobbyconfig.get("softPlayerLimit");
-        this.lobbyServerName = "Lobby";
-        this.lobbySoftPlayerLimit = 2;
+    private String lobbyServerName = "";
+    private Integer lobbySoftPlayerLimit = 0;
+
+
+    public Events(Consul consul) {
+        kvClient = consul.keyValueClient();
+
+        Optional<String> serverNameOpt = kvClient.getValueAsString("system/lobbyServerName");
+        if (!serverNameOpt.equals(Optional.empty())) {
+            this.lobbyServerName = serverNameOpt.get();
+
+        } else {
+            System.err.println("[Fatal Error] No Lobbyname");
+            ProxyServer.getInstance().stop("[Fatal Error] No Lobbyname");
+        }
+
+        Optional<String> playerLimitOpt = kvClient.getValueAsString("mcservers/" + lobbyServerName + "/softPlayerLimit");
+        if (!playerLimitOpt.equals(Optional.empty())) {
+            this.lobbySoftPlayerLimit = Integer.parseInt(playerLimitOpt.get());
+
+        } else {
+            System.err.println("[Fatal Error] No softPlayerLimit");
+            ProxyServer.getInstance().stop("[Fatal Error] No softPlayerLimit");
+        }
     }
 
     /**
@@ -40,32 +60,27 @@ public class Events implements Listener {
      */
     @EventHandler
     public void playerConnect(ServerConnectEvent event) {
-        System.out.println("Connect");
-        if (event.getReason() == ServerConnectEvent.Reason.JOIN_PROXY) {
-            List<ServerInfo> servers = Utils.getServers().values().stream()
-                    .filter(s -> s.getName().startsWith(this.lobbyServerName))
-                    .collect(Collectors.toList());
+        if (event.getReason() != ServerConnectEvent.Reason.JOIN_PROXY) {
+            return;
+        }
 
-            Collections.sort(servers, new Comparator<ServerInfo>() {
-                @Override
-                public int compare(ServerInfo o1, ServerInfo o2) {
-                    return o1.getName().compareTo(o2.getName());
+        List<ServerInfo> servers = Utils.getServers().values().stream()
+                .filter(s -> s.getName().startsWith(this.lobbyServerName))
+                .sorted(Comparator.comparing(ServerInfo::getName))  // Sort by Name
+                .collect(Collectors.toList());
+
+        if (servers.size() > 0) {
+            for (ServerInfo serverInfo : servers) {
+                if (serverInfo.getPlayers().size() < this.lobbySoftPlayerLimit) {
+                    event.setTarget(serverInfo);
+                    return;
                 }
-            });
-
-            if (servers.size() > 0) {
-                for (ServerInfo serverInfo : servers) {
-                    if (serverInfo.getPlayers().size() < this.lobbySoftPlayerLimit) {
-                        event.setTarget(serverInfo);
-                        return;
-                    }
-                }
-
-                event.getPlayer().disconnect(new TextComponent(ChatColor.RED + "Server has no free slots in the lobby."));
             }
 
-            event.getPlayer().disconnect(new TextComponent(ChatColor.RED + "No lobby servers found."));
+            event.getPlayer().disconnect(new TextComponent(ChatColor.RED + "Server has no free slots in the lobby."));
         }
+
+        event.getPlayer().disconnect(new TextComponent(ChatColor.RED + "No lobby servers found."));
     }
 
     @EventHandler

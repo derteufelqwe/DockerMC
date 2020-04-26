@@ -6,28 +6,16 @@ services:
         image: consul
         ports:
         - "8500:8500"
+        deploy:
+            mode: replicated
+            replicas: 1
+            max_replicas_per_node: 1
         networks:
-          - api_net
+          - overnet
         environment:
             - "CONSUL_BIND_INTERFACE=eth0"
         command: "agent -server -ui -node=server-1 -bootstrap-expect=1 -client=0.0.0.0"
 
-    consul_client:
-        image: myconsul
-        ports:
-          - "8501:8500"
-        networks:
-          - api_net
-        deploy:
-            mode: global
-        depends_on:
-          - consul_server
-        environment:
-            - "CONSUL_BIND_INTERFACE=eth0"
-            - "CONSUL_NODE=client-{{ .Task.Slot }}"
-        command: agent -join=consul_server
-
-
 networks:
-  api_net:
+  overnet:
       external: true

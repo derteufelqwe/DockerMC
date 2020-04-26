@@ -12,17 +12,16 @@ import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.commons.Constants;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+@Deprecated
 public class BaseContainerCreator {
 
     private final int CONTAINER_START_DELAY = 10;   // Time for containers to get up and running.
@@ -130,12 +129,9 @@ public class BaseContainerCreator {
      * Sets the DNS Server up. Configures the zone and adds the first DNS entrys
      */
     private void setupDNSContainer(String containerID) {
-
         ClassLoader classLoader = getClass().getClassLoader();
-        // lib files
-        File srcBindLibConfig = new File(classLoader.getResource("templates/bind/lib").getFile());
-        File destBindLibConfig = new File(Constants.DNS_WORKDIR_PATH + "/bind/lib");
 
+        // lib files
         InputStream srcSwarmEntrysSystem = classLoader.getResourceAsStream("templates/bind/lib/swarm.entrys_system");
         File destSwarmEntrysSystem = new File(Constants.DNS_WORKDIR_PATH + "bind/lib/swarm.entrys_system");
         InputStream srcSwarmEntrysUser = classLoader.getResourceAsStream("templates/bind/lib/swarm.entrys_user");
@@ -152,9 +148,6 @@ public class BaseContainerCreator {
 
 
         try {
-//            FileUtils.copyDirectory(srcBindLibConfig, destBindLibConfig);
-//            FileUtils.copyFile(srcNamedConfLocal, destNamedConfLocal);
-//            FileUtils.copyFile(srcNamedConfOptions, destNamedConfOptions);
             FileUtils.copyInputStreamToFile(srcSwarmEntrysSystem, destSwarmEntrysSystem);
             FileUtils.copyInputStreamToFile(srcSwarmEntrysUser, destSwarmEntrysUser);
             FileUtils.copyInputStreamToFile(srcSwarmHosts, destSwarmHosts);
@@ -501,83 +494,5 @@ public class BaseContainerCreator {
         return response.getId();
     }
 
-
-
-    public boolean findConfigWebserver() {
-        List<Container> registryContainers = docker.getDocker().listContainersCmd()
-                .withLabelFilter(Utils.quickLabel(Constants.ContainerType.CONFIG_WEBSERVER))
-                .exec();
-
-        if (registryContainers.size() > 1) {
-            throw new FatalDockerMCError("Found multiple running config webserver containers.");
-
-        } else if (registryContainers.size() == 1) {
-            return true;
-
-        } else {
-            return false;
-        }
-    }
-
-    public boolean createConfigWebserver() {
-        String containerID = this.createConfigWebserverContainer();
-
-        try {
-            docker.getDocker().waitContainerCmd(containerID)
-                    .exec(new WaitContainerResultCallback())
-                    .awaitStarted(CONTAINER_START_DELAY, TimeUnit.SECONDS);
-
-            TimeUnit.SECONDS.sleep(1);
-
-            InspectContainerResponse r = docker.getDocker().inspectContainerCmd(containerID)
-                    .exec();
-
-            return r.getState().getRunning() == null ? false : r.getState().getRunning();
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    private String createConfigWebserverContainer() {
-
-        List<Bind> binds = Arrays.asList(
-                new Bind(Constants.CONFIG_PATH, new Volume("/webserver/data"), AccessMode.ro)
-        );
-
-        List<Container> webserverContainer = docker.getDocker().listContainersCmd()
-                .withLabelFilter(Utils.quickLabel(Constants.ContainerType.CONFIG_WEBSERVER))
-                .withShowAll(true)
-                .exec();
-
-        if (webserverContainer.size() > 1) {
-            System.out.println("[Info] Found multiple APIProxy containers.");
-        }
-
-        for (Container apiProxyContainer : webserverContainer) {
-            docker.getDocker().removeContainerCmd(apiProxyContainer.getId()).exec();
-            System.out.println("Removed existing config webserver container.");
-        }
-
-
-        CreateContainerResponse response = docker.getDocker().createContainerCmd(Constants.Images.CONFIG_WEBSERVER.image())
-                .withLabels(Utils.quickLabel(Constants.ContainerType.CONFIG_WEBSERVER))
-                .withName(Constants.WEBSERVER_CONTAINER_NAME)
-                .withBinds(binds)
-                .exec();
-
-        // ToDo: Change to NETW_API_NAME. When started from commandline, it can only attach one network
-        docker.getDocker().connectToNetworkCmd()
-                .withNetworkId(Constants.NETW_OVERNET_NAME)
-                .withContainerId(response.getId())
-                .exec();
-
-        docker.getDocker().startContainerCmd(response.getId()).exec();
-
-        System.out.println("Created webserver container " + response.getId() + ".");
-
-        return response.getId();
-    }
 
 }

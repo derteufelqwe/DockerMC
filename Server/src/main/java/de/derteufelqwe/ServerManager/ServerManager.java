@@ -1,26 +1,20 @@
 package de.derteufelqwe.ServerManager;
 
-import com.github.dockerjava.api.model.Container;
 import de.derteufelqwe.ServerManager.commands.*;
-import de.derteufelqwe.ServerManager.config.Config;
-import de.derteufelqwe.ServerManager.config.configs.InfrastructureConfig;
-import de.derteufelqwe.ServerManager.config.configs.MainConfig;
-import de.derteufelqwe.ServerManager.config.configs.RunningConfig;
-import de.derteufelqwe.ServerManager.config.configs.objects.BungeePool;
-import de.derteufelqwe.ServerManager.config.configs.objects.ServerBase;
-import de.derteufelqwe.ServerManager.config.configs.objects.ServerPool;
+import de.derteufelqwe.ServerManager.config.InfrastructureConfig;
+import de.derteufelqwe.ServerManager.config.MainConfig;
+import de.derteufelqwe.ServerManager.config.RunningConfig;
+import de.derteufelqwe.ServerManager.config.backend.Config;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
-import de.derteufelqwe.ServerManager.setup.BaseContainerCreator;
-import de.derteufelqwe.ServerManager.setup.CertificateCreator;
+import de.derteufelqwe.ServerManager.setup.infrastructure.CertificateCreator;
+import de.derteufelqwe.ServerManager.setup.infrastructure.ConsulService;
+import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import de.derteufelqwe.commons.Constants;
 import lombok.Getter;
 import picocli.CommandLine;
 
-import java.awt.*;
-import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.TimeUnit;
 
 public class ServerManager {
 
@@ -62,89 +56,13 @@ public class ServerManager {
      * Checks if the required infrastructure exist and creates it if necessary.
      */
     private boolean checkAndCreateInfrastructure() {
-        BaseContainerCreator creator = new BaseContainerCreator();
         CertificateCreator certCreator = new CertificateCreator();
-        boolean removeOldDns = true;
-        boolean createProxyCerts = false;
         int serviceCount = 8;
         int failedSetups = 0;
 
         System.out.println("Checking and setting up infrastructure...");
 
-        // 1 - Overnet network
-        if (!creator.findNetworkOvernet()) {
-            System.out.println(String.format("Failed to find network %s. Creating it...", Constants.NETW_OVERNET_NAME));
-            if (creator.createNetworkOvernet()) {
-                System.out.println(String.format("Successfully created network %s.", Constants.NETW_OVERNET_NAME));
-
-            } else {
-                System.err.println(String.format("Failed to create network %s.", Constants.NETW_OVERNET_NAME));
-                failedSetups++;
-            }
-        } else {
-            System.out.println(String.format("Found existing network %s.", Constants.NETW_OVERNET_NAME));
-        }
-
-        // 2 - API_net network
-        if (!creator.findNetworkApiNet()) {
-            System.out.println(String.format("Failed to find network %s. Creating it...", Constants.NETW_API_NAME));
-            if (creator.createNetworkApiNet()) {
-                System.out.println(String.format("Successfully created network %s.", Constants.NETW_API_NAME));
-
-            } else {
-                System.err.println(String.format("Failed to create network %s.", Constants.NETW_API_NAME));
-                failedSetups++;
-            }
-        } else {
-            System.out.println(String.format("Found existing network %s.", Constants.NETW_API_NAME));
-        }
-
-        // 3 - API-proxy certificates
-        if (!certCreator.findAPIProxyCerts()) {
-            System.out.println("Couldn't find required certificates for the API-proxy. Generating them...");
-            String containerID = certCreator.generateAPIProxyCerts(false);
-
-            if (certCreator.findAPIProxyCerts()) {
-                System.out.println("Successfully generated the certificates for the API-proxy.");
-
-            } else {
-                System.err.println("Failed to create the API-proxy certificates.");
-                System.out.println(docker.getContainerLog(containerID));
-                failedSetups++;
-            }
-        } else {
-            System.out.println("Found existing API-proxy certificates.");
-        }
-
-        // 4 - API-proxy container
-        if (!creator.findAPIProxy()) {
-            System.out.println("Failed to find API-proxy container. Creating it...");
-            if (creator.createAPIProxy(createProxyCerts)) {
-                System.out.println("Successfully created API-proxy container.");
-
-            } else {
-                System.err.println("Failed to create API-proxy container.");
-                failedSetups++;
-            }
-        } else {
-            System.out.println("Found existing API-proxy container.");
-        }
-
-        // 5 - DNS container
-        if (!creator.findDns()) {
-            System.out.println("Failed to find DNS container. Creating it...");
-            if (creator.createDns(removeOldDns)) {
-                System.out.println("Successfully created DNS container.");
-
-            } else {
-                System.err.println("Failed to create DNS container.");
-                failedSetups++;
-            }
-        } else {
-            System.out.println("Found existing DNS container.");
-        }
-
-        // 6 - Registry certificates
+        // Registry certificates
         if (!certCreator.findRegistryCerts()) {
             System.out.println("Couldn't find required certificates for the registry. Creating them...");
             certCreator.generateRegistryCerts(false);
@@ -160,35 +78,6 @@ public class ServerManager {
             System.out.println("Found existing certificates for the registry.");
         }
 
-        // 7 - Registry container
-        if (!creator.findRegistry()) {
-            System.out.println("Failed to find Registry container. Creating it...");
-            if (creator.createRegistry()) {
-                System.out.println("Successfully created Registry container.");
-
-            } else {
-                System.err.println("Failed to create Registry container.");
-                failedSetups++;
-            }
-        } else {
-            System.out.println("Found existing Registry container.");
-        }
-
-        // 8 - Config webserver
-        if (!creator.findConfigWebserver()) {
-            System.out.println("Failed to find Config webserver container. Creating it...");
-            if (creator.createConfigWebserver()) {
-                System.out.println("Successfully created config webserver container.");
-
-            } else {
-                System.err.println("Failed to create config webserver container.");
-                failedSetups++;
-            }
-        } else {
-            System.out.println("Found existing config webserver container.");
-        }
-
-
         System.out.println(String.format("Successfully set %s/%s services.", serviceCount - failedSetups, serviceCount));
         if (failedSetups != 0)
             System.err.println(String.format("%s services failed to start. Fix the errors before you proceed.", failedSetups));
@@ -199,6 +88,7 @@ public class ServerManager {
     /**
      * ToDo: Save logs when logger is added
      * Creates all the servers specified in the InfrastructureConfig.yml.
+     *
      * @return Successfully created all server or not
      */
     private boolean checkAndCreateMCServers() {
@@ -324,10 +214,12 @@ public class ServerManager {
 //                }
 //            }
 
+            ServerPool serverPool = new ServerPool("testmc", "1G", "2", "TestMC", 2, null, 2);
+            serverPool.init(docker);
+            System.out.println(serverPool.create());
 
-            List<Container> container = docker.getDocker().listContainersCmd()
-                    .withIdFilter(Collections.singleton(""))
-                    .exec();
+//            ConsulService consulService = new ConsulService(docker);
+//            System.out.println(consulService.create());
 
 
         } finally {
