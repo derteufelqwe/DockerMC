@@ -6,6 +6,7 @@ import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.config.backend.Config;
 import de.derteufelqwe.ServerManager.config.backend.Ignore;
 import de.derteufelqwe.ServerManager.config.MainConfig;
+import de.derteufelqwe.ServerManager.setup.ServiceConstraints;
 import de.derteufelqwe.ServerManager.setup.ServiceTemplate;
 import de.derteufelqwe.commons.Constants;
 import lombok.*;
@@ -32,20 +33,8 @@ public abstract class ServerTemplate extends ServiceTemplate {
     protected AuthConfig authConfig;
 
 
-    // Name prefix
-    protected String name;
-    // Amount of replicas
-    protected int replications;
-    // Constraints where to place the servers. Can be null if it doesn't matter. Structure is the following:
-    // named / ids -> list(names / ids)
-    protected Map<String, List<String>> constraints = new HashMap<>();
-
-
-    public ServerTemplate(String image, String ramLimit, String cpuLimit, String name, int replications, Map<String, List<String>> constraints) {
-        super(image, ramLimit, cpuLimit);
-        this.name = name;
-        this.replications = replications;
-        this.constraints = constraints;
+    public ServerTemplate(String image, String ramLimit, String cpuLimit, String name, int replications, ServiceConstraints constraints) {
+        super(image, ramLimit, cpuLimit, name, replications, constraints);
     }
 
     public ServerTemplate(Docker docker) {
@@ -122,95 +111,6 @@ public abstract class ServerTemplate extends ServiceTemplate {
 
     // -----  Utility methods  -----
 
-    /**
-     * Returns the ServiceModeConfig, which specifies the amount of replications of the tasks
-     * @return
-     */
-    protected ServiceModeConfig getServiceModeConfig() {
-        ServiceModeConfig serviceModeConfig = new ServiceModeConfig().withReplicated(
-                new ServiceReplicatedModeOptions().withReplicas(this.replications));
-
-        return serviceModeConfig;
-    }
-
-    /**
-     * Parses the constraints data and returns a dict with the parsed constraints
-     * @return
-     */
-    private Map<String, List<String>> parseConstraints() {
-        Map<String, List<String>> constraintsMap = new HashMap<>();
-        constraintsMap.put("ids", new ArrayList<>());       // Ids
-        constraintsMap.put("names", new ArrayList<>());     // Names
-        constraintsMap.put("!ids", new ArrayList<>());      // Ids to not run on
-        constraintsMap.put("!names", new ArrayList<>());    // Names to not run on
-
-        if (this.constraints == null) {
-            return constraintsMap;
-        }
-
-        if (this.constraints.containsKey("ids") && this.constraints.get("ids") != null) {
-            for (String idConstr : this.constraints.get("ids")) {
-                if (idConstr.substring(0, 1).equals("!")) {
-                    constraintsMap.get("!ids").add(idConstr.substring(1));
-
-                } else {
-                    constraintsMap.get("ids").add(idConstr);
-                }
-            }
-        }
-
-        if (this.constraints.containsKey("names") && this.constraints.get("names") != null) {
-            for (String nameConstr : this.constraints.get("names")) {
-                if (nameConstr.substring(0, 1).equals("!")) {
-                    constraintsMap.get("!names").add(nameConstr.substring(1));
-
-                } else {
-                    constraintsMap.get("names").add(nameConstr);
-                }
-            }
-        }
-
-        return constraintsMap;
-    }
-
-    /**
-     * Returns a list of docker constraints, which limit where tasks can run.
-     * ATTENTION: This can result in tasks not beeing able to run anywhere.
-     * @return
-     */
-    protected List<String> getConstraintsList() {
-        List<String> constraintsList = new ArrayList<>();
-        Map<String, List<String>> constraintsMap = this.parseConstraints();
-
-        for (String constraint : constraintsMap.get("ids")) {
-            constraintsList.add("node.id==" + constraint);
-        }
-
-        for (String constraint : constraintsMap.get("names")) {
-            constraintsList.add("node.labels.name==" + constraint);
-        }
-
-        for (String constraint : constraintsMap.get("!ids")) {
-            constraintsList.add("node.id!=" + constraint);
-        }
-
-        for (String constraint : constraintsMap.get("!names")) {
-            constraintsList.add("node.labels.name!=" + constraint);
-        }
-
-        return constraintsList;
-    }
-
-    /**
-     * Returns the ServicePlacement, which sets the docker constraints
-     * @return
-     */
-    protected ServicePlacement getServicePlacement() {
-        ServicePlacement servicePlacement = new ServicePlacement()
-                .withConstraints(this.getConstraintsList());
-
-        return servicePlacement;
-    }
 
     @Override
     protected List<String> getEnvs() {

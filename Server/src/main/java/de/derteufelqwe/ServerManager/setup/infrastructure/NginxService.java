@@ -1,36 +1,37 @@
-package de.derteufelqwe.ServerManager.setup.servers;
+package de.derteufelqwe.ServerManager.setup.infrastructure;
 
 import com.github.dockerjava.api.command.CreateServiceResponse;
 import com.github.dockerjava.api.model.*;
-import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.setup.ServiceConstraints;
+import de.derteufelqwe.ServerManager.setup.ServiceTemplate;
+import de.derteufelqwe.ServerManager.setup.servers.ServerTemplate;
 import de.derteufelqwe.commons.Constants;
-import lombok.*;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+public class NginxService extends ServerTemplate {
 
-@Data
-@NoArgsConstructor
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
-public class BungeePool extends ServerTemplate {
+    // Port of the proxy
+    private int port;
 
-    public BungeePool(String image, String ramLimit, String cpuLimit, String name, int replications, ServiceConstraints constraints) {
+    public NginxService(String image, String ramLimit, String cpuLimit, String name, int replications, ServiceConstraints constraints, int port) {
         super(image, ramLimit, cpuLimit, name, replications, constraints);
+        this.port = port;
     }
-
 
     @Override
     public ValidationResponse valid() {
         ValidationResponse response = new ValidationResponse(true, this.name, "");
         List<String> nullParams = this.validateParamsNotNull();
+
+        if (this.port == 0) {
+            nullParams.add("port");
+        }
 
         if (nullParams.size() != 0) {
             response.setValid(false);
@@ -75,7 +76,9 @@ public class BungeePool extends ServerTemplate {
         ServiceSpec serviceSpec = this.getServiceSpec();
 
         CreateServiceResponse serviceResponse = docker.getDocker().createServiceCmd(serviceSpec)
-                .withAuthConfig(this.authConfig)
+                .withAuthConfig(new AuthConfig()
+                        .withUsername(this.mainConfig.getRegistryUsername())
+                        .withPassword(this.mainConfig.getRegistryPassword()))
                 .exec();
 
         return new ServerTemplate.CreateResponse(true, serviceResponse.getId());
@@ -93,33 +96,30 @@ public class BungeePool extends ServerTemplate {
         return new ServerTemplate.DestroyResponse(false, null);
     }
 
-    // -----  Utility methods  -----
-
     @Override
     protected Map<String, String> getContainerLabels() {
-        Map<String, String> containerLabels = Utils.quickLabel(Constants.ContainerType.BUNGEE);
-        containerLabels.put(Constants.SERVER_NAME_KEY, this.name);
+        Map<String, String> containerLabels = Utils.quickLabel(Constants.ContainerType.NGINX);
+        containerLabels.put("TASK_NAME", "{{ .Task.Name }}");
 
         return containerLabels;
     }
 
     @Override
     protected Map<String, String> getServiceLabels() {
-        Map<String, String> serviceLabels = Utils.quickLabel(Constants.ContainerType.BUNGEE_POOL);
-        serviceLabels.put(Constants.SERVER_NAME_KEY, this.name);
+        Map<String, String> containerLabels = Utils.quickLabel(Constants.ContainerType.NGINX_POOL);
 
-        return serviceLabels;
+        return containerLabels;
     }
 
     @Override
     protected List<PortConfig> getPortList() {
         List<PortConfig> portList = super.getPortList();
 
-//        portList.add(
-//                new PortConfig().withProtocol(PortConfigProtocol.TCP)
-//                        .withPublishedPort(this.port)
-//                        .withTargetPort(25577)
-//        );
+        portList.add(
+                new PortConfig().withProtocol(PortConfigProtocol.TCP)
+                        .withPublishedPort(this.port)
+                        .withTargetPort(25577)
+        );
 
         return portList;
     }

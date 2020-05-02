@@ -5,6 +5,7 @@ import com.github.dockerjava.api.model.*;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
+import de.derteufelqwe.ServerManager.setup.ServiceConstraints;
 import de.derteufelqwe.commons.Constants;
 import lombok.*;
 import org.apache.commons.lang.StringUtils;
@@ -22,7 +23,7 @@ public class ServerPool extends ServerTemplate {
     // Soft playerlimit
     private int softPlayerLimit;
 
-    public ServerPool(String image, String ramLimit, String cpuLimit, String name, int replications, Map<String, List<String>> constraints, int softPlayerLimit) {
+    public ServerPool(String image, String ramLimit, String cpuLimit, String name, int replications, ServiceConstraints constraints, int softPlayerLimit) {
         super(image, ramLimit, cpuLimit, name, replications, constraints);
         this.softPlayerLimit = softPlayerLimit;
     }

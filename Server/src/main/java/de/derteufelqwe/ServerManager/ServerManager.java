@@ -1,18 +1,29 @@
 package de.derteufelqwe.ServerManager;
 
+import com.github.dockerjava.api.model.ContainerSpec;
+import com.github.dockerjava.api.model.ServiceSpec;
+import com.github.dockerjava.api.model.TaskSpec;
+import com.orbitz.consul.Consul;
+import com.orbitz.consul.KeyValueClient;
+import com.orbitz.google.common.net.HostAndPort;
 import de.derteufelqwe.ServerManager.commands.*;
 import de.derteufelqwe.ServerManager.config.InfrastructureConfig;
 import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.config.RunningConfig;
 import de.derteufelqwe.ServerManager.config.backend.Config;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
+import de.derteufelqwe.ServerManager.setup.ServiceConstraints;
 import de.derteufelqwe.ServerManager.setup.infrastructure.CertificateCreator;
 import de.derteufelqwe.ServerManager.setup.infrastructure.ConsulService;
+import de.derteufelqwe.ServerManager.setup.infrastructure.NginxService;
+import de.derteufelqwe.ServerManager.setup.infrastructure.RegistryContainer;
+import de.derteufelqwe.ServerManager.setup.servers.BungeePool;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import de.derteufelqwe.commons.Constants;
 import lombok.Getter;
 import picocli.CommandLine;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -27,9 +38,12 @@ public class ServerManager {
 
     @Getter
     private static Docker docker = new Docker("tcp", "192.168.178.28", 2375);
-
+    private Consul consul;
+    public KeyValueClient keyValueClient;
 
     public ServerManager() {
+        this.consul = Consul.builder().withHostAndPort(HostAndPort.fromParts("ubuntu1", 8500)).build();
+        this.keyValueClient = consul.keyValueClient();
     }
 
 
@@ -184,42 +198,37 @@ public class ServerManager {
         ServerManager serverManager = new ServerManager();
 
         try {
-//            serverManager.onStart();
-//            serverManager.checkAndCreateMCServers();
-
-//            InfrastructureConfig config = Config.get(InfrastructureConfig.class);
-//
-//            ServerPool lobby = config.getLobbyPool();
-//
-//            if (lobby != null) {
-//                ServerBase.ValidationResponse validationResponse = lobby.valid();
-//                System.out.println(validationResponse);
-//
-//                if (validationResponse.isValid()) {
-//                    lobby.init(ServerManager.getDocker());
-//                    ServerBase.FindResponse lobbyResponse = lobby.find();
-//                    System.out.println(lobbyResponse);
-//
-//                    if (lobbyResponse.isFound()) {
-//                        lobby.destroy();
-//                        TimeUnit.SECONDS.sleep(1);
-//                        System.out.println(lobby.create());
-//
-//                    } else {
-//                        System.out.println(lobby.create());
-//                    }
-//
-//                } else {
-//                    System.out.println(validationResponse.getReason());
-//                }
-//            }
-
-            ServerPool serverPool = new ServerPool("testmc", "1G", "2", "TestMC", 2, null, 2);
-            serverPool.init(docker);
-            System.out.println(serverPool.create());
-
 //            ConsulService consulService = new ConsulService(docker);
 //            System.out.println(consulService.create());
+
+/**/
+
+            serverManager.keyValueClient.putValue("system/lobbyServerName", "Lobby");
+            serverManager.keyValueClient.putValue("mcservers/Lobby/softPlayerLimit", "2");
+
+/**/
+
+//            System.out.println("Starting nginx Service");
+            NginxService nginxService = new NginxService("mcproxy", "512M", "1", "NginxProxy", 2,
+                    new ServiceConstraints(1), 25577);
+            nginxService.init(docker);
+            nginxService.create();
+//
+//            BungeePool bungeePool = new BungeePool("waterfall", "512M", "1", "BungeeCord", 2, new ServiceConstraints(1));
+//            bungeePool.init(docker);
+//            bungeePool.create();
+//
+//            ServerPool lobbyPool = new ServerPool("testmc", "512M", "1", "MyLobby", 2, null, 5);
+//            lobbyPool.init(docker);
+//            System.out.println(lobbyPool.create());
+//
+//            ServerPool serverPool = new ServerPool("testmc", "512M", "1", "Minigame-1", 2, null, 2);
+//            serverPool.init(docker);
+//            System.out.println(serverPool.create());
+//
+//            ServerPool serverPool2 = new ServerPool("testmc", "512M", "1", "Minigame-2", 2, null, 2);
+//            serverPool2.init(docker);
+//            System.out.println(serverPool2.create());
 
 
         } finally {

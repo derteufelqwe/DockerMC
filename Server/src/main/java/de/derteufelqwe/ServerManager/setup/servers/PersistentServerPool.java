@@ -1,6 +1,7 @@
 package de.derteufelqwe.ServerManager.setup.servers;
 
 import de.derteufelqwe.ServerManager.Docker;
+import de.derteufelqwe.ServerManager.setup.ServiceConstraints;
 import lombok.*;
 
 import java.util.List;
@@ -14,7 +15,7 @@ public class PersistentServerPool extends ServerTemplate {
     // Soft playerlimit
     private int softPlayerLimit;
 
-    public PersistentServerPool(String image, String ramLimit, String cpuLimit, String name, int replications, Map<String, List<String>> constraints, int softPlayerLimit) {
+    public PersistentServerPool(String image, String ramLimit, String cpuLimit, String name, int replications, ServiceConstraints constraints, int softPlayerLimit) {
         super(image, ramLimit, cpuLimit, name, replications, constraints);
         this.softPlayerLimit = softPlayerLimit;
     }

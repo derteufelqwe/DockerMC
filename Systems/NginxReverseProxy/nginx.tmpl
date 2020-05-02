@@ -1,22 +1,17 @@
 events {
-  worker_connections 1024;
+    worker_connections 1024;
 }
 
 stream {
-  upstream bungee_pool {
-{{ range gets "/bungeecords/*" -}}
-  {{ $name := base .Key -}}
-  {{ $port := (print .Key "/port") -}}
-  {{ with get $port }}
-    server {{ $name }}:{{ .Value }};
-  {{- end -}}
-{{ end }}
+    upstream bungee_pool {
+        {{ range gets "/bungeecords/*" -}}
+            server {{ .Value }}:25577;    # {{ base .Key }}
+        {{ end }}
+    }
 
-  }
-
-  server {
-    listen 25577;
-    proxy_pass bungee_pool;
-    proxy_buffer_size 16k;
-  }
+    server {
+        listen 25577;
+        proxy_pass bungee_pool;
+        proxy_buffer_size 16k;
+    }
 }

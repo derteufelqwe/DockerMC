@@ -1,6 +1,6 @@
 [template]
 
-backend = "etcdv3"
+backend = "consul"
 
 # The name of the template that will be used to render the application's configuration file
 # Confd will look in `/etc/conf.d/templates` for these files by default

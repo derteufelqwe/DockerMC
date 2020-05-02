@@ -3,6 +3,7 @@ package de.derteufelqwe.bungeeplugin;
 import com.orbitz.consul.AgentClient;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.ConsulException;
+import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.model.agent.ImmutableRegCheck;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
 import com.orbitz.consul.model.agent.Registration;
@@ -25,6 +26,7 @@ public final class BungeePlugin extends Plugin {
 
     private Consul consul;
     private AgentClient agentClient;
+    private KeyValueClient keyValueClient;
     private ConsulHandler consulHandler;
     private HealthCheck healthCheck = new HealthCheck();
 
@@ -51,12 +53,14 @@ public final class BungeePlugin extends Plugin {
      * Register this container to Consul
      */
     private void registerContainer() {
+        keyValueClient.putValue("bungeecords/" + TASK_NAME, CONTAINER_IP);
+
         Registration newService = ImmutableRegistration.builder()
                 .name("bungeecord")
                 .id(TASK_NAME)
                 .tags(Collections.singleton("defaultproxy"))
                 .address(CONTAINER_IP)
-                .port(25565)
+                .port(25577)
                 .check(ImmutableRegCheck.builder()
                         .http("http://" + CONTAINER_IP + ":8001/health")
                         .interval("10s")
@@ -72,9 +76,11 @@ public final class BungeePlugin extends Plugin {
     @Override
     public void onEnable() {
         DockerSignalHandler.listenTo("TERM");
+
         this.setup();
         consul = Consul.builder().withHostAndPort(HostAndPort.fromParts(CONSUL_SERVER_HOST, CONSUL_SERVER_PORT)).build();
         agentClient = consul.agentClient();
+        keyValueClient = consul.keyValueClient();
 
         // -----  Events  -----
         getProxy().getPluginManager().registerListener(this, new Events(consul));
@@ -96,6 +102,14 @@ public final class BungeePlugin extends Plugin {
      */
     private void deregisterContainer() {
         try {
+            keyValueClient.deleteKey("bungeecords/" + TASK_NAME);
+
+        } catch (Exception e1) {
+            System.err.println(e1.getMessage());
+            System.err.println("Failed to remove bungeecord key-value.");
+        }
+
+        try {
             agentClient.deregister(TASK_NAME);
 
         } catch (ConsulException e) {
@@ -112,6 +126,7 @@ public final class BungeePlugin extends Plugin {
 
         this.healthCheck.stop();
         consulHandler.stopListener();
+        consul.destroy();
     }
 
 

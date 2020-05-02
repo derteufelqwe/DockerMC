@@ -51,7 +51,7 @@ public class Events implements Listener {
 
         } else {
             System.err.println("[Fatal Error] No softPlayerLimit");
-            ProxyServer.getInstance().stop("[Fatal Error] No softPlayerLimit");
+            ProxyServer.getInstance().stop("[Fatal Error] No softPlayerLimit for lobbyserver " + lobbyServerName + ".");
         }
     }
 

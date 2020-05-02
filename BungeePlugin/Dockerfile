@@ -21,3 +21,4 @@ ADD docker/config.yml /server/config.yml
 ADD target/artifacts/BungeePlugin.jar /server/plugins/BungeePlugin.jar
 
 CMD ["./startup.sh"]
+#CMD ["java", "-Xmx512M", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005", "-jar", "waterfall.jar"]

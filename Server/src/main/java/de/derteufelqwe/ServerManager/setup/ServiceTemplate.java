@@ -6,9 +6,7 @@ import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.commons.Constants;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Data
 @NoArgsConstructor
@@ -16,8 +14,21 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 public abstract class ServiceTemplate extends DockerObjTemplate {
 
-    public ServiceTemplate(String image, String ramLimit, String cpuLimit) {
+    // Name prefix
+    protected String name;
+    // Amount of replicas
+    protected int replications;
+    // Constraints where to place the servers. Can be null if it doesn't matter. Structure is the following:
+    protected ServiceConstraints constraints = new ServiceConstraints();
+
+
+    public ServiceTemplate(String image, String ramLimit, String cpuLimit, String name, int replications, ServiceConstraints constraints) {
         super(image, ramLimit, cpuLimit);
+        this.name = name;
+        this.replications = replications;
+        if (constraints != null) {
+            this.constraints = constraints;
+        }
     }
 
     public ServiceTemplate(Docker docker) {
@@ -95,13 +106,16 @@ public abstract class ServiceTemplate extends DockerObjTemplate {
         return resourceSpecs;
     }
 
+
     /**
      * Returns the ServicePlacement, which sets the docker constraints
      *
      * @return
      */
     protected ServicePlacement getServicePlacement() {
-        ServicePlacement servicePlacement = new ServicePlacement();
+        ServicePlacement servicePlacement = new ServicePlacement()
+                .withConstraints(this.constraints.getDockerConstraints())
+                .withMaxReplicas(this.constraints.getNodeLimit());
 
         return servicePlacement;
     }
@@ -133,8 +147,8 @@ public abstract class ServiceTemplate extends DockerObjTemplate {
      * @return
      */
     protected ServiceModeConfig getServiceModeConfig() {
-        ServiceModeConfig serviceModeConfig = new ServiceModeConfig().withReplicated(
-                new ServiceReplicatedModeOptions().withReplicas(1));
+        ServiceModeConfig serviceModeConfig = new ServiceModeConfig()
+                .withReplicated(new ServiceReplicatedModeOptions().withReplicas(this.replications));
 
         return serviceModeConfig;
     }

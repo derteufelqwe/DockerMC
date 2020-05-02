@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 public class ConsulService extends ServiceTemplate {
 
     public ConsulService(Docker docker) {
-        super("consul", "512M", "1");
+        super("consul", "512M", "1", "consul", 1, null);
         this.init(docker);
     }
 
@@ -94,7 +94,7 @@ public class ConsulService extends ServiceTemplate {
     protected List<String> getCommandArgs() {
         List<String> command = super.getCommandArgs();
 
-        command.addAll(Arrays.asList("agent", "-server", "-ui", "-node=server-1", "-bootstrap-expect=1", "-client=0.0.0.0"));
+        command.addAll(Arrays.asList("agent", "-server", "-ui", "-node=server-1", "-bootstrap-expect=1", "-client=0.0.0.0", "-enable-script-checks"));
 
         return command;
     }
