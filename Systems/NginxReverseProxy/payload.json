@@ -10,9 +10,8 @@
     "redis_version": "4.0"
   },
   "Check": {
-    "DeregisterCriticalServiceAfter": "10m",
     "TCP": "${ip}:25577",
     "Interval": "10s",
-    "Timeout": "5s"
+    "Timeout": "3s"
   }
 }

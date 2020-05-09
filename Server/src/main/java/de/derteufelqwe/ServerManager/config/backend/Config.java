@@ -55,20 +55,9 @@ public class Config {
         }
     }
 
-    // ToDo: Zum release entfernen und gegen Exception austauschen
+
     public static <T> T get(Class<T> clazz) {
-        T instance = (T) configs.get(clazz).getInstance();
-
-        if (instance == null) {
-            try {
-                configs.get(clazz).setInstance(clazz.newInstance());
-                return (T) configs.get(clazz).getInstance();
-            } catch (InstantiationException | IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return instance;
+        return configs.get(clazz).getInstance();
     }
 
     private static File getFile(Class clazz) {

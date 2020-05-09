@@ -14,8 +14,8 @@ public class Constants {
             "                                                         |___/           ";
 
     public static String AUTHOR = "derteufelqwe";
-//    public static String WORKDIR = System.getProperty("user.dir").replace('\\', '/') + "/Server/";
-    public static String WORKDIR = "/home/arne/DockerMC/Server/";
+    public static String WORKDIR = System.getProperty("user.dir").replace('\\', '/') + "/Server/";
+//    public static String WORKDIR = "/home/arne/DockerMC/Server/";
 
     public static String CONFIG_PATH = WORKDIR + "server/configs/";
 
@@ -76,12 +76,14 @@ public class Constants {
         API_PROXY,
         API_PROXY_CERTS_GEN,
         CONSUL,
+        CONSUL_POOL,
 
         NGINX,
         NGINX_POOL,
         BUNGEE,
         BUNGEE_POOL,
         MINECRAFT,
+        MINECRAFT_PERSISTENT,
         MINECRAFT_POOL,
         MINECRAFT_POOL_PERSISTENT
         ;

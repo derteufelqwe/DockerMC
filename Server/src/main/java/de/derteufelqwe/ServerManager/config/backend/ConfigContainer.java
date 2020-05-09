@@ -12,4 +12,16 @@ public class ConfigContainer {
     private String filePath;
     private Object instance;
 
+    public <T> T getInstance() {
+        if (this.instance == null) {
+            try {
+                this.instance = clazz.newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return (T) this.instance;
+    }
+
 }

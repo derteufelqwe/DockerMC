@@ -1,57 +1,47 @@
 package de.derteufelqwe.ServerManager.setup.servers;
 
-import de.derteufelqwe.ServerManager.Docker;
+import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.setup.ServiceConstraints;
-import lombok.*;
+import de.derteufelqwe.commons.Constants;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-import java.util.List;
 import java.util.Map;
 
+
+/**
+ * Represents Minecraft server pools, which provide a fixed number of server instances with PERSISTENT data.
+ */
 @Data
+@NoArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class PersistentServerPool extends ServerTemplate {
+public class PersistentServerPool extends ServerPool {
 
-    // Soft playerlimit
-    private int softPlayerLimit;
 
-    public PersistentServerPool(String image, String ramLimit, String cpuLimit, String name, int replications, ServiceConstraints constraints, int softPlayerLimit) {
-        super(image, ramLimit, cpuLimit, name, replications, constraints);
-        this.softPlayerLimit = softPlayerLimit;
+    public PersistentServerPool(String name, String image, String ramLimit, String cpuLimit, int replications, ServiceConstraints constraints, int softPlayerLimit) {
+        super(name, image, ramLimit, cpuLimit, replications, constraints, softPlayerLimit);
     }
 
-    public PersistentServerPool(Docker docker) {
-        super(docker);
-    }
 
-    @Override
-    public ValidationResponse valid() {
-        return null;
-    }
-
-    @Override
-    public FindResponse find() {
-        return null;
-    }
-
-    @Override
-    public CreateResponse create() {
-        return null;
-    }
-
-    @Override
-    public DestroyResponse destroy() {
-        return null;
-    }
-
+    // -----  Creation methods  -----
 
     @Override
     protected Map<String, String> getContainerLabels() {
-        return null;
+        Map<String, String> containerLabels = Utils.quickLabel(Constants.ContainerType.MINECRAFT_PERSISTENT);
+        containerLabels.put(Constants.SERVER_NAME_KEY, this.name);
+
+        return containerLabels;
     }
 
     @Override
     protected Map<String, String> getServiceLabels() {
-        return null;
+        Map<String, String> serviceLabels = Utils.quickLabel(Constants.ContainerType.MINECRAFT_POOL_PERSISTENT);
+        serviceLabels.put(Constants.SERVER_NAME_KEY, this.name);
+
+        return serviceLabels;
     }
+
 }

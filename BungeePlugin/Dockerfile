@@ -4,9 +4,8 @@ EXPOSE 25577
 WORKDIR /server
 VOLUME ["/server", "/plugins"]
 
-ENV NODE_NAME="NO_NODE_NAME" \
-    ETCDCTL_API=3 \
-    ETCDCTL_ENDPOINTS="http://etcd:2379"
+ENV TASK_NAME="NO_TASK_NAME" \
+    SERVER_NAME="NO_SERVER_NAME"
 
 # RUN apk --no-cache add curl bash sudo
 RUN apt-get update

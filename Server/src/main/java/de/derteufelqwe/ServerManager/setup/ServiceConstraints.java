@@ -1,27 +1,46 @@
 package de.derteufelqwe.ServerManager.setup;
 
-import lombok.AllArgsConstructor;
+import de.derteufelqwe.ServerManager.exceptions.DockerMCException;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class ServiceConstraints {
 
     private List<String> idConstraints = new ArrayList<>();
     private List<String> nameConstraints = new ArrayList<>();
+    private List<String> roleConstraints = new ArrayList<>();
     private int nodeLimit = 0;
 
+    public ServiceConstraints(@Nullable List<String> idConstraints, @Nullable List<String> nameConstraints,
+                              @Nullable List<String> roleConstraints, int nodeLimit) {
+        if (idConstraints != null) {
+            this.idConstraints = idConstraints;
+        }
+        if (nameConstraints != null) {
+            this.nameConstraints = nameConstraints;
+        }
+        if (roleConstraints != null) {
+            this.roleConstraints = roleConstraints;
+        }
+
+        if (nodeLimit < 0) {
+            throw new DockerMCException("Nodelimit cant be negative.");
+        }
+    }
+
     public ServiceConstraints(int nodeLimit) {
-        this.nodeLimit = nodeLimit;
+        this(null, null, null, nodeLimit);
     }
 
     /**
      * Formats the constraints to the docker format.
+     *
      * @return List of constraints
      */
     public List<String> getDockerConstraints() {
@@ -40,10 +59,20 @@ public class ServiceConstraints {
         // Name constraints
         for (String nameConstr : this.nameConstraints) {
             if (nameConstr.substring(0, 1).equals("!")) {
-               constraintList.add("node.labels.name!=" + nameConstr.substring(1));
+                constraintList.add("node.labels.name!=" + nameConstr.substring(1));
 
             } else {
                 constraintList.add("node.labels.name==" + nameConstr);
+            }
+        }
+
+        // Role constraints
+        for (String roleConstraint : this.roleConstraints) {
+            if (roleConstraint.substring(0, 1).equals("!")) {
+                constraintList.add("node.role!=" + roleConstraint);
+
+            } else {
+                constraintList.add("node.role==" + roleConstraint);
             }
         }
 

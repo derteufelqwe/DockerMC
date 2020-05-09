@@ -1,9 +1,19 @@
 package de.derteufelqwe.ServerManager.setup;
 
 import de.derteufelqwe.ServerManager.Docker;
+import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.config.backend.Ignore;
+import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import lombok.*;
+import org.apache.commons.lang.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
+
+/**
+ * Template to create Docker objects like Containers or Services
+ */
 @Data
 @NoArgsConstructor
 public abstract class DockerObjTemplate {
@@ -13,6 +23,8 @@ public abstract class DockerObjTemplate {
     @Ignore
     protected Docker docker;
 
+    // Name
+    protected String name;
     // Image
     protected String image;
     // RAM limit per task, like 2G or 512M
@@ -21,7 +33,8 @@ public abstract class DockerObjTemplate {
     protected String cpuLimit;
 
 
-    public DockerObjTemplate(String image, String ramLimit, String cpuLimit) {
+    public DockerObjTemplate(String name, String image, String ramLimit, String cpuLimit) {
+        this.name = name;
         this.image = image;
         this.ramLimit = ramLimit;
         this.cpuLimit = cpuLimit;
@@ -32,6 +45,11 @@ public abstract class DockerObjTemplate {
     }
 
 
+    /**
+     * Initialize the instance with a working Docker instance.
+     * If this method doesn't get called before executing any other methods, the other methods will fail.
+     * @param docker Docker instance to set
+     */
     public void init(Docker docker) {
         this.docker = docker;
     }
@@ -57,6 +75,43 @@ public abstract class DockerObjTemplate {
      */
     public abstract DestroyResponse destroy();
 
+    /**
+     * Validates the config and checks whether the config is valid or not
+     *
+     * @return Returns a ValidationResponse with more information
+     */
+    public ValidationResponse valid() {
+        ValidationResponse response = new ValidationResponse(true, this.name, "");
+        List<String> nullParams = this.findNullParams();
+
+
+        if (nullParams.size() != 0) {
+            response.setValid(false);
+            response.addToReason(
+                    "Parameters " + StringUtils.join(nullParams, ", ") + " can't be null.\n"
+            );
+        }
+
+        try {
+            Utils.convertMemoryString(this.ramLimit);
+
+        } catch (FatalDockerMCError e) {
+            response.setValid(false);
+            response.addToReason(
+                    "RAM constraint value " + this.ramLimit + " is unknown.\n"
+            );
+        }
+
+        if (this.cpuLimit != null && (this.cpuLimit.equals("0") || this.cpuLimit.equals("0.0"))) {
+            response.setValid(false);
+            response.addToReason(
+                    "CPU constraint value can't be 0.\n"
+            );
+        }
+
+        return response;
+    }
+
 
     // -----  Responses  -----
 
@@ -65,7 +120,7 @@ public abstract class DockerObjTemplate {
      */
     @Data
     @AllArgsConstructor
-    public class FindResponse {
+    public static class FindResponse {
 
         private boolean found;
         private String serviceID;
@@ -83,7 +138,7 @@ public abstract class DockerObjTemplate {
      */
     @Data
     @AllArgsConstructor
-    public class CreateResponse {
+    public static class CreateResponse {
 
         private boolean created;
         private String serviceID;
@@ -101,7 +156,7 @@ public abstract class DockerObjTemplate {
      */
     @Data
     @AllArgsConstructor
-    public class DestroyResponse {
+    public static class DestroyResponse {
 
         private boolean destroyed;
         private String serviceID;
@@ -112,6 +167,49 @@ public abstract class DockerObjTemplate {
             this.serviceID = serviceID;
         }
 
+    }
+
+    /**
+     * Response to the valid() function.
+     */
+    @Data
+    @AllArgsConstructor
+    public static class ValidationResponse {
+
+        private boolean valid;
+        private String name;
+        private String reason;
+
+        public void addToReason(String toAdd) {
+            this.reason = this.reason + toAdd;
+        }
+
+    }
+
+
+    // -----  Other methods  -----
+
+    /**
+     * Basic validation if parameters are not null.
+     * @return List with all parameter names that are null.
+     */
+    protected List<String> findNullParams() {
+        List<String> resultList = new ArrayList<>();
+
+        if (this.name == null) {
+            resultList.add("name");
+        }
+        if (this.image == null) {
+            resultList.add("image");
+        }
+        if (this.ramLimit == null) {
+            resultList.add("ramLimit");
+        }
+        if (this.cpuLimit == null) {
+            resultList.add("cpuLimit");
+        }
+
+        return resultList;
     }
 
 }

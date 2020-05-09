@@ -16,25 +16,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
+/**
+ * Template to create a Minecraft server, where players can join
+ */
 @Data
 @NoArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public abstract class ServerTemplate extends ServiceTemplate {
-
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    @Ignore
-    protected MainConfig mainConfig;
-
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    @Ignore
-    protected AuthConfig authConfig;
+public class ServerTemplate extends ServiceTemplate {
 
 
-    public ServerTemplate(String image, String ramLimit, String cpuLimit, String name, int replications, ServiceConstraints constraints) {
-        super(image, ramLimit, cpuLimit, name, replications, constraints);
+
+    public ServerTemplate(String name, String image, String ramLimit, String cpuLimit, int replications, ServiceConstraints constraints) {
+        super(name, image, ramLimit, cpuLimit, replications, constraints);
     }
 
     public ServerTemplate(Docker docker) {
@@ -42,75 +37,7 @@ public abstract class ServerTemplate extends ServiceTemplate {
     }
 
 
-    /**
-     * Initializes the config to be used in the code. If this is not called before using this config, weired errors will
-     * occur.
-     *
-     * @param docker Docker instance to add
-     */
-    public void init(Docker docker) {
-        super.init(docker);
-        this.mainConfig = Config.get(MainConfig.class);
-        this.authConfig = new AuthConfig()
-                .withUsername(this.mainConfig.getRegistryUsername())
-                .withPassword(this.mainConfig.getRegistryPassword());
-    }
-
-    /**
-     * Validates the config and checks whether the config is valid or not
-     *
-     * @return Returns a ValidationResponse with more information
-     */
-    public abstract ValidationResponse valid();
-
-
-    // -----  Other methods  -----
-
-    /**
-     * Basic validation if parameters are not null.
-     * @return List with all parameter names that are null.
-     */
-    protected List<String> validateParamsNotNull() {
-        List<String> resultList = new ArrayList<>();
-
-        if (this.name == null) {
-            resultList.add("name");
-        }
-        if (this.image == null) {
-            resultList.add("image");
-        }
-        if (this.replications == 0) {
-            resultList.add("replications");
-        }
-        if (this.ramLimit == null) {
-            resultList.add("ramLimit");
-        }
-        if (this.cpuLimit == null) {
-            resultList.add("cpuLimit");
-        }
-
-        return resultList;
-    }
-
-
-    // -----  Responses  -----
-
-    /**
-     * Response to the valid() function.
-     */
-    @Data
-    @AllArgsConstructor
-    public class ValidationResponse {
-
-        private boolean valid;
-        private String name;
-        private String reason;
-
-    }
-
-
     // -----  Utility methods  -----
-
 
     @Override
     protected List<String> getEnvs() {

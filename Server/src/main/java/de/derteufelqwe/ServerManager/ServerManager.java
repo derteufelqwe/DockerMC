@@ -1,8 +1,5 @@
 package de.derteufelqwe.ServerManager;
 
-import com.github.dockerjava.api.model.ContainerSpec;
-import com.github.dockerjava.api.model.ServiceSpec;
-import com.github.dockerjava.api.model.TaskSpec;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
 import com.orbitz.google.common.net.HostAndPort;
@@ -16,18 +13,19 @@ import de.derteufelqwe.ServerManager.setup.ServiceConstraints;
 import de.derteufelqwe.ServerManager.setup.infrastructure.CertificateCreator;
 import de.derteufelqwe.ServerManager.setup.infrastructure.ConsulService;
 import de.derteufelqwe.ServerManager.setup.infrastructure.NginxService;
-import de.derteufelqwe.ServerManager.setup.infrastructure.RegistryContainer;
+import de.derteufelqwe.ServerManager.setup.infrastructure.OvernetNetwork;
 import de.derteufelqwe.ServerManager.setup.servers.BungeePool;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import de.derteufelqwe.commons.Constants;
 import lombok.Getter;
 import picocli.CommandLine;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class ServerManager {
+
+    private static String DOCKER_IP = "ubuntu1";
 
     static {
         Config.registerConfig(MainConfig.class, "", Constants.Configs.MAIN.filename());
@@ -37,7 +35,7 @@ public class ServerManager {
     }
 
     @Getter
-    private static Docker docker = new Docker("tcp", "192.168.178.28", 2375);
+    private static Docker docker = new Docker("tcp", DOCKER_IP, 2375);
     private Consul consul;
     public KeyValueClient keyValueClient;
 
@@ -201,32 +199,39 @@ public class ServerManager {
 //            ConsulService consulService = new ConsulService(docker);
 //            System.out.println(consulService.create());
 
-/**/
+            /**/
 
             serverManager.keyValueClient.putValue("system/lobbyServerName", "Lobby");
             serverManager.keyValueClient.putValue("mcservers/Lobby/softPlayerLimit", "2");
 
-/**/
+            /**/
 
-//            System.out.println("Starting nginx Service");
-            NginxService nginxService = new NginxService("mcproxy", "512M", "1", "NginxProxy", 2,
-                    new ServiceConstraints(1), 25577);
-            nginxService.init(docker);
-            nginxService.create();
-//
-//            BungeePool bungeePool = new BungeePool("waterfall", "512M", "1", "BungeeCord", 2, new ServiceConstraints(1));
-//            bungeePool.init(docker);
-//            bungeePool.create();
-//
-//            ServerPool lobbyPool = new ServerPool("testmc", "512M", "1", "MyLobby", 2, null, 5);
-//            lobbyPool.init(docker);
-//            System.out.println(lobbyPool.create());
-//
-//            ServerPool serverPool = new ServerPool("testmc", "512M", "1", "Minigame-1", 2, null, 2);
+
+
+//            NginxService nginxService = new NginxService("NginxProxy", "mcproxy", "512M", "1", 2,
+//                    new ServiceConstraints(1), 25577);
+//            nginxService.init(docker);
+//            if (nginxService.find().isFound()) {
+//                nginxService.destroy();
+//            }
+//            nginxService.create();
+
+            BungeePool bungeePool = new BungeePool("BungeeCord", "waterfall", "512M", "1", 2, new ServiceConstraints(1));
+            bungeePool.init(docker);
+            if (bungeePool.find().isFound()) {
+                bungeePool.destroy();
+            }
+            bungeePool.create();
+
+            ServerPool lobbyPool = new ServerPool("Lobby", "testmc", "512M", "1", 2, null, 5);
+            lobbyPool.init(docker);
+            System.out.println(lobbyPool.create());
+
+//            ServerPool serverPool = new ServerPool("Minigame-1", "testmc", "512M", "1", 2, null, 2);
 //            serverPool.init(docker);
 //            System.out.println(serverPool.create());
 //
-//            ServerPool serverPool2 = new ServerPool("testmc", "512M", "1", "Minigame-2", 2, null, 2);
+//            ServerPool serverPool2 = new ServerPool("Minigame-2", "testmc", "512M", "1", 2, null, 2);
 //            serverPool2.init(docker);
 //            System.out.println(serverPool2.create());
 

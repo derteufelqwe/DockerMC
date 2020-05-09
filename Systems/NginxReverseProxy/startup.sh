@@ -7,8 +7,16 @@ export CONSUL=$HOST_IP:$CONSUL_PORT
 export RELOAD_INTERVAL=${RELOAD_INTERVAL:-10}
 export TASK_NAME=${TASK_NAME:-"NO_TASK_NAME"}
 
+# Check if netmask is set
+if [ -z "$NETWORK_ADDR" ]
+then
+  echo "[FATAL ERROR] NETWORK_ADDR not set!"
+  exit 20
+fi
+
 # Important variables
-ip="$(ifconfig eth0 | awk '/netmask.+/{print $2}')"
+ip="$(ifconfig | awk '/netmask.+/{print $2}' | grep $(echo "$NETWORK_ADDR" | sed -e "s/\(.0\)\+\$//g"))"
+echo "[Info] Set container ip to $ip"
 
 # Trap the SIGTERM to process shutdowns
 trap "true" TERM

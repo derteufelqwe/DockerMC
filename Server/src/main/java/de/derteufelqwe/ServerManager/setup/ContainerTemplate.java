@@ -1,16 +1,16 @@
 package de.derteufelqwe.ServerManager.setup;
 
+import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.WaitContainerResultCallback;
 import com.github.dockerjava.api.model.Bind;
+import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.PortBinding;
-import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.Utils;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
+import lombok.*;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,25 +18,76 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+
+/**
+ * Template to create a docker container
+ */
 @Data
+@NoArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public abstract class ContainerTemplate extends DockerObjTemplate {
+public class ContainerTemplate extends DockerObjTemplate {
 
     protected final int CONTAINER_START_DELAY = 10;   // Time for containers to get up and running.
     protected final int NETWORK_CREATE_DELAY  = 2;    // Time for networks to get up and running
 
 
-    public ContainerTemplate(String image, String ramLimit, String cpuLimit) {
-        super(image, ramLimit, cpuLimit);
-    }
-
-    public ContainerTemplate(Docker docker) {
-        super(docker);
+    public ContainerTemplate(String name, String image, String ramLimit, String cpuLimit) {
+        super(name, image, ramLimit, cpuLimit);
     }
 
 
-    // ----- Container creation methods  -----
+    @Override
+    public FindResponse find() {
+        List<Container> container = docker.getDocker().listContainersCmd()
+                .withLabelFilter(this.getContainerLabels())
+                .exec();
+
+        if (container.size() > 1) {
+            throw new FatalDockerMCError("Found multiple containers for " + this.name + ".");
+
+        } else if (container.size() == 1) {
+            return new FindResponse(true, container.get(0).getId());
+
+        } else {
+            return new FindResponse(false, null);
+        }
+    }
+
+    @Override
+    public CreateResponse create() {
+        CreateContainerResponse response = docker.getDocker().createContainerCmd(this.image)
+                .withLabels(this.getContainerLabels())
+                .withEnv(this.getEnvironmentVariables())
+                .withHostConfig(this.getHostConfig())
+                .exec();
+
+        docker.getDocker().startContainerCmd(response.getId()).exec();
+
+        String containerID = response.getId();
+        WaitResponse waitResponse = this.waitForContainerStart(containerID);
+
+        if (!waitResponse.isRunning()) {
+            return new CreateResponse(false, containerID, waitResponse.getMessage());
+        }
+
+        return new CreateResponse(true, containerID);
+    }
+
+    @Override
+    public DestroyResponse destroy() {
+        FindResponse findResponse = this.find();
+
+        if (findResponse.isFound()) {
+            this.docker.getDocker().stopContainerCmd(findResponse.getServiceID()).exec();
+            return new DestroyResponse(true, findResponse.getServiceID());
+        }
+
+        return new DestroyResponse(false, null);
+    }
+
+
+    // ----- Other methods  -----
 
     protected WaitResponse waitForContainerStart(String containerID) {
         try {
@@ -60,6 +111,7 @@ public abstract class ContainerTemplate extends DockerObjTemplate {
 
 
     // -----  Building methods  -----
+
 
     /**
      * Returns a list of the published ports
@@ -102,6 +154,7 @@ public abstract class ContainerTemplate extends DockerObjTemplate {
 
         return hostConfig;
     }
+
 
     // -----  Responses  -----
 

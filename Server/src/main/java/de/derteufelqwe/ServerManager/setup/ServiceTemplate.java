@@ -1,30 +1,48 @@
 package de.derteufelqwe.ServerManager.setup;
 
+import com.github.dockerjava.api.command.CreateServiceResponse;
 import com.github.dockerjava.api.model.*;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.Utils;
+import de.derteufelqwe.ServerManager.config.MainConfig;
+import de.derteufelqwe.ServerManager.config.backend.Config;
+import de.derteufelqwe.ServerManager.config.backend.Ignore;
+import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
+import de.derteufelqwe.ServerManager.setup.servers.ServerTemplate;
 import de.derteufelqwe.commons.Constants;
 import lombok.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+
+/**
+ * Template to create docker services
+ */
 @Data
 @NoArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public abstract class ServiceTemplate extends DockerObjTemplate {
+public class ServiceTemplate extends DockerObjTemplate {
 
-    // Name prefix
-    protected String name;
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    @Ignore
+    protected AuthConfig authConfig;
+
+
     // Amount of replicas
     protected int replications;
     // Constraints where to place the servers. Can be null if it doesn't matter. Structure is the following:
     protected ServiceConstraints constraints = new ServiceConstraints();
 
 
-    public ServiceTemplate(String image, String ramLimit, String cpuLimit, String name, int replications, ServiceConstraints constraints) {
-        super(image, ramLimit, cpuLimit);
-        this.name = name;
+    public ServiceTemplate(String name, String image, String ramLimit, String cpuLimit, int replications, ServiceConstraints constraints) {
+        super(name, image, ramLimit, cpuLimit);
         this.replications = replications;
         if (constraints != null) {
             this.constraints = constraints;
@@ -35,7 +53,93 @@ public abstract class ServiceTemplate extends DockerObjTemplate {
         super(docker);
     }
 
-    // -----  Service creation methods  -----
+
+    @Override
+    public FindResponse find() {
+        List<Service> services = this.docker.getDocker().listServicesCmd()
+                .withLabelFilter(this.getServiceLabels())
+                .exec();
+
+        if (services.size() > 1) {
+            throw new FatalDockerMCError("Found multiple services %s for %s.",
+                    services.stream().map(Service::getId).collect(Collectors.joining(", ")), this.name);
+
+        } else if (services.size() == 1) {
+            return new ServerTemplate.FindResponse(true, services.get(0).getId());
+
+        } else {
+            return new ServerTemplate.FindResponse(false, null);
+        }
+    }
+
+    @Override
+    public CreateResponse create() {
+        ServiceSpec serviceSpec = this.getServiceSpec();
+
+        CreateServiceResponse serviceResponse = docker.getDocker().createServiceCmd(serviceSpec)
+                .withAuthConfig(this.authConfig)
+                .exec();
+
+        this.waitForProcessing();
+
+        return new ServerTemplate.CreateResponse(true, serviceResponse.getId());
+    }
+
+    @Override
+    public DestroyResponse destroy() {
+        FindResponse findResponse = this.find();
+
+        if (findResponse.isFound()) {
+            this.docker.getDocker().removeServiceCmd(findResponse.getServiceID()).exec();
+            return new ServerTemplate.DestroyResponse(true, findResponse.getServiceID());
+        }
+
+        this.waitForProcessing();
+
+        return new ServerTemplate.DestroyResponse(false, null);
+    }
+
+
+    // -----  Other methods  -----
+
+    /**
+     * Initializes the config to be used in the code. If this is not called before using this config, weired errors will
+     * occur.
+     *
+     * @param docker Docker instance to add
+     */
+    public void init(Docker docker) {
+        super.init(docker);
+        MainConfig mainConfig = Config.get(MainConfig.class);
+        this.authConfig = new AuthConfig()
+                .withUsername(mainConfig.getRegistryUsername())
+                .withPassword(mainConfig.getRegistryPassword());
+    }
+
+    /**
+     * Basic validation if parameters are not null.
+     *
+     * @return List with all parameter names that are null.
+     */
+    protected List<String> findNullParams() {
+        List<String> resultList = super.findNullParams();
+
+        if (this.replications == 0) {
+            resultList.add("replications");
+        }
+
+        return resultList;
+    }
+
+    /**
+     * Waits x seconds for docker to do its magic
+     */
+    @SneakyThrows
+    private void waitForProcessing() {
+        TimeUnit.MILLISECONDS.sleep(500);
+    }
+
+    // -----  Creation methods  -----
 
     /**
      * Returns the required network configs.
@@ -54,10 +158,13 @@ public abstract class ServiceTemplate extends DockerObjTemplate {
      *
      * @return
      */
-    protected abstract Map<String, String> getContainerLabels();
+    protected Map<String, String> getContainerLabels() {
+        return new HashMap<>();
+    }
 
     /**
      * Returns a list of environment variables for the container.
+     *
      * @return
      */
     protected List<String> getEnvs() {
@@ -106,7 +213,6 @@ public abstract class ServiceTemplate extends DockerObjTemplate {
         return resourceSpecs;
     }
 
-
     /**
      * Returns the ServicePlacement, which sets the docker constraints
      *
@@ -139,7 +245,9 @@ public abstract class ServiceTemplate extends DockerObjTemplate {
      *
      * @return
      */
-    protected abstract Map<String, String> getServiceLabels();
+    protected Map<String, String> getServiceLabels() {
+        return new HashMap<>();
+    }
 
     /**
      * Returns the ServiceModeConfig, which specifies the amount of replications of the tasks
@@ -187,8 +295,7 @@ public abstract class ServiceTemplate extends DockerObjTemplate {
                 .withNetworks(this.getNetworks())
                 .withMode(this.getServiceModeConfig())
                 .withEndpointSpec(this.getEndpointSpec())
-                .withName(this.getServiceName())
-        ;
+                .withName(this.getServiceName());
 
         return serviceSpec;
     }

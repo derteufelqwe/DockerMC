@@ -6,70 +6,40 @@ import com.github.dockerjava.api.model.Service;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
+import de.derteufelqwe.ServerManager.setup.ServiceConstraints;
 import de.derteufelqwe.ServerManager.setup.ServiceTemplate;
 import de.derteufelqwe.ServerManager.setup.servers.ServerTemplate;
 import de.derteufelqwe.commons.Constants;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ConsulService extends ServiceTemplate {
 
-    public ConsulService(Docker docker) {
-        super("consul", "512M", "1", "consul", 1, null);
-        this.init(docker);
+    public ConsulService() {
+        super("Consul", "consul", "512M", "1", 1,
+                new ServiceConstraints(null, null, Collections.singletonList("manager"), 0));
     }
 
-    @Override
-    public FindResponse find() {
-        List<Service> services = this.docker.getDocker().listServicesCmd()
-                .withLabelFilter(this.getServiceLabels())
-                .exec();
 
-        if (services.size() > 1) {
-            throw new FatalDockerMCError("Found multiple services %s for the consul service.",
-                    services.stream().map(Service::getId).collect(Collectors.joining(", ")));
-
-        } else if (services.size() == 1) {
-            return new ServerTemplate.FindResponse(true, services.get(0).getId());
-
-        } else {
-            return new ServerTemplate.FindResponse(false, null);
-        }
-    }
-
-    @Override
-    public CreateResponse create() {
-        CreateServiceResponse response = docker.getDocker().createServiceCmd(this.getServiceSpec()).exec();
-
-        return new CreateResponse(true, response.getId());
-    }
-
-    @Override
-    public DestroyResponse destroy() {
-        FindResponse findResponse = this.find();
-
-        if (findResponse.isFound()) {
-            docker.getDocker().removeServiceCmd(findResponse.getServiceID()).exec();
-
-            return new DestroyResponse(true, findResponse.getServiceID());
-        }
-
-        return new DestroyResponse(false, findResponse.getServiceID());
-    }
-
+    // -----  Creation methods  -----
 
     @Override
     protected Map<String, String> getContainerLabels() {
-        return new HashMap<>();
+        Map<String, String> labels = super.getContainerLabels();
+
+        labels.putAll(Utils.quickLabel(Constants.ContainerType.CONSUL));
+
+        return labels;
     }
 
     @Override
     protected Map<String, String> getServiceLabels() {
-        return Utils.quickLabel(Constants.ContainerType.CONSUL);
+        Map<String, String> labels = super.getServiceLabels();
+
+        labels.putAll(Utils.quickLabel(Constants.ContainerType.CONSUL_POOL));
+
+        return labels;
     }
 
     @Override
@@ -104,6 +74,10 @@ public class ConsulService extends ServiceTemplate {
         return "consul_server";
     }
 
+    /**
+     * Overwrite this because we don't want the consul image from the registry
+     * @return
+     */
     @Override
     protected String getImageName() {
         return this.image;
