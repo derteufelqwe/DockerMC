@@ -7,7 +7,7 @@ EXPOSE 25565
 EXPOSE 8001
 VOLUME [ "/server" ]
 
-ENV TASK_NAME ""
+ENV TASK_NAME "NO_TASK_NAME"
 
 HEALTHCHECK --interval=10s --start-period=10s --retries=2 --timeout=2s CMD curl -f http://localhost:8001/health || exit 1
 

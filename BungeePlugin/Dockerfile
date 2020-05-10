@@ -7,6 +7,8 @@ VOLUME ["/server", "/plugins"]
 ENV TASK_NAME="NO_TASK_NAME" \
     SERVER_NAME="NO_SERVER_NAME"
 
+HEALTHCHECK --interval=10s --start-period=10s --retries=2 --timeout=2s CMD curl -f http://localhost:8001/health || exit 1
+
 # RUN apk --no-cache add curl bash sudo
 RUN apt-get update
 

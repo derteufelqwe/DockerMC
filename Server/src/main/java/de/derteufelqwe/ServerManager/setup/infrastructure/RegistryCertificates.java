@@ -5,13 +5,12 @@ import com.github.dockerjava.api.command.WaitContainerResultCallback;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Volume;
 import de.derteufelqwe.ServerManager.Docker;
-import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.config.backend.Config;
 import de.derteufelqwe.ServerManager.config.objects.CertificateCfg;
+import de.derteufelqwe.ServerManager.setup.DockerObjTemplate;
 import de.derteufelqwe.commons.Constants;
-import lombok.Data;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -21,52 +20,32 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Utility class to handle generation of certificates
- */
-@Deprecated
-public class CertificateCreator {
+public class RegistryCertificates {
 
     private Docker docker;
 
-
-    public CertificateCreator() {
-        this.docker = ServerManager.getDocker();
+    public RegistryCertificates(Docker docker) {
+        this.docker = docker;
     }
 
 
-    /**
-     * Checks if the certificates exist already. If they are incomplete all files get deleted.
-     *
-     * @return
-     */
-    public boolean findRegistryCerts() {
+    public DockerObjTemplate.FindResponse find() {
         RegistryCertFiles registryCertFiles = new RegistryCertFiles();
         boolean exist = registryCertFiles.filesExist();
 
         if (exist) {
-            return true;
+            return new DockerObjTemplate.FindResponse(true, null);
 
         } else {
-            registryCertFiles.deleteFiles();
-            return false;
-        }
 
+            return new DockerObjTemplate.FindResponse(false, null);
+        }
     }
 
-    /**
-     * Generates the required certificates for the registry.
-     * This includes the htpasswd file.
-     *
-     * @param forceRegeneration Delete old certificates before generating new ones
-     */
-    public String generateRegistryCerts(boolean forceRegeneration) {
+    public DockerObjTemplate.CreateResponse create() {
         MainConfig mainConfig = Config.get(MainConfig.class);
         CertificateCfg cfg = mainConfig.getRegistryCerCfg();
 
-        if (forceRegeneration) {
-            new RegistryCertFiles().deleteFiles();
-        }
 
         // -----  SSL-certificate generation  -----
 
@@ -118,7 +97,16 @@ public class CertificateCreator {
             e.printStackTrace();
         }
 
-        return response.getId();
+        return new DockerObjTemplate.CreateResponse(true, response.getId());
+    }
+
+
+    public DockerObjTemplate.DestroyResponse destroy() {
+        RegistryCertFiles registryCertFiles = new RegistryCertFiles();
+        boolean exists = registryCertFiles.filesExist();
+        registryCertFiles.deleteFiles();
+
+        return new DockerObjTemplate.DestroyResponse(exists, null);
     }
 
 
@@ -145,4 +133,5 @@ public class CertificateCreator {
         }
 
     }
+
 }

@@ -1,5 +1,6 @@
 package de.derteufelqwe.ServerManager.setup.servers;
 
+import com.orbitz.consul.KeyValueClient;
 import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.setup.ServiceConstraints;
 import de.derteufelqwe.ServerManager.setup.ServiceTemplate;
@@ -31,6 +32,23 @@ public class ServerPool extends ServiceTemplate {
         this.softPlayerLimit = softPlayerLimit;
     }
 
+
+    public CreateResponse create(KeyValueClient kvClient) {
+        CreateResponse response = super.create();
+
+        kvClient.putValue("mcservers/" + this.name + "/softPlayerLimit", Integer.toString(this.softPlayerLimit));
+
+        return response;
+    }
+
+
+    public DestroyResponse destroy(KeyValueClient kvClient) {
+        DestroyResponse response = super.destroy();
+
+        kvClient.deleteKey("mcservers/" + this.name);
+
+        return response;
+    }
 
     @Override
     protected List<String> findNullParams() {

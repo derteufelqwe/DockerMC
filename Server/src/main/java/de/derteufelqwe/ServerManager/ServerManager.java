@@ -10,10 +10,7 @@ import de.derteufelqwe.ServerManager.config.RunningConfig;
 import de.derteufelqwe.ServerManager.config.backend.Config;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.setup.ServiceConstraints;
-import de.derteufelqwe.ServerManager.setup.infrastructure.CertificateCreator;
-import de.derteufelqwe.ServerManager.setup.infrastructure.ConsulService;
-import de.derteufelqwe.ServerManager.setup.infrastructure.NginxService;
-import de.derteufelqwe.ServerManager.setup.infrastructure.OvernetNetwork;
+import de.derteufelqwe.ServerManager.setup.infrastructure.*;
 import de.derteufelqwe.ServerManager.setup.servers.BungeePool;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import de.derteufelqwe.commons.Constants;
@@ -40,8 +37,7 @@ public class ServerManager {
     public KeyValueClient keyValueClient;
 
     public ServerManager() {
-        this.consul = Consul.builder().withHostAndPort(HostAndPort.fromParts("ubuntu1", 8500)).build();
-        this.keyValueClient = consul.keyValueClient();
+
     }
 
 
@@ -56,11 +52,11 @@ public class ServerManager {
 
 
     public void onExit() throws Exception {
-        System.out.println("Saving config...");
-        Config.saveAll();
-
         // Required for Docker-Java to fully quit the execution. Will block otherwise.
         docker.getDocker().close();
+
+        System.out.println("Saving config...");
+        Config.saveAll();
     }
 
 
@@ -68,18 +64,18 @@ public class ServerManager {
      * Checks if the required infrastructure exist and creates it if necessary.
      */
     private boolean checkAndCreateInfrastructure() {
-        CertificateCreator certCreator = new CertificateCreator();
-        int serviceCount = 8;
+        int serviceCount = 3;
         int failedSetups = 0;
 
         System.out.println("Checking and setting up infrastructure...");
 
-        // Registry certificates
-        if (!certCreator.findRegistryCerts()) {
+        // 1. Registry certificates
+        RegistryCertificates registryCertificates = new RegistryCertificates(docker);
+        if (!registryCertificates.find().isFound()) {
             System.out.println("Couldn't find required certificates for the registry. Creating them...");
-            certCreator.generateRegistryCerts(false);
+            registryCertificates.create();
 
-            if (certCreator.findRegistryCerts()) {
+            if (registryCertificates.find().isFound()) {
                 System.out.println("Successfully generated the required certificates for the registry.");
 
             } else {
@@ -89,6 +85,43 @@ public class ServerManager {
         } else {
             System.out.println("Found existing certificates for the registry.");
         }
+
+        // 2. Registry container
+        RegistryContainer registryContainer = new RegistryContainer();
+        registryContainer.init(docker);
+        if (!registryContainer.find().isFound()) {
+            System.out.println("Couldn't find registry container. Creating it...");
+
+            if (registryContainer.create().isCreated()) {
+                System.out.println("Successfully created registry container.");
+
+            } else {
+                System.err.println("Failed to create registry container.");
+                failedSetups++;
+            }
+
+        } else {
+            System.out.println("Found existing registry container.");
+        }
+
+        // 3. Consul service
+        ConsulService consulService = new ConsulService();
+        consulService.init(docker);
+        if (!consulService.find().isFound()) {
+            System.out.println("Couldn't find consul service. Creating it...");
+
+            if (consulService.create().isCreated()) {
+                System.out.println("Successfully created consul service.");
+
+            } else {
+                System.err.println("Failed to create consul service.");
+                failedSetups++;
+            }
+
+        } else {
+            System.out.println("Found existing consul service.");
+        }
+
 
         System.out.println(String.format("Successfully set %s/%s services.", serviceCount - failedSetups, serviceCount));
         if (failedSetups != 0)
@@ -104,12 +137,89 @@ public class ServerManager {
      * @return Successfully created all server or not
      */
     private boolean checkAndCreateMCServers() {
-        int successfulStarts = 0;
+        InfrastructureConfig cfg = Config.get(InfrastructureConfig.class);
+        int serviceCount = 4;
         int failedStarts = 0;
 
+        // 1. NginxService
+        NginxService nginxService = cfg.getNginxService();
+        if (nginxService == null) {
+            System.err.println("No nginx service configured.");
+            failedStarts++;
 
-        System.out.println(String.format("Successfully started %s / %s services.", successfulStarts, successfulStarts + failedStarts));
-        return failedStarts == 0 && successfulStarts > 0;
+        } else {
+            nginxService.init(docker);
+
+            if (nginxService.find().isFound()) {
+                System.out.println("Found existing nginx service.");
+
+            } else {
+                System.out.println("Couldn't find existing nginx service. Creating it...");
+
+                if (nginxService.create().isCreated()) {
+                    System.out.println("Successfully created nginx service.");
+
+                } else {
+                    System.err.println("Failed to create nginx service.");
+                    failedStarts++;
+                }
+            }
+        }
+
+        // 2. BungeePool
+        BungeePool bungeePool = cfg.getBungeePool();
+        if (bungeePool == null) {
+            System.err.println("No bungee service configured.");
+            failedStarts++;
+
+        } else {
+            bungeePool.init(docker);
+
+            if (bungeePool.find().isFound()) {
+                System.out.println("Found existing bungee service.");
+
+            } else {
+                System.out.println("Couldn't find existing bungee service. Creating it...");
+
+                if (bungeePool.create().isCreated()) {
+                    System.out.println("Successfully created bungee service.");
+
+                } else {
+                    System.err.println("Failed to create bungee service.");
+                    failedStarts++;
+                }
+            }
+        }
+
+        // 3. Looby
+        ServerPool lobbyPool = cfg.getLobbyPool();
+        if (lobbyPool == null) {
+            System.err.println("No lobby service configured.");
+            failedStarts++;
+
+        } else {
+            lobbyPool.init(docker);
+
+            if (lobbyPool.find().isFound()) {
+                System.out.println("Found existing lobby service.");
+
+            } else {
+                System.out.println("Couldn't find existing lobby service. Creating it...");
+
+                if (lobbyPool.create().isCreated()) {
+                    System.out.println("Successfully created lobby service.");
+                    keyValueClient.putValue("system/lobbyServerName", lobbyPool.getName());
+
+                } else {
+                    System.err.println("Failed to create lobby service.");
+                    failedStarts++;
+                }
+            }
+        }
+
+
+        System.out.println(String.format("Successfully started %s / %s services.", serviceCount, serviceCount - failedStarts));
+        return failedStarts == 0 && serviceCount > 0;
     }
 
 
@@ -196,16 +306,11 @@ public class ServerManager {
         ServerManager serverManager = new ServerManager();
 
         try {
-//            ConsulService consulService = new ConsulService(docker);
-//            System.out.println(consulService.create());
+//            serverManager.checkAndCreateInfrastructure();
+            serverManager.consul = Consul.builder().withHostAndPort(HostAndPort.fromParts("ubuntu1", 8500)).build();
+            serverManager.keyValueClient = serverManager.consul.keyValueClient();
 
-            /**/
-
-            serverManager.keyValueClient.putValue("system/lobbyServerName", "Lobby");
-            serverManager.keyValueClient.putValue("mcservers/Lobby/softPlayerLimit", "2");
-
-            /**/
-
+//            serverManager.checkAndCreateMCServers();
 
 
 //            NginxService nginxService = new NginxService("NginxProxy", "mcproxy", "512M", "1", 2,
@@ -216,12 +321,12 @@ public class ServerManager {
 //            }
 //            nginxService.create();
 
-            BungeePool bungeePool = new BungeePool("BungeeCord", "waterfall", "512M", "1", 2, new ServiceConstraints(1));
-            bungeePool.init(docker);
-            if (bungeePool.find().isFound()) {
-                bungeePool.destroy();
-            }
-            bungeePool.create();
+//            BungeePool bungeePool = new BungeePool("BungeeCord", "waterfall", "512M", "1", 2, new ServiceConstraints(1));
+//            bungeePool.init(docker);
+//            if (bungeePool.find().isFound()) {
+//                bungeePool.destroy();
+//            }
+//            bungeePool.create();
 
             ServerPool lobbyPool = new ServerPool("Lobby", "testmc", "512M", "1", 2, null, 5);
             lobbyPool.init(docker);
@@ -230,7 +335,7 @@ public class ServerManager {
 //            ServerPool serverPool = new ServerPool("Minigame-1", "testmc", "512M", "1", 2, null, 2);
 //            serverPool.init(docker);
 //            System.out.println(serverPool.create());
-//
+
 //            ServerPool serverPool2 = new ServerPool("Minigame-2", "testmc", "512M", "1", 2, null, 2);
 //            serverPool2.init(docker);
 //            System.out.println(serverPool2.create());

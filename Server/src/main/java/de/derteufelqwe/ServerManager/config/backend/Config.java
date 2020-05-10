@@ -60,6 +60,10 @@ public class Config {
         return configs.get(clazz).getInstance();
     }
 
+    public static <T> void setInstance(Class<T> clazz, T instance) {
+        configs.get(clazz).setInstance(instance);
+    }
+
     private static File getFile(Class clazz) {
         File directory = new File(Constants.CONFIG_PATH + configs.get(clazz).getFilePath());
         if (!directory.exists()) {
@@ -94,6 +98,8 @@ public class Config {
 
     public static void save(Class clazz) {
         File file = getFile(clazz);
+
+
 
         try {
             Writer writer = new FileWriter(file);
