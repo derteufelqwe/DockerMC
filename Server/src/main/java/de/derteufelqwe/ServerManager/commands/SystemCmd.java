@@ -1,8 +1,6 @@
 package de.derteufelqwe.ServerManager.commands;
 
-import de.derteufelqwe.ServerManager.commands.status.Proxies;
 import de.derteufelqwe.ServerManager.commands.system.Certificates;
-import de.derteufelqwe.ServerManager.commands.system.Nameservices;
 import picocli.CommandLine;
 
 /**
@@ -10,7 +8,7 @@ import picocli.CommandLine;
  */
 @CommandLine.Command(name = "System", description = "Control core functions of the system",
         mixinStandardHelpOptions = true, subcommands = {
-        Certificates.class, Nameservices.class
+        Certificates.class
 })
 public class SystemCmd implements Runnable {
 

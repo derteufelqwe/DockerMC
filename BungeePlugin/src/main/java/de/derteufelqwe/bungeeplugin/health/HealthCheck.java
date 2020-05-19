@@ -6,6 +6,9 @@ import net.md_5.bungee.api.ProxyServer;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+/**
+ * Starts a little HTTP server
+ */
 public class HealthCheck {
 
     private HttpServer server;

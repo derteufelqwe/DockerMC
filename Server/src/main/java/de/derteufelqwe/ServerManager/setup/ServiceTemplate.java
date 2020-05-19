@@ -12,6 +12,7 @@ import de.derteufelqwe.ServerManager.setup.servers.ServerTemplate;
 import de.derteufelqwe.commons.Constants;
 import lombok.*;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,16 +38,14 @@ public class ServiceTemplate extends DockerObjTemplate {
 
     // Amount of replicas
     protected int replications;
-    // Constraints where to place the servers. Can be null if it doesn't matter. Structure is the following:
-    protected ServiceConstraints constraints = new ServiceConstraints();
+    // Constraints where to place the servers. Can be null if it doesn't matter.
+    @Nullable protected ServiceConstraints constraints;
 
 
     public ServiceTemplate(String name, String image, String ramLimit, String cpuLimit, int replications, ServiceConstraints constraints) {
         super(name, image, ramLimit, cpuLimit);
         this.replications = replications;
-        if (constraints != null) {
-            this.constraints = constraints;
-        }
+        this.constraints = constraints;
     }
 
     public ServiceTemplate(Docker docker) {
@@ -219,6 +218,10 @@ public class ServiceTemplate extends DockerObjTemplate {
      * @return
      */
     protected ServicePlacement getServicePlacement() {
+        if (this.constraints == null) {
+            return new ServicePlacement();
+        }
+
         ServicePlacement servicePlacement = new ServicePlacement()
                 .withConstraints(this.constraints.getDockerConstraints())
                 .withMaxReplicas(this.constraints.getNodeLimit());

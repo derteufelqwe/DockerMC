@@ -9,6 +9,7 @@ import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.config.RunningConfig;
 import de.derteufelqwe.ServerManager.config.backend.Config;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
+import de.derteufelqwe.ServerManager.setup.DockerObjTemplate;
 import de.derteufelqwe.ServerManager.setup.ServiceConstraints;
 import de.derteufelqwe.ServerManager.setup.infrastructure.*;
 import de.derteufelqwe.ServerManager.setup.servers.BungeePool;
@@ -92,11 +93,13 @@ public class ServerManager {
         if (!registryContainer.find().isFound()) {
             System.out.println("Couldn't find registry container. Creating it...");
 
-            if (registryContainer.create().isCreated()) {
+            DockerObjTemplate.CreateResponse createResponse = registryContainer.create();
+            if (createResponse.isCreated()) {
                 System.out.println("Successfully created registry container.");
 
             } else {
                 System.err.println("Failed to create registry container.");
+                System.err.println(createResponse.getMessage());
                 failedSetups++;
             }
 
@@ -217,6 +220,27 @@ public class ServerManager {
             }
         }
 
+        // 4. Pool Server
+        for (ServerPool pool : cfg.getPoolServers()) {
+            pool.init(docker);
+
+            if (pool.find().isFound()) {
+                System.out.println(String.format("Found existing server pool service %s.", pool.getName()));
+
+            } else {
+                System.out.println(String.format("Couldn't find existing pool server service %s. Creating it...", pool.getName()));
+
+                if (pool.create().isCreated()) {
+                    System.out.println(String.format("Successfully created pool server service %s.", pool.getName()));
+                    serviceCount++;
+
+                } else {
+                    System.err.println(String.format("Failed to create pool server service %s.", pool.getName()));
+                    failedStarts++;
+                }
+            }
+
+        }
 
         System.out.println(String.format("Successfully started %s / %s services.", serviceCount, serviceCount - failedStarts));
         return failedStarts == 0 && serviceCount > 0;
@@ -297,10 +321,6 @@ public class ServerManager {
 
     }
 
-    /*
-     * - Refactor the base containers to have a single class for each container to find, create and destroy it
-     *
-     */
 
     public static void main(String[] args) throws Exception {
         ServerManager serverManager = new ServerManager();
@@ -310,7 +330,7 @@ public class ServerManager {
             serverManager.consul = Consul.builder().withHostAndPort(HostAndPort.fromParts("ubuntu1", 8500)).build();
             serverManager.keyValueClient = serverManager.consul.keyValueClient();
 
-//            serverManager.checkAndCreateMCServers();
+            serverManager.checkAndCreateMCServers();
 
 
 //            NginxService nginxService = new NginxService("NginxProxy", "mcproxy", "512M", "1", 2,
@@ -328,9 +348,9 @@ public class ServerManager {
 //            }
 //            bungeePool.create();
 
-            ServerPool lobbyPool = new ServerPool("Lobby", "testmc", "512M", "1", 2, null, 5);
-            lobbyPool.init(docker);
-            System.out.println(lobbyPool.create());
+//            ServerPool lobbyPool = new ServerPool("Lobby", "testmc", "512M", "1", 2, null, 5);
+//            lobbyPool.init(docker);
+//            System.out.println(lobbyPool.create());
 
 //            ServerPool serverPool = new ServerPool("Minigame-1", "testmc", "512M", "1", 2, null, 2);
 //            serverPool.init(docker);

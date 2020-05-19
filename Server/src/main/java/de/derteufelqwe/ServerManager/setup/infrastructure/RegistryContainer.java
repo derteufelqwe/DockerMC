@@ -21,7 +21,6 @@ import java.util.Map;
  * Represents the registry container where all images get pushed to
  */
 @Data
-@NoArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class RegistryContainer extends ExposableContainerTemplate {
@@ -29,10 +28,13 @@ public class RegistryContainer extends ExposableContainerTemplate {
     /**
      * Remove this Constructor from access. Use the constructor below instead
      */
-    protected RegistryContainer(String name, String image, String ramLimit, String cpuLimit) {
+    public RegistryContainer(String name, String image, String ramLimit, String cpuLimit) {
         super(name, image, ramLimit, cpuLimit, 443);
     }
 
+    public RegistryContainer() {
+        super("Registry", Constants.Images.REGISTRY.image(), "1G", "2", 443);
+    }
 
     // -----  Creation methods  -----
 
@@ -40,8 +42,9 @@ public class RegistryContainer extends ExposableContainerTemplate {
     protected List<PortBinding> getPortBindings() {
         List<PortBinding> portBindings = super.getPortBindings();
 
+        // ToDo: Das geht sicherlich auch besser
         portBindings.add(
-                new PortBinding(Ports.Binding.bindPort(this.getContainerPort()), ExposedPort.tcp(this.getPort()))
+                new PortBinding(Ports.Binding.bindPort(this.getPort()), ExposedPort.tcp(5000))
         );
 
         return portBindings;

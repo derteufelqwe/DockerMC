@@ -41,7 +41,7 @@ public class InfrastructureConfig {
             this.bungeePool = new BungeePool("BungeePool", "waterfall", "1G", "2", 2, new ServiceConstraints(1));
             this.lobbyPool = new ServerPool("LobbyServer", "testmc", "512M", "1", 2, null, 10);
             this.poolServers.add(
-                    new ServerPool("Server1", "testmc", "512M", "1", 2, null, 2)
+                    new ServerPool("Minigame-1", "testmc", "512M", "1", 2, null, 2)
             );
         }
     }

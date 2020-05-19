@@ -1,43 +1,33 @@
 package de.derteufelqwe.bungeeplugin.consul;
 
-import com.orbitz.consul.cache.ConsulCache;
+import com.orbitz.consul.CatalogClient;
+import com.orbitz.consul.cache.ServiceCatalogCache;
 import com.orbitz.consul.model.catalog.CatalogService;
 import net.md_5.bungee.api.ProxyServer;
 
 import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
-public class CacheChangeListener implements ConsulCache.Listener<String, CatalogService> {
+public class MinecraftKeyListener implements ICacheChangeListener<String, CatalogService> {
 
-    private Map<String, CatalogService> serviceMap = new HashMap<>();   // All currently available Services
+    private CatalogClient catalogClient;
+    private ServiceCatalogCache serviceCatalogCache;
 
-    @Override
-    public void notify(Map<String, CatalogService> newValues) {
 
-        // Add Services
-        for (String key : newValues.keySet()) {
-            if (!this.serviceMap.containsKey(key)) {
-                this.serviceMap.put(key, newValues.get(key));
-                this.addServer(key, newValues.get(key));
-            }
-        }
+    public MinecraftKeyListener(CatalogClient catalogClient) {
+        this.catalogClient = catalogClient;
 
-        // Remove Services
-        Set<String> keys = new HashSet<>(this.serviceMap.keySet());
-        keys.removeAll(newValues.keySet());
-        for (String key : keys) {
-            this.removeServer(key, this.serviceMap.get(key));
-            this.serviceMap.remove(key);
-        }
+        this.serviceCatalogCache = ServiceCatalogCache.newCache(this.catalogClient, "minecraft");
+        CacheListener<String, CatalogService> cacheListener = new CacheListener<>();
+        cacheListener.addListener(this);
 
+        this.serviceCatalogCache.addListener(cacheListener);
+        this.serviceCatalogCache.start();
     }
 
     /**
      * Generates the Servername based on the Container name (key) and the meta data from the Consul Service (value)
-     * @param key Task name in docker and at the same time the ServiceID in Consul
+     *
+     * @param key   Task name in docker and at the same time the ServiceID in Consul
      * @param value Consul service
      * @return The Servername
      */
@@ -58,7 +48,14 @@ public class CacheChangeListener implements ConsulCache.Listener<String, Catalog
         return serverName + "-" + serverNumber;
     }
 
-    private void addServer(String key, CatalogService value) {
+
+    @Override
+    public void onModifyEntry(String key, CatalogService value) {
+        System.err.println(String.format("[Warning] Modified %s to %s.", key, value));
+    }
+
+    @Override
+    public void onAddEntry(String key, CatalogService value) {
         String serverName = getServerName(key, value);
 
         ProxyServer.getInstance().getConfig().addServer(ProxyServer.getInstance().constructServerInfo(
@@ -68,12 +65,18 @@ public class CacheChangeListener implements ConsulCache.Listener<String, Catalog
         System.out.println("Added Server " + serverName + ".");
     }
 
-    private void removeServer(String key, CatalogService value) {
+    @Override
+    public void onRemoveEntry(String key, CatalogService value) {
         String serverName = getServerName(key, value);
 
         ProxyServer.getInstance().getConfig().removeServerNamed(serverName);
 
         System.out.println("Removed Server " + serverName + ".");
+    }
+
+
+    public void stop() {
+        this.serviceCatalogCache.stop();
     }
 
 }

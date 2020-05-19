@@ -1,74 +1,52 @@
 package de.derteufelqwe.bungeeplugin;
 
-import com.orbitz.consul.AgentClient;
-import com.orbitz.consul.Consul;
-import com.orbitz.consul.ConsulException;
-import com.orbitz.consul.KeyValueClient;
+import com.orbitz.consul.*;
 import com.orbitz.consul.model.agent.ImmutableRegCheck;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
 import com.orbitz.consul.model.agent.Registration;
 import com.orbitz.google.common.net.HostAndPort;
-import de.derteufelqwe.bungeeplugin.consul.ConsulHandler;
+import de.derteufelqwe.bungeeplugin.consul.MinecraftKeyListener;
 import de.derteufelqwe.bungeeplugin.docker.DockerSignalHandler;
 import de.derteufelqwe.bungeeplugin.health.HealthCheck;
-import de.derteufelqwe.bungeeplugin.health.HealthHandler;
+import de.derteufelqwe.commons.Constants;
 import net.md_5.bungee.api.plugin.Plugin;
 
 import java.util.Collections;
 
 public final class BungeePlugin extends Plugin {
 
-    private final String CONSUL_SERVER_HOST = "consul_server";
-    private final int CONSUL_SERVER_PORT = 8500;
+    private Consul consul = Consul.builder().withHostAndPort(HostAndPort.fromParts(Constants.CONSUL_HOST, Constants.CONSUL_PORT)).build();
+    private AgentClient agentClient = consul.agentClient();
+    private KeyValueClient keyValueClient = consul.keyValueClient();
+    private CatalogClient catalogClient = consul.catalogClient();
 
-    private String TASK_NAME;
-    private String CONTAINER_IP;
-
-    private Consul consul;
-    private AgentClient agentClient;
-    private KeyValueClient keyValueClient;
-    private ConsulHandler consulHandler;
     private HealthCheck healthCheck = new HealthCheck();
-
-
-    /**
-     * Setup
-     */
-    private void setup() {
-        TASK_NAME = System.getenv("TASK_NAME");
-        CONTAINER_IP = Utils.getIpMap().get("eth0");
-
-        if (TASK_NAME == null || TASK_NAME.equals("")) {
-            System.err.println("[Fatal Error] Environment variable TASK_NAME can't be null.");
-            getProxy().stop("[Fatal Error] Environment variable TASK_NAME can't be null.");
-        }
-
-        if (CONTAINER_IP == null || CONTAINER_IP.equals("")) {
-            System.err.println("[Fatal Error] Failed to get the container IP.");
-            getProxy().stop("[Fatal Error] Failed to get the container IP.");
-        }
-    }
+    private MetaData metaData = new MetaData();
+    private MinecraftKeyListener minecraftKeyListener;
+    private Events events = new Events(keyValueClient);
 
     /**
      * Register this container to Consul
      */
     private void registerContainer() {
-        keyValueClient.putValue("bungeecords/" + TASK_NAME, CONTAINER_IP);
+        String taskName = this.metaData.getTaskName();
+        String containerIP = this.metaData.getContainerIP();
+        keyValueClient.putValue("bungeecords/" + taskName, containerIP);
 
         Registration newService = ImmutableRegistration.builder()
                 .name("bungeecord")
-                .id(TASK_NAME)
+                .id(taskName)
                 .tags(Collections.singleton("defaultproxy"))
-                .address(CONTAINER_IP)
+                .address(containerIP)
                 .port(25577)
                 .check(ImmutableRegCheck.builder()
-                        .http("http://" + CONTAINER_IP + ":8001/health")
+                        .http("http://" + containerIP + ":8001/health")
                         .interval("10s")
                         .timeout("5s")
                         .build())
-                .putMeta("ip", CONTAINER_IP)
+                .putMeta("ip", containerIP)
                 .build();
-        System.out.println("Adding Proxy " + TASK_NAME);
+        System.out.println("Adding Proxy " + taskName);
         agentClient.register(newService);
     }
 
@@ -77,22 +55,17 @@ public final class BungeePlugin extends Plugin {
     public void onEnable() {
         DockerSignalHandler.listenTo("TERM");
 
-        this.setup();
-        consul = Consul.builder().withHostAndPort(HostAndPort.fromParts(CONSUL_SERVER_HOST, CONSUL_SERVER_PORT)).build();
-        agentClient = consul.agentClient();
-        keyValueClient = consul.keyValueClient();
-
         // -----  Events  -----
-        getProxy().getPluginManager().registerListener(this, new Events(consul));
+        getProxy().getPluginManager().registerListener(this, events);
 
         // -----  Commands  -----
         getProxy().getPluginManager().registerCommand(this, new DockerMCCommands());
 
         // -----  Registrations  -----
-        System.out.println("Starting consul handler");
-        consulHandler = new ConsulHandler(this.consul);
-        consulHandler.startListener();
+        System.out.println("Starting Minecraft listener...");
+        this.minecraftKeyListener = new MinecraftKeyListener(catalogClient);
 
+        // -----  Consul  -----
         this.healthCheck.start();
         this.registerContainer();
     }
@@ -101,8 +74,10 @@ public final class BungeePlugin extends Plugin {
      * Remove this container from Consul
      */
     private void deregisterContainer() {
+        String taskName = this.metaData.getTaskName();
+
         try {
-            keyValueClient.deleteKey("bungeecords/" + TASK_NAME);
+            keyValueClient.deleteKey("bungeecords/" + taskName);
 
         } catch (Exception e1) {
             System.err.println(e1.getMessage());
@@ -110,7 +85,7 @@ public final class BungeePlugin extends Plugin {
         }
 
         try {
-            agentClient.deregister(TASK_NAME);
+            agentClient.deregister(taskName);
 
         } catch (ConsulException e) {
             System.err.println(e.getMessage());
@@ -120,12 +95,13 @@ public final class BungeePlugin extends Plugin {
 
     @Override
     public void onDisable() {
-        System.out.println("Removing Server " + TASK_NAME);
+        System.out.println("Removing Server " + this.metaData.getTaskName());
 
         this.deregisterContainer();
+        this.minecraftKeyListener.stop();
+        this.events.stop();
 
         this.healthCheck.stop();
-        consulHandler.stopListener();
         consul.destroy();
     }
 

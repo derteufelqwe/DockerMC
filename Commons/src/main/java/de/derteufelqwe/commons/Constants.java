@@ -14,8 +14,9 @@ public class Constants {
             "                                                         |___/           ";
 
     public static String AUTHOR = "derteufelqwe";
-    public static String WORKDIR = System.getProperty("user.dir").replace('\\', '/') + "/Server/";
-//    public static String WORKDIR = "/home/arne/DockerMC/Server/";
+    public static String WORKDIR_WINDOWS = System.getProperty("user.dir").replace('\\', '/') + "/Server/";
+    public static String WORKDIR_UNIX = "/home/arne/DockerMC/Server/";
+    public static String WORKDIR = WORKDIR_WINDOWS;
 
     public static String CONFIG_PATH = WORKDIR + "server/configs/";
 
@@ -37,17 +38,6 @@ public class Constants {
     public static String REGISTRY_HTPASSWD_NAME = "htpasswd";
     public static String REGISTRY_URL = "registry.swarm";
 
-    // -----  DNS  -----
-    public static String DNS_WORKDIR_PATH = WORKDIR + "server/internal/workdirs/dns/";
-    public static boolean DNS_WEBMIN_ENABLED = true;
-    public static String DNS_SYSTEM_ENTRY_PATH = DNS_WORKDIR_PATH + "/bind/lib/swarm.entrys_system";
-    public static String DNS_USER_ENTRY_PATH = DNS_WORKDIR_PATH + "/bind/lib/swarm.entrys_user";
-
-    // -----  API  -----
-    public static String API_CERTS_PATH = WORKDIR + "server/internal/security/api-certs/";
-    public static String DOCKER_SOCKET_PATH = "/var/run/docker.sock";
-    public static String APIPROXY_CONTAINER_NAME = "APIProxy";
-
     // -----  Tags  -----
     // Identifies a container, which belongs the DockerMC
     public static String DOCKER_IDENTIFIER_KEY = "Owner";
@@ -63,10 +53,9 @@ public class Constants {
     public static int SERVICE_STARTUP_TIME = 20;
     public static int LOG_FETCH_TIME = 20;
 
-    // -----  etcd  -----
-    public static String ETCD_CONTAINER_NAME = "etcd";
-    public static int ETCD_PORT = 2379;
-    public static String ETCD_KEY = "clients";
+    // -----  Consul  -----
+    public static String CONSUL_HOST = "consul_server";
+    public static int CONSUL_PORT = 8500;
 
     // Values for the Tag CONTAINER_IDENTIFIER_KEY
     public enum ContainerType {

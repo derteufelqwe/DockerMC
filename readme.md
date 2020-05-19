@@ -11,23 +11,23 @@ Basic container types have the key `Type` and the following values:
 
 
 # ToDo
-- Certs generation
-- Certs ohne bindmounts (für Swarmfunktionalität)
-- Certs in Image kopieren
-- ggf. Certs über Webservice verbreiten
-- Commands zum Erneuern der Zertifikate
+- Verschiedene Maps für ein Image
+- Server signs für Server
+- Configs validieren
+- Commands
+- Metadata and tags in consul
+
 - Spigot Plugin mit api, um einen Shutdown des Servers zu verarbeiten
-
 - Testen ob Service wirklich gestartet ist
-+ Player join order in der lobby
-+ RAM / CPU limitieren
-+ BungeeCord Plugin multithreaden
+- Player join order in der lobby
 - persistente Server (evtl an einen Host binden)
-- RAM / CPU von systemcontainern limitieren
+- Healthchecks überarbeiten (2. Check für server, evtl. kein curl, höherer startup delay)
+- Support für Redis und mysql datenbank
 
-# Plan
-- Docker-API certs für das Plugin
-- Verteilung der Certs ohne Bind-Mount
+- Webseite zur Verwaltung
+- Telegram Bot
+- Discord Bot
+
 
 
 # Tags

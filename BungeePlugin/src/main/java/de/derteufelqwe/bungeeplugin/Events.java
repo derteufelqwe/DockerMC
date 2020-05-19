@@ -1,59 +1,105 @@
 package de.derteufelqwe.bungeeplugin;
 
-import com.google.common.base.Utf8;
-import com.google.common.collect.Iterables;
-import com.ibm.etcd.client.kv.KvClient;
-import com.orbitz.consul.AgentClient;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
-import de.derteufelqwe.commons.Constants;
+import com.orbitz.consul.cache.KVCache;
+import com.orbitz.consul.model.kv.Value;
+import de.derteufelqwe.bungeeplugin.consul.CacheListener;
+import de.derteufelqwe.bungeeplugin.consul.ICacheChangeListener;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.event.*;
+import net.md_5.bungee.api.event.PlayerDisconnectEvent;
+import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.plugin.Listener;
-import net.md_5.bungee.connection.LoginResult;
 import net.md_5.bungee.event.EventHandler;
 
-import java.net.Inet4Address;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
  * Reihenfolge: Join -> Connect
  */
 
-public class Events implements Listener {
+public class Events implements Listener, ICacheChangeListener<String, Value> {
 
-    private KeyValueClient kvClient;
+    private final Pattern RE_PLAYERLIMIT = Pattern.compile("^mcservers\\/(.+)\\/softPlayerLimit$");
 
     private String lobbyServerName = "";
-    private Integer lobbySoftPlayerLimit = 0;
+    // ToDo: SoftPlayerLimit == -1 -> unlimited
+    private Map<String, Integer> softPlayerLimits = new HashMap<>();
+
+    private KeyValueClient kvClient;
+    private KVCache kvCache;
 
 
-    public Events(Consul consul) {
-        kvClient = consul.keyValueClient();
+    public Events(KeyValueClient kvClient) {
+        this.kvClient = kvClient;
 
-        Optional<String> serverNameOpt = kvClient.getValueAsString("system/lobbyServerName");
-        if (!serverNameOpt.equals(Optional.empty())) {
-            this.lobbyServerName = serverNameOpt.get();
+        this.kvCache = KVCache.newCache(kvClient, "");
+        CacheListener<String, Value> cacheListener = new CacheListener<>();
+        cacheListener.addListener(this);
+        kvCache.addListener(cacheListener);
+        kvCache.start();
+    }
 
-        } else {
-            System.err.println("[Fatal Error] No Lobbyname");
-            ProxyServer.getInstance().stop("[Fatal Error] No Lobbyname");
-        }
+    public void stop() {
+        this.kvCache.stop();
+    }
 
-        Optional<String> playerLimitOpt = kvClient.getValueAsString("mcservers/" + lobbyServerName + "/softPlayerLimit");
-        if (!playerLimitOpt.equals(Optional.empty())) {
-            this.lobbySoftPlayerLimit = Integer.parseInt(playerLimitOpt.get());
 
-        } else {
-            System.err.println("[Fatal Error] No softPlayerLimit");
-            ProxyServer.getInstance().stop("[Fatal Error] No softPlayerLimit for lobbyserver " + lobbyServerName + ".");
+    @Override
+    public void onAddEntry(String key, Value value) {
+        System.out.println("Add " + key + " -> " + value);
+        this.setValue(key, value);
+    }
+
+    @Override
+    public void onModifyEntry(String key, Value value) {
+        System.out.println("Modify " + key + " -> " + value);
+        this.setValue(key, value);
+    }
+
+    @Override
+    public void onRemoveEntry(String key, Value value) {
+        System.out.println("Remove " + key + " -> " + value);
+        this.unsetValue(key, value);
+    }
+
+
+    private void setValue(String key, Value value) {
+        Matcher m = RE_PLAYERLIMIT.matcher(key);
+
+        if (m.matches() && m.find()) {
+            String serverName = m.group(1);
+            int limit = Integer.parseInt(value.getValueAsString().get());
+            this.softPlayerLimits.put(serverName, limit);
+            System.out.println("Setting softPlayerLimit of server " + serverName + " to " + limit);
+
+        } else if (key.equals("system/lobbyServerName")) {
+            String name = value.getValueAsString().get();
+            this.lobbyServerName = name;
+            System.out.println("Setting lobbyServerName to " + name);
         }
     }
+
+    private void unsetValue(String key, Value value) {
+        Matcher m = RE_PLAYERLIMIT.matcher(key);
+
+        if (m.matches() && m.find()) {
+            String serverName = RE_PLAYERLIMIT.matcher(key).group(1);
+            this.softPlayerLimits.remove(serverName);
+            System.out.println("Unsetting ");
+
+        } else if (key.equals("system/lobbyServerName")) {
+            this.lobbyServerName = null;
+        }
+    }
+
+
 
     /**
      * Executed when a player connects to a server. This will send the player to the first available server.
@@ -64,14 +110,27 @@ public class Events implements Listener {
             return;
         }
 
+        if (this.lobbyServerName == null || this.lobbyServerName == "") {
+            System.err.println("No lobby server found.");
+            event.getPlayer().disconnect(new TextComponent(ChatColor.RED + "Couldn't find lobby server."));
+            return;
+        }
+
         List<ServerInfo> servers = Utils.getServers().values().stream()
                 .filter(s -> s.getName().startsWith(this.lobbyServerName))
                 .sorted(Comparator.comparing(ServerInfo::getName))  // Sort by Name
                 .collect(Collectors.toList());
 
+        // Connect user to server
         if (servers.size() > 0) {
             for (ServerInfo serverInfo : servers) {
-                if (serverInfo.getPlayers().size() < this.lobbySoftPlayerLimit) {
+                int playerLimit = this.softPlayerLimits.getOrDefault(this.lobbyServerName, -1);
+
+                if (playerLimit == -1) {
+                    event.setTarget(serverInfo);
+                    return;
+
+                } else if (serverInfo.getPlayers().size() < playerLimit) {
                     event.setTarget(serverInfo);
                     return;
                 }

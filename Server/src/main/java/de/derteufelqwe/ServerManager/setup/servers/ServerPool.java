@@ -86,7 +86,6 @@ public class ServerPool extends ServiceTemplate {
 
         envs.add("TASK_NAME={{ .Task.Name }}");
         envs.add("SERVER_NAME=" + this.name);
-        envs.add("");
 
         return envs;
     }
