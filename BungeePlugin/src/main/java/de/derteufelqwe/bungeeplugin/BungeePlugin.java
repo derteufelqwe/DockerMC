@@ -46,7 +46,7 @@ public final class BungeePlugin extends Plugin {
                         .build())
                 .putMeta("ip", containerIP)
                 .build();
-        System.out.println("Adding Proxy " + taskName);
+        System.out.println("Adding Proxy " + taskName + " to Consul.");
         agentClient.register(newService);
     }
 

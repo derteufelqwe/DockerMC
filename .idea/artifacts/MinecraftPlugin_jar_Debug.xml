@@ -1,6 +1,6 @@
 <component name="ArtifactManager">
-  <artifact type="jar" name="MinecraftPlugin:jar">
-    <output-path>$PROJECT_DIR$/MinecraftPlugin/target/artifacts</output-path>
+  <artifact type="jar" name="MinecraftPlugin:jar-Debug">
+    <output-path>$USER_HOME$/Desktop/PaperServer/plugins</output-path>
     <root id="archive" name="MinecraftPlugin.jar">
       <element id="module-output" name="MinecraftPlugin" />
       <element id="module-output" name="Commons" />

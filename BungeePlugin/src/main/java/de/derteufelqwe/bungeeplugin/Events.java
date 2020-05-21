@@ -112,7 +112,7 @@ public class Events implements Listener, ICacheChangeListener<String, Value> {
 
         if (this.lobbyServerName == null || this.lobbyServerName == "") {
             System.err.println("No lobby server found.");
-            event.getPlayer().disconnect(new TextComponent(ChatColor.RED + "Couldn't find lobby server."));
+            event.getPlayer().disconnect(new TextComponent(ChatColor.RED + "Couldn't identify name of lobby server."));
             return;
         }
 

@@ -282,7 +282,7 @@ public class ServiceTemplate extends DockerObjTemplate {
     }
 
     protected String getServiceName() {
-        return null;
+        return this.name;
     }
 
     /**

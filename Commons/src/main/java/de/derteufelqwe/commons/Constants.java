@@ -32,7 +32,7 @@ public class Constants {
 
     // -----  Registry  -----
     // Path to the Registry Certificate and key
-    public static String REGISTRY_CERT_PATH = WORKDIR + "server/internal/security/registry-certs/";
+    public static String REGISTRY_CERT_PATH = WORKDIR_UNIX + "server/internal/security/registry-certs/";
     public static String REGISTRY_CERT_NAME  = "ca.crt";
     public static String REGISTRY_KEY_NAME  = "ca.key";
     public static String REGISTRY_HTPASSWD_NAME = "htpasswd";
@@ -54,7 +54,7 @@ public class Constants {
     public static int LOG_FETCH_TIME = 20;
 
     // -----  Consul  -----
-    public static String CONSUL_HOST = "consul_server";
+    public static String CONSUL_HOST = "Consul";
     public static int CONSUL_PORT = 8500;
 
     // Values for the Tag CONTAINER_IDENTIFIER_KEY

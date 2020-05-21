@@ -2,7 +2,7 @@
 
 # Environment variables
 export CONSUL_PORT=${CONSUL_PORT:-8500}
-export HOST_IP=${HOST_IP:-consul_server}
+export HOST_IP=${HOST_IP:-Consul}
 export CONSUL=$HOST_IP:$CONSUL_PORT
 export RELOAD_INTERVAL=${RELOAD_INTERVAL:-10}
 export TASK_NAME=${TASK_NAME:-"NO_TASK_NAME"}

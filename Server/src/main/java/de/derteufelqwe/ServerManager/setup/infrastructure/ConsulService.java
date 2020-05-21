@@ -69,11 +69,6 @@ public class ConsulService extends ServiceTemplate {
         return command;
     }
 
-    @Override
-    protected String getServiceName() {
-        return "consul_server";
-    }
-
     /**
      * Overwrite this because we don't want the consul image from the registry
      * @return

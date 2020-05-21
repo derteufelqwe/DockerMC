@@ -8,3 +8,6 @@ commands:
     dockermc:
         description: Utility commands for DockerMC
         aliases: [dmc]
+    teleportsign:
+        description: Create a teleport sign to teleport to other servers
+        aliases: [tpsign]

@@ -11,11 +11,13 @@ Basic container types have the key `Type` and the following values:
 
 
 # ToDo
-- Verschiedene Maps für ein Image
+- Verschiedene Maps für ein Image | Just use multiple services
 - Server signs für Server
+- Config system überarbeiten
 - Configs validieren
 - Commands
 - Metadata and tags in consul
+- Minecraft commands
 
 - Spigot Plugin mit api, um einen Shutdown des Servers zu verarbeiten
 - Testen ob Service wirklich gestartet ist

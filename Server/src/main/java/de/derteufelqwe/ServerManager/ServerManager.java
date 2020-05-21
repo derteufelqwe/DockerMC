@@ -71,21 +71,21 @@ public class ServerManager {
         System.out.println("Checking and setting up infrastructure...");
 
         // 1. Registry certificates
-        RegistryCertificates registryCertificates = new RegistryCertificates(docker);
-        if (!registryCertificates.find().isFound()) {
-            System.out.println("Couldn't find required certificates for the registry. Creating them...");
-            registryCertificates.create();
-
-            if (registryCertificates.find().isFound()) {
-                System.out.println("Successfully generated the required certificates for the registry.");
-
-            } else {
-                System.err.println("Couldn't generate the required certificates for the registry.");
-                failedSetups++;
-            }
-        } else {
-            System.out.println("Found existing certificates for the registry.");
-        }
+//        RegistryCertificates registryCertificates = new RegistryCertificates(docker);
+//        if (!registryCertificates.find().isFound()) {
+//            System.out.println("Couldn't find required certificates for the registry. Creating them...");
+//            registryCertificates.create();
+//
+//            if (registryCertificates.find().isFound()) {
+//                System.out.println("Successfully generated the required certificates for the registry.");
+//
+//            } else {
+//                System.err.println("Couldn't generate the required certificates for the registry.");
+//                failedSetups++;
+//            }
+//        } else {
+//            System.out.println("Found existing certificates for the registry.");
+//        }
 
         // 2. Registry container
         RegistryContainer registryContainer = new RegistryContainer();
@@ -327,10 +327,10 @@ public class ServerManager {
 
         try {
 //            serverManager.checkAndCreateInfrastructure();
-            serverManager.consul = Consul.builder().withHostAndPort(HostAndPort.fromParts("ubuntu1", 8500)).build();
+            serverManager.consul = Consul.builder().withHostAndPort(HostAndPort.fromParts("ubuntu1", Constants.CONSUL_PORT)).build();
             serverManager.keyValueClient = serverManager.consul.keyValueClient();
 
-            serverManager.checkAndCreateMCServers();
+//            serverManager.checkAndCreateMCServers();
 
 
 //            NginxService nginxService = new NginxService("NginxProxy", "mcproxy", "512M", "1", 2,

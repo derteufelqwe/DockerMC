@@ -1,4 +1,4 @@
-package de.derteufelqwe.bungeeplugin.exceptions;
+package de.derteufelqwe.commons.exceptions;
 
 /**
  * Base for all exceptions

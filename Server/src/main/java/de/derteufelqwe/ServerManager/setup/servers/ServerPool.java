@@ -33,23 +33,6 @@ public class ServerPool extends ServiceTemplate {
     }
 
 
-    public CreateResponse create(KeyValueClient kvClient) {
-        CreateResponse response = super.create();
-
-        kvClient.putValue("mcservers/" + this.name + "/softPlayerLimit", Integer.toString(this.softPlayerLimit));
-
-        return response;
-    }
-
-
-    public DestroyResponse destroy(KeyValueClient kvClient) {
-        DestroyResponse response = super.destroy();
-
-        kvClient.deleteKey("mcservers/" + this.name);
-
-        return response;
-    }
-
     @Override
     protected List<String> findNullParams() {
         List<String> nullParams = super.findNullParams();

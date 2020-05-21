@@ -1,4 +1,4 @@
-package minecraftplugin.minecraftplugin;
+package minecraftplugin.minecraftplugin.dockermc;
 
 import minecraftplugin.minecraftplugin.health.HealthHandler;
 import org.bukkit.ChatColor;
@@ -15,6 +15,9 @@ public class DockerMCCommands implements CommandExecutor {
     private final ChatColor COLOR = ChatColor.BLUE;
     private final ChatColor COLOR_CMD = ChatColor.YELLOW;
     private final String NAME = COLOR + "[DockerMC] " + ChatColor.RESET;
+
+    public DockerMCCommands() {
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {

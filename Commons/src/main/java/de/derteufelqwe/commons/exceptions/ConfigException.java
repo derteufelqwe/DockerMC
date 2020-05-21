@@ -1,4 +1,4 @@
-package de.derteufelqwe.bungeeplugin.exceptions;
+package de.derteufelqwe.commons.exceptions;
 
 /**
  * Indicates that a config is faulty

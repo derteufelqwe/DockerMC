@@ -38,31 +38,4 @@ public class Utils {
     }
 
 
-    public static Map<String, String> getIpMap() {
-        Map<String, String> resMap = new HashMap<>();
-
-        Enumeration<NetworkInterface> ifaces = null;
-        try {
-            ifaces = NetworkInterface.getNetworkInterfaces();
-
-            while (ifaces.hasMoreElements()) {
-                NetworkInterface iface = ifaces.nextElement();
-                Enumeration<InetAddress> addresses = iface.getInetAddresses();
-
-                while (addresses.hasMoreElements()) {
-                    InetAddress addr = addresses.nextElement();
-                    if (addr instanceof Inet4Address && !addr.isLoopbackAddress()) {
-                        resMap.put(iface.getName(), addr.getHostAddress());
-                    }
-                }
-            }
-
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
-
-        return resMap;
-    }
-
-
 }
