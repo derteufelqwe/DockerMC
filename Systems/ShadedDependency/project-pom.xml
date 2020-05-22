@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>Dependencies</groupId>
+    <artifactId>Dependencies</artifactId>
+    <version>1.0</version>
+
+    <properties>
+        <name.jackson>jackson</name.jackson>
+        <version.jackson>2.11.0</version.jackson>
+    </properties>
+
+    <build>
+        <defaultGoal>clean package</defaultGoal>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <!--                    <useIncrementalCompilation>false</useIncrementalCompilation>-->
+                </configuration>
+            </plugin>
+
+            <!--            Display active profile in compile phase-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-help-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>show-profiles</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>active-profiles</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--            Create jar with dependencies-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.1.0</version>
+
+                <executions>
+                    <!-- ############## Artifacts which should be shaded-->
+                    <execution>
+                        <id>${name.jackson}</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>${name.jackson}-${version.jackson}</finalName>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <includes>
+                                        <include>com/fasterxml/jackson/**</include>
+                                    </includes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                    <!--#############################-->
+                </executions>
+                <configuration>
+                    <!--                    Relocate dependencies that appear multiple times with different versions-->
+                    <shadeSourcesContent>true</shadeSourcesContent>
+                    <relocations combine.children="append">
+                        <!-- ################## Relocation names-->
+                        <relocation>
+                            <pattern>com.fasterxml.jackson</pattern>
+                            <shadedPattern>shaded.mcp.com.fasterxml.jackson</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.yaml</pattern>
+                            <shadedPattern>shaded.mcp.org.yaml</shadedPattern>
+                        </relocation>
+                        <!--#############################-->
+                    </relocations>
+                </configuration>
+            </plugin>
+
+            <!--            Install the jars-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <configuration>
+                    <groupId>de.derteufelqwe.shaded</groupId>
+                    <generatePom>true</generatePom>
+                </configuration>
+                <executions>
+                    <!-- ############## Each execution installs one file-->
+                    <execution>
+                        <id>install-jar-lib</id>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <phase>install</phase>
+                        <configuration>
+                            <artifactId>${name.jackson}</artifactId>
+                            <version>${version.jackson}</version>
+                            <packaging>jar</packaging>
+                            <file>${basedir}/target/${name.jackson}-${version.jackson}.jar</file>
+                        </configuration>
+                    </execution>
+                    <!--#############################-->
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${version.jackson}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${version.jackson}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <version>${version.jackson}</version>
+        </dependency>
+
+    </dependencies>
+
+
+</project>

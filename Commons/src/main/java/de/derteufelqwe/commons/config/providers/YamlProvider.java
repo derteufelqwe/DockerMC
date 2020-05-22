@@ -1,7 +1,6 @@
 package de.derteufelqwe.commons.config.providers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.yaml.snakeyaml.Yaml;
+import shaded.mcp.com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Used to get the Yaml instance for the config

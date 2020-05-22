@@ -1,13 +1,16 @@
 package de.derteufelqwe.commons.config.providers;
 
-import com.fasterxml.jackson.databind.Module;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import shaded.mcp.com.fasterxml.jackson.databind.Module;
+import shaded.mcp.com.fasterxml.jackson.databind.ObjectMapper;
+import shaded.mcp.com.fasterxml.jackson.databind.module.SimpleModule;
+import shaded.mcp.com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Provides the default object mapper for the config
+ */
 public class DefaultYamlProvider implements YamlProvider {
 
     @Override

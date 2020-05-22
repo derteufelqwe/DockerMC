@@ -1,0 +1,6 @@
+One Project to shade and create all required dependencies
+
+To add a dependency add the name and version under properties and add an <execution> and <relocation> to the shade plugin
+as well as an <execution> to the install plugin
+
+Calling mavens install command will install the relocated dependency to de.derteufelqwe.shaded with the name ${name}-${version}

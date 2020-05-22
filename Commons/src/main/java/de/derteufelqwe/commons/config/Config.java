@@ -1,6 +1,6 @@
 package de.derteufelqwe.commons.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import shaded.mcp.com.fasterxml.jackson.databind.ObjectMapper;
 import de.derteufelqwe.commons.config.providers.YamlProvider;
 
 import java.io.File;

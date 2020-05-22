@@ -1,5 +1,6 @@
 package minecraftplugin.minecraftplugin;
 
+import com.google.common.net.HostAndPort;
 import com.orbitz.consul.AgentClient;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.ConsulException;
@@ -7,10 +8,9 @@ import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.model.agent.ImmutableRegCheck;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
 import com.orbitz.consul.model.agent.Registration;
-import com.orbitz.google.common.net.HostAndPort;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
-import de.derteufelqwe.commons.config.providers.DefaultYamlProvider;
+import de.derteufelqwe.commons.config.providers.MinecraftYamlProvider;
 import minecraftplugin.minecraftplugin.config.SignConfig;
 import minecraftplugin.minecraftplugin.dockermc.DockerMCCommands;
 import minecraftplugin.minecraftplugin.dockermc.DockerMCTabComplete;
@@ -25,7 +25,7 @@ import java.util.Collections;
 public final class MinecraftPlugin extends JavaPlugin {
 
     public static MinecraftPlugin INSTANCE;
-    public static Config CONFIG = new Config(new DefaultYamlProvider());
+    public static Config CONFIG = new Config(new MinecraftYamlProvider());
 
     private Consul consul = Consul.builder().withHostAndPort(HostAndPort.fromParts(Constants.CONSUL_HOST, Constants.CONSUL_PORT)).build();
     private AgentClient agentClient = consul.agentClient();
