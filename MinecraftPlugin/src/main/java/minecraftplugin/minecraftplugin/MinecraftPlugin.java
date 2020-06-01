@@ -33,6 +33,7 @@ public final class MinecraftPlugin extends JavaPlugin {
     private HealthCheck healthCheck = new HealthCheck();
     private MetaData metaData = new MetaData();
 
+
     @Override
     public void onEnable() {
         INSTANCE = this;

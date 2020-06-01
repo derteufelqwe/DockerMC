@@ -1,7 +1,8 @@
 package de.derteufelqwe.commons.config;
 
-import shaded.mcp.com.fasterxml.jackson.databind.ObjectMapper;
-import de.derteufelqwe.commons.config.providers.YamlProvider;
+import com.google.gson.Gson;
+import de.derteufelqwe.commons.config.providers.GsonProvider;
+import de.derteufelqwe.commons.config.providers.YamlConverter;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,11 +12,12 @@ import java.util.Map;
 public class Config {
 
     private Map<Class, ConfigContainer> configs = new HashMap<>();
-    private ObjectMapper mapper;
+    private YamlConverter converter;
+    private Gson gson;
 
-
-    public Config(YamlProvider provider) {
-        this.mapper = provider.getMapper();
+    public Config(YamlConverter converter, GsonProvider gsonProvider) {
+        this.converter = converter;
+        this.gson = gsonProvider.getGson();
     }
 
 
@@ -25,11 +27,12 @@ public class Config {
 
         try {
             configs.put(clazz, new ConfigContainer(
-                    clazz, fileName, path, clazz.newInstance()
+                    clazz, path, fileName, clazz.newInstance()
             ));
 
         } catch (InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
+            System.err.println("Failed to instanciate class " + clazz.getName() + ".");
         }
     }
 
@@ -59,17 +62,20 @@ public class Config {
 
         if (file.exists()) {
             try {
-                configs.get(clazz).setInstance(mapper.readValue(file, clazz));
+                configs.get(clazz).setInstance(gson.fromJson(converter.loadJson(file), clazz));
 
             } catch (IOException e) {
+                e.printStackTrace();
             }
 
         } else {
             try {
                 file.createNewFile();
                 configs.get(clazz).setInstance(clazz.newInstance());
-            } catch (InstantiationException | IllegalAccessException | IOException ex) {
-                ex.printStackTrace();
+
+            } catch (InstantiationException | IllegalAccessException | IOException e) {
+                e.printStackTrace();
+                System.err.println("Failed to instanciate class " + clazz.getName() + ".");
             }
         }
 
@@ -77,9 +83,10 @@ public class Config {
 
     public void save(Class clazz) {
         File file = getFile(clazz);
+        Object instance = configs.get(clazz).getInstance();
 
         try {
-            mapper.writeValue(file, configs.get(clazz).getInstance());
+            converter.dumpJson(gson.toJsonTree(instance), file);
 
         } catch (IOException e) {
             e.printStackTrace();

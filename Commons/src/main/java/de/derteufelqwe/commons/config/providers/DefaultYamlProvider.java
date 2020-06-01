@@ -1,38 +1,28 @@
 package de.derteufelqwe.commons.config.providers;
 
-import shaded.mcp.com.fasterxml.jackson.databind.Module;
-import shaded.mcp.com.fasterxml.jackson.databind.ObjectMapper;
-import shaded.mcp.com.fasterxml.jackson.databind.module.SimpleModule;
-import shaded.mcp.com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.Yaml;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * Provides the default object mapper for the config
- */
 public class DefaultYamlProvider implements YamlProvider {
 
-    @Override
-    public ObjectMapper getMapper() {
-        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        mapper.findAndRegisterModules();
 
-        for (Module m : this.getModules()) {
-            mapper.registerModule(m);
-        }
+    public DefaultYamlProvider() {
 
-        return mapper;
     }
 
-    protected List<Module> getModules() {
-        List<Module> modules = new ArrayList<>();
 
-        SimpleModule module = new SimpleModule("DefaultModule");
+    public DumperOptions getOptions() {
+        DumperOptions options = new DumperOptions();
+        options.setPrettyFlow(true);
+        options.setIndent(2);
+        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
 
-        modules.add(module);
+        return options;
+    }
 
-        return modules;
+    @Override
+    public Yaml getYaml() {
+        return new Yaml(getOptions());
     }
 
 }

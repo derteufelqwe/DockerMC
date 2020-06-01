@@ -1,25 +1,27 @@
 package de.derteufelqwe.commons.config.providers.serializers;
 
-import shaded.mcp.com.fasterxml.jackson.core.JsonGenerator;
-import shaded.mcp.com.fasterxml.jackson.databind.JsonSerializer;
-import shaded.mcp.com.fasterxml.jackson.databind.SerializerProvider;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import org.bukkit.Location;
 
-import java.io.IOException;
+import java.lang.reflect.Type;
 
-public class LocationSerializer extends JsonSerializer<Location> {
+public class LocationSerializer implements JsonSerializer<Location> {
 
     @Override
-    public void serialize(Location value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-        gen.writeStartObject();
+    public JsonElement serialize(Location src, Type typeOfSrc, JsonSerializationContext context) {
+        JsonObject data = new JsonObject();
 
-        gen.writeObjectField("world", value.getWorld());
-        gen.writeNumberField("x", value.getX());
-        gen.writeNumberField("y", value.getY());
-        gen.writeNumberField("z", value.getZ());
-        gen.writeNumberField("yaw", value.getYaw());
-        gen.writeNumberField("pitch", value.getPitch());
+        data.add("world", context.serialize(src.getWorld()));
+        data.addProperty("x", src.getX());
+        data.addProperty("y", src.getY());
+        data.addProperty("z", src.getZ());
+        data.addProperty("yaw", src.getYaw());
+        data.addProperty("pitch", src.getPitch());
 
-        gen.writeEndObject();
+        return data;
     }
+
 }

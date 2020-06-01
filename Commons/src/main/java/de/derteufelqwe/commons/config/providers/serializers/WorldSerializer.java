@@ -1,24 +1,19 @@
 package de.derteufelqwe.commons.config.providers.serializers;
 
-import shaded.mcp.com.fasterxml.jackson.core.JsonGenerator;
-import shaded.mcp.com.fasterxml.jackson.databind.SerializerProvider;
-import shaded.mcp.com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import org.bukkit.World;
 
-import java.io.IOException;
+import java.lang.reflect.Type;
 
-public class WorldSerializer extends StdSerializer<World> {
-
-    public WorldSerializer() {
-        super(World.class);
-    }
+public class WorldSerializer implements JsonSerializer<World> {
 
     @Override
-    public void serialize(World value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-//        gen.writeStartObject();
+    public JsonElement serialize(World src, Type typeOfSrc, JsonSerializationContext context) {
+        JsonPrimitive worldJson = new JsonPrimitive(src.getUID().toString());
 
-        gen.writeString(value.getUID().toString());
-
-//        gen.writeEndObject();
+        return worldJson;
     }
 }

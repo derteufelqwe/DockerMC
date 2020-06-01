@@ -8,8 +8,8 @@ import lombok.Data;
 public class ConfigContainer {
 
     private Class clazz;
-    private String fileName;
     private String filePath;
+    private String fileName;
     private Object instance;
 
     public <T> T getInstance() {

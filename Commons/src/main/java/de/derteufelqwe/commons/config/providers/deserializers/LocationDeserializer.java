@@ -1,21 +1,25 @@
 package de.derteufelqwe.commons.config.providers.deserializers;
 
+import com.google.gson.*;
 import org.bukkit.Location;
-import shaded.mcp.com.fasterxml.jackson.core.JsonParser;
-import shaded.mcp.com.fasterxml.jackson.core.JsonProcessingException;
-import shaded.mcp.com.fasterxml.jackson.databind.DeserializationContext;
-import shaded.mcp.com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import org.bukkit.World;
 
-import java.io.IOException;
+import java.lang.reflect.Type;
 
-public class LocationDeserializer extends StdDeserializer<Location> {
-
-    protected LocationDeserializer() {
-        super(Location.class);
-    }
+public class LocationDeserializer implements JsonDeserializer<Location> {
 
     @Override
-    public Location deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
-        return null;
+    public Location deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+        JsonObject data = (JsonObject) json;
+
+        return new Location(
+                context.deserialize(data.get("world"), World.class),
+                data.get("x").getAsInt(),
+                data.get("y").getAsInt(),
+                data.get("z").getAsInt(),
+                data.get("yaw").getAsFloat(),
+                data.get("pitch").getAsFloat()
+        );
     }
+
 }
