@@ -6,6 +6,7 @@ import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.google.gson.Gson;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.AfterAll;
@@ -13,7 +14,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -75,6 +77,20 @@ class SerializationTests {
 
         assertEquals(player, newPlayer);
     }
+
+    @Test
+    public void testSerialization() {
+        LocationContainer container = new LocationContainer();
+
+        String data = this.converter.dumpJson(gson.toJsonTree(container));
+
+        System.out.println(data);
+
+        LocationContainer newContainer = gson.fromJson(this.converter.loadJson(data), LocationContainer.class);
+
+        assertEquals(container, newContainer);
+    }
+
 
 
     @AfterAll

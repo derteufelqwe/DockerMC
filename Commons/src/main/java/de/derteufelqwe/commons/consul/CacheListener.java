@@ -1,9 +1,24 @@
-package de.derteufelqwe.bungeeplugin.consul;
+package de.derteufelqwe.commons.consul;
 
 import com.orbitz.consul.cache.ConsulCache;
 
 import java.util.*;
 
+/**
+ * Handles the creation and data managemant of consul listeners.
+ * To set this up you need to create a consul cache listener like ServiceCatalogCache.newCache(catalogClient, "name");
+ * Create a CacheListener and add it as a listener to the consul cache.
+ * To respond to changes from CacheListener you need to add a ICacheChangeListeners to it.
+ * The data flow it like this:
+ *      Consul cache listener
+ *              V
+ *      CacheListener
+ *              V
+ *      ICacheChangeListener
+ *
+ * @param <A> Type A of the cache listener
+ * @param <B> Type B of the cache listener
+ */
 public class CacheListener<A, B> implements ConsulCache.Listener<A, B> {
 
     private Map<A, B> storage = new HashMap<>();

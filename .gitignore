@@ -1,5 +1,5 @@
 # IDE
-# .idea
+.idea
 
 # ServerManager
 target
@@ -12,7 +12,6 @@ BungeePlugin/docker
 MinecraftPlugin/target
 MinecraftPlugin/docker/server
 
-
 # Commons
 Commons/target
 
@@ -23,3 +22,4 @@ Server/server/images/*
 Server/server/internal/security/api-certs/*
 Server/server/internal/security/registry-certs/*
 Server/server/internal/workdirs/dns/*
+Server/META-INF/*

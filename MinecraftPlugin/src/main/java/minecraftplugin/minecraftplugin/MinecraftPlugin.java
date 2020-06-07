@@ -1,16 +1,14 @@
 package minecraftplugin.minecraftplugin;
 
 import com.google.common.net.HostAndPort;
-import com.orbitz.consul.AgentClient;
-import com.orbitz.consul.Consul;
-import com.orbitz.consul.ConsulException;
-import com.orbitz.consul.KeyValueClient;
+import com.orbitz.consul.*;
 import com.orbitz.consul.model.agent.ImmutableRegCheck;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
 import com.orbitz.consul.model.agent.Registration;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
-import de.derteufelqwe.commons.config.providers.MinecraftYamlProvider;
+import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
+import de.derteufelqwe.commons.config.providers.MinecraftGsonProvider;
 import minecraftplugin.minecraftplugin.config.SignConfig;
 import minecraftplugin.minecraftplugin.dockermc.DockerMCCommands;
 import minecraftplugin.minecraftplugin.dockermc.DockerMCTabComplete;
@@ -18,21 +16,25 @@ import minecraftplugin.minecraftplugin.health.HealthCheck;
 import minecraftplugin.minecraftplugin.teleportsigns.TeleportSignCommand;
 import minecraftplugin.minecraftplugin.teleportsigns.TeleportSignEvents;
 import minecraftplugin.minecraftplugin.teleportsigns.TeleportSignTabComplete;
+import minecraftplugin.minecraftplugin.teleportsigns.TeleportSignWatcher;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 
 public final class MinecraftPlugin extends JavaPlugin {
 
     public static MinecraftPlugin INSTANCE;
-    public static Config CONFIG = new Config(new MinecraftYamlProvider());
+    public static Config CONFIG = new Config(new DefaultYamlConverter(), new MinecraftGsonProvider());
 
     private Consul consul = Consul.builder().withHostAndPort(HostAndPort.fromParts(Constants.CONSUL_HOST, Constants.CONSUL_PORT)).build();
     private AgentClient agentClient = consul.agentClient();
     private KeyValueClient kvClient = consul.keyValueClient();
-    private HealthCheck healthCheck = new HealthCheck();
-    private MetaData metaData = new MetaData();
+    private CatalogClient catalogClient = consul.catalogClient();
 
+    private MetaData metaData = new MetaData();
+    private HealthCheck healthCheck = new HealthCheck();
+    private TeleportSignWatcher teleportSignWatcher = new TeleportSignWatcher(this.catalogClient);
 
     @Override
     public void onEnable() {
@@ -52,6 +54,9 @@ public final class MinecraftPlugin extends JavaPlugin {
         // -----  Events  -----
         getServer().getPluginManager().registerEvents(new TeleportSignEvents(CONFIG.get(SignConfig.class)), this);
 
+        // -----  Listeners / Watchers  -----
+        this.teleportSignWatcher.start();
+
         // -----  Docker registration  -----
         healthCheck.start();
         this.registerContainer();
@@ -67,6 +72,23 @@ public final class MinecraftPlugin extends JavaPlugin {
         healthCheck.stop();
     }
 
+    /**
+     * Returns the instance counter of the server pool.
+     * If the taskName is Server.2.sdiasdfla it will return 2.
+     * If the taskName doesn't contain a number, null is returned
+     * @param taskName Name of the server
+     * @return Instance count or null
+     */
+    private Integer getInstanceNumber(String taskName) {
+        String[] splits = taskName.split("\\.");
+
+        if (splits.length == 3) {
+            return Integer.parseInt(splits[1]);
+        }
+
+        return -1;
+    }
+
 
     /**
      * Register this container to Consul
@@ -79,7 +101,8 @@ public final class MinecraftPlugin extends JavaPlugin {
         Registration newService = ImmutableRegistration.builder()
                 .name("minecraft")
                 .id(taskName)
-                .tags(Collections.singleton("defaultmc"))
+                .addTags("defaultmc")
+                .addTags(serverName)
                 .address(containerIp)
                 .port(25565)
                 .addChecks(ImmutableRegCheck.builder()
@@ -94,6 +117,7 @@ public final class MinecraftPlugin extends JavaPlugin {
                         .build())
                 .putMeta("ip", containerIp)
                 .putMeta("serverName", serverName)
+                .putMeta("instanceNumber", this.getInstanceNumber(taskName).toString())
                 .build();
 
         System.out.println("Adding Server " + serverName + "-" + taskName);

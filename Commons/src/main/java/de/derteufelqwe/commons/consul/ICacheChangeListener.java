@@ -1,4 +1,4 @@
-package de.derteufelqwe.bungeeplugin.consul;
+package de.derteufelqwe.commons.consul;
 
 public interface ICacheChangeListener<A, B> {
 

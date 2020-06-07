@@ -70,6 +70,15 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>shaded.com.google.common</shadedPattern>
+                                    <includes>
+                                        <include>com.google.common.**</include>
+                                    </includes>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>

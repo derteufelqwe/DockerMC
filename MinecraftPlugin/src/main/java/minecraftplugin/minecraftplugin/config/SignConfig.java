@@ -29,8 +29,8 @@ public class SignConfig implements Serializable {
         }
     }
 
-    public boolean exists(TPSign sign) {
-        return this.signs.containsKey(sign.getLocation());
+    public boolean exists(Location location) {
+        return this.signs.containsKey(location);
     }
 
     public TPSign get(Location location) {

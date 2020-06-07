@@ -3,6 +3,8 @@ package de.derteufelqwe.bungeeplugin.consul;
 import com.orbitz.consul.CatalogClient;
 import com.orbitz.consul.cache.ServiceCatalogCache;
 import com.orbitz.consul.model.catalog.CatalogService;
+import de.derteufelqwe.commons.consul.CacheListener;
+import de.derteufelqwe.commons.consul.ICacheChangeListener;
 import net.md_5.bungee.api.ProxyServer;
 
 import java.net.InetSocketAddress;
