@@ -9,8 +9,10 @@ import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.config.backend.Config;
 import de.derteufelqwe.ServerManager.config.objects.CertificateCfg;
+import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.setup.DockerObjTemplate;
 import de.derteufelqwe.commons.Constants;
+import lombok.SneakyThrows;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -42,6 +44,7 @@ public class RegistryCertificates {
         }
     }
 
+    @SneakyThrows
     public DockerObjTemplate.CreateResponse create() {
         MainConfig mainConfig = Config.get(MainConfig.class);
         CertificateCfg cfg = mainConfig.getRegistryCerCfg();
@@ -58,11 +61,12 @@ public class RegistryCertificates {
         command.add(String.format("/C=%s/ST=%s/L=%s/O=%s/CN=%s/emailAddress=%s",
                 cfg.getCountryCode(), cfg.getState(), cfg.getCity(), cfg.getOrganizationName(), Constants.REGISTRY_URL, cfg.getEmail()));
 
+//        docker.pullImage(Constants.Images.OPENSSL.image());
 
         CreateContainerResponse response = docker.getDocker().createContainerCmd(Constants.Images.OPENSSL.image())
                 .withLabels(Utils.quickLabel(Constants.ContainerType.REGISTRY_CERTS_GEN))
                 .withVolumes(sslOutput)
-                .withBinds(new Bind(Constants.REGISTRY_CERT_PATH, sslOutput))
+                .withBinds(new Bind(Constants.REGISTRY_CERT_PATH(false), sslOutput))
                 .withCmd(command)
                 .exec();
 
@@ -74,9 +78,10 @@ public class RegistryCertificates {
 
         // -----  Generate htpasswd file  -----
 
-        CreateContainerResponse htpasswdContainer = docker.getDocker().createContainerCmd(Constants.Images.REGISTRY.image())
-                .withEntrypoint("htpasswd")
-                .withCmd("-Bbn", mainConfig.getRegistryUsername(), mainConfig.getRegistryPassword())
+//        docker.pullImage(Constants.Images.HTPASSWD.image());
+
+        CreateContainerResponse htpasswdContainer = docker.getDocker().createContainerCmd(Constants.Images.HTPASSWD.image())
+                .withCmd(mainConfig.getRegistryUsername(), mainConfig.getRegistryPassword())
                 .exec();
 
         docker.getDocker().startContainerCmd(htpasswdContainer.getId()).exec();
@@ -87,15 +92,15 @@ public class RegistryCertificates {
 
         String containerOutput = docker.getContainerLog(htpasswdContainer.getId());
 
-        File htpasswdFile = new File(Constants.REGISTRY_CERT_PATH + "htpasswd");
-
-        try {
-            FileWriter writer = new FileWriter(htpasswdFile);
-            writer.write(containerOutput);
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (!containerOutput.startsWith(mainConfig.getRegistryUsername())) {
+            throw new FatalDockerMCError("Faulty content of htpasswd file: '" + containerOutput + "'");
         }
+
+        File htpasswdFile = new File(Constants.REGISTRY_CERT_PATH(true) + "htpasswd");
+
+        FileWriter writer = new FileWriter(htpasswdFile);
+        writer.write(containerOutput);
+        writer.close();
 
         return new DockerObjTemplate.CreateResponse(true, response.getId());
     }
@@ -115,9 +120,9 @@ public class RegistryCertificates {
      */
     public class RegistryCertFiles {
 
-        private File caCrt = new File(Constants.REGISTRY_CERT_PATH + "ca.crt");
-        private File caKey = new File(Constants.REGISTRY_CERT_PATH + "ca.key");
-        private File htpasswd = new File(Constants.REGISTRY_CERT_PATH + "htpasswd");
+        private File caCrt = new File(Constants.REGISTRY_CERT_PATH(true) + "ca.crt");
+        private File caKey = new File(Constants.REGISTRY_CERT_PATH(true) + "ca.key");
+        private File htpasswd = new File(Constants.REGISTRY_CERT_PATH(true) + "htpasswd");
 
         public RegistryCertFiles() {
         }

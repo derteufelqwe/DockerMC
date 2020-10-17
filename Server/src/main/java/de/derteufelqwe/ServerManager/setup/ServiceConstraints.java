@@ -30,7 +30,7 @@ public class ServiceConstraints {
         }
 
         if (nodeLimit < 0) {
-            throw new DockerMCException("Nodelimit cant be negative.");
+            throw new DockerMCException("Nodelimit can't be negative.");
         }
     }
 

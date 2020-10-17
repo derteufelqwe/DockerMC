@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 public class Docker {
 
     private Pattern STD_REMOVE = Pattern.compile("^STDOUT: |STDERR: ");
-    private int PULL_INTERVAL = 5;  // Pause between Pull checks
+    private int PULL_INTERVAL = 5;      // Pause between Pull checks
     private int PULL_REPETITIONS = 25;  // Amount of times the interval gets waited
 
     @Getter
@@ -176,7 +176,7 @@ public class Docker {
                         @Override
                         public void onNext(PullResponseItem item) {
                             super.onNext(item);
-//                            System.out.println(item.toString());
+                            System.out.print(item.toString() + "\r");
                         }
                     })
                     .awaitCompletion(120, TimeUnit.SECONDS);

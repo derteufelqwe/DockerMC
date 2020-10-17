@@ -18,6 +18,8 @@ import de.derteufelqwe.commons.Constants;
 import lombok.Getter;
 import picocli.CommandLine;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
@@ -71,21 +73,21 @@ public class ServerManager {
         System.out.println("Checking and setting up infrastructure...");
 
         // 1. Registry certificates
-//        RegistryCertificates registryCertificates = new RegistryCertificates(docker);
-//        if (!registryCertificates.find().isFound()) {
-//            System.out.println("Couldn't find required certificates for the registry. Creating them...");
-//            registryCertificates.create();
-//
-//            if (registryCertificates.find().isFound()) {
-//                System.out.println("Successfully generated the required certificates for the registry.");
-//
-//            } else {
-//                System.err.println("Couldn't generate the required certificates for the registry.");
-//                failedSetups++;
-//            }
-//        } else {
-//            System.out.println("Found existing certificates for the registry.");
-//        }
+        RegistryCertificates registryCertificates = new RegistryCertificates(docker);
+        if (!registryCertificates.find().isFound()) {
+            System.out.println("Couldn't find required certificates for the registry. Creating them...");
+            registryCertificates.create();
+
+            if (registryCertificates.find().isFound()) {
+                System.out.println("Successfully generated the required certificates for the registry.");
+
+            } else {
+                System.err.println("Couldn't generate the required certificates for the registry.");
+                failedSetups++;
+            }
+        } else {
+            System.out.println("Found existing certificates for the registry.");
+        }
 
         // 2. Registry container
         RegistryContainer registryContainer = new RegistryContainer();
@@ -326,14 +328,14 @@ public class ServerManager {
         ServerManager serverManager = new ServerManager();
 
         try {
-//            serverManager.checkAndCreateInfrastructure();
+            serverManager.checkAndCreateInfrastructure();
             serverManager.consul = Consul.builder().withHostAndPort(HostAndPort.fromParts("ubuntu1", Constants.CONSUL_PORT)).build();
             serverManager.keyValueClient = serverManager.consul.keyValueClient();
 
-//            serverManager.checkAndCreateMCServers();
+            serverManager.checkAndCreateMCServers();
 
 
-//            NginxService nginxService = new NginxService("NginxProxy", "mcproxy", "512M", "1", 2,
+//            NginxService nginxService = new NginxService("NginxProxy", "mcproxy", "512M", "1", 1,
 //                    new ServiceConstraints(1), 25577);
 //            nginxService.init(docker);
 //            if (nginxService.find().isFound()) {
@@ -341,7 +343,7 @@ public class ServerManager {
 //            }
 //            nginxService.create();
 
-//            BungeePool bungeePool = new BungeePool("BungeeCord", "waterfall", "512M", "1", 2, new ServiceConstraints(1));
+//            BungeePool bungeePool = new BungeePool("BungeeCord", "waterfall", "512M", "1", 1, new ServiceConstraints(1));
 //            bungeePool.init(docker);
 //            if (bungeePool.find().isFound()) {
 //                bungeePool.destroy();
@@ -352,7 +354,8 @@ public class ServerManager {
 //            lobbyPool.init(docker);
 //            System.out.println(lobbyPool.create());
 
-//            ServerPool serverPool = new ServerPool("Minigame-1", "testmc", "512M", "1", 2, null, 2);
+//            ServiceConstraints constraints = new ServiceConstraints(Collections.singletonList("xtjj96fihmrwq0rqo1c89nna8"), null, null, 0);
+//            ServerPool serverPool = new ServerPool("Minigame-1", "testmc", "512M", "1", 2, constraints, 2);
 //            serverPool.init(docker);
 //            System.out.println(serverPool.create());
 

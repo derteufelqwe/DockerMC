@@ -14,9 +14,8 @@ public class Constants {
             "                                                         |___/           ";
 
     public static String AUTHOR = "derteufelqwe";
-    public static String WORKDIR_WINDOWS = System.getProperty("user.dir").replace('\\', '/') + "/Server/";
-    public static String WORKDIR_UNIX = "/home/arne/DockerMC/Server/";
-    public static String WORKDIR = WORKDIR_WINDOWS;
+    public static String WORKDIR_WND = System.getProperty("user.dir").replace('\\', '/') + "/Server/";
+    public static String WORKDIR = "/home/arne/ServerManager/Server/";
 
     public static String CONFIG_PATH = WORKDIR + "server/configs/";
 
@@ -32,7 +31,12 @@ public class Constants {
 
     // -----  Registry  -----
     // Path to the Registry Certificate and key
-    public static String REGISTRY_CERT_PATH = WORKDIR_UNIX + "server/internal/security/registry-certs/";
+    private static String registryCertPath = "server/internal/security/registry-certs/";
+
+    /**
+     * @param windows If true, returns the path required for the windows host, if false for docker
+     */
+    public static String REGISTRY_CERT_PATH(boolean windows) { return windows ? WORKDIR_WND + registryCertPath : WORKDIR + registryCertPath; }
     public static String REGISTRY_CERT_NAME  = "ca.crt";
     public static String REGISTRY_KEY_NAME  = "ca.key";
     public static String REGISTRY_HTPASSWD_NAME = "htpasswd";
@@ -79,8 +83,9 @@ public class Constants {
     }
 
     public enum Images {
-        REGISTRY("registry:2"),
+        REGISTRY("registry"),
         OPENSSL("frapsoft/openssl:latest"),
+        HTPASSWD("xmartlabs/htpasswd"),
         BINDDNS("sameersbn/bind:latest"),
         API_PROXY("derteufelqwe/docker-api-proxy:latest"),
         CONFIG_WEBSERVER("configwebserver")

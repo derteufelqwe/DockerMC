@@ -34,16 +34,24 @@ public final class MinecraftPlugin extends JavaPlugin {
 
     private MetaData metaData = new MetaData();
     private HealthCheck healthCheck = new HealthCheck();
-    private TeleportSignWatcher teleportSignWatcher = new TeleportSignWatcher(this.catalogClient);
+    private TeleportSignWatcher teleportSignWatcher;
+
+
 
     @Override
     public void onEnable() {
         INSTANCE = this;
         CONFIG.registerConfig(SignConfig.class, "plugins/MinecraftPlugin", "SignConfig.yml");
         CONFIG.loadAll();
+        CONFIG.get(SignConfig.class).setup();
+
+        // -----  Listeners / Watchers  -----
+        this.teleportSignWatcher = new TeleportSignWatcher(this.catalogClient, CONFIG.get(SignConfig.class));
+        this.teleportSignWatcher.start();
 
         // -----  Plugin messaging channels  -----
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+        getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this.teleportSignWatcher);
 
         // -----  Commands  -----
         getServer().getPluginCommand("dockermc").setExecutor(new DockerMCCommands());
@@ -52,10 +60,7 @@ public final class MinecraftPlugin extends JavaPlugin {
         getServer().getPluginCommand("teleportsign").setTabCompleter(new TeleportSignTabComplete());
 
         // -----  Events  -----
-        getServer().getPluginManager().registerEvents(new TeleportSignEvents(CONFIG.get(SignConfig.class)), this);
-
-        // -----  Listeners / Watchers  -----
-        this.teleportSignWatcher.start();
+        getServer().getPluginManager().registerEvents(new TeleportSignEvents(this.teleportSignWatcher), this);
 
         // -----  Docker registration  -----
         healthCheck.start();

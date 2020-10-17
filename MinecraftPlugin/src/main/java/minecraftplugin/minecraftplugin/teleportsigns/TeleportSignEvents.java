@@ -5,9 +5,7 @@ import com.google.common.io.ByteStreams;
 import minecraftplugin.minecraftplugin.MinecraftPlugin;
 import minecraftplugin.minecraftplugin.config.SignConfig;
 import minecraftplugin.minecraftplugin.config.TPSign;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -30,10 +28,10 @@ public class TeleportSignEvents implements Listener {
     private final ChatColor COLOR_CMD = ChatColor.YELLOW;
     private final String NAME = COLOR + "[DockerMC] " + ChatColor.RESET;
 
-    private SignConfig signConfig;
+    private TeleportSignWatcher watcher;
 
-    public TeleportSignEvents(SignConfig signConfig) {
-        this.signConfig = signConfig;
+    public TeleportSignEvents(TeleportSignWatcher watcher) {
+        this.watcher = watcher;
     }
 
 
@@ -54,7 +52,7 @@ public class TeleportSignEvents implements Listener {
             return;
         }
 
-        TPSign tpSign = this.signConfig.get(block.getLocation());
+        TPSign tpSign = this.watcher.getActiveSigns().getAt(block.getLocation());
         if (tpSign == null) {
             return;
         }
@@ -113,10 +111,12 @@ public class TeleportSignEvents implements Listener {
      * @param block The sign
      */
     private void removeSign(Player player, Block block) {
-        if (this.signConfig.exists(block.getLocation())) {
-            TPSign tpSign = this.signConfig.get(block.getLocation());
+        SignConfig signConfig = this.watcher.getActiveSigns();
+
+        if (signConfig.existsAt(block.getLocation())) {
+            TPSign tpSign = signConfig.getAt(block.getLocation());
             player.sendMessage(String.format(NAME + ChatColor.YELLOW + "Removing tpsign %s to %s.", tpSign.getName(), tpSign.getDestination()));
-            this.signConfig.removeSign(tpSign);
+            signConfig.removeSign(tpSign);
             MinecraftPlugin.CONFIG.save(SignConfig.class);
         }
     }

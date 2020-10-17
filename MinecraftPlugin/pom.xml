@@ -53,7 +53,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>2.3.1</version>
                 <configuration>
-                    <outputDirectory>C:\Users\Arne\Desktop\PaperServer\plugins</outputDirectory>
+                    <outputDirectory>target</outputDirectory>
                 </configuration>
             </plugin>
 

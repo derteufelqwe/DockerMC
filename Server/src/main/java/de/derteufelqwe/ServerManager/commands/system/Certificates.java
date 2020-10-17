@@ -7,7 +7,6 @@ import picocli.CommandLine;
  */
 @CommandLine.Command(name = "certs", description = "Control the certificates.",
         mixinStandardHelpOptions = true, subcommands = {
-        CertificatesShow.class, CertificatesGen.class
 })
 public class Certificates implements Runnable {
 

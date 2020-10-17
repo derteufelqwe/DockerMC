@@ -59,6 +59,9 @@ public class TeleportSignCommand implements CommandExecutor {
             case "create":
                 this.createCmd(player, args.subList(1, args.size()));
                 break;
+            case "info":
+                this.infoCmd(player, args.subList(1, args.size()));
+                break;
 
             default:
                 this.helpCmd(player);
@@ -71,13 +74,13 @@ public class TeleportSignCommand implements CommandExecutor {
     private void helpCmd(Player player) {
         player.sendMessage(COLOR + "----------  TPSigns help  ----------");
         player.sendMessage(COLOR_CMD + "create [displayed name] [server name] [world name]: " + ChatColor.RESET + "Creates a tp sign.");
-        player.sendMessage(COLOR + "--------------------------------------");
+        player.sendMessage(COLOR_CMD + "info: " + ChatColor.RESET + "Get information about the tp sign.");
+        player.sendMessage(COLOR + "------------------------------------");
     }
 
     private void createCmd(Player player, List<String> args) {
         if (args.size() != 3) {
-            player.sendMessage(NAME + ChatColor.RED + "Wrong arguments. You need the servername that gets displayed, the actual " +
-                    "name of the server to connect to and the world name of that server.");
+            player.sendMessage(NAME + ChatColor.RED + "/tpsign create <display name> <server> <world>");
             return;
         }
 
@@ -88,7 +91,7 @@ public class TeleportSignCommand implements CommandExecutor {
         Block targetBlock = player.getTargetBlock(new HashSet<>(Arrays.asList(Material.AIR, Material.WATER, Material.LAVA)), 5);
         Material targetMaterial = targetBlock.getType();
 
-        if (targetMaterial == null || (targetMaterial != Material.SIGN && targetMaterial != Material.WALL_SIGN)) {
+        if (targetMaterial == null || (targetMaterial != Material.SIGN && targetMaterial != Material.WALL_SIGN && targetMaterial != Material.SIGN_POST)) {
             player.sendMessage(NAME + ChatColor.RED + "Look at a sign.");
             return;
         }
@@ -103,7 +106,32 @@ public class TeleportSignCommand implements CommandExecutor {
         TPSign tpSign = new TPSign(displayName, targetBlock.getLocation(), serverName);
         this.signConfig.addSign(tpSign);
 
+        player.sendMessage(String.format(NAME + COLOR_CMD + "Created TPSign %s to %s.", displayName, serverName));
+
         MinecraftPlugin.CONFIG.save(SignConfig.class);
+    }
+
+    private void infoCmd(Player player, List<String> args) {
+        Block targetBlock = player.getTargetBlock(new HashSet<>(Arrays.asList(Material.AIR, Material.WATER, Material.LAVA)), 5);
+        Material targetMaterial = targetBlock.getType();
+
+        if (targetMaterial == null || (targetMaterial != Material.SIGN && targetMaterial != Material.WALL_SIGN && targetMaterial != Material.SIGN_POST)) {
+            player.sendMessage(NAME + ChatColor.RED + "Target is not a sign");
+            return;
+        }
+
+        TPSign tpSign = this.signConfig.getAt(targetBlock.getLocation());
+        if (tpSign == null) {
+            player.sendMessage(NAME + ChatColor.RED + "The sign is not a teleport sign.");
+            return;
+        }
+
+        player.sendMessage(ChatColor.BLUE + "-------- TPSign Info --------");
+        player.sendMessage(ChatColor.YELLOW + "Name    : " + tpSign.getName());
+        player.sendMessage(ChatColor.YELLOW + "Server : " + tpSign.getDestination());
+        player.sendMessage(ChatColor.YELLOW + "World   : " + tpSign.getLocation().getWorld().getName());
+        player.sendMessage(ChatColor.BLUE + "---------------------------");
+
     }
 
 }

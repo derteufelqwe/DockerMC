@@ -1,29 +1,15 @@
 package de.derteufelqwe.bungeeplugin.consul;
 
-import com.orbitz.consul.CatalogClient;
-import com.orbitz.consul.cache.ServiceCatalogCache;
 import com.orbitz.consul.model.catalog.CatalogService;
-import de.derteufelqwe.commons.consul.CacheListener;
 import de.derteufelqwe.commons.consul.ICacheChangeListener;
 import net.md_5.bungee.api.ProxyServer;
 
 import java.net.InetSocketAddress;
 
-public class MinecraftKeyListener implements ICacheChangeListener<String, CatalogService> {
+public class ServerRegistrator implements ICacheChangeListener<String, CatalogService> {
 
-    private CatalogClient catalogClient;
-    private ServiceCatalogCache serviceCatalogCache;
+    public ServerRegistrator() {
 
-
-    public MinecraftKeyListener(CatalogClient catalogClient) {
-        this.catalogClient = catalogClient;
-
-        this.serviceCatalogCache = ServiceCatalogCache.newCache(this.catalogClient, "minecraft");
-        CacheListener<String, CatalogService> cacheListener = new CacheListener<>();
-        cacheListener.addListener(this);
-
-        this.serviceCatalogCache.addListener(cacheListener);
-        this.serviceCatalogCache.start();
     }
 
     /**
@@ -74,11 +60,6 @@ public class MinecraftKeyListener implements ICacheChangeListener<String, Catalo
         ProxyServer.getInstance().getConfig().removeServerNamed(serverName);
 
         System.out.println("Removed Server " + serverName + ".");
-    }
-
-
-    public void stop() {
-        this.serviceCatalogCache.stop();
     }
 
 }

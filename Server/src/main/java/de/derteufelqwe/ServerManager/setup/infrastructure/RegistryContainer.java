@@ -1,15 +1,11 @@
 package de.derteufelqwe.ServerManager.setup.infrastructure;
 
 import com.github.dockerjava.api.model.*;
-import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.Utils;
-import de.derteufelqwe.ServerManager.setup.ContainerTemplate;
 import de.derteufelqwe.ServerManager.setup.ExposableContainerTemplate;
-import de.derteufelqwe.ServerManager.setup.ExposableServiceTemplate;
 import de.derteufelqwe.commons.Constants;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.util.Arrays;
@@ -58,10 +54,10 @@ public class RegistryContainer extends ExposableContainerTemplate {
                 new Bind("registry_data", new Volume("/var/lib/registry"), false)
         );
         mounts.add(
-                new Bind(Constants.REGISTRY_CERT_PATH, new Volume("/auth"))
+                new Bind(Constants.REGISTRY_CERT_PATH(false), new Volume("/auth"))
         );
         mounts.add(
-                new Bind(Constants.REGISTRY_CERT_PATH, new Volume("/certs"))
+                new Bind(Constants.REGISTRY_CERT_PATH(false), new Volume("/certs"))
         );
 
         return mounts;

@@ -25,7 +25,53 @@
                     <target>8</target>
                 </configuration>
             </plugin>
+
+            <!--  Configure manifest of jar  -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <outputDirectory>C:/Users/Arne/Desktop/ServerManager</outputDirectory>
+                    <archive>
+                        <manifest>
+                            <mainClass>de.derteufelqwe.ServerManager.ServerManager</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <!--  Shade plugin  -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.1</version>
+                <executions>
+<!--                Run shade goal on package phase -->
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+
+<!--                        Exclude Files from the jar  -->
+                        <configuration>
+                            <finalName>Server-1.0</finalName>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.SF</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
+
     </build>
 
 
@@ -40,7 +86,7 @@
         <dependency>
             <groupId>com.github.docker-java</groupId>
             <artifactId>docker-java-transport-netty</artifactId>
-            <version>3.2.2-SNAPSHOT</version>
+            <version>3.2.5</version>
         </dependency>
 
 

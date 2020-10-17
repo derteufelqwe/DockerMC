@@ -25,13 +25,6 @@
 
     <dependencies>
 
-        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
-        <dependency>
-            <groupId>de.derteufelqwe.shaded</groupId>
-            <artifactId>jackson</artifactId>
-            <version>2.11.0</version>
-        </dependency>
-
         <dependency>
             <groupId>com.destroystokyo.paper</groupId>
             <artifactId>paper-api</artifactId>

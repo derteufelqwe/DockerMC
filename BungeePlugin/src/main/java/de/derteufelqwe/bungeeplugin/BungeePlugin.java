@@ -5,7 +5,8 @@ import com.orbitz.consul.model.agent.ImmutableRegCheck;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
 import com.orbitz.consul.model.agent.Registration;
 import com.orbitz.google.common.net.HostAndPort;
-import de.derteufelqwe.bungeeplugin.consul.MinecraftKeyListener;
+import de.derteufelqwe.bungeeplugin.consul.MinecraftServiceListener;
+import de.derteufelqwe.bungeeplugin.consul.ServerRegistrator;
 import de.derteufelqwe.bungeeplugin.docker.DockerSignalHandler;
 import de.derteufelqwe.bungeeplugin.health.HealthCheck;
 import de.derteufelqwe.commons.Constants;
@@ -22,8 +23,8 @@ public final class BungeePlugin extends Plugin {
 
     private HealthCheck healthCheck = new HealthCheck();
     private MetaData metaData = new MetaData();
-    private MinecraftKeyListener minecraftKeyListener;
-    private Events events = new Events(keyValueClient);
+    private MinecraftServiceListener minecraftServiceListener;
+    private Events events;
 
     /**
      * Register this container to Consul
@@ -54,16 +55,19 @@ public final class BungeePlugin extends Plugin {
     @Override
     public void onEnable() {
         DockerSignalHandler.listenTo("TERM");
+        this.minecraftServiceListener = new MinecraftServiceListener(catalogClient);
+
+        // -----  Registrations  -----
+        this.minecraftServiceListener.addListener(new ServerRegistrator());
 
         // -----  Events  -----
+        this.events = new Events(keyValueClient);
         getProxy().getPluginManager().registerListener(this, events);
 
         // -----  Commands  -----
         getProxy().getPluginManager().registerCommand(this, new DockerMCCommands());
 
-        // -----  Registrations  -----
-        System.out.println("Starting Minecraft listener...");
-        this.minecraftKeyListener = new MinecraftKeyListener(catalogClient);
+        this.minecraftServiceListener.start();
 
         // -----  Consul  -----
         this.healthCheck.start();
@@ -98,7 +102,7 @@ public final class BungeePlugin extends Plugin {
         System.out.println("Removing Server " + this.metaData.getTaskName());
 
         this.deregisterContainer();
-        this.minecraftKeyListener.stop();
+        this.minecraftServiceListener.stop();
         this.events.stop();
 
         this.healthCheck.stop();

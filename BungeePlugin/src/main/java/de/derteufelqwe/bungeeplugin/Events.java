@@ -1,13 +1,11 @@
 package de.derteufelqwe.bungeeplugin;
 
-import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.cache.KVCache;
 import com.orbitz.consul.model.kv.Value;
-import de.derteufelqwe.bungeeplugin.consul.CacheListener;
-import de.derteufelqwe.bungeeplugin.consul.ICacheChangeListener;
+import de.derteufelqwe.commons.consul.CacheListener;
+import de.derteufelqwe.commons.consul.ICacheChangeListener;
 import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
@@ -15,7 +13,10 @@ import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -50,7 +51,7 @@ public class Events implements Listener, ICacheChangeListener<String, Value> {
         this.kvCache.stop();
     }
 
-
+    // -----  KV Listener  -----
     @Override
     public void onAddEntry(String key, Value value) {
         System.out.println("Add " + key + " -> " + value);
@@ -98,7 +99,6 @@ public class Events implements Listener, ICacheChangeListener<String, Value> {
             this.lobbyServerName = null;
         }
     }
-
 
 
     /**
