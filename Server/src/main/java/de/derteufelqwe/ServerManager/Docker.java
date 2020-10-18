@@ -164,11 +164,16 @@ public class Docker {
      */
     public void pullImage(String image) throws NotFoundException {
         System.out.println("Pulling image " + image + "...");
+
         try {
-            MainConfig mainConfig = Config.get(MainConfig.class);
-            AuthConfig authConfig = new AuthConfig()
-                    .withUsername(mainConfig.getRegistryUsername())
-                    .withPassword(mainConfig.getRegistryPassword());
+            AuthConfig authConfig = null;
+
+            if (image.startsWith("registry.swarm/")) {
+                MainConfig mainConfig = Config.get(MainConfig.class);
+                authConfig = new AuthConfig()
+                        .withUsername(mainConfig.getRegistryUsername())
+                        .withPassword(mainConfig.getRegistryPassword());
+            }
 
             docker.pullImageCmd(image)
                     .withAuthConfig(authConfig)
@@ -176,10 +181,13 @@ public class Docker {
                         @Override
                         public void onNext(PullResponseItem item) {
                             super.onNext(item);
-                            System.out.print(item.toString() + "\r");
+                            String status = item.getStatus();
+                            String progress = item.getProgress() != null ? item.getProgress() : "";
+                            System.out.print(String.format("\r%s %s", status, progress));
                         }
                     })
                     .awaitCompletion(120, TimeUnit.SECONDS);
+            System.out.println(""); // Newline after the pull
 
 
             TimeUnit.SECONDS.sleep(PULL_INTERVAL);

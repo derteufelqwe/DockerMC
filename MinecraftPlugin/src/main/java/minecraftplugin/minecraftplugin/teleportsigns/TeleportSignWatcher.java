@@ -5,24 +5,25 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.orbitz.consul.CatalogClient;
+import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.cache.ServiceCatalogCache;
 import com.orbitz.consul.model.catalog.CatalogService;
+import com.orbitz.consul.model.kv.Value;
+import com.orbitz.consul.option.QueryOptions;
 import de.derteufelqwe.commons.consul.CacheListener;
 import de.derteufelqwe.commons.consul.ICacheChangeListener;
 import minecraftplugin.minecraftplugin.MinecraftPlugin;
 import minecraftplugin.minecraftplugin.config.SignConfig;
 import minecraftplugin.minecraftplugin.config.TPSign;
+import minecraftplugin.minecraftplugin.config.TPSignStatus;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
-import java.io.EOFException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 /**
  * Watches if a server get restarted or if the player count changes and updates the teleport signs accordingly.
@@ -30,15 +31,16 @@ import java.util.stream.Collectors;
 public class TeleportSignWatcher implements ICacheChangeListener<String, CatalogService>, PluginMessageListener {
 
     private CatalogClient catalogClient;
+    private KeyValueClient kvClient;
     private ServiceCatalogCache serviceCatalogCache;
     private CacheListener<String, CatalogService> cacheListener = new CacheListener<>();
     private SignConfig signConfig;
-    private List<TPSign> restartingSigns = new ArrayList<>();
-    private Map<TPSign, Integer> playerCountMap = new HashMap<>();
+    private Map<String, Short> maxPlayerCountMap = new HashMap<>();
 
-    public TeleportSignWatcher(CatalogClient catalogClient, SignConfig signConfig) {
+    public TeleportSignWatcher(CatalogClient catalogClient, KeyValueClient kvClient) {
         this.catalogClient = catalogClient;
-        this.signConfig = signConfig;
+        this.kvClient = kvClient;
+        this.signConfig = MinecraftPlugin.CONFIG.get(SignConfig.class);
 
         this.cacheListener.addListener(this);
         this.serviceCatalogCache = ServiceCatalogCache.newCache(catalogClient, "minecraft");
@@ -47,16 +49,20 @@ public class TeleportSignWatcher implements ICacheChangeListener<String, Catalog
 
     public void start() {
         this.serviceCatalogCache.start();
+
+        // Update the player count for a server
         Bukkit.getScheduler().scheduleAsyncRepeatingTask(MinecraftPlugin.INSTANCE, () -> {
+            // Only request updates, if players are online, to prevent a flood of messages, when a player joins because
+            // plugin messages only work if a player is online.
             Player player = Iterables.getFirst(Bukkit.getOnlinePlayers(), null);
             if (player == null) {
                 return;
             }
 
-            for (TPSign sign : this.getActiveSigns().getSigns()) {
+            for (TPSign sign : this.signConfig.getActiveSigns()) {
                 ByteArrayDataOutput output = ByteStreams.newDataOutput();
                 output.writeUTF("PlayerCount");
-                output.writeUTF(sign.getDestination());
+                output.writeUTF(sign.getDestination().fullName());
                 player.sendPluginMessage(MinecraftPlugin.INSTANCE, "BungeeCord", output.toByteArray());
             }
 
@@ -67,7 +73,10 @@ public class TeleportSignWatcher implements ICacheChangeListener<String, Catalog
         this.serviceCatalogCache.stop();
     }
 
-
+    /**
+     * Receiver for the plugin messages.
+     * This method updates all TPSigns, which connect to the server, where the response comes from
+     */
     @Override
     public void onPluginMessageReceived(String channel, Player player, byte[] message) {
         if (!channel.equals("BungeeCord")) {
@@ -84,9 +93,8 @@ public class TeleportSignWatcher implements ICacheChangeListener<String, Catalog
             String servername = input.readUTF();
             int count = input.readInt();
 
-            List<TPSign> signs = this.signConfig.getSigns().stream().filter(e -> e.getDestination().equals(servername)).collect(Collectors.toList());
-            for (TPSign sign : signs) {
-                this.playerCountMap.put(sign, count);
+            for (TPSign sign : this.signConfig.getByServer(servername)) {
+                sign.setPlayerCount((short) count);
                 this.setServerRunning(sign);
             }
         } catch (IllegalStateException e) {
@@ -95,31 +103,17 @@ public class TeleportSignWatcher implements ICacheChangeListener<String, Catalog
     }
 
     /**
-     * Returns a copy of the SignConfig which only contains currently active signs
+     * Called when a Server gets added to Consul
      */
-    public SignConfig getActiveSigns() {
-        return new SignConfig(this.signConfig.getSigns().stream().filter(e -> !this.restartingSigns.contains(e)).collect(Collectors.toList()));
-    }
-
-    /**
-     * Returns a SignConfig object with all restarting signs
-     * @return
-     */
-    public SignConfig getInactiveSigns() {
-        return new SignConfig(new ArrayList<>(this.restartingSigns));
-    }
-
     @Override
     public void onAddEntry(String key, CatalogService value) {
         String serverName = value.getServiceMeta().get("serverName") + "-" + value.getServiceMeta().get("instanceNumber");
 
-        TPSign tpSign = this.signConfig.getByServer(serverName);
-        if (tpSign == null) {
-            return;
+        for (TPSign tpSign : this.signConfig.getByServer(serverName)) {
+            tpSign.setStatus(TPSignStatus.ACTIVE);
+            this.setServerRunning(tpSign);
         }
 
-        this.setServerRunning(tpSign);
-        this.restartingSigns.remove(tpSign);
     }
 
     @Override
@@ -127,21 +121,24 @@ public class TeleportSignWatcher implements ICacheChangeListener<String, Catalog
 
     }
 
+    /**
+     * Called when a Server gets removed from Consul
+     */
     @Override
     public void onRemoveEntry(String key, CatalogService value) {
         String serverName = value.getServiceMeta().get("serverName") + "-" + value.getServiceMeta().get("instanceNumber");
 
-        TPSign tpSign = this.signConfig.getByServer(serverName);
-        if (tpSign == null) {
-            return;
+        for (TPSign tpSign : this.signConfig.getByServer(serverName)) {
+            tpSign.setStatus(TPSignStatus.RESTARTING);
+            this.setServerRestarting(tpSign);
         }
 
-        this.setServerWaiting(tpSign);
-        this.restartingSigns.add(tpSign);
     }
 
-
-    private void setServerWaiting(TPSign tpSign) {
+    /**
+     * Updates the TPSign with the newest player numbers
+     */
+    private void setServerRestarting(TPSign tpSign) {
         Sign sign = tpSign.getSignBlock();
         Bukkit.getScheduler().runTask(MinecraftPlugin.INSTANCE, () -> {
             sign.setLine(3, "Restarting...");
@@ -149,17 +146,44 @@ public class TeleportSignWatcher implements ICacheChangeListener<String, Catalog
         });
     }
 
+    /**
+     * Updates the TPSign to represent a restarting server
+     */
     private void setServerRunning(TPSign tpSign) {
         Sign sign = tpSign.getSignBlock();
         if (sign != null) {
             Bukkit.getScheduler().runTask(MinecraftPlugin.INSTANCE, () -> {
-                sign.setLine(3, String.format("%s/? Players", this.playerCountMap.getOrDefault(tpSign, 0)));
+                short maxPlayerCount = this.getMaxPlayerCountForServer(tpSign.getDestination().getServerName());
+                sign.setLine(3, String.format("%s/%s Players", tpSign.getPlayerCount(), maxPlayerCount == -1 ? "?" : maxPlayerCount));
                 sign.update(true);
             });
 
         } else {
-            System.out.println("Sign is null");
+            System.err.println("[Error] Sign is null");
         }
+    }
+
+    /**
+     * Gets the max player count for a server from Consul and caches it. If no cache entry and no Consul entry was found,
+     * -1 gets returned
+     * @return A short or -1
+     */
+    private short getMaxPlayerCountForServer(String serverName) {
+        if (this.maxPlayerCountMap.containsKey(serverName)) {
+            return this.maxPlayerCountMap.get(serverName);
+        }
+
+        Optional<Value> key = this.kvClient.getValue("mcservers/" + serverName + "/softPlayerLimit");
+        if (key.isPresent()) {
+            Optional<String> value = key.get().getValueAsString();
+            if (value.isPresent()) {
+                short maxPlayers = Short.parseShort(value.get());
+                this.maxPlayerCountMap.put(serverName, maxPlayers);
+                return maxPlayers;
+            }
+        }
+
+        return -1;
     }
 
 }

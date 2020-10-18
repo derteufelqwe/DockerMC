@@ -1,9 +1,6 @@
 package de.derteufelqwe.commons.config.providers;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
 import com.google.gson.internal.$Gson$Preconditions;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.io.FileUtils;
@@ -15,14 +12,21 @@ import org.yaml.snakeyaml.error.YAMLException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.Map;
 
+/**
+ * Default implementation of {@link YamlConverter}
+ *
+ * This Class combines the {@link YamlProvider} and a basic {@link GsonProvider}
+ */
 public class DefaultYamlConverter implements YamlConverter {
 
     protected Yaml yaml;
     protected Gson gson;
     protected TypeToken<Map<String, Object>> mapTypeToken = new TypeToken<Map<String, Object>>() {};
     protected TypeToken<String> stringTypeToken = new TypeToken<String>() {};
+    protected TypeToken<List<Object>> listTypeToken = new TypeToken<List<Object>>() {};
 
 
     public DefaultYamlConverter() {
@@ -52,11 +56,14 @@ public class DefaultYamlConverter implements YamlConverter {
         } else if (element instanceof JsonObject) {
             return yaml.dump(gson.fromJson(element, mapTypeToken.getType()));
 
+        } else if (element instanceof JsonArray) {
+            return yaml.dump(gson.fromJson(element, listTypeToken.getType()));
+
         } else {
             throw new NotImplementedException("Objects of type " + element.getClass() + " are not supported (yet).");
         }
-    }
 
+    }
     @Override
     public void dumpJson(JsonElement element, File file) throws IOException {
         String data = this.dumpJson(element);

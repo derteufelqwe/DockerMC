@@ -37,26 +37,42 @@ public class ServerRegistrator implements ICacheChangeListener<String, CatalogSe
     }
 
 
+    /**
+     * Called when a Server doesn't get deregistered on shutdown and gets registered again
+     */
     @Override
     public void onModifyEntry(String key, CatalogService value) {
-        System.err.println(String.format("[Warning] Modified %s to %s.", key, value));
+        String serverName = getServerName(key, value);
+        System.out.println(String.format("[Warning] Modified %s to %s.", key, value));
+
+        this.removeServer(serverName);
+        this.addServer(serverName, value.getServiceAddress(), value.getServicePort());
     }
 
     @Override
     public void onAddEntry(String key, CatalogService value) {
         String serverName = getServerName(key, value);
 
-        ProxyServer.getInstance().getConfig().addServer(ProxyServer.getInstance().constructServerInfo(
-                serverName, new InetSocketAddress(value.getServiceAddress(), value.getServicePort()),
-                "Motd", false
-        ));
-        System.out.println("Added Server " + serverName + ".");
+        this.addServer(serverName, value.getServiceAddress(), value.getServicePort());
     }
 
     @Override
     public void onRemoveEntry(String key, CatalogService value) {
         String serverName = getServerName(key, value);
 
+        this.removeServer(serverName);
+    }
+
+
+    private void addServer(String serverName, String address, int port) {
+        ProxyServer.getInstance().getConfig().addServer(ProxyServer.getInstance().constructServerInfo(
+                serverName, new InetSocketAddress(address, port),
+                "Motd", false
+        ));
+        System.out.println("Added Server " + serverName + ".");
+    }
+
+    private void removeServer(String serverName) {
         ProxyServer.getInstance().getConfig().removeServerNamed(serverName);
 
         System.out.println("Removed Server " + serverName + ".");

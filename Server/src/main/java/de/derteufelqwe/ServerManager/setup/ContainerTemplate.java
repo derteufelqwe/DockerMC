@@ -56,6 +56,8 @@ public class ContainerTemplate extends DockerObjTemplate {
 
     @Override
     public CreateResponse create() {
+        docker.pullImage(this.image);
+
         CreateContainerResponse response = docker.getDocker().createContainerCmd(this.image)
                 .withLabels(this.getContainerLabels())
                 .withEnv(this.getEnvironmentVariables())

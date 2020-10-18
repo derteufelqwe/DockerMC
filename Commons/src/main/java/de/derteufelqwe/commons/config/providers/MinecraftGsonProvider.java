@@ -15,6 +15,9 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 
+/**
+ * Implementation of {@link GsonProvider}, which has support for Minecraft objects
+ */
 public class MinecraftGsonProvider extends DefaultGsonProvider {
 
     @Override

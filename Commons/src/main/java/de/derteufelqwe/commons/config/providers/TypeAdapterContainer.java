@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
- * Container to house entries for gsons typeAdapters.
+ * Container to house entries for {@link com.google.gson.Gson}s TypeAdapters.
  */
 @Data
 @AllArgsConstructor

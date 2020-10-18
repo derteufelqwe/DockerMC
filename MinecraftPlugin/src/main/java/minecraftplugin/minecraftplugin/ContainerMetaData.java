@@ -3,15 +3,18 @@ package minecraftplugin.minecraftplugin;
 import de.derteufelqwe.commons.MetaDataBase;
 import lombok.Getter;
 
+/**
+ * Container specific information
+ */
 @Getter
-public class MetaData extends MetaDataBase {
+public class ContainerMetaData extends MetaDataBase {
 
     private String taskName;
     private String serverName;
     private String containerIp;
     private int softPlayerLimit;
 
-    public MetaData() {
+    public ContainerMetaData() {
         this.taskName = this.getString("TASK_NAME");
         this.serverName = this.getString("SERVER_NAME");
         if (System.getProperty("os.name").startsWith("Windows")) {

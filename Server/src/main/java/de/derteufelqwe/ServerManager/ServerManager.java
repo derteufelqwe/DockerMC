@@ -332,8 +332,7 @@ public class ServerManager {
             serverManager.consul = Consul.builder().withHostAndPort(HostAndPort.fromParts("ubuntu1", Constants.CONSUL_PORT)).build();
             serverManager.keyValueClient = serverManager.consul.keyValueClient();
 
-            serverManager.checkAndCreateMCServers();
-
+//            serverManager.checkAndCreateMCServers();
 
 //            NginxService nginxService = new NginxService("NginxProxy", "mcproxy", "512M", "1", 1,
 //                    new ServiceConstraints(1), 25577);

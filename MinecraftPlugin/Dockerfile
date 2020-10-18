@@ -14,4 +14,4 @@ HEALTHCHECK --interval=10s --start-period=10s --retries=2 --timeout=2s CMD curl 
 COPY docker/server /server
 COPY target/MinecraftPlugin-1.0.jar /server/plugins
 
-CMD [ "java", "-Xmx512M", "-jar", "papermc.jar" ]
+CMD [ "java", "-Xmx512M", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005", "-jar", "papermc.jar" ]

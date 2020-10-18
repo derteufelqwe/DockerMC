@@ -19,9 +19,6 @@ import minecraftplugin.minecraftplugin.teleportsigns.TeleportSignTabComplete;
 import minecraftplugin.minecraftplugin.teleportsigns.TeleportSignWatcher;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import javax.annotation.Nullable;
-import java.util.Collections;
-
 public final class MinecraftPlugin extends JavaPlugin {
 
     public static MinecraftPlugin INSTANCE;
@@ -32,10 +29,9 @@ public final class MinecraftPlugin extends JavaPlugin {
     private KeyValueClient kvClient = consul.keyValueClient();
     private CatalogClient catalogClient = consul.catalogClient();
 
-    private MetaData metaData = new MetaData();
+    private ContainerMetaData metaData = new ContainerMetaData();
     private HealthCheck healthCheck = new HealthCheck();
     private TeleportSignWatcher teleportSignWatcher;
-
 
 
     @Override
@@ -46,7 +42,7 @@ public final class MinecraftPlugin extends JavaPlugin {
         CONFIG.get(SignConfig.class).setup();
 
         // -----  Listeners / Watchers  -----
-        this.teleportSignWatcher = new TeleportSignWatcher(this.catalogClient, CONFIG.get(SignConfig.class));
+        this.teleportSignWatcher = new TeleportSignWatcher(this.catalogClient, this.kvClient);
         this.teleportSignWatcher.start();
 
         // -----  Plugin messaging channels  -----
@@ -60,7 +56,7 @@ public final class MinecraftPlugin extends JavaPlugin {
         getServer().getPluginCommand("teleportsign").setTabCompleter(new TeleportSignTabComplete());
 
         // -----  Events  -----
-        getServer().getPluginManager().registerEvents(new TeleportSignEvents(this.teleportSignWatcher), this);
+        getServer().getPluginManager().registerEvents(new TeleportSignEvents(), this);
 
         // -----  Docker registration  -----
         healthCheck.start();

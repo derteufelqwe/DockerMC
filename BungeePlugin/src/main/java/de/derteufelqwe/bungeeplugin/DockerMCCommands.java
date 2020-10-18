@@ -46,8 +46,8 @@ public class DockerMCCommands extends Command {
 
 
     private void printHelp(CommandSender sender) {
-        sender.sendMessage(new TextComponent(COLOR + "-------  DockerMC Essentials help  -------"));
-        sender.sendMessage(new TextComponent(COLOR_CMD + "health [on, off]: " + ChatColor.RESET + "Force health check to fail."));
+        sender.sendMessage(new TextComponent(COLOR + "-------  DockerMC" + ChatColor.GOLD + "B" + COLOR + " Essentials help  -------"));
+        sender.sendMessage(new TextComponent(COLOR_CMD + "health [on, off]: " + ChatColor.RESET + "Force BungeeCord health check to fail."));
         sender.sendMessage(new TextComponent(COLOR + "--------------------------------------"));
     }
 

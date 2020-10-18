@@ -36,6 +36,10 @@ public class Config {
         }
     }
 
+    public void registerConfig(Class clazz, String filename) {
+        this.registerConfig(clazz, ".", filename);
+    }
+
 
     public <T> T get(Class<T> clazz) {
         return configs.get(clazz).getInstance();
@@ -46,12 +50,14 @@ public class Config {
     }
 
     private File getFile(Class clazz) {
-        File directory = new File(configs.get(clazz).getFilePath());
+        String filePath = configs.get(clazz).getFilePath();
+        String fileName = configs.get(clazz).getFileName();
+        File directory = new File(filePath);
         if (!directory.exists()) {
             directory.mkdirs();
         }
 
-        File file = new File(configs.get(clazz).getFilePath() + "/" + configs.get(clazz).getFileName());
+        File file = new File(filePath + "/" + fileName);
 
         return file;
     }

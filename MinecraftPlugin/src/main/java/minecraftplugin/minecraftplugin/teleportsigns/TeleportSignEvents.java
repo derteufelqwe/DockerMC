@@ -2,6 +2,7 @@ package minecraftplugin.minecraftplugin.teleportsigns;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import de.derteufelqwe.commons.config.Config;
 import minecraftplugin.minecraftplugin.MinecraftPlugin;
 import minecraftplugin.minecraftplugin.config.SignConfig;
 import minecraftplugin.minecraftplugin.config.TPSign;
@@ -28,10 +29,10 @@ public class TeleportSignEvents implements Listener {
     private final ChatColor COLOR_CMD = ChatColor.YELLOW;
     private final String NAME = COLOR + "[DockerMC] " + ChatColor.RESET;
 
-    private TeleportSignWatcher watcher;
+    private SignConfig signConfig;
 
-    public TeleportSignEvents(TeleportSignWatcher watcher) {
-        this.watcher = watcher;
+    public TeleportSignEvents() {
+        this.signConfig = MinecraftPlugin.CONFIG.get(SignConfig.class);
     }
 
 
@@ -52,16 +53,16 @@ public class TeleportSignEvents implements Listener {
             return;
         }
 
-        TPSign tpSign = this.watcher.getActiveSigns().getAt(block.getLocation());
+        TPSign tpSign = this.signConfig.getAt(block.getLocation());
         if (tpSign == null) {
             return;
         }
 
-        player.sendMessage(NAME + "Connecting to " + tpSign.getDestination());
+        player.sendMessage(NAME + "Connecting to " + tpSign.getDestination().fullName());
 
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
         out.writeUTF("Connect");
-        out.writeUTF(tpSign.getDestination());
+        out.writeUTF(tpSign.getDestination().fullName());
         player.sendPluginMessage(MinecraftPlugin.INSTANCE, "BungeeCord", out.toByteArray());
     }
 
@@ -111,12 +112,11 @@ public class TeleportSignEvents implements Listener {
      * @param block The sign
      */
     private void removeSign(Player player, Block block) {
-        SignConfig signConfig = this.watcher.getActiveSigns();
+        TPSign tpSign = this.signConfig.getAt(block.getLocation());
 
-        if (signConfig.existsAt(block.getLocation())) {
-            TPSign tpSign = signConfig.getAt(block.getLocation());
-            player.sendMessage(String.format(NAME + ChatColor.YELLOW + "Removing tpsign %s to %s.", tpSign.getName(), tpSign.getDestination()));
-            signConfig.removeSign(tpSign);
+        if (tpSign != null) {
+            player.sendMessage(String.format(NAME + ChatColor.YELLOW + "Removing tpsign %s to %s.", tpSign.getName(), tpSign.getDestination().fullName()));
+            MinecraftPlugin.CONFIG.get(SignConfig.class).removeSign(tpSign);
             MinecraftPlugin.CONFIG.save(SignConfig.class);
         }
     }

@@ -61,8 +61,7 @@ public class RegistryCertificates {
         command.add(String.format("/C=%s/ST=%s/L=%s/O=%s/CN=%s/emailAddress=%s",
                 cfg.getCountryCode(), cfg.getState(), cfg.getCity(), cfg.getOrganizationName(), Constants.REGISTRY_URL, cfg.getEmail()));
 
-//        docker.pullImage(Constants.Images.OPENSSL.image());
-
+        docker.pullImage(Constants.Images.OPENSSL.image());
         CreateContainerResponse response = docker.getDocker().createContainerCmd(Constants.Images.OPENSSL.image())
                 .withLabels(Utils.quickLabel(Constants.ContainerType.REGISTRY_CERTS_GEN))
                 .withVolumes(sslOutput)
@@ -78,8 +77,7 @@ public class RegistryCertificates {
 
         // -----  Generate htpasswd file  -----
 
-//        docker.pullImage(Constants.Images.HTPASSWD.image());
-
+        docker.pullImage(Constants.Images.HTPASSWD.image());
         CreateContainerResponse htpasswdContainer = docker.getDocker().createContainerCmd(Constants.Images.HTPASSWD.image())
                 .withCmd(mainConfig.getRegistryUsername(), mainConfig.getRegistryPassword())
                 .exec();
@@ -89,6 +87,8 @@ public class RegistryCertificates {
         docker.getDocker().waitContainerCmd(htpasswdContainer.getId())
                 .exec(new WaitContainerResultCallback())
                 .awaitStatusCode(10, TimeUnit.SECONDS);
+
+        // -----  Save the htpasswd file  -----
 
         String containerOutput = docker.getContainerLog(htpasswdContainer.getId());
 

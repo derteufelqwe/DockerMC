@@ -1,5 +1,6 @@
 package minecraftplugin.minecraftplugin.teleportsigns;
 
+import de.derteufelqwe.commons.exceptions.InvalidServerName;
 import minecraftplugin.minecraftplugin.MinecraftPlugin;
 import minecraftplugin.minecraftplugin.config.SignConfig;
 import minecraftplugin.minecraftplugin.config.TPSign;
@@ -91,8 +92,17 @@ public class TeleportSignCommand implements CommandExecutor {
         Block targetBlock = player.getTargetBlock(new HashSet<>(Arrays.asList(Material.AIR, Material.WATER, Material.LAVA)), 5);
         Material targetMaterial = targetBlock.getType();
 
-        if (targetMaterial == null || (targetMaterial != Material.SIGN && targetMaterial != Material.WALL_SIGN && targetMaterial != Material.SIGN_POST)) {
+        if (targetMaterial != Material.SIGN && targetMaterial != Material.WALL_SIGN && targetMaterial != Material.SIGN_POST) {
             player.sendMessage(NAME + ChatColor.RED + "Look at a sign.");
+            return;
+        }
+
+        try {
+            TPSign tpSign = new TPSign(displayName, targetBlock.getLocation(), serverName);
+            this.signConfig.addSign(tpSign);
+        } catch (InvalidServerName e) {
+
+            player.sendMessage(NAME + ChatColor.RED + "Invalid destination name. It must contain one '-'.");
             return;
         }
 
@@ -102,9 +112,6 @@ public class TeleportSignCommand implements CommandExecutor {
         sign.setLine(2, ChatColor.translateAlternateColorCodes('$', worldName));
         sign.setLine(3, "?/? Players");
         sign.update(true);
-
-        TPSign tpSign = new TPSign(displayName, targetBlock.getLocation(), serverName);
-        this.signConfig.addSign(tpSign);
 
         player.sendMessage(String.format(NAME + COLOR_CMD + "Created TPSign %s to %s.", displayName, serverName));
 
@@ -116,7 +123,7 @@ public class TeleportSignCommand implements CommandExecutor {
         Material targetMaterial = targetBlock.getType();
 
         if (targetMaterial == null || (targetMaterial != Material.SIGN && targetMaterial != Material.WALL_SIGN && targetMaterial != Material.SIGN_POST)) {
-            player.sendMessage(NAME + ChatColor.RED + "Target is not a sign");
+            player.sendMessage(NAME + ChatColor.RED + "Target is not a sign.");
             return;
         }
 
@@ -128,7 +135,7 @@ public class TeleportSignCommand implements CommandExecutor {
 
         player.sendMessage(ChatColor.BLUE + "-------- TPSign Info --------");
         player.sendMessage(ChatColor.YELLOW + "Name    : " + tpSign.getName());
-        player.sendMessage(ChatColor.YELLOW + "Server : " + tpSign.getDestination());
+        player.sendMessage(ChatColor.YELLOW + "Server : " + tpSign.getDestination().fullName());
         player.sendMessage(ChatColor.YELLOW + "World   : " + tpSign.getLocation().getWorld().getName());
         player.sendMessage(ChatColor.BLUE + "---------------------------");
 

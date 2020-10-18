@@ -46,6 +46,10 @@ public class SignConfig implements Serializable {
         return this.signs.stream().map(TPSign::getLocation).collect(Collectors.toList()).contains(location);
     }
 
+    /**
+     * Returns a TPSign for a given Location.
+     * @return TPSign instance or null
+     */
     @Nullable
     public TPSign getAt(Location location) {
         Map<Location, TPSign> locMap = this.signs.stream().collect(
@@ -54,20 +58,32 @@ public class SignConfig implements Serializable {
         return locMap.getOrDefault(location, null);
     }
 
-    @Nullable
-    public TPSign getByServer(String name) {
-        Map<String, TPSign> locMap = this.signs.stream().collect(
-                Collectors.toMap(TPSign::getDestination, e -> e));
-
-        return locMap.getOrDefault(name, null);
+    /**
+     * Returns all TPSigns, which connect to a certain server
+     */
+    public List<TPSign> getByServer(String name) {
+        return this.signs.stream().filter(s -> s.getDestination().fullName().equals(name)).collect(Collectors.toList());
     }
 
-    @Nullable
-    public TPSign getByName(String name) {
-        Map<String, TPSign> locMap = this.signs.stream().collect(
-                Collectors.toMap(TPSign::getName, e -> e));
+    /**
+     * Returns all TPSigns, which have a certain name
+     */
+    public List<TPSign> getByName(String name) {
+        return this.signs.stream().filter(s -> s.getName().equals(name)).collect(Collectors.toList());
+    }
 
-        return locMap.getOrDefault(name, null);
+    /**
+     * Returns a list of TPSigns, which have the state active
+     */
+    public List<TPSign> getActiveSigns() {
+        return this.signs.stream().filter(s -> s.getStatus() == TPSignStatus.ACTIVE).collect(Collectors.toList());
+    }
+
+    /**
+     * Returns a list of TPSigns, which have the state restarting
+     */
+    public List<TPSign> getRestartingSigns() {
+        return this.signs.stream().filter(s -> s.getStatus() == TPSignStatus.RESTARTING).collect(Collectors.toList());
     }
 
 }

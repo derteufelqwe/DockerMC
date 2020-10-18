@@ -1,5 +1,7 @@
 package minecraftplugin.minecraftplugin.config;
 
+import com.google.gson.annotations.Expose;
+import de.derteufelqwe.commons.docker.ServerName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,12 +14,26 @@ import java.io.Serializable;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class TPSign implements Serializable {
 
     private String name;
     private Location location;
-    private String destination;
+    private ServerName destination;
+
+    private TPSignStatus status = TPSignStatus.ACTIVE;
+    private short playerCount = 0;
+
+
+    public TPSign(String name, Location location, ServerName destination) {
+        this.name = name;
+        this.location = location;
+        this.destination = destination;
+    }
+
+    public TPSign(String name, Location location, String destination) {
+        this(name, location, new ServerName(destination));
+    }
+
 
     @Nullable
     public Sign getSignBlock() {

@@ -83,9 +83,9 @@ public class Constants {
     }
 
     public enum Images {
-        REGISTRY("registry"),
+        REGISTRY("registry:latest"),
         OPENSSL("frapsoft/openssl:latest"),
-        HTPASSWD("xmartlabs/htpasswd"),
+        HTPASSWD("xmartlabs/htpasswd:latest"),
         BINDDNS("sameersbn/bind:latest"),
         API_PROXY("derteufelqwe/docker-api-proxy:latest"),
         CONFIG_WEBSERVER("configwebserver")

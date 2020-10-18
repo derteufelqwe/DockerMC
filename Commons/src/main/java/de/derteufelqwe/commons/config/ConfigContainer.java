@@ -3,6 +3,9 @@ package de.derteufelqwe.commons.config;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+/**
+ * Container for Config classes
+ */
 @Data
 @AllArgsConstructor
 public class ConfigContainer {
