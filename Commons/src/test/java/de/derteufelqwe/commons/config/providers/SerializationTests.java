@@ -32,7 +32,7 @@ class SerializationTests {
         server.addSimpleWorld("world");
         server.addPlayer(new PlayerMock(server, "TestPlayer", new UUID(-100L, 100L)));
 
-        converter = new DefaultYamlConverter();
+        converter = new DefaultYamlConverter(new DefaultYamlProvider(), new MinecraftGsonProvider());
         gson = new MinecraftGsonProvider().getGson();
     }
 
@@ -41,7 +41,7 @@ class SerializationTests {
     public void testWorld() {
         World world = Bukkit.getWorld("world");
 
-        String data = converter.dumpJson(gson.toJsonTree(world));
+        String data = converter.dumpJson(world);
         System.out.println(data);
 
         assertEquals(data.trim(),  world.getUID().toString().trim());
@@ -57,7 +57,7 @@ class SerializationTests {
     public void testLocation() {
         Location location = new Location(Bukkit.getWorld("world"), 1, 2, 3);
 
-        String data = converter.dumpJson(gson.toJsonTree(location));
+        String data = converter.dumpJson(location);
         System.out.println(data);
 
         Location newLocation = gson.fromJson(converter.loadJson(data), Location.class);

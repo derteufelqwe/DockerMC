@@ -17,15 +17,16 @@ public class Data {
 
     @Comment("Welt")
     private String name = "Arne";
-    private int age = 22;
-    @Exclude
-    private int ag1 = 22;
-    private int ag2 = 22;
-
-    private List<Integer> lst = Arrays.asList(1, 2, 3);
-    private Map<String, Integer> map = new HashMap<String, Integer>() {{ put("A", 1); }};
-    @Comment("Test")
-    private Sub sub = new Sub();
-    private Sub su2 = new Sub();
+//    private int age = 22;
+//    @Exclude
+//    private int ag1 = 22;
+//    private int ag2 = 22;
+//
+    //    private List<Integer> lst = Arrays.asList(1, 2, 3);
+//    private Sub sub = new Sub();
+    @Comment("Map")
+    private Map<String, Sub> map = new HashMap<String, Sub>() {{ put("A", new Sub()); }};
+//    @Comment("Test")
+//    private Sub2 su2 = new Sub2();
 
 }

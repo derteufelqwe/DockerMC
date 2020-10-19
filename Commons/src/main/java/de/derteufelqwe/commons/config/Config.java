@@ -92,7 +92,7 @@ public class Config {
         Object instance = configs.get(clazz).getInstance();
 
         try {
-            converter.dumpJson(gson.toJsonTree(instance), file);
+            converter.dumpJson(instance, file);
 
         } catch (IOException e) {
             e.printStackTrace();

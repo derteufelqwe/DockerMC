@@ -1,5 +1,6 @@
 package de.derteufelqwe.commons.config.providers;
 
+import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -8,6 +9,7 @@ import org.yaml.snakeyaml.Yaml;
  */
 public interface YamlProvider {
 
+    DumperOptions getOptions();
     Yaml getYaml();
 
 }

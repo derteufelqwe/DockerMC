@@ -1,6 +1,7 @@
 package minecraftplugin.minecraftplugin;
 
 import com.google.common.net.HostAndPort;
+import com.google.gson.Gson;
 import com.orbitz.consul.*;
 import com.orbitz.consul.model.agent.ImmutableRegCheck;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
@@ -9,6 +10,7 @@ import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
 import de.derteufelqwe.commons.config.providers.MinecraftGsonProvider;
+import de.derteufelqwe.commons.config.providers.YamlConverter;
 import minecraftplugin.minecraftplugin.config.SignConfig;
 import minecraftplugin.minecraftplugin.dockermc.DockerMCCommands;
 import minecraftplugin.minecraftplugin.dockermc.DockerMCTabComplete;
@@ -17,6 +19,9 @@ import minecraftplugin.minecraftplugin.teleportsigns.TeleportSignCommand;
 import minecraftplugin.minecraftplugin.teleportsigns.TeleportSignEvents;
 import minecraftplugin.minecraftplugin.teleportsigns.TeleportSignTabComplete;
 import minecraftplugin.minecraftplugin.teleportsigns.TeleportSignWatcher;
+import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class MinecraftPlugin extends JavaPlugin {
@@ -33,9 +38,21 @@ public final class MinecraftPlugin extends JavaPlugin {
     private HealthCheck healthCheck = new HealthCheck();
     private TeleportSignWatcher teleportSignWatcher;
 
-
+    
+    public void debug() {
+        YamlConverter converter = new DefaultYamlConverter();
+        Gson gson = new MinecraftGsonProvider().getGson();
+        ItemStack is = new ItemStack(Material.WOOD_SWORD, 2);
+        is.addEnchantment(Enchantment.DAMAGE_ALL, 2);
+        String res = converter.dumpJson(is);
+        System.err.println("Result");
+        System.out.println(res);
+    }
+    
+    
     @Override
     public void onEnable() {
+        this.debug();
         INSTANCE = this;
         CONFIG.registerConfig(SignConfig.class, "plugins/MinecraftPlugin", "SignConfig.yml");
         CONFIG.loadAll();

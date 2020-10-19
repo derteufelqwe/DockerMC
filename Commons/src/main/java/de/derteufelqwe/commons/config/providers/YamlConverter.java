@@ -11,8 +11,8 @@ import java.io.IOException;
 public interface YamlConverter {
 
     // Serializing methods
-    String dumpJson(JsonElement element);
-    void dumpJson(JsonElement element, File file) throws IOException;
+    String dumpJson(Object toSerialize);
+    void dumpJson(Object toSerialize, File file) throws IOException;
 
     // Deserializing methods
     JsonElement loadJson(String yamlData);
