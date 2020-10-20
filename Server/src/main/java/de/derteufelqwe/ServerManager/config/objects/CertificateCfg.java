@@ -1,6 +1,6 @@
 package de.derteufelqwe.ServerManager.config.objects;
 
-import de.derteufelqwe.ServerManager.config.backend.YAMLComment;
+import de.derteufelqwe.commons.config.annotations.Comment;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -8,15 +8,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CertificateCfg {
 
-    @YAMLComment("Country Code, 2 letters (can be empty)")
+    @Comment("Country Code, 2 letters (can be empty)")
     private String countryCode = "DE";
-    @YAMLComment("State or province name (can be empty)")
+    @Comment("State or province name (can be empty)")
     private String state = "";
-    @YAMLComment("City name (can be empty)")
+    @Comment("City name (can be empty)")
     private String city = "";
-    @YAMLComment("Organization name (can be empty, but should be filled)")
+    @Comment("Organization name (can be empty, but should be filled)")
     private String organizationName = "DockerMCTest";
-    @YAMLComment("Email (can be empty, doesn't need to be a valid email)")
+    @Comment("Email (can be empty, doesn't need to be a valid email)")
     private String email = "test@test.com";
 
     /*

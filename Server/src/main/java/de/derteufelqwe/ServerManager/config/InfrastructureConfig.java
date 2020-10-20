@@ -1,11 +1,11 @@
 package de.derteufelqwe.ServerManager.config;
 
-import de.derteufelqwe.ServerManager.config.backend.YAMLComment;
 import de.derteufelqwe.ServerManager.setup.ServiceConstraints;
 import de.derteufelqwe.ServerManager.setup.infrastructure.NginxService;
 import de.derteufelqwe.ServerManager.setup.servers.BungeePool;
 import de.derteufelqwe.ServerManager.setup.servers.PersistentServerPool;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
+import de.derteufelqwe.commons.config.annotations.Comment;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -17,23 +17,23 @@ import java.util.List;
 public class InfrastructureConfig {
 
     // Nginx server
-    @YAMLComment("Nginx reverse proxy")
+    @Comment("Nginx reverse proxy")
     private NginxService nginxService;
 
     // BungeeCord servers
-    @YAMLComment("BungeeCord servers")
+    @Comment("BungeeCord servers")
     private BungeePool bungeePool;
 
     // Lobby server
-    @YAMLComment("Pool of lobby servers")
+    @Comment("Pool of lobby servers")
     private ServerPool lobbyPool;
 
     // Servers, which have multiple replicates
-    @YAMLComment("Multiple other server pools")
+    @Comment("Multiple other server pools")
     private List<ServerPool> poolServers = new ArrayList<>();
 
     // Multiple servers, persistent
-    @YAMLComment("Persistent server pools")
+    @Comment("Persistent server pools")
     private List<PersistentServerPool> persistentServerPool = new ArrayList<>();
 
 

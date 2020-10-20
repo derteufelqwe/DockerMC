@@ -3,11 +3,10 @@ package de.derteufelqwe.ServerManager.commands.image;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.model.AuthConfig;
 import com.github.dockerjava.core.command.PushImageResultCallback;
-import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
-import de.derteufelqwe.ServerManager.config.backend.Config;
 import de.derteufelqwe.ServerManager.config.MainConfig;
+import de.derteufelqwe.commons.Constants;
 import org.apache.commons.io.FileUtils;
 import picocli.CommandLine;
 
@@ -104,7 +103,7 @@ public class ImageBuild implements Runnable {
 
         if (!this.noPush) {
             System.out.println("Pushing image to registry...");
-            MainConfig mainConfig = Config.get(MainConfig.class);
+            MainConfig mainConfig = ServerManager.CONFIG.get(MainConfig.class);
             String username = mainConfig.getRegistryUsername();
             String password = mainConfig.getRegistryPassword();
 
@@ -126,8 +125,7 @@ public class ImageBuild implements Runnable {
 
     enum ImageType {
         BUNGEE("Waterfall.dfile"),
-        MINECRAFT("Minecraft.dfile")
-        ;
+        MINECRAFT("Minecraft.dfile");
 
         private String dockerFileName;
 

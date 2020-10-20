@@ -3,9 +3,9 @@ package de.derteufelqwe.ServerManager.setup;
 import com.github.dockerjava.api.command.CreateNetworkResponse;
 import com.github.dockerjava.api.model.Network;
 import de.derteufelqwe.ServerManager.Docker;
-import de.derteufelqwe.ServerManager.config.backend.Ignore;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.config.annotations.Exclude;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,7 +23,7 @@ public class DockerNetwTemplate {
 
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
-    @Ignore
+    @Exclude
     protected Docker docker;
 
     // Network name
@@ -37,6 +37,7 @@ public class DockerNetwTemplate {
     /**
      * Initialize the instance with a working Docker instance.
      * If this method doesn't get called before executing any other methods, the other methods will fail.
+     *
      * @param docker Docker instance to set
      */
     public void init(Docker docker) {
@@ -128,6 +129,7 @@ public class DockerNetwTemplate {
 
     /**
      * Basic validation if parameters are not null.
+     *
      * @return List with all parameter names that are null.
      */
     protected List<String> findNullParams() {

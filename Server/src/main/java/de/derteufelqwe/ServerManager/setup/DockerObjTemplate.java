@@ -2,8 +2,8 @@ package de.derteufelqwe.ServerManager.setup;
 
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.Utils;
-import de.derteufelqwe.ServerManager.config.backend.Ignore;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
+import de.derteufelqwe.commons.config.annotations.Exclude;
 import lombok.*;
 import org.apache.commons.lang.StringUtils;
 
@@ -20,7 +20,7 @@ public abstract class DockerObjTemplate {
 
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
-    @Ignore
+    @Exclude
     protected Docker docker;
 
     // Name
@@ -48,6 +48,7 @@ public abstract class DockerObjTemplate {
     /**
      * Initialize the instance with a working Docker instance.
      * If this method doesn't get called before executing any other methods, the other methods will fail.
+     *
      * @param docker Docker instance to set
      */
     public void init(Docker docker) {
@@ -191,6 +192,7 @@ public abstract class DockerObjTemplate {
 
     /**
      * Basic validation if parameters are not null.
+     *
      * @return List with all parameter names that are null.
      */
     protected List<String> findNullParams() {

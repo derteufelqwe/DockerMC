@@ -7,31 +7,34 @@ import de.derteufelqwe.ServerManager.commands.*;
 import de.derteufelqwe.ServerManager.config.InfrastructureConfig;
 import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.config.RunningConfig;
-import de.derteufelqwe.ServerManager.config.backend.Config;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.setup.DockerObjTemplate;
-import de.derteufelqwe.ServerManager.setup.ServiceConstraints;
-import de.derteufelqwe.ServerManager.setup.infrastructure.*;
+import de.derteufelqwe.ServerManager.setup.infrastructure.ConsulService;
+import de.derteufelqwe.ServerManager.setup.infrastructure.NginxService;
+import de.derteufelqwe.ServerManager.setup.infrastructure.RegistryCertificates;
+import de.derteufelqwe.ServerManager.setup.infrastructure.RegistryContainer;
 import de.derteufelqwe.ServerManager.setup.servers.BungeePool;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.config.Config;
+import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
+import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
 import lombok.Getter;
 import picocli.CommandLine;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
 public class ServerManager {
 
     private static String DOCKER_IP = "ubuntu1";
+    public static Config CONFIG = new Config(new DefaultYamlConverter(), new DefaultGsonProvider());
 
     static {
-        Config.registerConfig(MainConfig.class, "", Constants.Configs.MAIN.filename());
-        Config.registerConfig(RunningConfig.class, "", Constants.Configs.RUNNING.filename());
-        Config.registerConfig(InfrastructureConfig.class, "", Constants.Configs.INFRASTRUCTURE.filename());
-        Config.loadAll();
+        CONFIG.registerConfig(MainConfig.class, Constants.Configs.MAIN.filename());
+        CONFIG.registerConfig(RunningConfig.class, Constants.Configs.RUNNING.filename());
+        CONFIG.registerConfig(InfrastructureConfig.class, Constants.Configs.INFRASTRUCTURE.filename());
+        CONFIG.loadAll();
     }
 
     @Getter
@@ -59,7 +62,7 @@ public class ServerManager {
         docker.getDocker().close();
 
         System.out.println("Saving config...");
-        Config.saveAll();
+        CONFIG.saveAll();
     }
 
 
@@ -142,7 +145,7 @@ public class ServerManager {
      * @return Successfully created all server or not
      */
     private boolean checkAndCreateMCServers() {
-        InfrastructureConfig cfg = Config.get(InfrastructureConfig.class);
+        InfrastructureConfig cfg = CONFIG.get(InfrastructureConfig.class);
         int serviceCount = 4;
         int failedStarts = 0;
 
@@ -370,9 +373,3 @@ public class ServerManager {
     }
 
 }
-
-/*
- * @ArgGroup(validate=false, description="sdf") -> Text in Helpmessage
- * Argument: order -> Order setzen
- * Implement Callable<Class> statt Runnable für custom Returntype
- */

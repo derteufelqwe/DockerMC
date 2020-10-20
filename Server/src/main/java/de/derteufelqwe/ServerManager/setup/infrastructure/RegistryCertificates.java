@@ -5,9 +5,9 @@ import com.github.dockerjava.api.command.WaitContainerResultCallback;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Volume;
 import de.derteufelqwe.ServerManager.Docker;
+import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.config.MainConfig;
-import de.derteufelqwe.ServerManager.config.backend.Config;
 import de.derteufelqwe.ServerManager.config.objects.CertificateCfg;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.setup.DockerObjTemplate;
@@ -16,7 +16,6 @@ import lombok.SneakyThrows;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -46,7 +45,7 @@ public class RegistryCertificates {
 
     @SneakyThrows
     public DockerObjTemplate.CreateResponse create() {
-        MainConfig mainConfig = Config.get(MainConfig.class);
+        MainConfig mainConfig = ServerManager.CONFIG.get(MainConfig.class);
         CertificateCfg cfg = mainConfig.getRegistryCerCfg();
 
 

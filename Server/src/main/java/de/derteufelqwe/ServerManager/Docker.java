@@ -11,14 +11,17 @@ import com.github.dockerjava.core.command.ExecStartResultCallback;
 import com.github.dockerjava.core.command.LogContainerResultCallback;
 import com.github.dockerjava.core.command.PullImageResultCallback;
 import com.github.dockerjava.netty.NettyDockerCmdExecFactory;
-import de.derteufelqwe.ServerManager.config.backend.Config;
 import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.exceptions.InvalidServiceConfig;
 import de.derteufelqwe.ServerManager.exceptions.TimeoutException;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.config.Config;
+import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
+import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import org.checkerframework.checker.units.qual.C;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -34,11 +37,14 @@ public class Docker {
     private int PULL_INTERVAL = 5;      // Pause between Pull checks
     private int PULL_REPETITIONS = 25;  // Amount of times the interval gets waited
 
+    private MainConfig mainConfig = ServerManager.CONFIG.get(MainConfig.class);
+
+
     @Getter
     private DockerClient docker;
 
     public Docker() {
-        this(Config.get(MainConfig.class));
+        this(ServerManager.CONFIG.get(MainConfig.class));
     }
 
     public Docker(MainConfig mainConfig) {
@@ -46,7 +52,6 @@ public class Docker {
     }
 
     public Docker(String protocol, String host, int port) {
-        MainConfig mainConfig = Config.get(MainConfig.class);
         DockerClientConfig dockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
                 .withDockerHost(String.format("%s://%s:%s", protocol, host, Integer.toString(port)))
                 .withDockerTlsVerify(mainConfig.isUseTLSVerify())
@@ -169,7 +174,6 @@ public class Docker {
             AuthConfig authConfig = null;
 
             if (image.startsWith("registry.swarm/")) {
-                MainConfig mainConfig = Config.get(MainConfig.class);
                 authConfig = new AuthConfig()
                         .withUsername(mainConfig.getRegistryUsername())
                         .withPassword(mainConfig.getRegistryPassword());

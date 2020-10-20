@@ -81,6 +81,9 @@ public class YamlCommentProcessor {
                 Field field = clazz.getDeclaredField(entry.getKey());
 
                 Comment comment = field.getAnnotation(Comment.class);
+                if (comment == null) {
+                    continue;
+                }
                 resultMap.getChildren().put(field.getName(), new YamlComments(comment.value()));
 
                 if (field.getType() == Map.class) {

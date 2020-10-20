@@ -59,6 +59,7 @@ public class ContainerTemplate extends DockerObjTemplate {
         docker.pullImage(this.image);
 
         CreateContainerResponse response = docker.getDocker().createContainerCmd(this.image)
+                .withName(this.name)
                 .withLabels(this.getContainerLabels())
                 .withEnv(this.getEnvironmentVariables())
                 .withHostConfig(this.getHostConfig())

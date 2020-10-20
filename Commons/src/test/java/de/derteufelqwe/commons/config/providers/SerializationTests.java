@@ -3,12 +3,15 @@ package de.derteufelqwe.commons.config.providers;
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
+import be.seeseemelk.mockbukkit.inventory.meta.BookMetaMock;
 import com.google.gson.Gson;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.material.Sign;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -70,7 +73,7 @@ class SerializationTests {
     public void testPlayer() {
         Player player = server.getPlayer("TestPlayer");
 
-        String data = converter.dumpJson(gson.toJsonTree(player));
+        String data = converter.dumpJson(player);
         System.out.println(data);
 
         Player newPlayer = gson.fromJson(converter.loadJson(data), Player.class);
@@ -82,7 +85,7 @@ class SerializationTests {
     public void testSerialization() {
         LocationContainer container = new LocationContainer();
 
-        String data = this.converter.dumpJson(gson.toJsonTree(container));
+        String data = this.converter.dumpJson(container);
 
         System.out.println(data);
 
@@ -91,6 +94,10 @@ class SerializationTests {
         assertEquals(container, newContainer);
     }
 
+    @Test
+    public void testSigns() {
+
+    }
 
 
     @AfterAll

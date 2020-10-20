@@ -3,13 +3,13 @@ package de.derteufelqwe.ServerManager.setup;
 import com.github.dockerjava.api.command.CreateServiceResponse;
 import com.github.dockerjava.api.model.*;
 import de.derteufelqwe.ServerManager.Docker;
+import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.config.MainConfig;
-import de.derteufelqwe.ServerManager.config.backend.Config;
-import de.derteufelqwe.ServerManager.config.backend.Ignore;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.setup.servers.ServerTemplate;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.config.annotations.Exclude;
 import lombok.*;
 
 import javax.annotation.Nullable;
@@ -32,14 +32,15 @@ public class ServiceTemplate extends DockerObjTemplate {
 
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
-    @Ignore
+    @Exclude
     protected AuthConfig authConfig;
 
 
     // Amount of replicas
     protected int replications;
     // Constraints where to place the servers. Can be null if it doesn't matter.
-    @Nullable protected ServiceConstraints constraints;
+    @Nullable
+    protected ServiceConstraints constraints;
 
 
     public ServiceTemplate(String name, String image, String ramLimit, String cpuLimit, int replications, ServiceConstraints constraints) {
@@ -109,7 +110,7 @@ public class ServiceTemplate extends DockerObjTemplate {
      */
     public void init(Docker docker) {
         super.init(docker);
-        MainConfig mainConfig = Config.get(MainConfig.class);
+        MainConfig mainConfig = ServerManager.CONFIG.get(MainConfig.class);
         this.authConfig = new AuthConfig()
                 .withUsername(mainConfig.getRegistryUsername())
                 .withPassword(mainConfig.getRegistryPassword());
