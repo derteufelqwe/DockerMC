@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import de.derteufelqwe.commons.config.annotations.Comment;
 import de.derteufelqwe.commons.config.exceptions.YAMLWalkException;
 import de.derteufelqwe.commons.containers.Pair;
+import lombok.Data;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 
@@ -16,11 +17,11 @@ import java.util.regex.Pattern;
 
 /**
  * This class parses and adds comments to the YAML output
+ * Adding comments to Map values is NOT supported
  */
 public class YamlCommentProcessor {
 
     private Pattern RE_INDENT = Pattern.compile("^(\\s+)?(.+)");
-    private Pattern RE_SIGNATURE = Pattern.compile("L(.+)<L(.+);L(.+);>;");
 
     private Gson gson;
     private String yamlOutput;
@@ -28,7 +29,7 @@ public class YamlCommentProcessor {
     private JsonObject halfSerializedObject;
     private int indent;
 
-    private Map<String, Pair<String, Object>> commentMap = new LinkedHashMap<>();
+    private YamlComments comments = new YamlComments();
     private List<String> lines = new ArrayList<>();
 
     private String output;
@@ -54,11 +55,11 @@ public class YamlCommentProcessor {
         }
 
         // Generate comments
-        this.parseCommentsFromClass(this.clazz, this.halfSerializedObject.entrySet(), this.commentMap);
+        this.parseCommentsFromClass(this.clazz, this.halfSerializedObject.entrySet(), this.comments);
 
         // Add the comments
         List<String> newLines = new ArrayList<>(this.lines);
-        this.addComment(newLines, this.commentMap, 0, new ArrayList<>());
+        this.addComment(newLines, this.comments, 0, new ArrayList<>());
 
         this.output = String.join("\n", newLines);
 
@@ -73,24 +74,20 @@ public class YamlCommentProcessor {
      * @param jsonData
      * @param resultMap
      */
-    protected void parseCommentsFromClass(Class<?> clazz, Set<Map.Entry<String, JsonElement>> jsonData, Map<String, Pair<String, Object>> resultMap) {
+    protected void parseCommentsFromClass(Class<?> clazz, Set<Map.Entry<String, JsonElement>> jsonData, YamlComments resultMap) {
 
         for (Map.Entry<String, JsonElement> entry : jsonData) {
             try {
                 Field field = clazz.getDeclaredField(entry.getKey());
 
-
                 Comment comment = field.getAnnotation(Comment.class);
-                resultMap.put(field.getName(), new Pair<>(comment != null ? comment.value() : null, new HashMap<String, Pair<String, Object>>()));
+                resultMap.getChildren().put(field.getName(), new YamlComments(comment.value()));
 
                 if (field.getType() == Map.class) {
-                    Class valueClass = this.inspectField(field);
-                    this.parseCommentsFromClass(valueClass,
-                            entry.getValue().getAsJsonObject().entrySet().iterator().next().getValue().getAsJsonObject().entrySet(),
-                            (Map<String, Pair<String, Object>>) resultMap.get(field.getName()).getB());
+                    continue;
 
                 } else if (entry.getValue() instanceof JsonObject) {
-                    this.parseCommentsFromClass(field.getType(), entry.getValue().getAsJsonObject().entrySet(), (Map<String, Pair<String, Object>>) resultMap.get(field.getName()).getB());
+                    this.parseCommentsFromClass(field.getType(), entry.getValue().getAsJsonObject().entrySet(), resultMap.getChildren().get(field.getName()));
                 }
 
             } catch (NoSuchFieldException ignored) {}
@@ -180,11 +177,11 @@ public class YamlCommentProcessor {
      * @param increment Number of comments added so far
      * @param toSearch Search history to search through a yaml file
      */
-    protected void addComment(List<String> newLines, Map<String, Pair<String, Object>> comments, int increment, List<String> toSearch) {
-        for (String key : comments.keySet()) {
-            Pair<String, Object> value = comments.get(key);
-            String comment = value.getA();
-            Map<String, Pair<String, Object>> children = (Map<String, Pair<String, Object>>) value.getB();
+    protected int addComment(List<String> newLines, YamlComments comments, int increment, List<String> toSearch) {
+        for (String key : comments.getChildren().keySet()) {
+            YamlComments value = comments.getChildren().get(key);
+            String comment = value.getComment();
+            Map<String, YamlComments> children = value.getChildren();
 
             List<String> newToSearch = new ArrayList<>(toSearch);
             newToSearch.add(key);
@@ -197,23 +194,38 @@ public class YamlCommentProcessor {
             }
 
             if (children.size() != 0) {
-                addComment(newLines, children, increment, newToSearch);
+                increment = addComment(newLines, value, increment, newToSearch);
             }
 
         }
+
+        return increment;
     }
 
-    @SneakyThrows
-    private Class<?> inspectField(Field field) {
-        Field f = Field.class.getDeclaredField("signature");
-        f.setAccessible(true);
-        String signature = (String) f.get(field);
-        Matcher m = RE_SIGNATURE.matcher(signature);
-        m.matches();
 
-        String className = m.group(3).replace("/", ".");
+    /**
+     * Helper object, that represents the found comments
+     */
+    @Data
+    protected class YamlComments {
 
-        return Class.forName(className);
+        private String comment;
+        private Map<String, YamlComments> children = new LinkedHashMap<>();     // Must e a LinkedHashMap to maintain the order
+
+        public YamlComments() {
+
+        }
+
+        public YamlComments(String comment) {
+            this.comment = comment;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("YamlComments<%s, %s>", comment, children.size() > 0);
+        }
+
     }
 
 }
+

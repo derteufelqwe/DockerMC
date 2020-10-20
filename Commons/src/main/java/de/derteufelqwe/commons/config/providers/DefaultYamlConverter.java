@@ -27,8 +27,6 @@ import java.util.stream.Collectors;
  */
 public class DefaultYamlConverter implements YamlConverter {
 
-    Pattern RE_COMMENT = Pattern.compile("^(\\s+)?#.+");
-
     protected Yaml yaml;
     protected Gson gson;
     protected YamlProvider yamlProvider;

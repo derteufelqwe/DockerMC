@@ -37,6 +37,7 @@ public class DefaultGsonProvider implements GsonProvider {
         GsonBuilder builder = new GsonBuilder();
         builder.setPrettyPrinting();
         builder.enableComplexMapKeySerialization(); // Complex types get serialized when used as Map keys instead of just using .toString()
+        builder.serializeNulls();
         builder.setExclusionStrategies(new DefaultExclusionStrategy());
 
         // Register TypeAdapters
