@@ -1,8 +1,8 @@
 package de.derteufelqwe.ServerManager.setup.servers;
 
 import de.derteufelqwe.ServerManager.Docker;
-import de.derteufelqwe.ServerManager.setup.ServiceConstraints;
-import de.derteufelqwe.ServerManager.setup.ServiceTemplate;
+import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
+import de.derteufelqwe.ServerManager.setup.templates.ServiceTemplate;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -23,10 +23,6 @@ public class ServerTemplate extends ServiceTemplate {
 
     public ServerTemplate(String name, String image, String ramLimit, String cpuLimit, int replications, ServiceConstraints constraints) {
         super(name, image, ramLimit, cpuLimit, replications, constraints);
-    }
-
-    public ServerTemplate(Docker docker) {
-        super(docker);
     }
 
 

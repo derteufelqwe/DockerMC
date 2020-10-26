@@ -1,4 +1,4 @@
-package de.derteufelqwe.ServerManager.setup;
+package de.derteufelqwe.ServerManager.setup.templates;
 
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse;
@@ -10,7 +10,6 @@ import com.github.dockerjava.api.model.PortBinding;
 import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import lombok.*;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -58,6 +57,21 @@ public class ContainerTemplate extends DockerObjTemplate {
     public CreateResponse create() {
         docker.pullImage(this.image);
 
+        // Delete old container instances.
+        List<Container> containers = docker.getDocker().listContainersCmd()
+                .withLabelFilter(this.getContainerLabels())
+                .withShowAll(true)
+                .exec();
+
+        for (Container container : containers) {
+            if (container.getState().equals("exited")) {
+                docker.getDocker().removeContainerCmd(container.getId()).exec();
+            } else {
+                System.err.println("Container " + container.getId() + " has invalid state " + container.getState() + ".");
+            }
+        }
+
+        // Create the new container
         CreateContainerResponse response = docker.getDocker().createContainerCmd(this.image)
                 .withName(this.name)
                 .withLabels(this.getContainerLabels())
@@ -67,6 +81,7 @@ public class ContainerTemplate extends DockerObjTemplate {
 
         docker.getDocker().startContainerCmd(response.getId()).exec();
 
+        // Wait for the container to start
         String containerID = response.getId();
         WaitResponse waitResponse = this.waitForContainerStart(containerID);
 

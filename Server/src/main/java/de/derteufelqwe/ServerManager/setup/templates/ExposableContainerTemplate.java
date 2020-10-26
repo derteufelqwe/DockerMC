@@ -1,4 +1,4 @@
-package de.derteufelqwe.ServerManager.setup;
+package de.derteufelqwe.ServerManager.setup.templates;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

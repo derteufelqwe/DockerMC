@@ -1,8 +1,0 @@
-name: Tests
-version: ${project.version}
-main: de.derteufelqwe.commons.config.providers.Main
-authors: [derteufelqwe]
-description: Essentials for DockerMC
-
-depend:
-    - SourceProvider

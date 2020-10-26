@@ -14,10 +14,16 @@ public class Config {
     private Map<Class, ConfigContainer> configs = new HashMap<>();
     private YamlConverter converter;
     private Gson gson;
+    private String basePath;
 
-    public Config(YamlConverter converter, GsonProvider gsonProvider) {
+    public Config(YamlConverter converter, GsonProvider gsonProvider, String basePath) {
         this.converter = converter;
         this.gson = gsonProvider.getGson();
+        this.basePath = basePath;
+    }
+
+    public Config(YamlConverter converter, GsonProvider gsonProvider) {
+        this(converter, gsonProvider, ".");
     }
 
 
@@ -57,7 +63,7 @@ public class Config {
             directory.mkdirs();
         }
 
-        File file = new File(filePath + "/" + fileName);
+        File file = new File(this.basePath + "/" + filePath + "/" + fileName);
 
         return file;
     }

@@ -1,4 +1,4 @@
-package de.derteufelqwe.ServerManager.setup;
+package de.derteufelqwe.ServerManager.setup.templates;
 
 import com.github.dockerjava.api.command.CreateNetworkResponse;
 import com.github.dockerjava.api.model.Network;

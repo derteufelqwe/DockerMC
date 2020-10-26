@@ -1,4 +1,4 @@
-package de.derteufelqwe.ServerManager.setup;
+package de.derteufelqwe.ServerManager.setup.templates;
 
 import com.github.dockerjava.api.command.CreateServiceResponse;
 import com.github.dockerjava.api.model.*;
@@ -35,22 +35,16 @@ public class ServiceTemplate extends DockerObjTemplate {
     @Exclude
     protected AuthConfig authConfig;
 
-
     // Amount of replicas
     protected int replications;
     // Constraints where to place the servers. Can be null if it doesn't matter.
-    @Nullable
-    protected ServiceConstraints constraints;
+    @Nullable protected ServiceConstraints constraints;
 
 
     public ServiceTemplate(String name, String image, String ramLimit, String cpuLimit, int replications, ServiceConstraints constraints) {
         super(name, image, ramLimit, cpuLimit);
         this.replications = replications;
         this.constraints = constraints;
-    }
-
-    public ServiceTemplate(Docker docker) {
-        super(docker);
     }
 
 

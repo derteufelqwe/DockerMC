@@ -14,10 +14,10 @@ public class Constants {
             "                                                         |___/           ";
 
     public static String AUTHOR = "derteufelqwe";
-    public static String WORKDIR_WND = System.getProperty("user.dir").replace('\\', '/') + "/Server/";
+    public static String WORKDIR_WND = "C:/Users/Arne/Desktop/ServerManager/Server/";
     public static String WORKDIR = "/home/arne/ServerManager/Server/";
 
-    public static String CONFIG_PATH = WORKDIR + "server/configs/";
+    public static String CONFIG_PATH = WORKDIR_WND + "server/configs/";
 
     // Networking
     public static String NETW_OVERNET_NAME = "overnet";

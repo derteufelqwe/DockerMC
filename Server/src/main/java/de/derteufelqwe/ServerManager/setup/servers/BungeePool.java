@@ -1,9 +1,9 @@
 package de.derteufelqwe.ServerManager.setup.servers;
 
-import com.github.dockerjava.api.model.PortConfig;
 import de.derteufelqwe.ServerManager.Utils;
-import de.derteufelqwe.ServerManager.setup.ServiceConstraints;
-import de.derteufelqwe.ServerManager.setup.ServiceTemplate;
+import de.derteufelqwe.ServerManager.setup.templates.ExposableServiceTemplate;
+import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
+import de.derteufelqwe.ServerManager.setup.templates.ServiceTemplate;
 import de.derteufelqwe.commons.Constants;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -22,10 +22,10 @@ import java.util.Map;
 @NoArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class BungeePool extends ServiceTemplate {
+public class BungeePool extends ExposableServiceTemplate {
 
-    public BungeePool(String name, String image, String ramLimit, String cpuLimit, int replications, ServiceConstraints constraints) {
-        super(name, image, ramLimit, cpuLimit, replications, constraints);
+    public BungeePool(String name, String image, String ramLimit, String cpuLimit, int replications, ServiceConstraints constraints, int port) {
+        super(name, image, ramLimit, cpuLimit, replications, constraints, port);
     }
 
 

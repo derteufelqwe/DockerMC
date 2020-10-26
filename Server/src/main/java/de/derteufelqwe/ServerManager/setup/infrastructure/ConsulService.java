@@ -1,18 +1,12 @@
 package de.derteufelqwe.ServerManager.setup.infrastructure;
 
-import com.github.dockerjava.api.command.CreateServiceResponse;
 import com.github.dockerjava.api.model.PortConfig;
-import com.github.dockerjava.api.model.Service;
-import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.Utils;
-import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
-import de.derteufelqwe.ServerManager.setup.ServiceConstraints;
-import de.derteufelqwe.ServerManager.setup.ServiceTemplate;
-import de.derteufelqwe.ServerManager.setup.servers.ServerTemplate;
+import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
+import de.derteufelqwe.ServerManager.setup.templates.ServiceTemplate;
 import de.derteufelqwe.commons.Constants;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ConsulService extends ServiceTemplate {
 

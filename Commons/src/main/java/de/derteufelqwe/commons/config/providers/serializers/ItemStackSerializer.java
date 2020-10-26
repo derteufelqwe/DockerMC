@@ -11,7 +11,6 @@ public class ItemStackSerializer implements JsonSerializer<ItemStack> {
 
     @Override
     public JsonElement serialize(ItemStack src, Type typeOfSrc, JsonSerializationContext context) {
-
         return context.serialize(src.serialize());
     }
 

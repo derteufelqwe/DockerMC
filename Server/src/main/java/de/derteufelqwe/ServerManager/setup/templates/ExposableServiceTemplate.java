@@ -1,4 +1,4 @@
-package de.derteufelqwe.ServerManager.setup;
+package de.derteufelqwe.ServerManager.setup.templates;
 
 import com.github.dockerjava.api.model.PortConfig;
 import com.github.dockerjava.api.model.PortConfigProtocol;
@@ -19,7 +19,6 @@ import java.util.List;
 public class ExposableServiceTemplate extends ServiceTemplate {
 
     private int port;
-
 
     public ExposableServiceTemplate(String name, String image, String ramLimit, String cpuLimit, int replications, ServiceConstraints constraints, int port) {
         super(name, image, ramLimit, cpuLimit, replications, constraints);

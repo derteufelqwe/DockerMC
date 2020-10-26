@@ -1,4 +1,4 @@
-package de.derteufelqwe.ServerManager.setup;
+package de.derteufelqwe.ServerManager.setup.templates;
 
 import de.derteufelqwe.ServerManager.exceptions.DockerMCException;
 import lombok.Data;
@@ -32,6 +32,7 @@ public class ServiceConstraints {
         if (nodeLimit < 0) {
             throw new DockerMCException("Nodelimit can't be negative.");
         }
+        this.nodeLimit = nodeLimit;
     }
 
     public ServiceConstraints(int nodeLimit) {

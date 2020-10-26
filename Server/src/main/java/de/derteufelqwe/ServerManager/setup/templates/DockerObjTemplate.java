@@ -1,4 +1,4 @@
-package de.derteufelqwe.ServerManager.setup;
+package de.derteufelqwe.ServerManager.setup.templates;
 
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.Utils;
@@ -40,14 +40,11 @@ public abstract class DockerObjTemplate {
         this.cpuLimit = cpuLimit;
     }
 
-    public DockerObjTemplate(Docker docker) {
-        this.docker = docker;
-    }
-
 
     /**
      * Initialize the instance with a working Docker instance.
      * If this method doesn't get called before executing any other methods, the other methods will fail.
+     * This method is required to set the docker instance to deserialized instances.
      *
      * @param docker Docker instance to set
      */

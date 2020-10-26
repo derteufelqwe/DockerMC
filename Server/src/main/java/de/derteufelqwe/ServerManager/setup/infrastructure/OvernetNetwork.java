@@ -1,9 +1,7 @@
 package de.derteufelqwe.ServerManager.setup.infrastructure;
 
-import de.derteufelqwe.ServerManager.setup.DockerNetwTemplate;
+import de.derteufelqwe.ServerManager.setup.templates.DockerNetwTemplate;
 import de.derteufelqwe.commons.Constants;
-
-import java.util.Map;
 
 public class OvernetNetwork extends DockerNetwTemplate {
 

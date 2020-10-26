@@ -1,8 +1,8 @@
 package de.derteufelqwe.ServerManager.setup.infrastructure;
 
 import de.derteufelqwe.ServerManager.Utils;
-import de.derteufelqwe.ServerManager.setup.ExposableServiceTemplate;
-import de.derteufelqwe.ServerManager.setup.ServiceConstraints;
+import de.derteufelqwe.ServerManager.setup.templates.ExposableServiceTemplate;
+import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
 import de.derteufelqwe.commons.Constants;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

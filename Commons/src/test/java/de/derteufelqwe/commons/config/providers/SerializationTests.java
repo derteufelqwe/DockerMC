@@ -2,6 +2,7 @@ package de.derteufelqwe.commons.config.providers;
 
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
+import be.seeseemelk.mockbukkit.block.BlockMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import be.seeseemelk.mockbukkit.inventory.meta.BookMetaMock;
 import com.google.gson.Gson;
@@ -9,9 +10,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.material.Sign;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -29,6 +32,14 @@ class SerializationTests {
     private YamlConverter converter;
     private Gson gson;
 
+    private String serialize(Object obj) {
+        return this.converter.dumpJson(obj);
+    }
+
+    private <T> T deserialize(String data, Class<?> clazz) {
+        return (T) this.gson.fromJson(this.converter.loadJson(data), clazz);
+    }
+
     @BeforeAll
     public void setUp() {
         server = MockBukkit.mock();
@@ -44,12 +55,12 @@ class SerializationTests {
     public void testWorld() {
         World world = Bukkit.getWorld("world");
 
-        String data = converter.dumpJson(world);
+        String data = this.serialize(world);
         System.out.println(data);
 
         assertEquals(data.trim(),  world.getUID().toString().trim());
 
-        World newWorld = gson.fromJson(converter.loadJson(data), World.class);
+        World newWorld = this.deserialize(data, World.class);
 
         assertEquals(world.getUID(), newWorld.getUID());
         assertEquals(world.getName(), newWorld.getName());
@@ -60,10 +71,10 @@ class SerializationTests {
     public void testLocation() {
         Location location = new Location(Bukkit.getWorld("world"), 1, 2, 3);
 
-        String data = converter.dumpJson(location);
+        String data = this.serialize(location);
         System.out.println(data);
 
-        Location newLocation = gson.fromJson(converter.loadJson(data), Location.class);
+        Location newLocation = this.deserialize(data, Location.class);
         System.out.println(newLocation);
 
         assertEquals(location, newLocation);
@@ -73,30 +84,35 @@ class SerializationTests {
     public void testPlayer() {
         Player player = server.getPlayer("TestPlayer");
 
-        String data = converter.dumpJson(player);
+        String data = this.serialize(player);
         System.out.println(data);
 
-        Player newPlayer = gson.fromJson(converter.loadJson(data), Player.class);
+        Player newPlayer = this.deserialize(data, Player.class);
 
         assertEquals(player, newPlayer);
     }
 
     @Test
-    public void testSerialization() {
+    public void testCustomObject() {
         LocationContainer container = new LocationContainer();
 
-        String data = this.converter.dumpJson(container);
-
+        String data = this.serialize(container);
         System.out.println(data);
 
-        LocationContainer newContainer = gson.fromJson(this.converter.loadJson(data), LocationContainer.class);
+        LocationContainer newContainer = this.deserialize(data, LocationContainer.class);
 
         assertEquals(container, newContainer);
     }
 
     @Test
-    public void testSigns() {
+    public void testItemStacks() {
+        ItemStack itemStack = new ItemStack(Material.SIGN);
 
+        String data = this.serialize(itemStack);
+        System.out.println(data);
+
+//        ItemStack newItemStack = this.deserialize(data, ItemStack.class);
+//        assertEquals(itemStack, newItemStack);
     }
 
 

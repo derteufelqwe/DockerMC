@@ -13,7 +13,6 @@ public class ItemStackDeserializer implements JsonDeserializer<ItemStack> {
 
     @Override
     public ItemStack deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-
         return ItemStack.deserialize(context.deserialize(json, Map.class));
     }
 

@@ -1,16 +1,14 @@
 package de.derteufelqwe.ServerManager.setup.servers;
 
-import com.orbitz.consul.KeyValueClient;
 import de.derteufelqwe.ServerManager.Utils;
-import de.derteufelqwe.ServerManager.setup.ServiceConstraints;
-import de.derteufelqwe.ServerManager.setup.ServiceTemplate;
+import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
+import de.derteufelqwe.ServerManager.setup.templates.ServiceTemplate;
 import de.derteufelqwe.commons.Constants;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 

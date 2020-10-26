@@ -10,7 +10,7 @@ import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.config.objects.CertificateCfg;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
-import de.derteufelqwe.ServerManager.setup.DockerObjTemplate;
+import de.derteufelqwe.ServerManager.setup.templates.DockerObjTemplate;
 import de.derteufelqwe.commons.Constants;
 import lombok.SneakyThrows;
 
