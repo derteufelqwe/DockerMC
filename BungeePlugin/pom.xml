@@ -29,6 +29,8 @@
                     <target>8</target>
                 </configuration>
             </plugin>
+
+<!--        Shade Plugin-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -40,7 +42,17 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <finalName>BungeePlugin-1.0</finalName>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.SF</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>

@@ -7,5 +7,9 @@ pom.xml
 src/
 
 # Target
+target/artifacts/
 target/classes/
 target/generated-sources/
+target/maven-archiver/
+target/maven-status/
+target/test-classes/

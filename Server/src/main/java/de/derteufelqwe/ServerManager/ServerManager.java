@@ -2,17 +2,20 @@ package de.derteufelqwe.ServerManager;
 
 import com.github.dockerjava.api.model.Service;
 import com.github.dockerjava.api.model.ServiceSpec;
+import com.github.dockerjava.api.model.UpdateConfig;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
-import com.orbitz.google.common.net.HostAndPort;
 import de.derteufelqwe.ServerManager.commands.*;
 import de.derteufelqwe.ServerManager.config.InfrastructureConfig;
 import de.derteufelqwe.ServerManager.config.MainConfig;
-import de.derteufelqwe.ServerManager.config.RunningConfig;
+import de.derteufelqwe.ServerManager.config.SystemConfig;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
-import de.derteufelqwe.ServerManager.setup.ConfigCreateResponse;
+import de.derteufelqwe.ServerManager.setup.ConfigSetupResponse;
 import de.derteufelqwe.ServerManager.setup.InfrastructureSetup;
 import de.derteufelqwe.ServerManager.setup.ServerConfigSetup;
+import de.derteufelqwe.ServerManager.setup.ServerConfigUpdater;
+import de.derteufelqwe.ServerManager.setup.servers.BungeePool;
+import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
@@ -39,10 +42,16 @@ import java.util.Scanner;
 /**
  * ToDos:
  * - CLI
+ *  - Setup the server
+ *  - Change server config
+ *  - Get status information
+ *  - Create images
+ * - Logger
  * - Manager website
  * - Better Minecraft plugin
  * - Update services when their config changes
  * - Make config aware of changes
+ * - API for Bungeecord
  */
 
 public class ServerManager {
@@ -52,7 +61,7 @@ public class ServerManager {
 
     static {
         CONFIG.registerConfig(MainConfig.class, Constants.Configs.MAIN.filename());
-        CONFIG.registerConfig(RunningConfig.class, Constants.Configs.RUNNING.filename());
+        CONFIG.registerConfig(SystemConfig.class, Constants.Configs.SYSTEM.filename());
         CONFIG.registerConfig(InfrastructureConfig.class, Constants.Configs.INFRASTRUCTURE.filename());
         CONFIG.loadAll();
     }
@@ -99,7 +108,7 @@ public class ServerManager {
      */
     private void checkAndCreateMCServers() {
         ServerConfigSetup setup = new ServerConfigSetup(getDocker(), this.keyValueClient);
-        ConfigCreateResponse response = setup.setup();
+        ConfigSetupResponse response = setup.setup();
         List<Service> lostServices = setup.findLostServices(response);
 
         System.err.println("Found " + lostServices.size() + " lost services.");
@@ -191,13 +200,23 @@ public class ServerManager {
         ServerManager serverManager = new ServerManager();
 
         try {
-            serverManager.checkAndCreateInfrastructure();
-            serverManager.consul = Consul.builder().withHostAndPort(HostAndPort.fromParts("ubuntu1", Constants.CONSUL_PORT)).build();
-            serverManager.keyValueClient = serverManager.consul.keyValueClient();
+//            serverManager.checkAndCreateInfrastructure();
+//            serverManager.consul = Consul.builder().withHostAndPort(HostAndPort.fromParts("ubuntu1", Constants.CONSUL_PORT)).build();
+//            serverManager.keyValueClient = serverManager.consul.keyValueClient();
+//
+//            serverManager.checkAndCreateMCServers();
 
-            serverManager.checkAndCreateMCServers();
-
-
+            String id = "8f8spyj76qh0";
+//            Service service = docker.getDocker().inspectServiceCmd(id).exec();
+//            ServiceSpec spec = service.getSpec();
+//
+//            spec.getTaskTemplate().getContainerSpec().getEnv().remove(2);
+//            spec.getTaskTemplate().getContainerSpec().getEnv().add("SOFT_PLAYER_LIMIT=6");
+//            spec.getTaskTemplate().withForceUpdate(2);
+//            spec.withUpdateConfig(new UpdateConfig().withParallelism(0L));
+//
+//            docker.getDocker().updateServiceCmd(id, spec).withVersion(service.getVersion().getIndex()).exec();
+            return;
 
         } finally {
             serverManager.onExit();

@@ -33,7 +33,7 @@ public class InfrastructureConfig {
 
     // Servers, which have multiple replicates
     @Comment("Multiple other server pools")
-    @Nullable private List<ServerPool> poolServers = new ArrayList<>();
+    @NotNull private List<ServerPool> poolServers = new ArrayList<>();
 
     // Multiple servers, persistent
     @Comment("Persistent server pools")

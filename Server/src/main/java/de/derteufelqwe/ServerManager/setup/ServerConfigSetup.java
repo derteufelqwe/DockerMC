@@ -24,7 +24,7 @@ public class ServerConfigSetup {
     private Docker docker;
     private KeyValueClient kvClient;
 
-    private ConfigCreateResponse createResponse;
+    private ConfigSetupResponse createResponse;
 
     public ServerConfigSetup(Docker docker, KeyValueClient kvClient) {
         this.docker = docker;
@@ -35,8 +35,8 @@ public class ServerConfigSetup {
     /**
      * Creates the configured services
      */
-    public ConfigCreateResponse setup() {
-        this.createResponse = new ConfigCreateResponse();
+    public ConfigSetupResponse setup() {
+        this.createResponse = new ConfigSetupResponse();
 
         this.createBungeePool();
         this.createLobbyPool();
@@ -62,7 +62,7 @@ public class ServerConfigSetup {
      *
      * @param response Response of #setup().
      */
-    public List<Service> findLostServices(ConfigCreateResponse response) {
+    public List<Service> findLostServices(ConfigSetupResponse response) {
         List<Service> existingServices = this.getRelevantServices();
         List<String> configuredServicesNames = response.getResults().stream().map(ServiceCreateResponse::getServiceName).collect(Collectors.toList());
 
@@ -82,7 +82,7 @@ public class ServerConfigSetup {
 
         if (bungeePool == null) {
             System.err.println("No bungee service configured.");
-            response.setResult(ServiceStartResult.NOT_CONFIGURED);
+            response.setResult(ServiceStart.NOT_CONFIGURED);
 
         } else {
             bungeePool.init(docker);
@@ -90,18 +90,18 @@ public class ServerConfigSetup {
 
             if (bungeePool.find().isFound()) {
                 System.out.println("Found existing BungeeCord service.");
-                response.setResult(ServiceStartResult.RUNNING);
+                response.setResult(ServiceStart.RUNNING);
 
             } else {
                 System.out.println("Couldn't find existing bungee service. Creating it...");
 
                 if (bungeePool.create().isCreated()) {
                     System.out.println("Successfully created bungee service.");
-                    response.setResult(ServiceStartResult.OK);
+                    response.setResult(ServiceStart.OK);
 
                 } else {
                     System.err.println("Failed to create bungee service.");
-                    response.setResult(ServiceStartResult.FAILED_GENERIC);
+                    response.setResult(ServiceStart.FAILED_GENERIC);
                 }
             }
         }
@@ -124,7 +124,7 @@ public class ServerConfigSetup {
 
         if (lobbyPool == null) {
             System.err.println("No lobby service configured.");
-            response.setResult(ServiceStartResult.NOT_CONFIGURED);
+            response.setResult(ServiceStart.NOT_CONFIGURED);
 
         } else {
             lobbyPool.init(docker);
@@ -132,7 +132,7 @@ public class ServerConfigSetup {
 
             if (lobbyPool.find().isFound()) {
                 System.out.println("Found existing lobby service.");
-                response.setResult(ServiceStartResult.RUNNING);
+                response.setResult(ServiceStart.RUNNING);
                 this.addToConsul(lobbyPool.getName());
 
             } else {
@@ -140,12 +140,12 @@ public class ServerConfigSetup {
 
                 if (lobbyPool.create().isCreated()) {
                     System.out.println("Successfully created lobby service.");
-                    response.setResult(ServiceStartResult.OK);
+                    response.setResult(ServiceStart.OK);
                     this.addToConsul(lobbyPool.getName());
 
                 } else {
                     System.err.println("Failed to create lobby service.");
-                    response.setResult(ServiceStartResult.FAILED_GENERIC);
+                    response.setResult(ServiceStart.FAILED_GENERIC);
                 }
             }
         }
@@ -160,18 +160,18 @@ public class ServerConfigSetup {
 
             if (pool.find().isFound()) {
                 System.out.println(String.format("Found existing server pool service %s.", pool.getName()));
-                response.setResult(ServiceStartResult.RUNNING);
+                response.setResult(ServiceStart.RUNNING);
 
             } else {
                 System.out.println(String.format("Couldn't find existing pool server service %s. Creating it...", pool.getName()));
 
                 if (pool.create().isCreated()) {
                     System.out.println(String.format("Successfully created pool server service %s.", pool.getName()));
-                    response.setResult(ServiceStartResult.OK);
+                    response.setResult(ServiceStart.OK);
 
                 } else {
                     System.err.println(String.format("Failed to create pool server service %s.", pool.getName()));
-                    response.setResult(ServiceStartResult.FAILED_GENERIC);
+                    response.setResult(ServiceStart.FAILED_GENERIC);
                 }
             }
 

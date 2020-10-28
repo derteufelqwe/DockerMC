@@ -115,6 +115,10 @@ class SerializationTests {
 //        assertEquals(itemStack, newItemStack);
     }
 
+    @Test
+    public void testTesting() {
+
+    }
 
     @AfterAll
     public void tearDown() {

@@ -105,7 +105,7 @@ public class Constants {
     public enum Configs {
         MAIN("MainConfig.yml"),
         INFRASTRUCTURE("InfrastructureConfig.yml"),
-        RUNNING("RunningConfig.yml")
+        SYSTEM("SystemData.yml")
         ;
 
         private String fileName;

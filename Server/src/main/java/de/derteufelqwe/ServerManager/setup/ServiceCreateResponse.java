@@ -16,20 +16,20 @@ public class ServiceCreateResponse {
     private String serviceName;
     private Constants.ContainerType type;
     @Setter
-    private ServiceStartResult result;
+    private ServiceStart result;
 
-    public ServiceCreateResponse(String serviceName, Constants.ContainerType type, ServiceStartResult result) {
+    public ServiceCreateResponse(String serviceName, Constants.ContainerType type, ServiceStart result) {
         this.serviceName = serviceName;
         this.type = type;
         this.result = result;
     }
 
     public ServiceCreateResponse(String serviceName, Constants.ContainerType type) {
-        this(serviceName, type, ServiceStartResult.UNKOWN);
+        this(serviceName, type, ServiceStart.UNKNOWN);
     }
 
     public ServiceCreateResponse(Constants.ContainerType type) {
-        this(null, type, ServiceStartResult.UNKOWN);
+        this(null, type, ServiceStart.UNKNOWN);
     }
 
 }

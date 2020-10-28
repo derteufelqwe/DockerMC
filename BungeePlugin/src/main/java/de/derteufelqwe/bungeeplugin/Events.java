@@ -6,9 +6,11 @@ import com.orbitz.consul.model.kv.Value;
 import de.derteufelqwe.commons.consul.CacheListener;
 import de.derteufelqwe.commons.consul.ICacheChangeListener;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.ServerPing;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
+import net.md_5.bungee.api.event.ProxyPingEvent;
 import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
@@ -145,6 +147,11 @@ public class Events implements Listener, ICacheChangeListener<String, Value> {
     @EventHandler
     public void onQuit(PlayerDisconnectEvent event) {
         event.getPlayer().setReconnectServer(null);
+    }
+
+    @EventHandler
+    public void onPing(ProxyPingEvent event) {
+
     }
 
 }
