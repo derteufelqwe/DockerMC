@@ -5,6 +5,7 @@ import de.derteufelqwe.ServerManager.setup.infrastructure.ConsulService;
 import de.derteufelqwe.ServerManager.setup.infrastructure.RegistryCertificates;
 import de.derteufelqwe.ServerManager.setup.infrastructure.RegistryContainer;
 import de.derteufelqwe.ServerManager.setup.templates.DockerObjTemplate;
+import de.derteufelqwe.commons.Constants;
 
 /**
  * Class to create the default infrastructure
@@ -16,9 +17,6 @@ public class InfrastructureSetup {
     private RegistryContainer registryContainer;
     private ConsulService consulService;
 
-    private int failedSetups = 0;
-    private int serviceCount = 3;
-
 
     public InfrastructureSetup(Docker docker) {
         this.docker = docker;
@@ -29,76 +27,70 @@ public class InfrastructureSetup {
         this.consulService.init(docker);
     }
 
-    /**
-     * Setups the default infrastructure
-     * @return True if everything was successful, otherwise false.
-     */
-    public boolean setup() {
-        this.failedSetups = 0;
 
-        this.createRegistryCerts();
-        this.createRegistryContainer();
-        this.createConsulService();
+    public ServiceCreateResponse createRegistryCerts() {
+        ServiceCreateResponse response = new ServiceCreateResponse("RegistryCerts", Constants.ContainerType.REGISTRY_CERTS_GEN);
 
-        System.out.println(String.format("Successfully set %s/%s services.", serviceCount - failedSetups, serviceCount));
-        if (failedSetups != 0)
-            System.err.println(String.format("%s services failed to start. Fix the errors before you proceed.", failedSetups));
-
-        return failedSetups == 0;
-    }
-
-
-    private void createRegistryCerts() {
         if (!this.registryCertificates.find().isFound()) {
-            System.out.println("Couldn't find required certificates for the registry. Creating them...");
-            this.registryCertificates.create();
+            DockerObjTemplate.CreateResponse createResponse = this.registryCertificates.create();
+            response.setServiceId(createResponse.getServiceID());
 
             if (this.registryCertificates.find().isFound()) {
-                System.out.println("Successfully generated the required certificates for the registry.");
+                response.setResult(ServiceStart.OK);
 
             } else {
-                System.err.println("Couldn't generate the required certificates for the registry.");
-                this.failedSetups++;
+                response.setResult(ServiceStart.FAILED_GENERIC);
+                response.setAdditionalInfos(createResponse.getMessage());
             }
         } else {
-            System.out.println("Found existing certificates for the registry.");
+            response.setResult(ServiceStart.RUNNING);
         }
+
+        return response;
     }
 
-    private void createRegistryContainer() {
+    public ServiceCreateResponse createRegistryContainer() {
+        ServiceCreateResponse response = new ServiceCreateResponse("Registry", Constants.ContainerType.REGISTRY);
+
         if (!this.registryContainer.find().isFound()) {
-            System.out.println("Couldn't find registry container. Creating it...");
-
             DockerObjTemplate.CreateResponse createResponse = this.registryContainer.create();
+            response.setServiceId(createResponse.getServiceID());
+
             if (createResponse.isCreated()) {
-                System.out.println("Successfully created registry container.");
+                response.setResult(ServiceStart.OK);
 
             } else {
-                System.err.println("Failed to create registry container.");
-                System.err.println(createResponse.getMessage());
-                this.failedSetups++;
+                response.setResult(ServiceStart.FAILED_GENERIC);
+                response.setAdditionalInfos(createResponse.getMessage());
             }
 
         } else {
-            System.out.println("Found existing registry container.");
+            response.setResult(ServiceStart.RUNNING);
         }
+
+        return response;
     }
 
-    private void createConsulService() {
-        if (!this.consulService.find().isFound()) {
-            System.out.println("Couldn't find consul service. Creating it...");
+    public ServiceCreateResponse createConsulService() {
+        ServiceCreateResponse response = new ServiceCreateResponse("Consul", Constants.ContainerType.CONSUL_POOL);
 
-            if (this.consulService.create().isCreated()) {
-                System.out.println("Successfully created consul service.");
+        if (!this.consulService.find().isFound()) {
+            DockerObjTemplate.CreateResponse createResponse = this.consulService.create();
+            response.setServiceId(createResponse.getServiceID());
+
+            if (createResponse.isCreated()) {
+                response.setResult(ServiceStart.OK);
 
             } else {
-                System.err.println("Failed to create consul service.");
-                this.failedSetups++;
+                response.setResult(ServiceStart.FAILED_GENERIC);
+                response.setAdditionalInfos(createResponse.getMessage());
             }
 
         } else {
-            System.out.println("Found existing consul service.");
+            response.setResult(ServiceStart.RUNNING);
         }
+
+        return response;
     }
 
 }

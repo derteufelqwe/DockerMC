@@ -7,7 +7,6 @@ import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
-import de.derteufelqwe.ServerManager.setup.servers.ServerTemplate;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.annotations.Exclude;
 import lombok.*;
@@ -59,10 +58,10 @@ public class ServiceTemplate extends DockerObjTemplate {
                     services.stream().map(Service::getId).collect(Collectors.joining(", ")), this.name);
 
         } else if (services.size() == 1) {
-            return new ServerTemplate.FindResponse(true, services.get(0).getId());
+            return new DockerObjTemplate.FindResponse(true, services.get(0).getId());
 
         } else {
-            return new ServerTemplate.FindResponse(false, null);
+            return new DockerObjTemplate.FindResponse(false, null);
         }
     }
 
@@ -76,7 +75,7 @@ public class ServiceTemplate extends DockerObjTemplate {
 
         this.waitForProcessing();
 
-        return new ServerTemplate.CreateResponse(true, serviceResponse.getId());
+        return new DockerObjTemplate.CreateResponse(true, serviceResponse.getId());
     }
 
     @Override
@@ -85,12 +84,12 @@ public class ServiceTemplate extends DockerObjTemplate {
 
         if (findResponse.isFound()) {
             this.docker.getDocker().removeServiceCmd(findResponse.getServiceID()).exec();
-            return new ServerTemplate.DestroyResponse(true, findResponse.getServiceID());
+            return new DockerObjTemplate.DestroyResponse(true, findResponse.getServiceID());
         }
 
         this.waitForProcessing();
 
-        return new ServerTemplate.DestroyResponse(false, null);
+        return new DockerObjTemplate.DestroyResponse(false, null);
     }
 
 
@@ -286,7 +285,7 @@ public class ServiceTemplate extends DockerObjTemplate {
      *
      * @return
      */
-    protected ServiceSpec getServiceSpec() {
+    public ServiceSpec getServiceSpec() {
         ServiceSpec serviceSpec = new ServiceSpec()
                 .withLabels(this.getServiceLabels())
                 .withTaskTemplate(this.getTaskSpec())
@@ -298,4 +297,17 @@ public class ServiceTemplate extends DockerObjTemplate {
         return serviceSpec;
     }
 
+    /**
+     * Custom implementation to handle constraints copying
+     */
+    @Override
+    public ServiceTemplate clone() {
+        ServiceTemplate serviceTemplate = (ServiceTemplate) super.clone();
+
+        if (this.constraints != null) {
+            serviceTemplate.constraints = this.constraints.clone();
+        }
+
+        return serviceTemplate;
+    }
 }

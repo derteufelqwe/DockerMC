@@ -1,21 +1,17 @@
 package de.derteufelqwe.ServerManager;
 
 import com.github.dockerjava.api.model.Service;
-import com.github.dockerjava.api.model.ServiceSpec;
-import com.github.dockerjava.api.model.UpdateConfig;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
+import com.orbitz.google.common.net.HostAndPort;
 import de.derteufelqwe.ServerManager.commands.*;
 import de.derteufelqwe.ServerManager.config.InfrastructureConfig;
 import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.config.SystemConfig;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
-import de.derteufelqwe.ServerManager.setup.ConfigSetupResponse;
-import de.derteufelqwe.ServerManager.setup.InfrastructureSetup;
-import de.derteufelqwe.ServerManager.setup.ServerConfigSetup;
-import de.derteufelqwe.ServerManager.setup.ServerConfigUpdater;
+import de.derteufelqwe.ServerManager.setup.*;
 import de.derteufelqwe.ServerManager.setup.servers.BungeePool;
-import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
+import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
@@ -42,16 +38,18 @@ import java.util.Scanner;
 /**
  * ToDos:
  * - CLI
- *  - Setup the server
- *  - Change server config
- *  - Get status information
- *  - Create images
+ *   - Setup the server
+ *   - Change server config
+ *   - Get status information
+ *   - Create images
  * - Logger
  * - Manager website
  * - Better Minecraft plugin
+ *   - Block Players from entering a certain server, to update it
  * - Update services when their config changes
  * - Make config aware of changes
  * - API for Bungeecord
+ * - Config checker
  */
 
 public class ServerManager {
@@ -99,7 +97,48 @@ public class ServerManager {
      * Checks if the required infrastructure exist and creates it if necessary.
      */
     private boolean checkAndCreateInfrastructure() {
-        return new InfrastructureSetup(docker).setup();
+        InfrastructureSetup setup = new InfrastructureSetup(docker);
+
+        // Registry Certificates
+//        System.out.println("Creating required certificates for the registry.");
+        ServiceCreateResponse response1 = setup.createRegistryCerts();
+        switch (response1.getResult()) {
+            case OK:
+                System.out.println("Created registry certificates successfully."); break;
+            case RUNNING:
+                System.out.println("Registry certificates already existing."); break;
+            case FAILED_GENERIC:
+                System.err.printf("Failed to create the registry certificates! Message: %s.",
+                        response1.getAdditionalInfos()); break;
+        }
+
+        // Registry Container
+//        System.out.println("Starting the registry container.");
+        ServiceCreateResponse response2 = setup.createRegistryContainer();
+        switch (response2.getResult()) {
+            case OK:
+                System.out.println("Created registry container successfully."); break;
+            case RUNNING:
+                System.out.println("Registry container already running."); break;
+            case FAILED_GENERIC:
+                System.err.printf("Failed to create the registry container! ID: %s, Message: %s.%n",
+                        response2.getServiceId(), response2.getAdditionalInfos()); break;
+        }
+
+        // Consul Service
+//        System.out.println("Starting the Consul service..");
+        ServiceCreateResponse response3 = setup.createConsulService();
+        switch (response3.getResult()) {
+            case OK:
+                System.out.println("Created Consul service successfully."); break;
+            case RUNNING:
+                System.out.println("Consul service already running."); break;
+            case FAILED_GENERIC:
+                System.err.printf("Failed to create the Consul service! ID: %s, Message: %s.%n",
+                        response3.getServiceId(), response3.getAdditionalInfos()); break;
+        }
+
+        return true;
     }
 
     /**
@@ -107,14 +146,61 @@ public class ServerManager {
      * Identifies and stops lost services.
      */
     private void checkAndCreateMCServers() {
-        ServerConfigSetup setup = new ServerConfigSetup(getDocker(), this.keyValueClient);
-        ConfigSetupResponse response = setup.setup();
-        List<Service> lostServices = setup.findLostServices(response);
+        LostServiceCleaner cleaner = new LostServiceCleaner(docker);
+        List<Service> lostServices = cleaner.findLostServices();
 
-        System.err.println("Found " + lostServices.size() + " lost services.");
         for (Service lostService : lostServices) {
-            System.out.println("Removing lost service " + lostService.getSpec().getName() + ".");
+            System.out.printf("Removing lost service %s (%s).", lostService.getId(), lostService.getSpec().getName());
             docker.getDocker().removeServiceCmd(lostService.getId()).exec();
+        }
+
+
+        MCServerConfigSetup setup = new MCServerConfigSetup(getDocker(), this.keyValueClient);
+
+        // BungeeCord
+//        System.out.println("Creating BungeeCord-Pool service.");
+        ServiceCreateResponse response1 = setup.createBungeePool();
+        switch (response1.getResult()) {
+            case OK:
+                System.out.println("BungeeCord-Pool created successfully."); break;
+            case RUNNING:
+                System.out.println("BungeeCord-Pool already running."); break;
+            case NOT_CONFIGURED:
+                System.err.println("BungeeCord-Pool not configured."); break;
+            case FAILED_GENERIC:
+                System.err.printf("Failed to create the BungeeCord-Pool. ServiceId: %s, Message: %s.",
+                        response1.getServiceId(), response1.getAdditionalInfos()); break;
+        }
+
+        // Lobby Pool
+//        System.out.println("Creating BungeeCord-Pool service.");
+        ServiceCreateResponse response2 = setup.createLobbyPool();
+        switch (response2.getResult()) {
+            case OK:
+                System.out.println("LobbyServer-Pool created successfully."); break;
+            case RUNNING:
+                System.out.println("LobbyServer-Pool already running."); break;
+            case NOT_CONFIGURED:
+                System.err.println("LobbyServer-Pool not configured."); break;
+            case FAILED_GENERIC:
+                System.err.printf("Failed to create the LobbyServer-Pool. ServiceId: %s, Message: %s.",
+                        response2.getServiceId(), response2.getAdditionalInfos()); break;
+        }
+
+        // Other Server Pools
+//        System.out.println("Creating other MinecraftServer-Pools.");
+        for (ServiceCreateResponse response3 : setup.createPoolServers()) {
+            switch (response3.getResult()) {
+                case OK:
+                    System.out.println("MinecraftServer-Pool created successfully."); break;
+                case RUNNING:
+                    System.out.println("MinecraftServer-Pool already running."); break;
+                case NOT_CONFIGURED:
+                    System.err.println("MinecraftServer-Pool not configured."); break;
+                case FAILED_GENERIC:
+                    System.err.printf("Failed to create the MinecraftServer-Pool. ServiceId: %s, Message: %s.",
+                            response3.getServiceId(), response3.getAdditionalInfos()); break;
+            }
         }
 
         // ToDo: Handle invalid setup
@@ -201,10 +287,14 @@ public class ServerManager {
 
         try {
 //            serverManager.checkAndCreateInfrastructure();
-//            serverManager.consul = Consul.builder().withHostAndPort(HostAndPort.fromParts("ubuntu1", Constants.CONSUL_PORT)).build();
-//            serverManager.keyValueClient = serverManager.consul.keyValueClient();
-//
+            serverManager.consul = Consul.builder().withHostAndPort(HostAndPort.fromParts("ubuntu1", Constants.CONSUL_PORT)).build();
+            serverManager.keyValueClient = serverManager.consul.keyValueClient();
+
 //            serverManager.checkAndCreateMCServers();
+
+            ServerConfigUpdater updater = new ServerConfigUpdater(docker, serverManager.keyValueClient);
+            ServiceUpdateResponse response = updater.updateBungeePool();
+            System.out.println(response.getResult());
 
             String id = "8f8spyj76qh0";
 //            Service service = docker.getDocker().inspectServiceCmd(id).exec();

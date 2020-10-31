@@ -3,6 +3,7 @@ package de.derteufelqwe.ServerManager.setup.templates;
 import de.derteufelqwe.ServerManager.exceptions.DockerMCException;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -10,7 +11,7 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
-public class ServiceConstraints {
+public class ServiceConstraints implements Cloneable {
 
     private List<String> idConstraints = new ArrayList<>();
     private List<String> nameConstraints = new ArrayList<>();
@@ -82,6 +83,23 @@ public class ServiceConstraints {
 
     public int getNodeLimit() {
         return nodeLimit;
+    }
+
+
+    /**
+     * Custom clone implementation to clone the lists.
+     * @return
+     */
+    @Override
+    @SneakyThrows
+    public ServiceConstraints clone() {
+        ServiceConstraints constraints = (ServiceConstraints) super.clone();
+
+        constraints.setIdConstraints(new ArrayList<>(this.idConstraints));
+        constraints.setNameConstraints(new ArrayList<>(this.nameConstraints));
+        constraints.setRoleConstraints(new ArrayList<>(this.roleConstraints));
+
+        return constraints;
     }
 
 }

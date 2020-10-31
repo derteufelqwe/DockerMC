@@ -1,22 +1,19 @@
 package de.derteufelqwe.ServerManager.setup;
 
 import de.derteufelqwe.commons.Constants;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
 /**
  * Response object of the creation of a Service like a {@link de.derteufelqwe.ServerManager.setup.servers.ServerPool}.
  */
-@Getter
-@ToString
+@Data
 public class ServiceCreateResponse {
 
-    @Setter
     private String serviceName;
     private Constants.ContainerType type;
-    @Setter
     private ServiceStart result;
+    private String serviceId;
+    private String additionalInfos = "";
 
     public ServiceCreateResponse(String serviceName, Constants.ContainerType type, ServiceStart result) {
         this.serviceName = serviceName;

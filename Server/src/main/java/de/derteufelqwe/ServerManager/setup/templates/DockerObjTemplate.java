@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Data
 @NoArgsConstructor
-public abstract class DockerObjTemplate {
+public abstract class DockerObjTemplate implements Cloneable {
 
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
@@ -211,4 +211,13 @@ public abstract class DockerObjTemplate {
         return resultList;
     }
 
+
+    /**
+     * Default Clone
+     */
+    @SneakyThrows
+    @Override
+    public DockerObjTemplate clone() {
+        return (DockerObjTemplate) super.clone();
+    }
 }

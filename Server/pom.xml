@@ -23,6 +23,7 @@
                 <configuration>
                     <source>8</source>
                     <target>8</target>
+
                 </configuration>
             </plugin>
 
@@ -57,6 +58,7 @@
 <!--                        Exclude Files from the jar  -->
                         <configuration>
                             <finalName>Server-1.0</finalName>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>
@@ -117,7 +119,12 @@
             <artifactId>consul-client</artifactId>
             <version>1.4.2-shaded</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>RELEASE</version>
+            <scope>test</scope>
+        </dependency>
 
 
     </dependencies>
