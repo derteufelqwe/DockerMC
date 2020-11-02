@@ -8,7 +8,9 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Base class for metadata in containers.
@@ -52,18 +54,31 @@ public class MetaDataBase {
     }
 
     /**
-     * Gets an ip from the container.
-     * @param adapterName
+     * Gets an ip in the overnet network from the container.
      * @return
      */
-    protected String getIP(String adapterName) {
-        String data = this.getIpMap().get(adapterName);
+    protected String overnetIp() {
+        Map<String, String> ips = this.getIpMap();
+        List<Integer> adapters = ips.keySet().stream()
+                .filter(k -> k.startsWith("eth"))
+                .map(k -> k.substring(3))
+                .map(Integer::parseInt)
+                .sorted()
+                .collect(Collectors.toList());
 
-        if (data == null || data.equals("")) {
-            throw new ConfigException("Failed to get the container IP.");
+        if (adapters.size() < 2) {
+            throw new ConfigException("Container has less than 2 network adapters.");
         }
 
-        return data;
+        int secondLast = adapters.get(adapters.size() - 2);
+        String adapterName = "eth" + secondLast;
+        String ip = ips.get(adapterName);
+
+        if (!ip.split("\\.")[0].equals(Constants.SUBNET_OVERNET.split("\\.")[0])) {
+            throw new ConfigException("Selected adapter doesn't match the required subnet.");
+        }
+
+        return ip;
     }
 
     /**

@@ -1,5 +1,7 @@
 package minecraftplugin.minecraftplugin;
 
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
 import com.google.common.net.HostAndPort;
 import com.orbitz.consul.*;
 import com.orbitz.consul.model.agent.ImmutableRegCheck;
@@ -17,7 +19,15 @@ import minecraftplugin.minecraftplugin.teleportsigns.TeleportSignCommand;
 import minecraftplugin.minecraftplugin.teleportsigns.TeleportSignEvents;
 import minecraftplugin.minecraftplugin.teleportsigns.TeleportSignTabComplete;
 import minecraftplugin.minecraftplugin.teleportsigns.TeleportSignWatcher;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.PluginBase;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.ByteArrayOutputStream;
+import java.lang.reflect.Field;
+import java.util.concurrent.TimeUnit;
 
 public final class MinecraftPlugin extends JavaPlugin {
 
@@ -65,12 +75,40 @@ public final class MinecraftPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // This try-catch contraption enables to use Plugin messages in onDisable
+        try {
+            Field field = JavaPlugin.class.getDeclaredField("isEnabled");
+            field.setAccessible(true);
+            field.set(this, true);
+
+            try {
+                this.preDisable();
+
+            } finally {
+                field.set(this, false);
+            }
+
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+        }
+
         CONFIG.saveAll();
         System.out.println("Removing Server " + this.metaData.getTaskName());
 
         this.deregisterContainer();
 
         healthCheck.stop();
+    }
+
+    public void preDisable() {
+        // Connect all players to the special "toLobby" server, which redirects them to a lobby server
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.sendMessage(ChatColor.RED + "Server shutting down! Moving to lobby.");
+            ByteArrayDataOutput out = ByteStreams.newDataOutput();
+            out.writeUTF("Connect");
+            out.writeUTF("toLobby");
+            player.sendPluginMessage(this, "BungeeCord", out.toByteArray());
+        }
     }
 
     /**
@@ -90,7 +128,6 @@ public final class MinecraftPlugin extends JavaPlugin {
 
         return -1;
     }
-
 
     /**
      * Register this container to Consul

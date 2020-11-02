@@ -10,6 +10,7 @@ import sun.misc.SignalHandler;
 /**
  * Handles Dockers kill signals
  */
+@Deprecated
 public class DockerSignalHandler implements SignalHandler {
 
     public static void listenTo(String name) {

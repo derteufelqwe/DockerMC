@@ -7,12 +7,13 @@ import com.orbitz.consul.model.agent.Registration;
 import com.orbitz.google.common.net.HostAndPort;
 import de.derteufelqwe.bungeeplugin.consul.MinecraftServiceListener;
 import de.derteufelqwe.bungeeplugin.consul.ServerRegistrator;
-import de.derteufelqwe.bungeeplugin.docker.DockerSignalHandler;
 import de.derteufelqwe.bungeeplugin.health.HealthCheck;
 import de.derteufelqwe.commons.Constants;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
-
-import java.util.Collections;
 
 public final class BungeePlugin extends Plugin {
 
@@ -26,35 +27,9 @@ public final class BungeePlugin extends Plugin {
     private MinecraftServiceListener minecraftServiceListener;
     private Events events;
 
-    /**
-     * Register this container to Consul
-     */
-    private void registerContainer() {
-        String taskName = this.metaData.getTaskName();
-        String containerIP = this.metaData.getContainerIP();
-        keyValueClient.putValue("bungeecords/" + taskName, containerIP);
-
-        Registration newService = ImmutableRegistration.builder()
-                .name("bungeecord")
-                .id(taskName)
-                .tags(Collections.singleton("defaultproxy"))
-                .address(containerIP)
-                .port(25577)
-                .check(ImmutableRegCheck.builder()
-                        .http("http://" + containerIP + ":8001/health")
-                        .interval("10s")
-                        .timeout("5s")
-                        .build())
-                .putMeta("ip", containerIP)
-                .build();
-        System.out.println("Adding Proxy " + taskName + " to Consul.");
-        agentClient.register(newService);
-    }
-
 
     @Override
     public void onEnable() {
-        DockerSignalHandler.listenTo("TERM");
         this.minecraftServiceListener = new MinecraftServiceListener(catalogClient);
 
         // -----  Registrations  -----
@@ -73,6 +48,49 @@ public final class BungeePlugin extends Plugin {
         this.healthCheck.start();
         this.registerContainer();
     }
+
+    @Override
+    public void onDisable() {
+        System.out.println("Removing Server " + this.metaData.getTaskName());
+
+        this.deregisterContainer();
+        this.minecraftServiceListener.stop();
+        this.events.stop();
+
+        this.healthCheck.stop();
+        consul.destroy();
+
+        for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
+            player.disconnect(new TextComponent(ChatColor.RED + "BungeeCord Proxy shutting down!"));
+        }
+    }
+
+
+    /**
+     * Register this container to Consul
+     */
+    private void registerContainer() {
+        String taskName = this.metaData.getTaskName();
+        String containerIP = this.metaData.getContainerIP();
+        keyValueClient.putValue("bungeecords/" + taskName, containerIP);
+
+        Registration newService = ImmutableRegistration.builder()
+                .name("bungeecord")
+                .id(taskName)
+                .addTags("defaultproxy")
+                .address(containerIP)
+                .port(25577)
+                .check(ImmutableRegCheck.builder()
+                        .http("http://" + containerIP + ":8001/health")
+                        .interval("10s")
+                        .timeout("5s")
+                        .build())
+                .putMeta("ip", containerIP)
+                .build();
+        System.out.println("Adding Proxy " + taskName + " to Consul.");
+        agentClient.register(newService);
+    }
+
 
     /**
      * Remove this container from Consul
@@ -96,18 +114,5 @@ public final class BungeePlugin extends Plugin {
             System.out.println("This is most likely due to no TASK_NAME beeing set!");
         }
     }
-
-    @Override
-    public void onDisable() {
-        System.out.println("Removing Server " + this.metaData.getTaskName());
-
-        this.deregisterContainer();
-        this.minecraftServiceListener.stop();
-        this.events.stop();
-
-        this.healthCheck.stop();
-        consul.destroy();
-    }
-
 
 }

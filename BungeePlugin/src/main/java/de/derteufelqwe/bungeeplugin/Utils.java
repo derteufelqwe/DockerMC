@@ -33,6 +33,7 @@ public class Utils {
         serverMap.putAll(ProxyServer.getInstance().getServersCopy());
 
         serverMap.remove("default");
+        serverMap.remove("toLobby");
 
         return serverMap;
     }

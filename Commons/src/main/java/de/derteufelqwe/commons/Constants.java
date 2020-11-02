@@ -21,9 +21,7 @@ public class Constants {
 
     // Networking
     public static String NETW_OVERNET_NAME = "overnet";
-    public static String NETW_API_NAME = "api_net";
     public static String SUBNET_OVERNET = "11.0.0.0/8";
-    public static String SUBNET_APINET = "12.1.0.0/16";
 
     // Docker image building
     public static String IMAGE_PATH = WORKDIR + "server/images/";
@@ -65,9 +63,7 @@ public class Constants {
     public enum ContainerType {
         REGISTRY,
         REGISTRY_CERTS_GEN,
-        DNS,
-        API_PROXY,
-        API_PROXY_CERTS_GEN,
+        OVERNET,    // Not actually a container
         CONSUL,
         CONSUL_POOL,
 

@@ -6,12 +6,9 @@ import com.orbitz.consul.model.kv.Value;
 import de.derteufelqwe.commons.consul.CacheListener;
 import de.derteufelqwe.commons.consul.ICacheChangeListener;
 import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.ServerPing;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.api.event.PlayerDisconnectEvent;
-import net.md_5.bungee.api.event.ProxyPingEvent;
-import net.md_5.bungee.api.event.ServerConnectEvent;
+import net.md_5.bungee.api.event.*;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
@@ -104,17 +101,31 @@ public class Events implements Listener, ICacheChangeListener<String, Value> {
 
 
     /**
-     * Executed when a player connects to a server. This will send the player to the first available server.
+     * Executed when a player connects to a server.
      */
     @EventHandler
     public void playerConnect(ServerConnectEvent event) {
-        if (event.getReason() != ServerConnectEvent.Reason.JOIN_PROXY) {
+        if (event.getReason() == ServerConnectEvent.Reason.JOIN_PROXY) {
+            this.connectPlayerToLobby(event);
             return;
         }
 
-        if (this.lobbyServerName == null || this.lobbyServerName == "") {
+        if (event.getReason() == ServerConnectEvent.Reason.COMMAND || event.getReason() == ServerConnectEvent.Reason.PLUGIN_MESSAGE) {
+            if (event.getTarget().getName().equals("toLobby")) {
+                this.connectPlayerToLobby(event);
+            }
+        }
+
+        return;
+    }
+
+    /**
+     *  This will send the player to the first available server.
+     */
+    private void connectPlayerToLobby(ServerConnectEvent event) {
+        if (this.lobbyServerName == null || this.lobbyServerName.equals("")) {
             System.err.println("No lobby server found.");
-            event.getPlayer().disconnect(new TextComponent(ChatColor.RED + "Couldn't identify name of lobby server."));
+            event.getPlayer().disconnect(new TextComponent(ChatColor.RED + "Can't identify name of lobby server."));
             return;
         }
 
@@ -144,6 +155,7 @@ public class Events implements Listener, ICacheChangeListener<String, Value> {
         event.getPlayer().disconnect(new TextComponent(ChatColor.RED + "No lobby servers found."));
     }
 
+
     @EventHandler
     public void onQuit(PlayerDisconnectEvent event) {
         event.getPlayer().setReconnectServer(null);
@@ -152,6 +164,19 @@ public class Events implements Listener, ICacheChangeListener<String, Value> {
     @EventHandler
     public void onPing(ProxyPingEvent event) {
 
+        return;
+    }
+
+    @EventHandler
+    public void onDisconnect(ServerDisconnectEvent event) {
+
+        return;
+    }
+
+    @EventHandler
+    public void onKick(ServerKickEvent event) {
+
+        return;
     }
 
 }

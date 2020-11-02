@@ -1,6 +1,9 @@
 FROM openjdk:8-jre
 
+STOPSIGNAL SIGINT
 EXPOSE 25577
+EXPOSE 8001
+
 WORKDIR /server
 VOLUME ["/server", "/plugins"]
 
@@ -12,7 +15,7 @@ HEALTHCHECK --interval=10s --start-period=10s --retries=2 --timeout=2s CMD curl 
 # RUN apk --no-cache add curl bash sudo
 RUN apt-get update
 
-RUN apt install -y curl net-tools etcd
+RUN apt install -y curl net-tools
 
 ADD docker/startup.sh /server/startup.sh
 RUN chmod +x startup.sh
@@ -21,5 +24,4 @@ ADD docker/waterfall.jar /server/waterfall.jar
 ADD docker/config.yml /server/config.yml
 ADD target/BungeePlugin-1.0.jar /server/plugins/BungeePlugin.jar
 
-CMD ["./startup.sh"]
-#CMD ["java", "-Xmx512M", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005", "-jar", "waterfall.jar"]
+CMD ["java", "-Xmx20G", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005", "-jar", "waterfall.jar"]

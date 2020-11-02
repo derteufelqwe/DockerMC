@@ -13,7 +13,9 @@ import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.exceptions.InvalidConfigException;
 import de.derteufelqwe.ServerManager.setup.*;
 import de.derteufelqwe.ServerManager.setup.configUpdate.*;
+import de.derteufelqwe.ServerManager.setup.infrastructure.OvernetNetwork;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
+import de.derteufelqwe.ServerManager.setup.templates.DockerObjTemplate;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
@@ -52,7 +54,7 @@ import java.util.Scanner;
  * + Update services when their config changes
  * + Make config aware of changes
  * - API for BungeeCord
- * - Config checker
+ * + Config checker
  * - (Copy certificates to the other servers via SSH)
  * - System to handle server logs
  * - Server History
@@ -97,11 +99,12 @@ public class ServerManager {
             // ToDo: Enable config reloading
         }
 
-//        this.checkAndCreateInfrastructure();
-//        this.checkAndCreateMCServers();
+        this.checkAndCreateInfrastructure();
 
         this.consul = Consul.builder().withHostAndPort(HostAndPort.fromParts("ubuntu1", Constants.CONSUL_PORT)).build();
         this.keyValueClient = this.consul.keyValueClient();
+
+        this.checkAndCreateMCServers();
     }
 
 
@@ -120,8 +123,22 @@ public class ServerManager {
     private boolean checkAndCreateInfrastructure() {
         InfrastructureSetup setup = new InfrastructureSetup(docker);
 
+        // Overnet network
+        ServiceCreateResponse response0 = setup.createOvernetNetwork();
+        switch (response0.getResult()) {
+            case OK:
+                System.out.println("Created overnet network successfully."); break;
+            case RUNNING:
+                System.out.println("Overnet network already existing."); break;
+            case FAILED_GENERIC:
+                System.err.println("Failed to create the Overnet network!"); break;
+
+            default:
+                throw new NotImplementedException("Result " + response0.getResult() + " not implemented.");
+        }
+
+
         // Registry Certificates
-//        System.out.println("Creating required certificates for the registry.");
         ServiceCreateResponse response1 = setup.createRegistryCerts();
         switch (response1.getResult()) {
             case OK:
@@ -131,10 +148,12 @@ public class ServerManager {
             case FAILED_GENERIC:
                 System.err.printf("Failed to create the registry certificates! Message: %s.",
                         response1.getAdditionalInfos()); break;
+
+            default:
+                throw new NotImplementedException("Result " + response1.getResult() + " not implemented.");
         }
 
         // Registry Container
-//        System.out.println("Starting the registry container.");
         ServiceCreateResponse response2 = setup.createRegistryContainer();
         switch (response2.getResult()) {
             case OK:
@@ -144,10 +163,12 @@ public class ServerManager {
             case FAILED_GENERIC:
                 System.err.printf("Failed to create the registry container! ID: %s, Message: %s.%n",
                         response2.getServiceId(), response2.getAdditionalInfos()); break;
+
+            default:
+                throw new NotImplementedException("Result " + response2.getResult() + " not implemented.");
         }
 
         // Consul Service
-//        System.out.println("Starting the Consul service..");
         ServiceCreateResponse response3 = setup.createConsulService();
         switch (response3.getResult()) {
             case OK:
@@ -157,6 +178,9 @@ public class ServerManager {
             case FAILED_GENERIC:
                 System.err.printf("Failed to create the Consul service! ID: %s, Message: %s.%n",
                         response3.getServiceId(), response3.getAdditionalInfos()); break;
+
+            default:
+                throw new NotImplementedException("Result " + response3.getResult() + " not implemented.");
         }
 
         return true;

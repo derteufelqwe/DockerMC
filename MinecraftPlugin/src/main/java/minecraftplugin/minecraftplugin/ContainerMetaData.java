@@ -20,7 +20,7 @@ public class ContainerMetaData extends MetaDataBase {
         if (System.getProperty("os.name").startsWith("Windows")) {
             this.containerIp = "192.168.178.2";
         } else {
-            this.containerIp = this.getIP("eth0");
+            this.containerIp = this.overnetIp();
         }
         this.softPlayerLimit = this.getInt("SOFT_PLAYER_LIMIT");
     }

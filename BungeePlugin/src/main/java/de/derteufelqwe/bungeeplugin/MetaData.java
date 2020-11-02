@@ -13,7 +13,7 @@ public class MetaData extends MetaDataBase {
     private String taskName;
 
     public MetaData() {
-        this.containerIP = this.getIP("eth0");
+        this.containerIP = this.overnetIp();
         this.taskName = this.getString("TASK_NAME");
     }
 
