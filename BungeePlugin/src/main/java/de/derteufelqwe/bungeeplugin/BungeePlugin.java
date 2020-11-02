@@ -85,6 +85,11 @@ public final class BungeePlugin extends Plugin {
                         .interval("10s")
                         .timeout("5s")
                         .build())
+                .addChecks(ImmutableRegCheck.builder()
+                        .tcp(containerIP + ":25577")
+                        .interval("10s")
+                        .timeout("5s")
+                        .build())
                 .putMeta("ip", containerIP)
                 .build();
         System.out.println("Adding Proxy " + taskName + " to Consul.");
