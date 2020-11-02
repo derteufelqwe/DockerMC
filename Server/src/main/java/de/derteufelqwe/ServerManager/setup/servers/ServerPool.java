@@ -25,21 +25,9 @@ public class ServerPool extends ServiceTemplate {
     // Soft playerlimit
     private int softPlayerLimit;
 
-    public ServerPool(String name, String image, String ramLimit, String cpuLimit, int replications, ServiceConstraints constraints, int softPlayerLimit) {
+    public ServerPool(String name, String image, String ramLimit, float cpuLimit, int replications, ServiceConstraints constraints, int softPlayerLimit) {
         super(name, image, ramLimit, cpuLimit, replications, constraints);
         this.softPlayerLimit = softPlayerLimit;
-    }
-
-
-    @Override
-    protected List<String> findNullParams() {
-        List<String> nullParams = super.findNullParams();
-
-        if (this.softPlayerLimit == 0) {
-            nullParams.add("softPlayerLimit");
-        }
-
-        return nullParams;
     }
 
 

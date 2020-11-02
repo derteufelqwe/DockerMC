@@ -38,5 +38,11 @@ public class MainConfig {
     @Comment("Configuration for the registry certificate")
     private CertificateCfg registryCerCfg = new CertificateCfg();
 
+    @Comment("Amount of BungeeCord-Pool tasks, that can get updated in parallel. This should be less than your maximum instances.")
+    private int bungeePoolParallelUpdates = 2;
+    @Comment("Amount of Looby-Pool tasks, that can get updated in parallel. This should be less than your maximum instances.")
+    private int lobbyPoolParallelUpdates = 2;
+
 }
+
 

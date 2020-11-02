@@ -18,12 +18,12 @@ import java.util.stream.Collectors;
  * A "lost" service is a Minecraft-Pool, which has no matching config anymore. This can happen when the config changes
  * and pools get renamed.
  */
-public class LostServiceCleaner {
+public class LostServiceFinder {
 
     private Docker docker;
     private InfrastructureConfig infrastructureConfig = ServerManager.CONFIG.get(InfrastructureConfig.class);
 
-    public LostServiceCleaner(Docker docker) {
+    public LostServiceFinder(Docker docker) {
         this.docker = docker;
     }
 

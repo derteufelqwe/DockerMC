@@ -50,9 +50,9 @@ public class InfrastructureConfig {
     public static InfrastructureConfig example() {
         InfrastructureConfig config = new InfrastructureConfig();
 
-        config.setBungeePool(new BungeePool("BungeePool", "waterfall", "1G", "2", 2, new ServiceConstraints(1), 25577));
-        config.setLobbyPool(new ServerPool("LobbyServer", "testmc", "512M", "1", 2, null, 10));
-        config.getPoolServers().add(new ServerPool("Minigame-1", "testmc", "512M", "1", 2, null, 2));
+        config.setBungeePool(new BungeePool("BungeePool", "waterfall", "1G", 1.0F, 2, new ServiceConstraints(1), 25577));
+        config.setLobbyPool(new ServerPool("LobbyServer", "testmc", "512M", 1.0F, 2, null, 10));
+        config.getPoolServers().add(new ServerPool("Minigame-1", "testmc", "512M", 1.0F, 2, null, 2));
 
         return config;
     }

@@ -16,23 +16,20 @@ import java.util.List;
 /**
  * Creates the Minecraft server services based on the config
  */
+@Deprecated
 public class MCServerConfigSetup {
 
     private InfrastructureConfig infrastructureConfig = ServerManager.CONFIG.get(InfrastructureConfig.class);
     private SystemConfig systemConfig = ServerManager.CONFIG.get(SystemConfig.class);
     private Docker docker;
     private KeyValueClient kvClient;
-    private boolean updateConfig = true;    // Update the secondary config
+
 
     public MCServerConfigSetup(Docker docker, KeyValueClient kvClient) {
         this.docker = docker;
         this.kvClient = kvClient;
     }
 
-    public MCServerConfigSetup(Docker docker, KeyValueClient kvClient, boolean updateConfig) {
-        this(docker, kvClient);
-        this.updateConfig = updateConfig;
-    }
 
 
     public ServiceCreateResponse createBungeePool() {
@@ -60,9 +57,8 @@ public class MCServerConfigSetup {
 
             if (createResponse.isCreated()) {
                 response.setResult(ServiceStart.OK);
-                if (this.updateConfig) {
-                    this.systemConfig.setBungeePool((BungeePool) this.infrastructureConfig.getBungeePool().clone());
-                }
+                this.systemConfig.setBungeePool((BungeePool) this.infrastructureConfig.getBungeePool().clone());
+
 
             } else {
                 response.setResult(ServiceStart.FAILED_GENERIC);
@@ -96,9 +92,8 @@ public class MCServerConfigSetup {
             if (createResponse.isCreated()) {
                 response.setResult(ServiceStart.OK);
                 this.addToConsul(lobbyPool.getName());
-                if (this.updateConfig) {
-                    this.systemConfig.setLobbyPool((ServerPool) this.infrastructureConfig.getLobbyPool().clone());
-                }
+                this.systemConfig.setLobbyPool((ServerPool) this.infrastructureConfig.getLobbyPool().clone());
+
 
             } else {
                 response.setResult(ServiceStart.FAILED_GENERIC);
@@ -126,9 +121,8 @@ public class MCServerConfigSetup {
 
                 if (createResponse.isCreated()) {
                     response.setResult(ServiceStart.OK);
-                    if (this.updateConfig) {
-                        this.systemConfig.getPoolServers().add(pool);
-                    }
+                    this.systemConfig.getPoolServers().add(pool);
+
 
                 } else {
                     response.setResult(ServiceStart.FAILED_GENERIC);

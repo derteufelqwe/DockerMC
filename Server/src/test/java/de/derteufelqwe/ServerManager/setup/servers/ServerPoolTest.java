@@ -14,7 +14,7 @@ class ServerPoolTest {
     @SneakyThrows
     @Test
     public void testClone() {
-        BungeePool p1 = new BungeePool("A", "B", "C", "D", 1, new ServiceConstraints(2), 2);
+        BungeePool p1 = new BungeePool("A", "B", "C", 1.2F, 1, new ServiceConstraints(2), 2);
         BungeePool p2 = (BungeePool) p1.clone();
 
         assertEquals(p1, p2);

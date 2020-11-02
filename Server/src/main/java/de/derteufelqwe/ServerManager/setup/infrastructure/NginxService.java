@@ -26,7 +26,7 @@ public class NginxService extends ExposableServiceTemplate {
     private final int NGINX_INTERNAL_PORT = 25577;
 
 
-    public NginxService(String name, String image, String ramLimit, String cpuLimit, int replications, ServiceConstraints constraints, int port) {
+    public NginxService(String name, String image, String ramLimit, float cpuLimit, int replications, ServiceConstraints constraints, int port) {
         super(name, image, ramLimit, cpuLimit, replications, constraints, port);
     }
 

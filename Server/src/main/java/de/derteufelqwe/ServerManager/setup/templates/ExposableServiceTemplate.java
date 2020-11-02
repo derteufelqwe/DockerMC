@@ -2,6 +2,7 @@ package de.derteufelqwe.ServerManager.setup.templates;
 
 import com.github.dockerjava.api.model.PortConfig;
 import com.github.dockerjava.api.model.PortConfigProtocol;
+import de.derteufelqwe.ServerManager.exceptions.InvalidConfigException;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -20,20 +21,21 @@ public class ExposableServiceTemplate extends ServiceTemplate {
 
     private int port;
 
-    public ExposableServiceTemplate(String name, String image, String ramLimit, String cpuLimit, int replications, ServiceConstraints constraints, int port) {
+    public ExposableServiceTemplate(String name, String image, String ramLimit, float cpuLimit, int replications, ServiceConstraints constraints, int port) {
         super(name, image, ramLimit, cpuLimit, replications, constraints);
         this.port = port;
     }
 
-    @Override
-    protected List<String> findNullParams() {
-        List<String> nullParams = super.findNullParams();
 
-        if (this.port == 0) {
-            nullParams.add("port");
+    @Override
+    public void valid() throws InvalidConfigException {
+        super.valid();
+
+        // Port
+        if (this.port <= 0) {
+            throw new InvalidConfigException("Port can't be 0 or even negative. It should be something above 1000.");
         }
 
-        return nullParams;
     }
 
 

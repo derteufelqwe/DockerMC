@@ -31,7 +31,7 @@ public class ContainerTemplate extends DockerObjTemplate {
     protected final int NETWORK_CREATE_DELAY  = 2;    // Time for networks to get up and running
 
 
-    public ContainerTemplate(String name, String image, String ramLimit, String cpuLimit) {
+    public ContainerTemplate(String name, String image, String ramLimit, float cpuLimit) {
         super(name, image, ramLimit, cpuLimit);
     }
 
@@ -163,7 +163,7 @@ public class ContainerTemplate extends DockerObjTemplate {
      * Returns the HostConfig, setting the container memory and cpu limits
      */
     protected HostConfig getHostConfig() {
-        long nanoCpu = (long) (Double.parseDouble(this.cpuLimit) * 1000000000);
+        long nanoCpu = (long) (this.cpuLimit * 1000000000);
         HostConfig hostConfig = new HostConfig()
                 .withMemory(Utils.convertMemoryString(this.ramLimit))
                 .withNanoCPUs(nanoCpu)

@@ -107,23 +107,6 @@ public class DockerNetwTemplate {
         return new DockerObjTemplate.DestroyResponse(false, null);
     }
 
-    /**
-     * Validates the object
-     */
-    public DockerObjTemplate.ValidationResponse valid() {
-        DockerObjTemplate.ValidationResponse response = new DockerObjTemplate.ValidationResponse(true, this.name, "");
-        List<String> nullParams = this.findNullParams();
-
-        if (nullParams.size() != 0) {
-            response.setValid(false);
-            response.addToReason(
-                    "Parameters " + StringUtils.join(nullParams, ", ") + " can't be null.\n"
-            );
-        }
-
-        return response;
-    }
-
 
     // -----  Other methods  -----
 

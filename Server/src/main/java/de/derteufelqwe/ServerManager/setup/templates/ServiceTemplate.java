@@ -7,6 +7,7 @@ import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
+import de.derteufelqwe.ServerManager.exceptions.InvalidConfigException;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.annotations.Exclude;
 import lombok.*;
@@ -40,7 +41,7 @@ public class ServiceTemplate extends DockerObjTemplate {
     @Nullable protected ServiceConstraints constraints;
 
 
-    public ServiceTemplate(String name, String image, String ramLimit, String cpuLimit, int replications, ServiceConstraints constraints) {
+    public ServiceTemplate(String name, String image, String ramLimit, float cpuLimit, int replications, ServiceConstraints constraints) {
         super(name, image, ramLimit, cpuLimit);
         this.replications = replications;
         this.constraints = constraints;
@@ -92,6 +93,25 @@ public class ServiceTemplate extends DockerObjTemplate {
         return new DockerObjTemplate.DestroyResponse(false, null);
     }
 
+    @Override
+    public void valid() throws InvalidConfigException {
+        super.valid();
+
+        // Constraints
+        if (this.constraints != null) {
+
+            if (this.constraints.getNodeLimit() <= 0) {
+                throw new InvalidConfigException("Service constraints node limit can't be 0 or even negative.");
+            }
+
+        }
+
+        // Replications
+        if (this.replications <= 0) {
+            throw new InvalidConfigException("Replications can't be 0 or even negative.");
+        }
+
+    }
 
     // -----  Other methods  -----
 
@@ -107,21 +127,6 @@ public class ServiceTemplate extends DockerObjTemplate {
         this.authConfig = new AuthConfig()
                 .withUsername(mainConfig.getRegistryUsername())
                 .withPassword(mainConfig.getRegistryPassword());
-    }
-
-    /**
-     * Basic validation if parameters are not null.
-     *
-     * @return List with all parameter names that are null.
-     */
-    protected List<String> findNullParams() {
-        List<String> resultList = super.findNullParams();
-
-        if (this.replications == 0) {
-            resultList.add("replications");
-        }
-
-        return resultList;
     }
 
     /**
@@ -198,7 +203,7 @@ public class ServiceTemplate extends DockerObjTemplate {
      * @return
      */
     protected ResourceSpecs getResourceSpecs() {
-        long nanoCpu = (long) (Double.parseDouble(this.cpuLimit) * 1000000000);
+        long nanoCpu = (long) (this.cpuLimit * 1000000000);
         ResourceSpecs resourceSpecs = new ResourceSpecs()
                 .withMemoryBytes(Utils.convertMemoryString(this.ramLimit))
                 .withNanoCPUs(nanoCpu);

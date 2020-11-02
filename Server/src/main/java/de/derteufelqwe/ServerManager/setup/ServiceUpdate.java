@@ -5,7 +5,6 @@ package de.derteufelqwe.ServerManager.setup;
  */
 public enum ServiceUpdate {
     UNKNOWN,            // Not set
-    EXISTING,           // No updated happened
     DESTROYED,          // Got destroyed
     CREATED,            // Got newly created
     UPDATED,            // Updated

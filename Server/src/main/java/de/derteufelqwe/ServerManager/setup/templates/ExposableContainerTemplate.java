@@ -5,8 +5,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.util.List;
-
 
 /**
  * Template to create a docker container, which has exposed ports
@@ -19,20 +17,9 @@ public class ExposableContainerTemplate extends ContainerTemplate {
 
     protected int port;
 
-    public ExposableContainerTemplate(String name, String image, String ramLimit, String cpuLimit, int port) {
+    public ExposableContainerTemplate(String name, String image, String ramLimit, float cpuLimit, int port) {
         super(name, image, ramLimit, cpuLimit);
         this.port = port;
-    }
-
-    @Override
-    protected List<String> findNullParams() {
-        List<String> nullParams = super.findNullParams();
-
-        if (this.port == 0) {
-            nullParams.add("port");
-        }
-
-        return nullParams;
     }
 
 

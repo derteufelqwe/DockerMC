@@ -3,6 +3,7 @@ package de.derteufelqwe.ServerManager.setup.templates;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
+import de.derteufelqwe.ServerManager.exceptions.InvalidConfigException;
 import de.derteufelqwe.commons.config.annotations.Exclude;
 import lombok.*;
 import org.apache.commons.lang.StringUtils;
@@ -30,10 +31,10 @@ public abstract class DockerObjTemplate implements Cloneable {
     // RAM limit per task, like 2G or 512M
     protected String ramLimit;
     // CPU limit per task like 1
-    protected String cpuLimit;
+    protected float cpuLimit;
 
 
-    public DockerObjTemplate(String name, String image, String ramLimit, String cpuLimit) {
+    public DockerObjTemplate(String name, String image, String ramLimit, float cpuLimit) {
         this.name = name;
         this.image = image;
         this.ramLimit = ramLimit;
@@ -78,36 +79,41 @@ public abstract class DockerObjTemplate implements Cloneable {
      *
      * @return Returns a ValidationResponse with more information
      */
-    public ValidationResponse valid() {
-        ValidationResponse response = new ValidationResponse(true, this.name, "");
-        List<String> nullParams = this.findNullParams();
-
-
-        if (nullParams.size() != 0) {
-            response.setValid(false);
-            response.addToReason(
-                    "Parameters " + StringUtils.join(nullParams, ", ") + " can't be null.\n"
-            );
+    public void valid() throws InvalidConfigException {
+        // Name
+        if (this.name == null) {
+            throw new InvalidConfigException("ServerName can't be null.");
+        }
+        if (this.name.contains(" ")) {
+            throw new InvalidConfigException("ServerName can't container whitespaces.");
         }
 
+        // Image
+        if (this.image == null) {
+            throw new InvalidConfigException("Image name can't be null.");
+        }
+        if (this.image.startsWith("registry.swarm")) {
+            throw new InvalidConfigException("Image name must start WITHOUT 'registry.swarm/'.");
+        }
+        if (this.image.contains(" ")) {
+            throw new InvalidConfigException("Image name can't contain whitespaces.");
+        }
+
+        // Ram
+        if (this.ramLimit == null) {
+            throw new InvalidConfigException("RAM limit can't be null.");
+        }
         try {
             Utils.convertMemoryString(this.ramLimit);
-
-        } catch (FatalDockerMCError e) {
-            response.setValid(false);
-            response.addToReason(
-                    "RAM constraint value " + this.ramLimit + " is unknown.\n"
-            );
+        } catch (FatalDockerMCError ignored) {
+            throw new InvalidConfigException("RAM limit '%s' is unknown. Use K, M or G.");
         }
 
-        if (this.cpuLimit != null && (this.cpuLimit.equals("0") || this.cpuLimit.equals("0.0"))) {
-            response.setValid(false);
-            response.addToReason(
-                    "CPU constraint value can't be 0.\n"
-            );
+        // CPU
+        if (this.cpuLimit <= 0F) {
+            throw new InvalidConfigException("CPU limit can't be 0 or even negative.");
         }
 
-        return response;
     }
 
 
@@ -167,49 +173,8 @@ public abstract class DockerObjTemplate implements Cloneable {
 
     }
 
-    /**
-     * Response to the valid() function.
-     */
-    @Data
-    @AllArgsConstructor
-    public static class ValidationResponse {
-
-        private boolean valid;
-        private String name;
-        private String reason;
-
-        public void addToReason(String toAdd) {
-            this.reason = this.reason + toAdd;
-        }
-
-    }
-
 
     // -----  Other methods  -----
-
-    /**
-     * Basic validation if parameters are not null.
-     *
-     * @return List with all parameter names that are null.
-     */
-    protected List<String> findNullParams() {
-        List<String> resultList = new ArrayList<>();
-
-        if (this.name == null) {
-            resultList.add("name");
-        }
-        if (this.image == null) {
-            resultList.add("image");
-        }
-        if (this.ramLimit == null) {
-            resultList.add("ramLimit");
-        }
-        if (this.cpuLimit == null) {
-            resultList.add("cpuLimit");
-        }
-
-        return resultList;
-    }
 
 
     /**

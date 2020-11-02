@@ -11,7 +11,7 @@ import java.util.*;
 public class ConsulService extends ServiceTemplate {
 
     public ConsulService() {
-        super("Consul", "consul", "512M", "1", 1,
+        super("Consul", "consul", "512M", 1.0F, 1,
                 new ServiceConstraints(null, null, Collections.singletonList("manager"), 0));
     }
 

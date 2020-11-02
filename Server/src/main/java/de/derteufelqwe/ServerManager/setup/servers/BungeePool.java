@@ -3,7 +3,6 @@ package de.derteufelqwe.ServerManager.setup.servers;
 import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.setup.templates.ExposableServiceTemplate;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
-import de.derteufelqwe.ServerManager.setup.templates.ServiceTemplate;
 import de.derteufelqwe.commons.Constants;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,7 +23,7 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 public class BungeePool extends ExposableServiceTemplate {
 
-    public BungeePool(String name, String image, String ramLimit, String cpuLimit, int replications, ServiceConstraints constraints, int port) {
+    public BungeePool(String name, String image, String ramLimit, float cpuLimit, int replications, ServiceConstraints constraints, int port) {
         super(name, image, ramLimit, cpuLimit, replications, constraints, port);
     }
 

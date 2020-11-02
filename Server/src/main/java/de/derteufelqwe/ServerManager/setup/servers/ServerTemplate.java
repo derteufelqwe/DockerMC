@@ -21,7 +21,7 @@ import java.util.List;
 public class ServerTemplate extends ServiceTemplate {
 
 
-    public ServerTemplate(String name, String image, String ramLimit, String cpuLimit, int replications, ServiceConstraints constraints) {
+    public ServerTemplate(String name, String image, String ramLimit, float cpuLimit, int replications, ServiceConstraints constraints) {
         super(name, image, ramLimit, cpuLimit, replications, constraints);
     }
 

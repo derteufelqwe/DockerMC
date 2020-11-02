@@ -21,7 +21,7 @@ import java.util.Map;
 public class PersistentServerPool extends ServerPool {
 
 
-    public PersistentServerPool(String name, String image, String ramLimit, String cpuLimit, int replications, ServiceConstraints constraints, int softPlayerLimit) {
+    public PersistentServerPool(String name, String image, String ramLimit, float cpuLimit, int replications, ServiceConstraints constraints, int softPlayerLimit) {
         super(name, image, ramLimit, cpuLimit, replications, constraints, softPlayerLimit);
     }
 
