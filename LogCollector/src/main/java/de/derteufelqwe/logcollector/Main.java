@@ -1,48 +1,28 @@
 package de.derteufelqwe.logcollector;
 
-import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.core.DefaultDockerClientConfig;
-import com.github.dockerjava.core.DockerClientConfig;
-import com.github.dockerjava.core.DockerClientImpl;
-import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
-import com.github.dockerjava.transport.DockerHttpClient;
 import lombok.SneakyThrows;
 
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Main {
 
 
-
-
-
     @SneakyThrows
     public static void main(String[] args) {
-        DockerClientConfig dockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
-                .withDockerHost(String.format("%s://%s:%s", "tcp", "ubuntu1", 2375))
-                .withDockerTlsVerify(false)
-                .withApiVersion("1.40")
-                .build();
+        Logger.getLogger("org.hibernate").setLevel(Level.WARNING);
 
-        DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
-                .dockerHost(dockerClientConfig.getDockerHost())
-                .sslConfig(dockerClientConfig.getSSLConfig())
-                .build();
+//        LogCollector logCollector = new LogCollector("tcp://ubuntu1:2375");
+        LogCollector logCollector = new LogCollector("unix:///var/run/docker.sock");
 
-        DockerClient docker = DockerClientImpl.getInstance(dockerClientConfig, httpClient);
+        logCollector.start();
 
-        System.out.println("Connected to docker.");
-
-        docker.eventsCmd()
-//                .withLabelFilter("ServerName=LobbyServer")
-                .withEventFilter("die")
-                .exec(new LogsEventCallback(docker));
+        System.out.println("Starting to listen for container deaths...");
 
         while (true) {
-            TimeUnit.SECONDS.sleep(1);
+            TimeUnit.SECONDS.sleep(10);
         }
-
-//        docker.close();
     }
 
 }

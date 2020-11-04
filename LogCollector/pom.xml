@@ -12,13 +12,70 @@
     <artifactId>LogCollector</artifactId>
 
 
-    <dependencies>
+    <build>
+        <defaultGoal>clean package</defaultGoal>
+        <plugins>
 
+            <!--  Configure manifest of jar  -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>de.derteufelqwe.logcollector.Main</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <!--  Shade plugin  -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.1</version>
+                <executions>
+                    <!--                Run shade goal on package phase -->
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+
+                        <!--                        Exclude Files from the jar  -->
+                        <configuration>
+                            <finalName>LogCollector-1.0</finalName>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.SF</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+
+    <dependencies>
         <!-- https://mvnrepository.com/artifact/com.github.docker-java/docker-java-core -->
         <dependency>
             <groupId>com.github.docker-java</groupId>
             <artifactId>docker-java-core</artifactId>
             <version>3.2.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>de.derteufelqwe.ServerManager</groupId>
+            <artifactId>Commons</artifactId>
+            <version>1.0</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.github.docker-java/docker-java-transport-netty -->
@@ -41,7 +98,6 @@
             <artifactId>postgresql</artifactId>
             <version>42.2.18</version>
         </dependency>
-
 
 
     </dependencies>

@@ -4,7 +4,9 @@ target/classes/
 target/generated-sources/
 target/generated-test-sources/
 target/test-classes/
-server/
 .dockerignore
 pom.xml
+docker-compose.yml
 
+target/LogCollector-1.0-shaded.jar
+target/original-LogCollector-1.0.jar
