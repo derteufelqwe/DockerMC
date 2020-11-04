@@ -3,13 +3,13 @@ package de.derteufelqwe.ServerManager.setup.configUpdate;
 import com.github.dockerjava.api.model.UpdateConfig;
 import com.github.dockerjava.api.model.UpdateFailureAction;
 import com.github.dockerjava.api.model.UpdateOrder;
-import com.orbitz.consul.KeyValueClient;
+import com.sun.istack.internal.NotNull;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.setup.ServiceCreateResponse;
 import de.derteufelqwe.ServerManager.setup.servers.BungeePool;
-import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
-import de.derteufelqwe.ServerManager.setup.templates.ServiceTemplate;
 import de.derteufelqwe.commons.Constants;
+
+import javax.annotation.Nullable;
 
 public class BungeePoolUpdater extends DMCServiceUpdater<BungeePool> {
 
@@ -28,13 +28,8 @@ public class BungeePoolUpdater extends DMCServiceUpdater<BungeePool> {
     }
 
     @Override
-    protected void setOldConfig(BungeePool configObj) {
-        if (configObj != null) {
-            this.systemConfig.setBungeePool(configObj);
-
-        } else {
-            this.systemConfig.setBungeePool(null);
-        }
+    protected void setOldConfig(@Nullable BungeePool configObj) {
+        this.systemConfig.setBungeePool(configObj);
     }
 
     @Override

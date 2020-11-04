@@ -3,9 +3,12 @@ package de.derteufelqwe.ServerManager.setup.configUpdate;
 import com.github.dockerjava.api.model.UpdateConfig;
 import com.github.dockerjava.api.model.UpdateFailureAction;
 import com.github.dockerjava.api.model.UpdateOrder;
+import com.sun.istack.internal.NotNull;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.setup.ServiceCreateResponse;
+import de.derteufelqwe.ServerManager.setup.ServiceUpdateResponse;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
+import de.derteufelqwe.ServerManager.setup.templates.DockerObjTemplate;
 import de.derteufelqwe.commons.Constants;
 
 import javax.annotation.Nullable;
@@ -29,18 +32,12 @@ public class MinecraftPoolUpdater extends DMCServiceUpdater<ServerPool> {
 
     @Override
     protected ServerPool getOldConfig() {
-        List<ServerPool> pools = this.systemConfig.getPoolServers().stream().filter(p -> p.getName().equals(this.newConfig.getName())).collect(Collectors.toList());
-
-        if (pools.size() == 1) {
-            return pools.get(0);
-        }
-
-        return null;
+        return this.systemConfig.getPoolServers().getServer(this.newConfig.getName());
     }
 
     @Override
     protected void setOldConfig(@Nullable ServerPool configObj) {
-        this.systemConfig.getPoolServers().add(configObj);
+        this.systemConfig.getPoolServers().addServer(configObj);
     }
 
     @Override
@@ -60,6 +57,16 @@ public class MinecraftPoolUpdater extends DMCServiceUpdater<ServerPool> {
                 .withOrder(UpdateOrder.START_FIRST)
                 .withFailureAction(UpdateFailureAction.CONTINUE)
                 ;
+    }
+
+
+    @Override
+    public ServiceUpdateResponse update(boolean force) {
+        ServiceUpdateResponse response = super.update(force);
+
+        this.systemConfig.getPoolServers().cleanup();
+
+        return response;
     }
 
 }

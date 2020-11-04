@@ -30,9 +30,6 @@ public class ServiceConstraints implements Cloneable {
             this.roleConstraints = roleConstraints;
         }
 
-        if (nodeLimit < 0) {
-            throw new DockerMCException("Nodelimit can't be negative.");
-        }
         this.nodeLimit = nodeLimit;
     }
 

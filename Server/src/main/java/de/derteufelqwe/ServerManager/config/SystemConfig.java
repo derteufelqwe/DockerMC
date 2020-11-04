@@ -1,6 +1,7 @@
 package de.derteufelqwe.ServerManager.config;
 
 import com.sun.istack.internal.NotNull;
+import de.derteufelqwe.ServerManager.config.objects.ServerPoolContainer;
 import de.derteufelqwe.ServerManager.setup.servers.BungeePool;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import de.derteufelqwe.commons.config.annotations.Comment;
@@ -26,6 +27,6 @@ public class SystemConfig {
     @Nullable private ServerPool lobbyPool;
 
     @Comment("Last known config for the LobbyPool")
-    @NotNull private List<ServerPool> poolServers = new ArrayList<>();
+    @NotNull private ServerPoolContainer poolServers = new ServerPoolContainer();
 
 }

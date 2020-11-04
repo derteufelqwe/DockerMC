@@ -26,6 +26,7 @@ import picocli.CommandLine;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 
 /**
@@ -58,6 +59,7 @@ import java.util.Scanner;
  * - (Copy certificates to the other servers via SSH)
  * - System to handle server logs
  * - Server History
+ * - Better unhealthy state detection
  */
 
 public class ServerManager {
@@ -97,9 +99,10 @@ public class ServerManager {
         } catch (InvalidConfigException e1) {
             System.err.printf("Invalid infrastructure config: %s\n", e1.getMessage());
             // ToDo: Enable config reloading
+            return;
         }
 
-        this.checkAndCreateInfrastructure();
+//        this.checkAndCreateInfrastructure();
 
         this.consul = Consul.builder().withHostAndPort(HostAndPort.fromParts("ubuntu1", Constants.CONSUL_PORT)).build();
         this.keyValueClient = this.consul.keyValueClient();
@@ -193,10 +196,16 @@ public class ServerManager {
     private void checkAndCreateMCServers() {
         LostServiceFinder cleaner = new LostServiceFinder(docker);
         List<Service> lostServices = cleaner.findLostServices();
+        InfrastructureConfig infrastructureConfig = CONFIG.get(InfrastructureConfig.class);
 
         for (Service lostService : lostServices) {
             System.out.printf("Removing lost service %s (%s).\n", lostService.getSpec().getName(), lostService.getId());
             docker.getDocker().removeServiceCmd(lostService.getId()).exec();
+            infrastructureConfig.setPoolServers(
+                    infrastructureConfig.getPoolServers().stream()
+                            .filter(p -> p.getName() != null && !p.getName().equals(lostService.getSpec().getLabels().get("ServerName")))
+                            .collect(Collectors.toList())
+            );
         }
 
 

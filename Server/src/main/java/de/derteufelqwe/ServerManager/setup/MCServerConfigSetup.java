@@ -121,7 +121,7 @@ public class MCServerConfigSetup {
 
                 if (createResponse.isCreated()) {
                     response.setResult(ServiceStart.OK);
-                    this.systemConfig.getPoolServers().add(pool);
+                    this.systemConfig.getPoolServers().addServer(pool);
 
 
                 } else {

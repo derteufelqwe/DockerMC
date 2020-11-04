@@ -13,6 +13,7 @@
         <module>Server</module>
         <module>BungeePlugin</module>
         <module>Commons</module>
+        <module>LogCollector</module>
     </modules>
 
     <properties>

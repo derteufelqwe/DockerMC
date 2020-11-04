@@ -100,15 +100,15 @@ public class ServiceTemplate extends DockerObjTemplate {
         // Constraints
         if (this.constraints != null) {
 
-            if (this.constraints.getNodeLimit() <= 0) {
-                throw new InvalidConfigException("Service constraints node limit can't be 0 or even negative.");
+            if (this.constraints.getNodeLimit() < 0) {
+                throw new InvalidConfigException("Service constraints node limit can't be negative.");
             }
 
         }
 
         // Replications
-        if (this.replications <= 0) {
-            throw new InvalidConfigException("Replications can't be 0 or even negative.");
+        if (this.replications < 0) {
+            throw new InvalidConfigException("Replications can't be negative.");
         }
 
     }

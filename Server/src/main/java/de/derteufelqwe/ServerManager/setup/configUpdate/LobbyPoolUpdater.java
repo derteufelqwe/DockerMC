@@ -4,10 +4,13 @@ import com.github.dockerjava.api.model.UpdateConfig;
 import com.github.dockerjava.api.model.UpdateFailureAction;
 import com.github.dockerjava.api.model.UpdateOrder;
 import com.orbitz.consul.KeyValueClient;
+import com.sun.istack.internal.NotNull;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.setup.ServiceCreateResponse;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import de.derteufelqwe.commons.Constants;
+
+import javax.annotation.Nullable;
 
 public class LobbyPoolUpdater extends DMCServiceUpdater<ServerPool> {
 
@@ -29,13 +32,8 @@ public class LobbyPoolUpdater extends DMCServiceUpdater<ServerPool> {
     }
 
     @Override
-    protected void setOldConfig(ServerPool configObj) {
-        if (configObj != null) {
-            this.systemConfig.setLobbyPool(configObj);
-
-        } else {
-            this.systemConfig.setLobbyPool(null);
-        }
+    protected void setOldConfig(@Nullable ServerPool configObj) {
+        this.systemConfig.setLobbyPool(configObj);
     }
 
     @Override

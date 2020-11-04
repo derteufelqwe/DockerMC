@@ -3,12 +3,15 @@ package de.derteufelqwe.ServerManager.setup.configUpdate;
 import com.github.dockerjava.api.model.Service;
 import com.github.dockerjava.api.model.ServiceSpec;
 import com.github.dockerjava.api.model.UpdateConfig;
-import com.orbitz.consul.KeyValueClient;
+import com.sun.istack.internal.NotNull;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.config.InfrastructureConfig;
 import de.derteufelqwe.ServerManager.config.SystemConfig;
-import de.derteufelqwe.ServerManager.setup.*;
+import de.derteufelqwe.ServerManager.setup.ServiceCreateResponse;
+import de.derteufelqwe.ServerManager.setup.ServiceStart;
+import de.derteufelqwe.ServerManager.setup.ServiceUpdate;
+import de.derteufelqwe.ServerManager.setup.ServiceUpdateResponse;
 import de.derteufelqwe.ServerManager.setup.templates.DockerObjTemplate;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceTemplate;
 import de.derteufelqwe.commons.Constants;
@@ -17,6 +20,7 @@ import javax.annotation.Nullable;
 
 /**
  * Base class for every MC server config service update
+ *
  * @param <CFG> Type of the config like {@link de.derteufelqwe.ServerManager.setup.servers.BungeePool}
  *              or {@link de.derteufelqwe.ServerManager.setup.servers.ServerPool}
  */
@@ -49,6 +53,7 @@ abstract class DMCServiceUpdater<CFG extends ServiceTemplate> {
 
     /**
      * Updates the old config instance.
+     *
      * @param configObj Can be null or a config instance
      */
     protected abstract void setOldConfig(@Nullable CFG configObj);
@@ -83,8 +88,9 @@ abstract class DMCServiceUpdater<CFG extends ServiceTemplate> {
 
     /**
      * Updates the docker service.
-     * @param response Response to save information to
-     * @param newSpec The ServiceSpec to update to
+     *
+     * @param response  Response to save information to
+     * @param newSpec   The ServiceSpec to update to
      * @param serviceId The ServiceID of the service getting updated
      */
     protected void updateDockerService(ServiceUpdateResponse response, ServiceSpec newSpec, String serviceId) {
@@ -110,9 +116,11 @@ abstract class DMCServiceUpdater<CFG extends ServiceTemplate> {
 
         if (serviceCreateResponse.getResult() == ServiceStart.OK) {
             response.setResult(ServiceUpdate.CREATED);
+            this.setOldConfig((CFG) this.configNew.clone());
 
         } else if (serviceCreateResponse.getResult() == ServiceStart.RUNNING) {
             response.setResult(ServiceUpdate.NOT_REQUIRED);
+            this.setOldConfig((CFG) this.configNew.clone());
 
         } else {
             response.setResult(ServiceUpdate.FAILED_GENERIC);
@@ -155,7 +163,7 @@ abstract class DMCServiceUpdater<CFG extends ServiceTemplate> {
         if (!findResponse.isFound()) {
             this.createService(response);
 
-            // Update the service
+        // Update the service
         } else {
             this.updateDockerService(response, configNew.getServiceSpec(), findResponse.getServiceID());
             this.setOldConfig((CFG) configNew.clone());
@@ -185,6 +193,7 @@ abstract class DMCServiceUpdater<CFG extends ServiceTemplate> {
 
     /**
      * Actual update method, that analyzes the config difference
+     *
      * @param force If true also updates the config if no parameters changed
      */
     public ServiceUpdateResponse update(boolean force) {
@@ -198,27 +207,27 @@ abstract class DMCServiceUpdater<CFG extends ServiceTemplate> {
             this.onBothServicesNull();
 
 
-        // Only old config is null -> Create Service
+            // Only old config is null -> Create Service
         } else if (configNew != null && configOld == null) {
             this.onServiceToCreate();
 
 
-        // Only the new config is null -> Destroy Service
+            // Only the new config is null -> Destroy Service
         } else if (configNew == null && configOld != null) {
             this.onServiceToDestroy();
 
 
-        // Both configs not null and unequal -> Update Service
+            // Both configs not null and unequal -> Update Service
         } else if (!configNew.equals(configOld)) {
             this.onServiceToUpdate();
 
 
-        // Both configs are equal
+            // Both configs are equal
         } else if (configNew.equals(configOld)) {
             this.onServicesEqual(force);
 
 
-        // Should not occur
+            // Should not occur
         } else {
             throw new RuntimeException("Invalid config update state.");
         }
