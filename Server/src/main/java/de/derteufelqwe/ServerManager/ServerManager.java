@@ -13,6 +13,7 @@ import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.exceptions.InvalidConfigException;
 import de.derteufelqwe.ServerManager.setup.*;
 import de.derteufelqwe.ServerManager.setup.configUpdate.*;
+import de.derteufelqwe.ServerManager.setup.infrastructure.LogCollectorService;
 import de.derteufelqwe.ServerManager.setup.infrastructure.OvernetNetwork;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import de.derteufelqwe.ServerManager.setup.templates.DockerObjTemplate;

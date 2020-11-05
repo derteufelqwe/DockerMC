@@ -1,5 +1,6 @@
-package de.derteufelqwe.logcollector;
+package de.derteufelqwe.commons.hibernate;
 
+import de.derteufelqwe.commons.hibernate.objects.Container;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
@@ -19,11 +20,6 @@ public class SessionBuilder {
              .buildSessionFactory();
     }
     
-    public SessionBuilder() {
-        this("admin", "password", "ubuntu1:5432", true);
-    }
-
-
     private Properties getProperties(String user, String password, String url, boolean dropTable) {
         Properties properties = new Properties();
 

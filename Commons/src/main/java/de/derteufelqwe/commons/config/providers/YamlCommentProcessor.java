@@ -5,9 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import de.derteufelqwe.commons.config.annotations.Comment;
 import de.derteufelqwe.commons.config.exceptions.YAMLWalkException;
-import de.derteufelqwe.commons.containers.Pair;
 import lombok.Data;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
@@ -47,6 +45,7 @@ public class YamlCommentProcessor {
 
     /**
      * This method can't be called twice
+     *
      * @return
      */
     public String process() {
@@ -70,6 +69,7 @@ public class YamlCommentProcessor {
     /**
      * Analyzes the class that got serialized and parses the @{@link Comment} annotations, to create a map containing
      * the comments for each variable
+     *
      * @param clazz
      * @param jsonData
      * @param resultMap
@@ -93,7 +93,8 @@ public class YamlCommentProcessor {
                     this.parseCommentsFromClass(field.getType(), entry.getValue().getAsJsonObject().entrySet(), resultMap.getChildren().get(field.getName()));
                 }
 
-            } catch (NoSuchFieldException ignored) {}
+            } catch (NoSuchFieldException ignored) {
+            }
         }
 
         return;
@@ -108,9 +109,9 @@ public class YamlCommentProcessor {
      * If the file looks like this:
      * name: Name
      * su2:
-     *     a: a
-     *     b: b
-     *
+     * a: a
+     * b: b
+     * <p>
      * And the path looks like the [name], 0 is returned
      * If it looks like this [sub, b], 2 is returned
      *
@@ -175,10 +176,11 @@ public class YamlCommentProcessor {
 
     /**
      * Adds the comments found by parseCommentsFromClass(...) to a new list of lines.
-     * @param newLines Copy of this.lines
-     * @param comments CommentsMap object
+     *
+     * @param newLines  Copy of this.lines
+     * @param comments  CommentsMap object
      * @param increment Number of comments added so far
-     * @param toSearch Search history to search through a yaml file
+     * @param toSearch  Search history to search through a yaml file
      */
     protected int addComment(List<String> newLines, YamlComments comments, int increment, List<String> toSearch) {
         for (String key : comments.getChildren().keySet()) {

@@ -16,8 +16,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Callback class for downloading the log of a stopped container.
+ * This class saves the extracted data to a database.
+ */
 @NoArgsConstructor
-public class LogCallback implements ResultCallback<Frame> {
+public class LogDownloadCallback implements ResultCallback<Frame> {
 
     private Pattern RE_TIMESTAMP = Pattern.compile("\\n(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3})");
 

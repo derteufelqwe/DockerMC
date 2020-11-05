@@ -4,26 +4,57 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.model.Event;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.hibernate.SessionBuilder;
+import de.derteufelqwe.commons.hibernate.objects.Container;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import javax.persistence.PersistenceException;
 import java.io.Closeable;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.Map;
 
+/**
+ * Callback class for the docker event listener, for parse stopped dockermc containers.
+ */
 public class LogsEventCallback implements ResultCallback<Event> {
 
     private DockerClient dockerClient;
     private SessionBuilder sessionBuilder;
 
 
-    public LogsEventCallback(DockerClient dockerClient) {
+    public LogsEventCallback(DockerClient dockerClient, SessionBuilder sessionBuilder) {
         this.dockerClient = dockerClient;
-        this.sessionBuilder = new SessionBuilder("admin", "password", "postgresdb:5432", false);
+        this.sessionBuilder = sessionBuilder;
+    }
+
+
+    private Container getContainer(Event event, String log, Timestamp lastLogTimestamp) {
+        Map<String, String> labels = null;
+        if (event.getActor() != null) {
+            labels = event.getActor().getAttributes();
+        }
+
+        Container container = new Container(event.getId(), event.getFrom(), log,
+                new Timestamp(event.getTime() * 1000), lastLogTimestamp);
+
+        if (labels != null) {
+            container.setContainerName(labels.get("name"));
+            container.setServerName(labels.get("ServerName"));
+            container.setNodeId(labels.get("com.docker.swarm.node.id"));
+            try {
+                container.setExitCode(Short.parseShort(labels.get("exitCode")));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        return container;
     }
 
 
     @Override
+
     public void onStart(Closeable closeable) {
 
     }
@@ -55,15 +86,15 @@ public class LogsEventCallback implements ResultCallback<Event> {
 
             System.out.println("Container " + id + " stopped.");
 
-            LogCallback logCallback = this.dockerClient.logContainerCmd(id)
+            LogDownloadCallback logDownloadCallback = this.dockerClient.logContainerCmd(id)
                     .withStdOut(true)
                     .withStdErr(true)
                     .withTimestamps(true)
-                    .exec(new LogCallback());
+                    .exec(new LogDownloadCallback());
 
-            logCallback.await();
+            logDownloadCallback.await();
 
-            Container container = new Container(object, logCallback.getLogMessage(), logCallback.getLastTimestamp());
+            Container container = this.getContainer(object, logDownloadCallback.getLogMessage(), logDownloadCallback.getLastTimestamp());
             session.persist(container);
 
             session.flush();
@@ -71,7 +102,8 @@ public class LogsEventCallback implements ResultCallback<Event> {
 
         } catch (RuntimeException e) {
             tx.rollback();
-            throw e;
+            System.err.println("Error while saving logs for " + object.getId() + ":");
+            e.printStackTrace();
 
         } finally {
             session.close();
@@ -80,7 +112,7 @@ public class LogsEventCallback implements ResultCallback<Event> {
 
     @Override
     public void onError(Throwable throwable) {
-
+        System.err.println(throwable);
     }
 
     @Override

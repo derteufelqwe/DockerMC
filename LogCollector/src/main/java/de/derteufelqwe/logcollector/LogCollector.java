@@ -6,6 +6,7 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
+import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import lombok.SneakyThrows;
 
 public class LogCollector {
@@ -40,9 +41,13 @@ public class LogCollector {
                 .build();
     }
 
-
     private DockerClient getDockerClient() {
         return DockerClientImpl.getInstance(this.getDockerClientConfig(), this.getDockerHttpClient());
+    }
+
+    private SessionBuilder getSessionBuilder() {
+//        return new SessionBuilder("admin", "password", "ubuntu1:5432", true);
+        return new SessionBuilder("admin", "password", "postgresdb:5432", false);
     }
 
 
@@ -52,7 +57,7 @@ public class LogCollector {
         this.dockerClient.eventsCmd()
                 .withLabelFilter(CONTAINER_FILTER)
                 .withEventFilter(EVENT_TYPE)
-                .exec(new LogsEventCallback(this.dockerClient));
+                .exec(new LogsEventCallback(this.dockerClient, this.getSessionBuilder()));
     }
 
     @SneakyThrows

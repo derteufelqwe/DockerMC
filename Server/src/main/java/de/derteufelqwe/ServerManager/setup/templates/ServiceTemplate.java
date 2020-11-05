@@ -182,6 +182,10 @@ public class ServiceTemplate extends DockerObjTemplate {
         return "registry.swarm/" + this.image;
     }
 
+    protected List<Mount> getMountVolumes() {
+        return new ArrayList<>();
+    }
+
     /**
      * Returns the ContainerSpec, which describes what a container of a task looks like
      *
@@ -190,6 +194,7 @@ public class ServiceTemplate extends DockerObjTemplate {
     protected ContainerSpec getContainerSpec() {
         ContainerSpec containerSpec = new ContainerSpec()
                 .withLabels(this.getContainerLabels())
+                .withMounts(this.getMountVolumes())
                 .withImage(this.getImageName())
                 .withEnv(this.getEnvs())
                 .withArgs(this.getCommandArgs());
@@ -252,13 +257,27 @@ public class ServiceTemplate extends DockerObjTemplate {
     }
 
     /**
+     * If this method returns true, the service will be created in global mode.
+     */
+    protected boolean useGlobalMode() {
+        return false;
+    }
+
+    /**
      * Returns the ServiceModeConfig, which specifies the amount of replications of the tasks
+     * or the global mode if specified.
      *
      * @return
      */
     protected ServiceModeConfig getServiceModeConfig() {
-        ServiceModeConfig serviceModeConfig = new ServiceModeConfig()
-                .withReplicated(new ServiceReplicatedModeOptions().withReplicas(this.replications));
+        ServiceModeConfig serviceModeConfig = new ServiceModeConfig();
+        if (this.useGlobalMode()) {
+            serviceModeConfig
+                    .withGlobal(new ServiceGlobalModeOptions());
+        } else {
+            serviceModeConfig
+                    .withReplicated(new ServiceReplicatedModeOptions().withReplicas(this.replications));
+        }
 
         return serviceModeConfig;
     }
@@ -292,12 +311,12 @@ public class ServiceTemplate extends DockerObjTemplate {
      */
     public ServiceSpec getServiceSpec() {
         ServiceSpec serviceSpec = new ServiceSpec()
+                .withName(this.getServiceName())
                 .withLabels(this.getServiceLabels())
                 .withTaskTemplate(this.getTaskSpec())
                 .withNetworks(this.getNetworks())
                 .withMode(this.getServiceModeConfig())
-                .withEndpointSpec(this.getEndpointSpec())
-                .withName(this.getServiceName());
+                .withEndpointSpec(this.getEndpointSpec());
 
         return serviceSpec;
     }

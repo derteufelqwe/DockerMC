@@ -55,6 +55,9 @@ public class Constants {
     public static int SERVICE_STARTUP_TIME = 20;
     public static int LOG_FETCH_TIME = 20;
 
+    // -----  Databases  -----
+    public static String POSTGRESDB_CONTAINER_NAME = "serverlogsdb";
+
     // -----  Consul  -----
     public static String CONSUL_HOST = "Consul";
     public static int CONSUL_PORT = 8500;
@@ -66,6 +69,8 @@ public class Constants {
         OVERNET,    // Not actually a container
         CONSUL,
         CONSUL_POOL,
+        LOGCOLLECTOR,
+        LOGCOLLECTOR_POOL,
 
         NGINX,
         NGINX_POOL,
