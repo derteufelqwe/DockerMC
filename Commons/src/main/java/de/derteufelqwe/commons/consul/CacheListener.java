@@ -5,7 +5,7 @@ import com.orbitz.consul.cache.ConsulCache;
 import java.util.*;
 
 /**
- * Handles the creation and data managemant of consul listeners.
+ * Handles the creation and data management of consul listeners.
  * To set this up you need to create a consul cache listener like ServiceCatalogCache.newCache(catalogClient, "name");
  * Create a CacheListener and add it as a listener to the consul cache.
  * To respond to changes from CacheListener you need to add a ICacheChangeListeners to it.

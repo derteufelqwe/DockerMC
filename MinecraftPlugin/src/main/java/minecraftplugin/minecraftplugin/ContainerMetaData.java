@@ -17,12 +17,8 @@ public class ContainerMetaData extends MetaDataBase {
     public ContainerMetaData() {
         this.taskName = this.getString("TASK_NAME");
         this.serverName = this.getString("SERVER_NAME");
-        if (System.getProperty("os.name").startsWith("Windows")) {
-            this.containerIp = "192.168.178.2";
-        } else {
-            this.containerIp = this.overnetIp();
-        }
         this.softPlayerLimit = this.getInt("SOFT_PLAYER_LIMIT");
+        this.containerIp = this.overnetIp();
     }
 
 }

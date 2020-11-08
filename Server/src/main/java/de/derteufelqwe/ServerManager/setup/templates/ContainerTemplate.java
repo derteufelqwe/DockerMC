@@ -3,12 +3,10 @@ package de.derteufelqwe.ServerManager.setup.templates;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.WaitContainerResultCallback;
-import com.github.dockerjava.api.model.Bind;
-import com.github.dockerjava.api.model.Container;
-import com.github.dockerjava.api.model.HostConfig;
-import com.github.dockerjava.api.model.PortBinding;
+import com.github.dockerjava.api.model.*;
 import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
+import de.derteufelqwe.commons.Constants;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -27,7 +25,9 @@ import java.util.concurrent.TimeUnit;
 @EqualsAndHashCode(callSuper = true)
 public class ContainerTemplate extends DockerObjTemplate {
 
+    @Getter(AccessLevel.NONE) @Setter(AccessLevel.NONE)
     protected final int CONTAINER_START_DELAY = 10;   // Time for containers to get up and running.
+    @Getter(AccessLevel.NONE) @Setter(AccessLevel.NONE)
     protected final int NETWORK_CREATE_DELAY  = 2;    // Time for networks to get up and running
 
 
@@ -55,7 +55,8 @@ public class ContainerTemplate extends DockerObjTemplate {
 
     @Override
     public CreateResponse create() {
-        docker.pullImage(this.image);
+        // ToDo: Add some kind of pulling
+//        docker.pullImage(this.image);
 
         // Delete old container instances.
         List<Container> containers = docker.getDocker().listContainersCmd()
@@ -77,6 +78,7 @@ public class ContainerTemplate extends DockerObjTemplate {
                 .withLabels(this.getContainerLabels())
                 .withEnv(this.getEnvironmentVariables())
                 .withHostConfig(this.getHostConfig())
+                .withCmd(this.getCommandArgs())
                 .exec();
 
         docker.getDocker().startContainerCmd(response.getId()).exec();
@@ -87,6 +89,13 @@ public class ContainerTemplate extends DockerObjTemplate {
 
         if (!waitResponse.isRunning()) {
             return new CreateResponse(false, containerID, waitResponse.getMessage());
+        }
+
+        for (String networkName : this.getNetworks()) {
+            docker.getDocker().connectToNetworkCmd()
+                    .withContainerId(containerID)
+                    .withNetworkId(networkName)
+                    .exec();
         }
 
         return new CreateResponse(true, containerID);
@@ -146,6 +155,13 @@ public class ContainerTemplate extends DockerObjTemplate {
     }
 
     /**
+     * Returns the mounts to mount in the container
+     */
+    protected List<Mount> getMounts() {
+        return new ArrayList<>();
+    }
+
+    /**
      * Returns a list of the environment variables
      */
     protected List<String> getEnvironmentVariables() {
@@ -168,11 +184,26 @@ public class ContainerTemplate extends DockerObjTemplate {
                 .withMemory(Utils.convertMemoryString(this.ramLimit))
                 .withNanoCPUs(nanoCpu)
                 .withBinds(this.getBindMounts())
+                .withMounts(this.getMounts())
                 .withPortBindings(this.getPortBindings());
 
         return hostConfig;
     }
 
+    /**
+     * Returns the arguments passed to the container
+     * @return
+     */
+    protected List<String> getCommandArgs() {
+        return new ArrayList<>();
+    }
+
+    /**
+     * Returns a list of docker network names / ids where the container should connect to.
+     */
+    protected List<String> getNetworks() {
+        return new ArrayList<>();
+    }
 
     // -----  Responses  -----
 

@@ -1,10 +1,7 @@
 package de.derteufelqwe.ServerManager.setup;
 
 import de.derteufelqwe.ServerManager.Docker;
-import de.derteufelqwe.ServerManager.setup.infrastructure.ConsulService;
-import de.derteufelqwe.ServerManager.setup.infrastructure.OvernetNetwork;
-import de.derteufelqwe.ServerManager.setup.infrastructure.RegistryCertificates;
-import de.derteufelqwe.ServerManager.setup.infrastructure.RegistryContainer;
+import de.derteufelqwe.ServerManager.setup.infrastructure.*;
 import de.derteufelqwe.ServerManager.setup.templates.DockerObjTemplate;
 import de.derteufelqwe.commons.Constants;
 
@@ -18,7 +15,8 @@ public class InfrastructureSetup {
     private OvernetNetwork overnetNetwork = new OvernetNetwork();
     private RegistryCertificates registryCertificates;
     private RegistryContainer registryContainer = new RegistryContainer();
-    private ConsulService consulService = new ConsulService();
+    private ConsulContainer consulContainer = new ConsulContainer();
+
 
 
     public InfrastructureSetup(Docker docker) {
@@ -26,7 +24,7 @@ public class InfrastructureSetup {
         this.overnetNetwork.init(docker);
         this.registryCertificates = new RegistryCertificates(docker);
         this.registryContainer.init(docker);
-        this.consulService.init(docker);
+        this.consulContainer.init(docker);
     }
 
 
@@ -99,11 +97,11 @@ public class InfrastructureSetup {
         return response;
     }
 
-    public ServiceCreateResponse createConsulService() {
+    public ServiceCreateResponse createConsulContainer() {
         ServiceCreateResponse response = new ServiceCreateResponse("Consul", Constants.ContainerType.CONSUL_POOL);
 
-        if (!this.consulService.find().isFound()) {
-            DockerObjTemplate.CreateResponse createResponse = this.consulService.create();
+        if (!this.consulContainer.find().isFound()) {
+            DockerObjTemplate.CreateResponse createResponse = this.consulContainer.create();
             response.setServiceId(createResponse.getServiceID());
 
             if (createResponse.isCreated()) {
@@ -117,6 +115,13 @@ public class InfrastructureSetup {
         } else {
             response.setResult(ServiceStart.RUNNING);
         }
+
+        return response;
+    }
+
+    public ServiceCreateResponse createLogDatabaseContainer() {
+        ServiceCreateResponse response = new ServiceCreateResponse("LogsDatabase", Constants.ContainerType.POSTGRES_DB);
+
 
         return response;
     }

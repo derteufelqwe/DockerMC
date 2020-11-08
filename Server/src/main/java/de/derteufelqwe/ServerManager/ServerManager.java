@@ -9,24 +9,24 @@ import de.derteufelqwe.ServerManager.config.ConfigChecker;
 import de.derteufelqwe.ServerManager.config.InfrastructureConfig;
 import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.config.SystemConfig;
-import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.exceptions.InvalidConfigException;
 import de.derteufelqwe.ServerManager.setup.*;
 import de.derteufelqwe.ServerManager.setup.configUpdate.*;
 import de.derteufelqwe.ServerManager.setup.infrastructure.LogCollectorService;
-import de.derteufelqwe.ServerManager.setup.infrastructure.OvernetNetwork;
+import de.derteufelqwe.ServerManager.setup.infrastructure.PostgresDBContainer;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
-import de.derteufelqwe.ServerManager.setup.templates.DockerObjTemplate;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
 import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.NotImplementedException;
 import picocli.CommandLine;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 
@@ -58,9 +58,11 @@ import java.util.stream.Collectors;
  * - API for BungeeCord
  * + Config checker
  * - (Copy certificates to the other servers via SSH)
- * - System to handle server logs
- * - Server History
+ * + System to handle server logs
+ * + Server History
  * - Better unhealthy state detection
+ * - Clean database layout
+ * (- Unify mounts in container / service template)
  */
 
 public class ServerManager {
@@ -88,10 +90,10 @@ public class ServerManager {
 
     // -----  Other methods  -----
 
+    @SneakyThrows
     public void start() {
 //        System.out.println(de.derteufelqwe.commons.Constants.LOGO);
 //        System.out.println("> Developed by " + de.derteufelqwe.commons.Constants.AUTHOR + ".\n");
-
         System.out.println("Validating config...");
         try {
             new ConfigChecker().validateInfrastructureConfig();
@@ -108,7 +110,18 @@ public class ServerManager {
         this.consul = Consul.builder().withHostAndPort(HostAndPort.fromParts("ubuntu1", Constants.CONSUL_PORT)).build();
         this.keyValueClient = this.consul.keyValueClient();
 
-        this.checkAndCreateMCServers();
+//        this.checkAndCreateMCServers();
+
+        PostgresDBContainer container = new PostgresDBContainer();
+        container.init(docker);
+        System.out.println(container.create());
+
+//        TimeUnit.SECONDS.sleep(5);
+
+//        LogCollectorService collectorService = new LogCollectorService();
+//        collectorService.init(docker);
+//        System.out.println(collectorService.create());
+
     }
 
 
@@ -173,7 +186,7 @@ public class ServerManager {
         }
 
         // Consul Service
-        ServiceCreateResponse response3 = setup.createConsulService();
+        ServiceCreateResponse response3 = setup.createConsulContainer();
         switch (response3.getResult()) {
             case OK:
                 System.out.println("Created Consul service successfully."); break;

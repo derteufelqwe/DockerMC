@@ -1,6 +1,8 @@
 package de.derteufelqwe.bungeeplugin;
 
 import com.orbitz.consul.*;
+import com.orbitz.consul.cache.KVCache;
+import com.orbitz.consul.cache.ServiceCatalogCache;
 import com.orbitz.consul.model.agent.ImmutableRegCheck;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
 import com.orbitz.consul.model.agent.Registration;
@@ -8,7 +10,11 @@ import com.orbitz.google.common.net.HostAndPort;
 import de.derteufelqwe.bungeeplugin.consul.MinecraftServiceListener;
 import de.derteufelqwe.bungeeplugin.consul.ServerRegistrator;
 import de.derteufelqwe.bungeeplugin.health.HealthCheck;
+import de.derteufelqwe.bungeeplugin.redis.RedisEvents;
+import de.derteufelqwe.bungeeplugin.redis.RedisHandler;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.consul.CacheListener;
+import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -26,11 +32,17 @@ public final class BungeePlugin extends Plugin {
     private MetaData metaData = new MetaData();
     private MinecraftServiceListener minecraftServiceListener;
     private Events events;
+    @Getter
+    public static RedisHandler redisHandler;
 
 
     @Override
     public void onEnable() {
+        BungeePlugin.redisHandler = new RedisHandler();
         this.minecraftServiceListener = new MinecraftServiceListener(catalogClient);
+
+        KVCache cache = KVCache.newCache();
+        cache.addListener(new CacheListener<>());
 
         // -----  Registrations  -----
         this.minecraftServiceListener.addListener(new ServerRegistrator());
@@ -38,6 +50,7 @@ public final class BungeePlugin extends Plugin {
         // -----  Events  -----
         this.events = new Events(keyValueClient);
         getProxy().getPluginManager().registerListener(this, events);
+        getProxy().getPluginManager().registerListener(this, new RedisEvents());
 
         // -----  Commands  -----
         getProxy().getPluginManager().registerCommand(this, new DockerMCCommands());

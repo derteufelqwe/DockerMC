@@ -146,6 +146,7 @@ public class ServiceTemplate extends DockerObjTemplate {
      */
     protected List<NetworkAttachmentConfig> getNetworks() {
         List<NetworkAttachmentConfig> networks = new ArrayList<>();
+
         networks.add(new NetworkAttachmentConfig().withTarget(Constants.NETW_OVERNET_NAME));
 
         return networks;

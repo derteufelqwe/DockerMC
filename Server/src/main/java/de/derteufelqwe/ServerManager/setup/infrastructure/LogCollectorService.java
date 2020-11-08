@@ -2,6 +2,7 @@ package de.derteufelqwe.ServerManager.setup.infrastructure;
 
 import com.github.dockerjava.api.model.BindOptions;
 import com.github.dockerjava.api.model.Mount;
+import com.github.dockerjava.api.model.NetworkAttachmentConfig;
 import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceTemplate;
@@ -13,7 +14,7 @@ import java.util.Map;
 public class LogCollectorService extends ServiceTemplate {
 
     public LogCollectorService() {
-        super("LogCollector", "logcollector", "512M", 0.5F, 1,
+        super("LogCollector", Constants.Images.LOGCOLLECTOR.image(), "512M", 0.5F, 1,
                 new ServiceConstraints(1));
     }
 
@@ -28,7 +29,7 @@ public class LogCollectorService extends ServiceTemplate {
      */
     @Override
     protected String getImageName() {
-        return super.getImageName();
+        return this.image;
     }
 
     @Override
@@ -60,4 +61,5 @@ public class LogCollectorService extends ServiceTemplate {
 
         return mounts;
     }
+
 }

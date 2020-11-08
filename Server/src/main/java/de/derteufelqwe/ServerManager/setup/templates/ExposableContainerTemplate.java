@@ -1,9 +1,14 @@
 package de.derteufelqwe.ServerManager.setup.templates;
 
+import com.github.dockerjava.api.model.ExposedPort;
+import com.github.dockerjava.api.model.PortBinding;
+import com.github.dockerjava.api.model.Ports;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+
+import java.util.List;
 
 
 /**
@@ -31,6 +36,18 @@ public class ExposableContainerTemplate extends ContainerTemplate {
      */
     protected int getContainerPort() {
         return this.port;
+    }
+
+    @Override
+    protected List<PortBinding> getPortBindings() {
+        List<PortBinding> portBindings = super.getPortBindings();
+
+        // ToDo: Das geht sicherlich auch besser
+        portBindings.add(
+                new PortBinding(Ports.Binding.bindPort(this.getPort()), ExposedPort.tcp(this.getContainerPort()))
+        );
+
+        return portBindings;
     }
 
 }

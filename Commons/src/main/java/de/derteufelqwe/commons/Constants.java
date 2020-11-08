@@ -56,7 +56,8 @@ public class Constants {
     public static int LOG_FETCH_TIME = 20;
 
     // -----  Databases  -----
-    public static String POSTGRESDB_CONTAINER_NAME = "serverlogsdb";
+    public static String POSTGRESDB_CONTAINER_NAME = "Postgres";
+    public static int POSTGRESDB_PORT = 5432;
 
     // -----  Consul  -----
     public static String CONSUL_HOST = "Consul";
@@ -71,6 +72,7 @@ public class Constants {
         CONSUL_POOL,
         LOGCOLLECTOR,
         LOGCOLLECTOR_POOL,
+        POSTGRES_DB,
 
         NGINX,
         NGINX_POOL,
@@ -83,13 +85,17 @@ public class Constants {
         ;
     }
 
+    /**
+     * Important!
+     *      Image names must container a version tag like 'latest' or docker will download every version of the image.
+     */
     public enum Images {
         REGISTRY("registry:latest"),
         OPENSSL("frapsoft/openssl:latest"),
         HTPASSWD("xmartlabs/htpasswd:latest"),
-        BINDDNS("sameersbn/bind:latest"),
-        API_PROXY("derteufelqwe/docker-api-proxy:latest"),
-        CONFIG_WEBSERVER("configwebserver")
+        CONSUL("consul:latest"),
+        POSTGRES("postgres:latest"),
+        LOGCOLLECTOR("registry.swarm/logcollector")
         ;
 
         private String imageName;

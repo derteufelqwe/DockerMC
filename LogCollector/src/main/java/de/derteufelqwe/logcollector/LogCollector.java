@@ -6,6 +6,7 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
+import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import lombok.SneakyThrows;
 
@@ -47,7 +48,7 @@ public class LogCollector {
 
     private SessionBuilder getSessionBuilder() {
 //        return new SessionBuilder("admin", "password", "ubuntu1:5432", true);
-        return new SessionBuilder("admin", "password", "postgresdb:5432", false);
+        return new SessionBuilder("admin", "password", String.format("%s:%s", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT), false);
     }
 
 

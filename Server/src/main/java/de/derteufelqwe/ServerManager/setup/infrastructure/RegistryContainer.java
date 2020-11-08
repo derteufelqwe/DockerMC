@@ -35,18 +35,6 @@ public class RegistryContainer extends ExposableContainerTemplate {
     // -----  Creation methods  -----
 
     @Override
-    protected List<PortBinding> getPortBindings() {
-        List<PortBinding> portBindings = super.getPortBindings();
-
-        // ToDo: Das geht sicherlich auch besser
-        portBindings.add(
-                new PortBinding(Ports.Binding.bindPort(this.getPort()), ExposedPort.tcp(5000))
-        );
-
-        return portBindings;
-    }
-
-    @Override
     protected List<Bind> getBindMounts() {
         List<Bind> mounts = super.getBindMounts();
 
@@ -85,4 +73,8 @@ public class RegistryContainer extends ExposableContainerTemplate {
         return Utils.quickLabel(Constants.ContainerType.REGISTRY);
     }
 
+    @Override
+    protected int getContainerPort() {
+        return 5000;
+    }
 }

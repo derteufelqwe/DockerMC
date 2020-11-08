@@ -8,6 +8,7 @@ import de.derteufelqwe.commons.Constants;
 
 import java.util.*;
 
+@Deprecated
 public class ConsulService extends ServiceTemplate {
 
     public ConsulService() {

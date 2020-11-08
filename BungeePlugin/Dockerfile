@@ -22,6 +22,6 @@ RUN chmod +x startup.sh
 
 ADD docker/waterfall.jar /server/waterfall.jar
 ADD docker/config.yml /server/config.yml
-ADD target/BungeePlugin-1.0.jar /server/plugins/BungeePlugin.jar
+#ADD target/BungeePlugin-1.0.jar /server/plugins/BungeePlugin.jar
 
 CMD ["java", "-Xmx20G", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005", "-jar", "waterfall.jar"]
