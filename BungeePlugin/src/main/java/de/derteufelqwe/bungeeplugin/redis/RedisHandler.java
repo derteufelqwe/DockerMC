@@ -15,8 +15,12 @@ public class RedisHandler {
     private JedisPool jedisPool;
 
 
-    public RedisHandler() {
-        this.jedisPool = new JedisPool(this.getJedisPoolConfig(), "redis");
+    public RedisHandler(String host, int port) {
+        this.jedisPool = new JedisPool(this.getJedisPoolConfig(), host, port);
+    }
+
+    public RedisHandler(String host) {
+        this(host, 6379);
     }
 
     private JedisPoolConfig getJedisPoolConfig() {
@@ -34,7 +38,9 @@ public class RedisHandler {
         return config;
     }
 
-
+    public void destroy() {
+        this.jedisPool.destroy();
+    }
 
 
 }

@@ -2,3 +2,4 @@ name: BungeePlugin
 version: ${project.version}
 main: de.derteufelqwe.bungeeplugin.BungeePlugin
 description: BungeeCord Plugin for interaction with DockerMC
+author: derteufelqwe

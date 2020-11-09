@@ -1,4 +1,4 @@
-package de.derteufelqwe.bungeeplugin;
+package de.derteufelqwe.bungeeplugin.utils;
 
 import com.google.common.collect.HashBiMap;
 import de.derteufelqwe.commons.Constants;
@@ -28,6 +28,9 @@ public class Utils {
         return labelsMap;
     }
 
+    /**
+     * Returns a copy of all available servers excluding the reserved servers, which have special purposes.
+     */
     public static Map<String, ServerInfo> getServers() {
         Map<String, ServerInfo> serverMap = HashBiMap.create();
         serverMap.putAll(ProxyServer.getInstance().getServersCopy());

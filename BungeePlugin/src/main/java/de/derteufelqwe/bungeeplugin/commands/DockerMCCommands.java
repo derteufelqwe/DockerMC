@@ -1,4 +1,4 @@
-package de.derteufelqwe.bungeeplugin;
+package de.derteufelqwe.bungeeplugin.commands;
 
 import de.derteufelqwe.bungeeplugin.health.HealthHandler;
 import net.md_5.bungee.api.ChatColor;

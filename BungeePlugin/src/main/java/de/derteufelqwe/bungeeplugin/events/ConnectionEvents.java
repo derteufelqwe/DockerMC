@@ -1,13 +1,12 @@
-package de.derteufelqwe.bungeeplugin;
+package de.derteufelqwe.bungeeplugin.events;
 
-import com.orbitz.consul.KeyValueClient;
-import com.orbitz.consul.cache.KVCache;
 import com.orbitz.consul.model.kv.Value;
-import de.derteufelqwe.commons.consul.CacheListener;
+import de.derteufelqwe.bungeeplugin.utils.Utils;
 import de.derteufelqwe.commons.consul.ICacheChangeListener;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.*;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
@@ -24,31 +23,19 @@ import java.util.stream.Collectors;
  * Reihenfolge: Join -> Connect
  */
 
-public class Events implements Listener, ICacheChangeListener<String, Value> {
+public class ConnectionEvents implements Listener, ICacheChangeListener<String, Value> {
 
     private final Pattern RE_PLAYERLIMIT = Pattern.compile("^mcservers\\/(.+)\\/softPlayerLimit$");
 
-    private String lobbyServerName = "";
+    private  String lobbyServerName = "";
     // ToDo: SoftPlayerLimit == -1 -> unlimited
     private Map<String, Integer> softPlayerLimits = new HashMap<>();
 
-    private KeyValueClient kvClient;
-    private KVCache kvCache;
 
+    public ConnectionEvents() {
 
-    public Events(KeyValueClient kvClient) {
-        this.kvClient = kvClient;
-
-        this.kvCache = KVCache.newCache(kvClient, "");
-        CacheListener<String, Value> cacheListener = new CacheListener<>();
-        cacheListener.addListener(this);
-        kvCache.addListener(cacheListener);
-        kvCache.start();
     }
 
-    public void stop() {
-        this.kvCache.stop();
-    }
 
     // -----  KV Listener  -----
     @Override
@@ -73,13 +60,15 @@ public class Events implements Listener, ICacheChangeListener<String, Value> {
     private void setValue(String key, Value value) {
         Matcher m = RE_PLAYERLIMIT.matcher(key);
 
-        if (m.matches() && m.find()) {
+        if (m.matches()) {
             String serverName = m.group(1);
             int limit = Integer.parseInt(value.getValueAsString().get());
             this.softPlayerLimits.put(serverName, limit);
             System.out.println("Setting softPlayerLimit of server " + serverName + " to " + limit);
 
-        } else if (key.equals("system/lobbyServerName")) {
+        }
+
+        if (key.equals("system/lobbyServerName")) {
             String name = value.getValueAsString().get();
             this.lobbyServerName = name;
             System.out.println("Setting lobbyServerName to " + name);
@@ -105,18 +94,34 @@ public class Events implements Listener, ICacheChangeListener<String, Value> {
      */
     @EventHandler
     public void playerConnect(ServerConnectEvent event) {
-        if (event.getReason() == ServerConnectEvent.Reason.JOIN_PROXY) {
+        ServerConnectEvent.Reason reason = event.getReason();
+
+        // Send all players to the lobby if they join the network.
+        if (reason == ServerConnectEvent.Reason.JOIN_PROXY) {
             this.connectPlayerToLobby(event);
             return;
         }
 
-        if (event.getReason() == ServerConnectEvent.Reason.COMMAND || event.getReason() == ServerConnectEvent.Reason.PLUGIN_MESSAGE) {
+        // Send the Player to the best lobby if they connect to the special "toLobby" server
+        if (reason == ServerConnectEvent.Reason.COMMAND || reason == ServerConnectEvent.Reason.PLUGIN_MESSAGE) {
             if (event.getTarget().getName().equals("toLobby")) {
                 this.connectPlayerToLobby(event);
+                return;
             }
         }
 
-        return;
+        // Sends the player to the best lobby if they need a fallback server
+        if (reason == ServerConnectEvent.Reason.LOBBY_FALLBACK) {
+            this.connectPlayerToLobby(event);
+            return;
+        }
+
+        // Send the player to the lobby if his server goes down
+        if (reason == ServerConnectEvent.Reason.SERVER_DOWN_REDIRECT) {
+            this.connectPlayerToLobby(event);
+            return;
+        }
+
     }
 
     /**
@@ -124,7 +129,7 @@ public class Events implements Listener, ICacheChangeListener<String, Value> {
      */
     private void connectPlayerToLobby(ServerConnectEvent event) {
         if (this.lobbyServerName == null || this.lobbyServerName.equals("")) {
-            System.err.println("No lobby server found.");
+            System.err.println("[System][Critical] No lobby server found.");
             event.getPlayer().disconnect(new TextComponent(ChatColor.RED + "Can't identify name of lobby server."));
             return;
         }
@@ -134,16 +139,28 @@ public class Events implements Listener, ICacheChangeListener<String, Value> {
                 .sorted(Comparator.comparing(ServerInfo::getName))  // Sort by Name
                 .collect(Collectors.toList());
 
+        Integer playerLimit = this.softPlayerLimits.get(this.lobbyServerName);
+        if (playerLimit != null && playerLimit == -1) {
+            playerLimit = Integer.MAX_VALUE;
+        }
+
+        ProxiedPlayer player = event.getPlayer();
+
         // Connect user to server
         if (servers.size() > 0) {
             for (ServerInfo serverInfo : servers) {
-                int playerLimit = this.softPlayerLimits.getOrDefault(this.lobbyServerName, -1);
+                if (playerLimit == null) {
+                    player.disconnect(new TextComponent(ChatColor.RED + "[Error] Lobby server has no player limit configured (" + this.lobbyServerName + ")."));
+                    return;
+                }
 
                 if (playerLimit == -1) {
                     event.setTarget(serverInfo);
                     return;
 
-                } else if (serverInfo.getPlayers().size() < playerLimit) {
+                }
+
+                if (serverInfo.getPlayers().size() < playerLimit) {
                     event.setTarget(serverInfo);
                     return;
                 }
@@ -152,31 +169,13 @@ public class Events implements Listener, ICacheChangeListener<String, Value> {
             event.getPlayer().disconnect(new TextComponent(ChatColor.RED + "Server has no free slots in the lobby."));
         }
 
-        event.getPlayer().disconnect(new TextComponent(ChatColor.RED + "No lobby servers found."));
+        event.getPlayer().disconnect(new TextComponent(ChatColor.RED + "[Error] No lobby servers found."));
     }
 
 
     @EventHandler
     public void onQuit(PlayerDisconnectEvent event) {
         event.getPlayer().setReconnectServer(null);
-    }
-
-    @EventHandler
-    public void onPing(ProxyPingEvent event) {
-
-        return;
-    }
-
-    @EventHandler
-    public void onDisconnect(ServerDisconnectEvent event) {
-
-        return;
-    }
-
-    @EventHandler
-    public void onKick(ServerKickEvent event) {
-
-        return;
     }
 
 }

@@ -1,9 +1,8 @@
-package de.derteufelqwe.bungeeplugin.redis;
+package de.derteufelqwe.bungeeplugin.events;
 
-import com.google.gson.Gson;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
+import de.derteufelqwe.bungeeplugin.redis.RedisDataCache;
 import net.md_5.bungee.api.ServerPing;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.event.ProxyPingEvent;
@@ -14,20 +13,22 @@ import net.md_5.bungee.event.EventPriority;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
-import java.util.HashMap;
-import java.util.Map;
-
 
 public class RedisEvents implements Listener {
 
     private JedisPool jedisPool;
+    private RedisDataCache dataCache;
 
 
     public RedisEvents() {
         this.jedisPool = BungeePlugin.getRedisHandler().getJedisPool();
+        this.dataCache = BungeePlugin.getRedisDataCache();
     }
 
 
+    /**
+     * Returns the server information on ping.
+     */
     @EventHandler
     public void onProxyPingEvent(ProxyPingEvent event) {
         try (Jedis jedis = this.jedisPool.getResource()) {
@@ -38,40 +39,37 @@ public class RedisEvents implements Listener {
         }
     }
 
-
+    /**
+     * Adds a player to redis when he joins the network
+     */
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoinEvent(PostLoginEvent event) {
         try (Jedis jedis = this.jedisPool.getResource()) {
-            ProxiedPlayer player = event.getPlayer();
-            Map<String, String> map = new HashMap<>();
-            map.put("uuid", player.getUniqueId().toString());
-            map.put("address", player.getAddress().toString());
-
-            jedis.hset("players#" + player.getDisplayName(), map);
+            this.dataCache.addPlayer(new RedisDataCache.PlayerData(event.getPlayer()));
 
             jedis.incr("playerCount");
         }
     }
 
-
+    /**
+     * Removes a player from redis when he disconnects from the network
+     */
     @EventHandler
     public void onPlayerDisconnectEvent(PlayerDisconnectEvent event) {
         try (Jedis jedis = this.jedisPool.getResource()) {
-            ProxiedPlayer player = event.getPlayer();
-
-            jedis.hdel("players#" + player.getDisplayName(), "uuid", "address", "server");
+            this.dataCache.removePlayer(event.getPlayer().getDisplayName());
 
             jedis.decr("playerCount");
         }
     }
 
-
+    /**
+     * Changes the server information for the player, when he changes the server
+     */
     @EventHandler
     public void onPlayerServerConnect(ServerConnectedEvent event) {
         try (Jedis jedis = this.jedisPool.getResource()) {
-            ProxiedPlayer player = event.getPlayer();
-
-            jedis.hset("players#" + player.getDisplayName(), "server", event.getServer().getInfo().getName());
+            this.dataCache.updatePlayersServer(event.getPlayer(), event.getServer());
         }
     }
 

@@ -19,12 +19,12 @@ import java.util.*;
  * @param <A> Type A of the cache listener
  * @param <B> Type B of the cache listener
  */
-public class CacheListener<A, B> implements ConsulCache.Listener<A, B> {
+public abstract class ConsulCacheDistributor<A, B> implements ConsulCache.Listener<A, B> {
 
     private Map<A, B> storage = new HashMap<>();
     private List<ICacheChangeListener<A, B>> listeners = new ArrayList<>();
 
-    public CacheListener() {
+    public ConsulCacheDistributor() {
 
     }
 

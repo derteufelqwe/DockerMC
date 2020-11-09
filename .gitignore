@@ -6,7 +6,9 @@ target
 
 # BungeePlugin
 BungeePlugin/target
-BungeePlugin/docker
+BungeePlugin/docker/modules
+BungeePlugin/docker/plugins
+BungeePlugin/docker/waterfall.jar
 
 # MinecraftPlugin
 MinecraftPlugin/target

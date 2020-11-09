@@ -9,8 +9,7 @@ import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.cache.ServiceCatalogCache;
 import com.orbitz.consul.model.catalog.CatalogService;
 import com.orbitz.consul.model.kv.Value;
-import com.orbitz.consul.option.QueryOptions;
-import de.derteufelqwe.commons.consul.CacheListener;
+import de.derteufelqwe.commons.consul.ConsulCacheDistributor;
 import de.derteufelqwe.commons.consul.ICacheChangeListener;
 import minecraftplugin.minecraftplugin.MinecraftPlugin;
 import minecraftplugin.minecraftplugin.config.SignConfig;
@@ -33,7 +32,7 @@ public class TeleportSignWatcher implements ICacheChangeListener<String, Catalog
     private CatalogClient catalogClient;
     private KeyValueClient kvClient;
     private ServiceCatalogCache serviceCatalogCache;
-    private CacheListener<String, CatalogService> cacheListener = new CacheListener<>();
+    private ConsulCacheDistributor<String, CatalogService> consulCacheDistributor = new ConsulCacheDistributor<>();
     private SignConfig signConfig;
     private Map<String, Short> maxPlayerCountMap = new HashMap<>();
 
@@ -42,9 +41,9 @@ public class TeleportSignWatcher implements ICacheChangeListener<String, Catalog
         this.kvClient = kvClient;
         this.signConfig = MinecraftPlugin.CONFIG.get(SignConfig.class);
 
-        this.cacheListener.addListener(this);
+        this.consulCacheDistributor.addListener(this);
         this.serviceCatalogCache = ServiceCatalogCache.newCache(catalogClient, "minecraft");
-        this.serviceCatalogCache.addListener(this.cacheListener);
+        this.serviceCatalogCache.addListener(this.consulCacheDistributor);
     }
 
     public void start() {

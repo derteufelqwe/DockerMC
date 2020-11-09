@@ -1,4 +1,4 @@
-package de.derteufelqwe.bungeeplugin;
+package de.derteufelqwe.bungeeplugin.utils;
 
 public class Logger {
 
