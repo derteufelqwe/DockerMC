@@ -4,6 +4,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.sun.istack.NotNull;
+import de.derteufelqwe.bungeeplugin.redis.events.RedisPlayerAddEvent;
+import de.derteufelqwe.bungeeplugin.redis.events.RedisPlayerRemoveEvent;
 import lombok.Getter;
 import lombok.Setter;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -29,11 +31,13 @@ public class RedisDataCache {
 
     private JedisPool jedisPool;
     private LoadingCache<String, PlayerData> playerCache;
+    private String bungeeCordId;
 
 
-    public RedisDataCache(JedisPool jedisPool) {
+    public RedisDataCache(JedisPool jedisPool, String bungeeCordId) {
         this.jedisPool = jedisPool;
         this.playerCache = this.buildPlayerCache();
+        this.bungeeCordId = bungeeCordId;
     }
 
 
@@ -80,18 +84,29 @@ public class RedisDataCache {
     }
 
     public void addPlayer(PlayerData playerData) {
+        playerData.setBungeeCordId(this.bungeeCordId);
         this.playerCache.put(playerData.getUsername(), playerData);
 
         try (Jedis jedis = this.jedisPool.getResource()) {
             jedis.hset("players#" + playerData.getUsername(), playerData.toMap());
+            jedis.publish("events#playerJoin", new RedisPlayerAddEvent(playerData.getUsername()).serialize());
         }
+    }
+
+    public void loadPlayer(String username) {
+        this.playerCache.refresh(username);
     }
 
     public void removePlayer(String username) {
         try (Jedis jedis = this.jedisPool.getResource()) {
-            jedis.hdel("players#" + username, "uuid", "address", "server", "username");
+            jedis.hdel("players#" + username, "uuid", "address", "server", "username", "bungeeCordId");
+            jedis.publish("events#playerLeave", new RedisPlayerRemoveEvent(username).serialize());
         }
 
+        this.playerCache.invalidate(username);
+    }
+
+    public void removePlayerFromCache(String username) {
         this.playerCache.invalidate(username);
     }
 
@@ -109,12 +124,14 @@ public class RedisDataCache {
         private String uuid;
         private String address;
         @Setter private String server;
+        @Setter private String bungeeCordId;
 
         public PlayerData(@NotNull Map<String, String> input) {
             this.username = input.get("username");
             this.uuid = input.get("uuid");
             this.address = input.get("address");
             this.server = input.get("server");
+            this.bungeeCordId = input.get("bungeeCordIp");
         }
 
         public PlayerData(@NotNull ProxiedPlayer player) {
@@ -132,6 +149,8 @@ public class RedisDataCache {
             map.put("address", this.address);
             if (this.server != null)
                 map.put("server", this.server);
+            if (this.bungeeCordId != null)
+                map.put("bungeeCordId", this.bungeeCordId);
 
             return map;
         }

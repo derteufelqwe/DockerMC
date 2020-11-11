@@ -26,9 +26,9 @@ public class RedisHandler {
     private JedisPoolConfig getJedisPoolConfig() {
         JedisPoolConfig config = new JedisPoolConfig();
 
-        config.setMaxTotal(64);
-        config.setMaxIdle(64);
-        config.setMinIdle(8);
+        config.setMaxTotal(256);
+        config.setMaxIdle(128);
+        config.setMinIdle(64);
         config.setTestOnBorrow(true);
         config.setTestOnReturn(true);
         config.setTestWhileIdle(true);

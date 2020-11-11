@@ -122,6 +122,12 @@ public class ConnectionEvents implements Listener, ICacheChangeListener<String, 
             return;
         }
 
+        // Redirect the "default" server to the lobby
+        if (event.getTarget().getName().equals("default")) {
+            this.connectPlayerToLobby(event);
+            return;
+        }
+
     }
 
     /**

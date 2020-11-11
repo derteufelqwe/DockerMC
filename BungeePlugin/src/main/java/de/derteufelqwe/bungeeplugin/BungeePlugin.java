@@ -11,6 +11,7 @@ import de.derteufelqwe.bungeeplugin.events.ConnectionEvents;
 import de.derteufelqwe.bungeeplugin.events.ServerRegistrator;
 import de.derteufelqwe.bungeeplugin.health.HealthCheck;
 import de.derteufelqwe.bungeeplugin.events.RedisEvents;
+import de.derteufelqwe.bungeeplugin.redis.RedisPublishListener;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataCache;
 import de.derteufelqwe.bungeeplugin.redis.RedisHandler;
 import de.derteufelqwe.bungeeplugin.utils.MetaData;
@@ -22,7 +23,6 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
-import redis.clients.jedis.Jedis;
 
 public final class BungeePlugin extends Plugin {
 
@@ -36,22 +36,27 @@ public final class BungeePlugin extends Plugin {
 
     // --- Infrastructure ---
     private HealthCheck healthCheck = new HealthCheck();
-    private MetaData metaData = new MetaData();
 
     // --- Static ---
+    @Getter public static Plugin PLUGIN;
     @Getter public static RedisHandler redisHandler;
     @Getter public static ServerState STATE = ServerState.STARTING;
     @Getter public static RedisDataCache redisDataCache;
+    public static MetaData META_DATA = new MetaData();
 
     private ConnectionEvents connectionEvents;
+    private RedisPublishListener redisPublishListener;
 
 
     @Override
     public void onEnable() {
+        BungeePlugin.PLUGIN = this;
         BungeePlugin.redisHandler = new RedisHandler("redis");
-        BungeePlugin.redisDataCache = new RedisDataCache(BungeePlugin.redisHandler.getJedisPool());
+        BungeePlugin.redisDataCache = new RedisDataCache(BungeePlugin.redisHandler.getJedisPool(), META_DATA.getTaskName());
         BungeePlugin.redisDataCache.init();
         this.connectionEvents = new ConnectionEvents();
+        this.redisPublishListener = new RedisPublishListener(BungeePlugin.redisHandler.getJedisPool(), BungeePlugin.redisDataCache);
+        this.redisPublishListener.init();
 
         // ---  Consul Listeners  ---
         this.serviceCatalogListener.init();
@@ -75,13 +80,13 @@ public final class BungeePlugin extends Plugin {
         this.registerContainer();
 
         BungeePlugin.STATE = ServerState.RUNNING;
-        System.out.printf("[System] Server %s started successfully.\n", this.metaData.getTaskName());
+        System.out.printf("[System] Server %s started successfully.\n", META_DATA.getTaskName());
     }
 
     @Override
     public void onDisable() {
         BungeePlugin.STATE = ServerState.STOPPING;
-        System.out.printf("[System] Stopping Server %s.\n", this.metaData.getTaskName());
+        System.out.printf("[System] Stopping Server %s.\n", this.META_DATA.getTaskName());
 
         this.deregisterContainer();
 
@@ -102,8 +107,8 @@ public final class BungeePlugin extends Plugin {
      * Register this container to Consul
      */
     private void registerContainer() {
-        String taskName = this.metaData.getTaskName();
-        String containerIP = this.metaData.getContainerIP();
+        String taskName = this.META_DATA.getTaskName();
+        String containerIP = this.META_DATA.getContainerIP();
         keyValueClient.putValue("bungeecords/" + taskName, containerIP);
 
         Registration newService = ImmutableRegistration.builder()
@@ -133,7 +138,7 @@ public final class BungeePlugin extends Plugin {
      * Remove this container from Consul
      */
     private void deregisterContainer() {
-        String taskName = this.metaData.getTaskName();
+        String taskName = this.META_DATA.getTaskName();
 
         try {
             keyValueClient.deleteKey("bungeecords/" + taskName);

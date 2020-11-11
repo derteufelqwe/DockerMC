@@ -54,7 +54,7 @@ public class RedisEvents implements Listener {
     /**
      * Removes a player from redis when he disconnects from the network
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerDisconnectEvent(PlayerDisconnectEvent event) {
         try (Jedis jedis = this.jedisPool.getResource()) {
             this.dataCache.removePlayer(event.getPlayer().getDisplayName());
@@ -66,7 +66,7 @@ public class RedisEvents implements Listener {
     /**
      * Changes the server information for the player, when he changes the server
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerServerConnect(ServerConnectedEvent event) {
         try (Jedis jedis = this.jedisPool.getResource()) {
             this.dataCache.updatePlayersServer(event.getPlayer(), event.getServer());
