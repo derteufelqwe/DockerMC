@@ -32,7 +32,7 @@ public class TeleportSignWatcher implements ICacheChangeListener<String, Catalog
     private CatalogClient catalogClient;
     private KeyValueClient kvClient;
     private ServiceCatalogCache serviceCatalogCache;
-    private ConsulCacheDistributor<String, CatalogService> consulCacheDistributor = new ConsulCacheDistributor<>();
+    private ConsulCacheDistributor<String, CatalogService> consulCacheDistributor = null;   // Todo: Here
     private SignConfig signConfig;
     private Map<String, Short> maxPlayerCountMap = new HashMap<>();
 

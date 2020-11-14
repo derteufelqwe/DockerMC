@@ -2,6 +2,7 @@ package de.derteufelqwe.bungeeplugin.events;
 
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataCache;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.ServerPing;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
@@ -34,8 +35,9 @@ public class RedisEvents implements Listener {
         try (Jedis jedis = this.jedisPool.getResource()) {
             String playerCountStr = jedis.get("playerCount");
             int playerCount = playerCountStr == null ? 0 : Integer.parseInt(playerCountStr);
-
-            event.getResponse().setPlayers(new ServerPing.Players(100, playerCount, null));
+            int playerLimit = ProxyServer.getInstance().getConfig().getPlayerLimit();
+            playerLimit = playerLimit < 0 ? 65535 : playerLimit;
+            event.getResponse().setPlayers(new ServerPing.Players(playerLimit, playerCount, null));
         }
     }
 
@@ -45,7 +47,7 @@ public class RedisEvents implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoinEvent(PostLoginEvent event) {
         try (Jedis jedis = this.jedisPool.getResource()) {
-            this.dataCache.addPlayer(new RedisDataCache.PlayerData(event.getPlayer()));
+            this.dataCache.addPlayerToRedis(new RedisDataCache.PlayerData(event.getPlayer()));
 
             jedis.incr("playerCount");
         }
@@ -57,7 +59,7 @@ public class RedisEvents implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerDisconnectEvent(PlayerDisconnectEvent event) {
         try (Jedis jedis = this.jedisPool.getResource()) {
-            this.dataCache.removePlayer(event.getPlayer().getDisplayName());
+            this.dataCache.removePlayerFromRedis(event.getPlayer().getDisplayName());
 
             jedis.decr("playerCount");
         }
@@ -68,9 +70,7 @@ public class RedisEvents implements Listener {
      */
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerServerConnect(ServerConnectedEvent event) {
-        try (Jedis jedis = this.jedisPool.getResource()) {
-            this.dataCache.updatePlayersServer(event.getPlayer(), event.getServer());
-        }
+        this.dataCache.updatePlayersServerInRedis(event.getPlayer(), event.getServer());
     }
 
 }

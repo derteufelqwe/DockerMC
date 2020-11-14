@@ -5,7 +5,9 @@ import com.orbitz.consul.model.agent.ImmutableRegCheck;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
 import com.orbitz.consul.model.agent.Registration;
 import com.orbitz.google.common.net.HostAndPort;
-import de.derteufelqwe.bungeeplugin.commands.DockerMCCommands;
+import de.derteufelqwe.bungeeplugin.commands.DockerMCCommand;
+import de.derteufelqwe.bungeeplugin.commands.FindCommand;
+import de.derteufelqwe.bungeeplugin.commands.GlistCommand;
 import de.derteufelqwe.bungeeplugin.consul.*;
 import de.derteufelqwe.bungeeplugin.events.ConnectionEvents;
 import de.derteufelqwe.bungeeplugin.events.ServerRegistrator;
@@ -73,7 +75,9 @@ public final class BungeePlugin extends Plugin {
         getProxy().getPluginManager().registerListener(this, new RedisEvents());
 
         // ---  Commands  ---
-        getProxy().getPluginManager().registerCommand(this, new DockerMCCommands());
+        getProxy().getPluginManager().registerCommand(this, new DockerMCCommand());
+        getProxy().getPluginManager().registerCommand(this, new FindCommand());
+        getProxy().getPluginManager().registerCommand(this, new GlistCommand());
 
         // ---  Consul  ---
         this.healthCheck.start();

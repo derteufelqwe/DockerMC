@@ -4,6 +4,7 @@ import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.redis.events.RedisPlayerAddEvent;
 import de.derteufelqwe.bungeeplugin.redis.events.RedisPlayerRemoveEvent;
 import de.derteufelqwe.bungeeplugin.redis.events.RedisEvent;
+import de.derteufelqwe.bungeeplugin.redis.events.RedisPlayerServerChangeEvent;
 import net.md_5.bungee.api.ProxyServer;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -36,10 +37,15 @@ public class RedisPublishListener extends JedisPubSub implements Runnable {
         }
     }
 
+    /**
+     * Dispatches the incoming redis publish messages.
+     * @param pattern
+     * @param channel
+     * @param message
+     */
     @Override
     public void onPMessage(String pattern, String channel, String message) {
         String event = channel.substring(7);
-        System.out.printf("Redis event %s: %s.\n", event, message);
 
         RedisEvent redisEvent = null;
         switch (event) {
@@ -54,6 +60,13 @@ public class RedisPublishListener extends JedisPubSub implements Runnable {
                 redisEvent = RedisEvent.deserialize(message, RedisPlayerRemoveEvent.class);
                 if (this.checkEventNotFromHere(redisEvent)) {
                     this.onPlayerRemove((RedisPlayerRemoveEvent) redisEvent);
+                }
+                break;
+
+            case "playerServerChange":
+                redisEvent = RedisEvent.deserialize(message, RedisPlayerServerChangeEvent.class);
+                if (this.checkEventNotFromHere(redisEvent)) {
+                    this.onPlayerServerChange((RedisPlayerServerChangeEvent) redisEvent);
                 }
                 break;
 
@@ -74,11 +87,18 @@ public class RedisPublishListener extends JedisPubSub implements Runnable {
 
 
     private void onPlayerAdd(RedisPlayerAddEvent event) {
-        this.redisDataCache.loadPlayer(event.getUsername());
+        System.out.printf("Event: PlayerAdd %s.\n", event.getUsername());
+        this.redisDataCache.loadPlayerFromRedis(event.getUsername());
     }
 
     private void onPlayerRemove(RedisPlayerRemoveEvent event) {
+        System.out.printf("Event: PlayerRemove %s.\n", event.getUsername());
         this.redisDataCache.removePlayerFromCache(event.getUsername());
+    }
+
+    private void onPlayerServerChange(RedisPlayerServerChangeEvent event) {
+        System.out.printf("Event: PlayerChange %s.\n", event.getUsername());
+        this.redisDataCache.loadPlayerFromRedis(event.getUsername());
     }
 
 }

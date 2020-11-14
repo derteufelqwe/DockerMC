@@ -10,14 +10,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class DockerMCCommands extends Command {
+public class DockerMCCommand extends Command {
 
     private final ChatColor COLOR = ChatColor.BLUE;
     private final ChatColor COLOR_CMD = ChatColor.YELLOW;
     private final String NAME = COLOR + "[DockerMC" + ChatColor.GOLD + "B" + COLOR + "] " + ChatColor.RESET;
 
 
-    public DockerMCCommands() {
+    public DockerMCCommand() {
         super("dockermcbungee", "", "dmcb");
     }
 

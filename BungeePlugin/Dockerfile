@@ -21,6 +21,10 @@ ADD docker/startup.sh /server/startup.sh
 RUN chmod +x startup.sh
 
 ADD docker/waterfall.jar /server/waterfall.jar
+ADD docker/modules /server/modules
+ADD docker/locations.yml /server/locations.yml
+ADD docker/waterfall.yml /server/waterfall.yml
+ADD docker/modules.yml /server/modules.yml
 ADD docker/config.yml /server/config.yml
 #ADD target/BungeePlugin-1.0.jar /server/plugins/BungeePlugin.jar
 

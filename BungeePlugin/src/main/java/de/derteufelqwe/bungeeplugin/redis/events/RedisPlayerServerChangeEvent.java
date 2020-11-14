@@ -6,13 +6,13 @@ import lombok.Data;
 
 
 /**
- * Called when a player leaves the BungeeCord network
+ * Called when a player changes the Server on the BungeeCord network
  */
 @Data
 @AllArgsConstructor
-public class RedisPlayerRemoveEvent extends RedisEvent {
+public class RedisPlayerServerChangeEvent extends RedisEvent {
 
     @Expose
     private String username;
-    
+
 }
