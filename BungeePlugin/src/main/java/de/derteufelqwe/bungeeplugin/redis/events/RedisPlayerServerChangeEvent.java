@@ -1,6 +1,7 @@
 package de.derteufelqwe.bungeeplugin.redis.events;
 
 import com.google.gson.annotations.Expose;
+import de.derteufelqwe.bungeeplugin.redis.RedisPubSubData;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -10,7 +11,7 @@ import lombok.Data;
  */
 @Data
 @AllArgsConstructor
-public class RedisPlayerServerChangeEvent extends RedisEvent {
+public class RedisPlayerServerChangeEvent extends RedisPubSubData {
 
     @Expose
     private String username;

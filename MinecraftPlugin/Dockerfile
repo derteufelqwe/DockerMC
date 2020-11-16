@@ -1,6 +1,28 @@
-FROM openjdk:8-jre-alpine
+FROM openjdk:8-jre
 
-RUN apk add curl
+# DCEVM part
+# Sources: https://github.com/dcevm/dcevm, http://hotswapagent.org/
+
+WORKDIR "/install"
+
+RUN apt-get update
+
+# Download DECM pach
+RUN wget -O DCEVM_latest.jar $(curl -s https://api.github.com/repos/dcevm/dcevm/releases/latest \
+            | grep browser_download_url \
+            | cut -d '"' -f 4 \
+            )
+
+# Download hotswap-agent.jar
+RUN wget -O hotswap-agent_latest.jar "https://github.com/HotswapProjects/HotswapAgent/releases/download/RELEASE-1.4.1/hotswap-agent-1.4.1.jar"
+
+RUN unzip DCEVM_latest.jar "linux_amd64_compiler2/product/libjvm.so"
+
+RUN mkdir "$JAVA_HOME/lib/amd64/dcevm" \
+    && cp "linux_amd64_compiler2/product/libjvm.so" "$JAVA_HOME/lib/amd64/dcevm"
+
+
+# PaperMC part
 
 STOPSIGNAL SIGINT
 EXPOSE 25565

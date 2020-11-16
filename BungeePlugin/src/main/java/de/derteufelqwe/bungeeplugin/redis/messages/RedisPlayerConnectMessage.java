@@ -1,19 +1,21 @@
-package de.derteufelqwe.bungeeplugin.redis.events;
+package de.derteufelqwe.bungeeplugin.redis.messages;
 
 import com.google.gson.annotations.Expose;
 import de.derteufelqwe.bungeeplugin.redis.RedisPubSubData;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-
-/**
- * Called when a player leaves the BungeeCord network
- */
 @Data
 @AllArgsConstructor
-public class RedisPlayerRemoveEvent extends RedisPubSubData {
+public class RedisPlayerConnectMessage extends RedisPubSubData {
 
     @Expose
     private String username;
-    
+
+    @Expose
+    private String targetBungee;
+
+    @Expose
+    private String targetServer;
+
 }

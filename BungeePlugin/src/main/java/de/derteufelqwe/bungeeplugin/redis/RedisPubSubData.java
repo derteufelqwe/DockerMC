@@ -1,4 +1,4 @@
-package de.derteufelqwe.bungeeplugin.redis.events;
+package de.derteufelqwe.bungeeplugin.redis;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -8,14 +8,14 @@ import lombok.Data;
 
 
 @Data
-public abstract class RedisEvent {
+public abstract class RedisPubSubData {
 
-    private Gson gson = RedisEvent.getGson();
+    private Gson gson = RedisPubSubData.getGson();
     @Expose
     private String bungeeCordId;
 
 
-    public RedisEvent() {
+    public RedisPubSubData() {
         this.bungeeCordId = BungeePlugin.META_DATA.getTaskName();
     }
 
@@ -41,8 +41,8 @@ public abstract class RedisEvent {
      * @param type
      * @return
      */
-    public static RedisEvent deserialize(String data, Class<? extends RedisEvent> type) {
-        return RedisEvent.getGson().fromJson(data, type);
+    public static RedisPubSubData deserialize(String data, Class<? extends RedisPubSubData> type) {
+        return RedisPubSubData.getGson().fromJson(data, type);
     }
 
 }

@@ -8,6 +8,7 @@ import com.orbitz.google.common.net.HostAndPort;
 import de.derteufelqwe.bungeeplugin.commands.DockerMCCommand;
 import de.derteufelqwe.bungeeplugin.commands.FindCommand;
 import de.derteufelqwe.bungeeplugin.commands.GlistCommand;
+import de.derteufelqwe.bungeeplugin.commands.SendCommand;
 import de.derteufelqwe.bungeeplugin.consul.*;
 import de.derteufelqwe.bungeeplugin.events.ConnectionEvents;
 import de.derteufelqwe.bungeeplugin.events.ServerRegistrator;
@@ -58,7 +59,7 @@ public final class BungeePlugin extends Plugin {
         BungeePlugin.redisDataCache.init();
         this.connectionEvents = new ConnectionEvents();
         this.redisPublishListener = new RedisPublishListener(BungeePlugin.redisHandler.getJedisPool(), BungeePlugin.redisDataCache);
-        this.redisPublishListener.init();
+        this.redisPublishListener.start();
 
         // ---  Consul Listeners  ---
         this.serviceCatalogListener.init();
@@ -78,6 +79,7 @@ public final class BungeePlugin extends Plugin {
         getProxy().getPluginManager().registerCommand(this, new DockerMCCommand());
         getProxy().getPluginManager().registerCommand(this, new FindCommand());
         getProxy().getPluginManager().registerCommand(this, new GlistCommand());
+        getProxy().getPluginManager().registerCommand(this, new SendCommand());
 
         // ---  Consul  ---
         this.healthCheck.start();
