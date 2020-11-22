@@ -14,6 +14,7 @@
         <module>BungeePlugin</module>
         <module>Commons</module>
         <module>LogCollector</module>
+        <module>MinecraftPlugin</module>
     </modules>
 
     <properties>

@@ -16,6 +16,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.material.Sign;
 
 import java.util.Arrays;
@@ -119,6 +120,10 @@ public class TeleportSignEvents implements Listener {
             MinecraftPlugin.CONFIG.get(SignConfig.class).removeSign(tpSign);
             MinecraftPlugin.CONFIG.save(SignConfig.class);
         }
+    }
+
+    public void mweweas() {
+
     }
 
 }

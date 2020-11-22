@@ -36,6 +36,6 @@ ENV TASK_NAME "NO_TASK_NAME"
 HEALTHCHECK --interval=10s --start-period=10s --retries=2 --timeout=2s CMD curl -f http://localhost:8001/health || exit 1
 
 COPY docker/server /server
-COPY target/MinecraftPlugin-1.0.jar /server/plugins
+#COPY target/MinecraftPlugin-1.0.jar /server/plugins
 
-CMD ["java", "-Xmx20G", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005", "-jar", "papermc.jar" ]
+CMD ["java", "-Xmx20G", "-XXaltjvm=dcevm", "-javaagent:/install/hotswap-agent_latest.jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005", "-jar", "papermc.jar" ]

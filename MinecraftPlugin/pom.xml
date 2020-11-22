@@ -27,7 +27,6 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
-<!--                    <useIncrementalCompilation>false</useIncrementalCompilation>-->
                 </configuration>
             </plugin>
 
@@ -53,7 +52,8 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>2.3.1</version>
                 <configuration>
-                    <outputDirectory>target</outputDirectory>
+<!--                    <outputDirectory>target</outputDirectory>-->
+                    <outputDirectory>C:/Users/Arne/Desktop/ServerManager/Minecraft</outputDirectory>
                 </configuration>
             </plugin>
 
@@ -123,6 +123,12 @@
             <groupId>com.orbitz.consul</groupId>
             <artifactId>consul-client</artifactId>
             <version>1.4.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>de.derteufelqwe.SpigotHotswapPlugin</groupId>
+            <artifactId>spigothotswap</artifactId>
+            <version>1.1</version>
         </dependency>
 
     </dependencies>

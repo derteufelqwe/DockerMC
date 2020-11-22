@@ -52,12 +52,12 @@ public final class MinecraftPlugin extends JavaPlugin {
         CONFIG.get(SignConfig.class).setup();
 
         // -----  Listeners / Watchers  -----
-        this.teleportSignWatcher = new TeleportSignWatcher(this.catalogClient, this.kvClient);
-        this.teleportSignWatcher.start();
+//        this.teleportSignWatcher = new TeleportSignWatcher(this.catalogClient, this.kvClient);
+//        this.teleportSignWatcher.start();
 
         // -----  Plugin messaging channels  -----
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-        getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this.teleportSignWatcher);
+//        getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this.teleportSignWatcher);
 
         // -----  Commands  -----
         getServer().getPluginCommand("dockermc").setExecutor(new DockerMCCommands());
