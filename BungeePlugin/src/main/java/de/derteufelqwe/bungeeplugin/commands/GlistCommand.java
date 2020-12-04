@@ -3,7 +3,6 @@ package de.derteufelqwe.bungeeplugin.commands;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataCache;
 import de.derteufelqwe.bungeeplugin.utils.Utils;
-import net.md_5.bungee.Util;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -15,6 +14,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+
+/**
+ * Lists all servers and shows how many players are online on the server.
+ * Also shows the total players online.
+ */
 public class GlistCommand extends Command {
 
     private final int SERVERS_PER_PAGE = 10;

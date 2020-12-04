@@ -9,9 +9,11 @@ import de.derteufelqwe.bungeeplugin.exceptions.UserNotFoundException;
 import de.derteufelqwe.bungeeplugin.redis.events.RedisPlayerAddEvent;
 import de.derteufelqwe.bungeeplugin.redis.events.RedisPlayerRemoveEvent;
 import de.derteufelqwe.bungeeplugin.redis.events.RedisPlayerServerChangeEvent;
+import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerConnectMessage;
 import lombok.Getter;
 import lombok.Setter;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ConnectedPlayer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.connection.Server;
@@ -33,7 +35,7 @@ public class RedisDataCache {
 
     private JedisPool jedisPool;
     private LoadingCache<String, PlayerData> playerCache;
-    private String bungeeCordId;
+    private final String bungeeCordId;
 
 
     public RedisDataCache(JedisPool jedisPool, String bungeeCordId) {
@@ -43,6 +45,9 @@ public class RedisDataCache {
     }
 
 
+    /**
+     * Initializes the cache and loads all players from redis
+     */
     public void init() {
 
         try (Jedis jedis = this.jedisPool.getResource()) {
@@ -167,7 +172,32 @@ public class RedisDataCache {
         }
     }
 
+    /**
+     * Sends a send-player message to the redis network using Redis pub sub
+     * @param msg Message to send
+     */
+    public void sendConnectMessage(RedisPlayerConnectMessage msg) {
+        if (!msg.getTargetBungee().equals(this.bungeeCordId)) {
+            try (Jedis jedis = this.jedisPool.getResource()) {
+                jedis.publish("messages#connectPlayer", msg.serialize());
+            }
 
+        } else  {
+            ProxiedPlayer player = ProxyServer.getInstance().getPlayer(msg.getUsername());
+            if (player == null) {
+                System.err.printf("Player %s to send not found.\n", msg.getUsername());
+                return;
+            }
+
+            ServerInfo target = ProxyServer.getInstance().getServerInfo(msg.getTargetServer());
+            if (target == null) {
+                System.err.printf("Send target %s not found.\n", msg.getTargetServer());
+                return;
+            }
+
+            player.connect(target);
+        }
+    }
 
 
     @Getter
@@ -218,7 +248,7 @@ public class RedisDataCache {
         private JedisPool jedisPool;
 
         public PlayerCacheLoader(JedisPool jedisPool) {
-            this.jedisPool =jedisPool;
+            this.jedisPool = jedisPool;
         }
 
         @Override

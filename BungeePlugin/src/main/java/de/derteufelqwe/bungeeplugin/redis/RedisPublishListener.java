@@ -14,6 +14,10 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPubSub;
 
+/**
+ * Receives the published messages on redis and dispatches them.
+ * This class should run in a different thread since the {@link #run()} method is blocking
+ */
 public class RedisPublishListener extends JedisPubSub implements Runnable {
 
     private JedisPool jedisPool;
@@ -25,12 +29,6 @@ public class RedisPublishListener extends JedisPubSub implements Runnable {
         this.bungeeCordId = BungeePlugin.META_DATA.getTaskName();
         this.jedisPool = jedisPool;
         this.redisDataCache = redisDataCache;
-    }
-
-
-    public void start() {
-        System.out.println("Starting publish thread");
-        ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, this);
     }
 
 
@@ -68,21 +66,21 @@ public class RedisPublishListener extends JedisPubSub implements Runnable {
             case "playerJoin":
                 redisEvent = RedisPubSubData.deserialize(data, RedisPlayerAddEvent.class);
                 if (this.checkEventNotFromHere(redisEvent)) {
-                    this.onPlayerAdd((RedisPlayerAddEvent) redisEvent);
+                    this.onPlayerAddEvent((RedisPlayerAddEvent) redisEvent);
                 }
                 break;
 
             case "playerLeave":
                 redisEvent = RedisPubSubData.deserialize(data, RedisPlayerRemoveEvent.class);
                 if (this.checkEventNotFromHere(redisEvent)) {
-                    this.onPlayerRemove((RedisPlayerRemoveEvent) redisEvent);
+                    this.onPlayerRemoveEvent((RedisPlayerRemoveEvent) redisEvent);
                 }
                 break;
 
             case "playerServerChange":
                 redisEvent = RedisPubSubData.deserialize(data, RedisPlayerServerChangeEvent.class);
                 if (this.checkEventNotFromHere(redisEvent)) {
-                    this.onPlayerServerChange((RedisPlayerServerChangeEvent) redisEvent);
+                    this.onPlayerServerChangeEvent((RedisPlayerServerChangeEvent) redisEvent);
                 }
                 break;
 
@@ -119,25 +117,27 @@ public class RedisPublishListener extends JedisPubSub implements Runnable {
         return !event.getBungeeCordId().equals(BungeePlugin.META_DATA.getTaskName());
     }
 
+    // -----  Event handlers  -----
 
-    private void onPlayerAdd(RedisPlayerAddEvent event) {
+    private void onPlayerAddEvent(RedisPlayerAddEvent event) {
         System.out.printf("Event: PlayerAdd %s.\n", event.getUsername());
         this.redisDataCache.loadPlayerFromRedis(event.getUsername());
     }
 
-    private void onPlayerRemove(RedisPlayerRemoveEvent event) {
+    private void onPlayerRemoveEvent(RedisPlayerRemoveEvent event) {
         System.out.printf("Event: PlayerRemove %s.\n", event.getUsername());
         this.redisDataCache.removePlayerFromCache(event.getUsername());
     }
 
-    private void onPlayerServerChange(RedisPlayerServerChangeEvent event) {
+    private void onPlayerServerChangeEvent(RedisPlayerServerChangeEvent event) {
         System.out.printf("Event: PlayerChange %s.\n", event.getUsername());
         this.redisDataCache.loadPlayerFromRedis(event.getUsername());
     }
 
+    // -----  Message handlers  -----
 
     private void onConnectPlayerMessage(RedisPlayerConnectMessage message) {
-        // Only execute this, if the message is intended for you
+        // Only execute this, if the message is intended for this bungeecord
         if (!message.getTargetBungee().equals(this.bungeeCordId)) {
             return;
         }
@@ -145,10 +145,12 @@ public class RedisPublishListener extends JedisPubSub implements Runnable {
         ServerInfo serverInfo = Utils.getServers().get(message.getTargetServer());
         if (serverInfo == null) {
             System.err.printf("Trying to connect to invalid server %s.\n", message.getTargetServer());
+            return;
         }
 
         ProxiedPlayer player = ProxyServer.getInstance().getPlayer(message.getUsername());
         if (player == null) {
+            System.err.printf("Couldn't find user %s to connect to %s.\n", message.getUsername(), message.getTargetServer());
             return;
         }
 

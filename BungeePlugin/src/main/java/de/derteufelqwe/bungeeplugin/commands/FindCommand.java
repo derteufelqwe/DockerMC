@@ -10,6 +10,9 @@ import net.md_5.bungee.api.plugin.Command;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Tries to find a player on the network and shows the user on which server and over which proxy he is online.
+ */
 public class FindCommand extends Command {
 
     private RedisDataCache redisDataCache;

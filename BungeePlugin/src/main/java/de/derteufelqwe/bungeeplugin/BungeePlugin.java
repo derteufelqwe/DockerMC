@@ -59,7 +59,8 @@ public final class BungeePlugin extends Plugin {
         BungeePlugin.redisDataCache.init();
         this.connectionEvents = new ConnectionEvents();
         this.redisPublishListener = new RedisPublishListener(BungeePlugin.redisHandler.getJedisPool(), BungeePlugin.redisDataCache);
-        this.redisPublishListener.start();
+        System.out.println("Starting publish thread");
+        ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, this.redisPublishListener);
 
         // ---  Consul Listeners  ---
         this.serviceCatalogListener.init();

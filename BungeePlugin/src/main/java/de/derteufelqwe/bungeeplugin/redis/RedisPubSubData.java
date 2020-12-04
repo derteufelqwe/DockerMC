@@ -7,10 +7,17 @@ import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import lombok.Data;
 
 
+/**
+ * Base class for every message that gets sent over redis publish-subscribe system.
+ */
 @Data
 public abstract class RedisPubSubData {
 
     private Gson gson = RedisPubSubData.getGson();
+
+    /**
+     * The BungeeCord ID of the SENDER.
+     */
     @Expose
     private String bungeeCordId;
 
