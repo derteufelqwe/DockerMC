@@ -2,6 +2,7 @@ package de.derteufelqwe.bungeeplugin.commands;
 
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataCache;
+import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerConnectMessage;
 import de.derteufelqwe.bungeeplugin.utils.Utils;
 import net.md_5.bungee.api.ChatColor;
@@ -20,11 +21,10 @@ public class SendCommand extends Command {
 
     private final String PREFIX = ChatColor.YELLOW + "[Send] " + ChatColor.RESET;
 
-    private RedisDataCache redisDataCache;
+    private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
 
     public SendCommand() {
         super("send", "bungeecord.command.send");
-        this.redisDataCache = BungeePlugin.redisDataCache;
     }
 
 
@@ -63,18 +63,18 @@ public class SendCommand extends Command {
 
     private void printHelp(CommandSender sender) {
         sender.sendMessage(new TextComponent(String.format(
-                PREFIX + "%1$sNot enough arguments. \n%1$sUsage: /send <all:current:player_name> <target>" , ChatColor.RED
+                PREFIX + "%1$sNot enough arguments. \n%1$sUsage: /send <all:current:player_name> <target>", ChatColor.RED
         )));
     }
 
     private void sendPlayer(CommandSender sender, String playerName, ServerInfo target) {
-        RedisDataCache.PlayerData playerData = this.redisDataCache.getPlayer(playerName);
+        RedisDataCache.PlayerData playerData = this.redisDataManager.getPlayer(playerName);
         if (playerData == null) {
             sender.sendMessage(new TextComponent(PREFIX + ChatColor.RED + "Couldn't find player " + playerName + "."));
             return;
         }
 
-        redisDataCache.sendConnectMessage(new RedisPlayerConnectMessage(playerName, playerData.getBungeeCordId(), target.getName()));
+        redisDataManager.sendConnectMessage(new RedisPlayerConnectMessage(playerName, playerData.getBungeeCordId(), target.getName()));
         sender.sendMessage(new TextComponent(PREFIX + "Sending " + playerName + " to " + target.getName() + "."));
     }
 

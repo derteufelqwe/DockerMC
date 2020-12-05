@@ -4,19 +4,15 @@ import com.orbitz.consul.*;
 import com.orbitz.consul.model.agent.ImmutableRegCheck;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
 import com.orbitz.consul.model.agent.Registration;
+import com.orbitz.consul.model.catalog.CatalogService;
 import com.orbitz.google.common.net.HostAndPort;
-import de.derteufelqwe.bungeeplugin.commands.DockerMCCommand;
-import de.derteufelqwe.bungeeplugin.commands.FindCommand;
-import de.derteufelqwe.bungeeplugin.commands.GlistCommand;
-import de.derteufelqwe.bungeeplugin.commands.SendCommand;
+import de.derteufelqwe.bungeeplugin.commands.*;
 import de.derteufelqwe.bungeeplugin.consul.*;
 import de.derteufelqwe.bungeeplugin.events.ConnectionEvents;
 import de.derteufelqwe.bungeeplugin.events.ServerRegistrator;
 import de.derteufelqwe.bungeeplugin.health.HealthCheck;
 import de.derteufelqwe.bungeeplugin.events.RedisEvents;
-import de.derteufelqwe.bungeeplugin.redis.RedisPublishListener;
-import de.derteufelqwe.bungeeplugin.redis.RedisDataCache;
-import de.derteufelqwe.bungeeplugin.redis.RedisHandler;
+import de.derteufelqwe.bungeeplugin.redis.*;
 import de.derteufelqwe.bungeeplugin.utils.MetaData;
 import de.derteufelqwe.bungeeplugin.utils.ServerState;
 import de.derteufelqwe.commons.Constants;
@@ -44,8 +40,9 @@ public final class BungeePlugin extends Plugin {
     @Getter public static Plugin PLUGIN;
     @Getter public static RedisHandler redisHandler;
     @Getter public static ServerState STATE = ServerState.STARTING;
-    @Getter public static RedisDataCache redisDataCache;
-    public static MetaData META_DATA = new MetaData();
+    @Getter private static RedisDataManager redisDataManager;   // Manage data from and to redis
+    public static final MetaData META_DATA = new MetaData();
+    public static final String BUNGEECORD_ID = META_DATA.getTaskName(); // Identifies the current node
 
     private ConnectionEvents connectionEvents;
     private RedisPublishListener redisPublishListener;
@@ -54,11 +51,13 @@ public final class BungeePlugin extends Plugin {
     @Override
     public void onEnable() {
         BungeePlugin.PLUGIN = this;
+        // Redis stuff
         BungeePlugin.redisHandler = new RedisHandler("redis");
-        BungeePlugin.redisDataCache = new RedisDataCache(BungeePlugin.redisHandler.getJedisPool(), META_DATA.getTaskName());
-        BungeePlugin.redisDataCache.init();
+        BungeePlugin.redisDataManager = new RedisDataManager();
+        BungeePlugin.redisDataManager.init();
         this.connectionEvents = new ConnectionEvents();
-        this.redisPublishListener = new RedisPublishListener(BungeePlugin.redisHandler.getJedisPool(), BungeePlugin.redisDataCache);
+        this.redisPublishListener = new RedisPublishListener();
+
         System.out.println("Starting publish thread");
         ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, this.redisPublishListener);
 
@@ -81,6 +80,7 @@ public final class BungeePlugin extends Plugin {
         getProxy().getPluginManager().registerCommand(this, new FindCommand());
         getProxy().getPluginManager().registerCommand(this, new GlistCommand());
         getProxy().getPluginManager().registerCommand(this, new SendCommand());
+        getProxy().getPluginManager().registerCommand(this, new BlistCommand(this.catalogClient));
 
         // ---  Consul  ---
         this.healthCheck.start();
@@ -93,7 +93,7 @@ public final class BungeePlugin extends Plugin {
     @Override
     public void onDisable() {
         BungeePlugin.STATE = ServerState.STOPPING;
-        System.out.printf("[System] Stopping Server %s.\n", this.META_DATA.getTaskName());
+        System.out.printf("[System] Stopping Server %s.\n", BUNGEECORD_ID);
 
         this.deregisterContainer();
 
@@ -114,13 +114,12 @@ public final class BungeePlugin extends Plugin {
      * Register this container to Consul
      */
     private void registerContainer() {
-        String taskName = this.META_DATA.getTaskName();
-        String containerIP = this.META_DATA.getContainerIP();
-        keyValueClient.putValue("bungeecords/" + taskName, containerIP);
+        String containerIP = META_DATA.getContainerIP();
+        keyValueClient.putValue("bungeecords/" + BUNGEECORD_ID, containerIP);
 
         Registration newService = ImmutableRegistration.builder()
                 .name("bungeecord")
-                .id(taskName)
+                .id(BUNGEECORD_ID)
                 .addTags("defaultproxy")
                 .address(containerIP)
                 .port(25577)
@@ -136,7 +135,7 @@ public final class BungeePlugin extends Plugin {
                         .build())
                 .putMeta("ip", containerIP)
                 .build();
-        System.out.println("Adding Proxy " + taskName + " to Consul.");
+        System.out.println("Adding Proxy " + BUNGEECORD_ID + " to Consul.");
         agentClient.register(newService);
     }
 
@@ -145,10 +144,9 @@ public final class BungeePlugin extends Plugin {
      * Remove this container from Consul
      */
     private void deregisterContainer() {
-        String taskName = this.META_DATA.getTaskName();
 
         try {
-            keyValueClient.deleteKey("bungeecords/" + taskName);
+            keyValueClient.deleteKey("bungeecords/" + BUNGEECORD_ID);
 
         } catch (Exception e1) {
             System.err.println(e1.getMessage());
@@ -156,7 +154,7 @@ public final class BungeePlugin extends Plugin {
         }
 
         try {
-            agentClient.deregister(taskName);
+            agentClient.deregister(BUNGEECORD_ID);
 
         } catch (ConsulException e) {
             System.err.println(e.getMessage());

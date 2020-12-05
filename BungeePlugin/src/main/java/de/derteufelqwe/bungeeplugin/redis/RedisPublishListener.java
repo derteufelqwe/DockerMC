@@ -20,15 +20,12 @@ import redis.clients.jedis.JedisPubSub;
  */
 public class RedisPublishListener extends JedisPubSub implements Runnable {
 
-    private JedisPool jedisPool;
-    private String bungeeCordId;
-    private RedisDataCache redisDataCache;
+    private JedisPool jedisPool = BungeePlugin.getRedisHandler().getJedisPool();
+    private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
 
 
-    public RedisPublishListener(JedisPool jedisPool, RedisDataCache redisDataCache) {
-        this.bungeeCordId = BungeePlugin.META_DATA.getTaskName();
-        this.jedisPool = jedisPool;
-        this.redisDataCache = redisDataCache;
+    public RedisPublishListener() {
+
     }
 
 
@@ -121,24 +118,24 @@ public class RedisPublishListener extends JedisPubSub implements Runnable {
 
     private void onPlayerAddEvent(RedisPlayerAddEvent event) {
         System.out.printf("Event: PlayerAdd %s.\n", event.getUsername());
-        this.redisDataCache.loadPlayerFromRedis(event.getUsername());
+        this.redisDataManager.loadPlayer(event.getUsername());
     }
 
     private void onPlayerRemoveEvent(RedisPlayerRemoveEvent event) {
         System.out.printf("Event: PlayerRemove %s.\n", event.getUsername());
-        this.redisDataCache.removePlayerFromCache(event.getUsername());
+        this.redisDataManager.removePlayerLoc(event.getUsername());
     }
 
     private void onPlayerServerChangeEvent(RedisPlayerServerChangeEvent event) {
         System.out.printf("Event: PlayerChange %s.\n", event.getUsername());
-        this.redisDataCache.loadPlayerFromRedis(event.getUsername());
+        this.redisDataManager.loadPlayer(event.getUsername());
     }
 
     // -----  Message handlers  -----
 
     private void onConnectPlayerMessage(RedisPlayerConnectMessage message) {
         // Only execute this, if the message is intended for this bungeecord
-        if (!message.getTargetBungee().equals(this.bungeeCordId)) {
+        if (!message.getTargetBungee().equals(BungeePlugin.BUNGEECORD_ID)) {
             return;
         }
 

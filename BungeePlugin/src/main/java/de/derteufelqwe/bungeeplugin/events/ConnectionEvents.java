@@ -163,7 +163,6 @@ public class ConnectionEvents implements Listener, ICacheChangeListener<String, 
                 if (playerLimit == -1) {
                     event.setTarget(serverInfo);
                     return;
-
                 }
 
                 if (serverInfo.getPlayers().size() < playerLimit) {

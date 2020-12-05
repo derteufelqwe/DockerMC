@@ -2,6 +2,7 @@ package de.derteufelqwe.bungeeplugin.events;
 
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataCache;
+import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.ServerPing;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
@@ -17,13 +18,11 @@ import redis.clients.jedis.JedisPool;
 
 public class RedisEvents implements Listener {
 
-    private JedisPool jedisPool;
-    private RedisDataCache dataCache;
+    private JedisPool jedisPool = BungeePlugin.getRedisHandler().getJedisPool();
+    private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
 
 
     public RedisEvents() {
-        this.jedisPool = BungeePlugin.getRedisHandler().getJedisPool();
-        this.dataCache = BungeePlugin.getRedisDataCache();
     }
 
 
@@ -47,7 +46,7 @@ public class RedisEvents implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoinEvent(PostLoginEvent event) {
         try (Jedis jedis = this.jedisPool.getResource()) {
-            this.dataCache.addPlayerToRedis(new RedisDataCache.PlayerData(event.getPlayer()));
+            this.redisDataManager.addPlayer(new RedisDataCache.PlayerData(event.getPlayer()));
 
             jedis.incr("playerCount");
         }
@@ -59,7 +58,7 @@ public class RedisEvents implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerDisconnectEvent(PlayerDisconnectEvent event) {
         try (Jedis jedis = this.jedisPool.getResource()) {
-            this.dataCache.removePlayerFromRedis(event.getPlayer().getDisplayName());
+            this.redisDataManager.removePlayer(event.getPlayer().getDisplayName());
 
             jedis.decr("playerCount");
         }
@@ -70,7 +69,7 @@ public class RedisEvents implements Listener {
      */
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerServerConnect(ServerConnectedEvent event) {
-        this.dataCache.updatePlayersServerInRedis(event.getPlayer(), event.getServer());
+        this.redisDataManager.updatePlayersServer(event.getPlayer().getDisplayName(), event.getServer().getInfo().getName());
     }
 
 }

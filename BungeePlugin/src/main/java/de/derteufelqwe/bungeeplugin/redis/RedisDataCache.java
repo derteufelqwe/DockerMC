@@ -1,202 +1,112 @@
 package de.derteufelqwe.bungeeplugin.redis;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.sun.istack.NotNull;
-import de.derteufelqwe.bungeeplugin.exceptions.UserNotFoundException;
-import de.derteufelqwe.bungeeplugin.redis.events.RedisPlayerAddEvent;
-import de.derteufelqwe.bungeeplugin.redis.events.RedisPlayerRemoveEvent;
-import de.derteufelqwe.bungeeplugin.redis.events.RedisPlayerServerChangeEvent;
-import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerConnectMessage;
+import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import lombok.Getter;
 import lombok.Setter;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.api.connection.ConnectedPlayer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.connection.Server;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.Response;
 
 import javax.annotation.CheckForNull;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 
 /**
- * This class is responsible to store information, which is also stored in redis.
- * These caches are used for faster data access and low load on redis.
+ * The local cache implementation, which is responsible of mirroring the player data in redis.
  */
 public class RedisDataCache {
 
-    private JedisPool jedisPool;
-    private LoadingCache<String, PlayerData> playerCache;
-    private final String bungeeCordId;
+    private Map<String, PlayerData> players = new HashMap<>();
+    private Map<String, Integer> playerCounts = new HashMap<>();
 
+    public RedisDataCache() {
 
-    public RedisDataCache(JedisPool jedisPool, String bungeeCordId) {
-        this.jedisPool = jedisPool;
-        this.playerCache = this.buildPlayerCache();
-        this.bungeeCordId = bungeeCordId;
     }
 
 
     /**
-     * Initializes the cache and loads all players from redis
+     * Returns a player from the cache.
+     * @param username Name of the player to get
+     * @return The players data or null if he is not in the cache
      */
-    public void init() {
-
-        try (Jedis jedis = this.jedisPool.getResource()) {
-            Set<String> playerKeys = jedis.keys("players#*");
-            Set<Response<Map<String, String>>> responses = new HashSet<>();
-
-            // Load the data from redis
-            Pipeline p = jedis.pipelined();
-            for (String player : playerKeys) {
-                responses.add(p.hgetAll(player));
-            }
-            p.sync();
-
-            // Load the players to the cache
-            for (Response<Map<String, String>> r : responses) {
-                Map<String, String> data = r.get();
-                if (data != null && data.get("username") != null) {
-                    this.playerCache.put(data.get("username"), new PlayerData(r.get()));
-                }
-            }
-        }
-
-    }
-
-    private LoadingCache<String, PlayerData> buildPlayerCache() {
-        return CacheBuilder.newBuilder()
-                .refreshAfterWrite(30, TimeUnit.MINUTES)    // ToDo: Maybe configurable
-                .build(new PlayerCacheLoader(this.jedisPool));
-    }
-
-
     @CheckForNull
-    public PlayerData getPlayer(String name) {
-        try {
-            return this.playerCache.get(name);
-
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-
-        } catch (UncheckedExecutionException e2) {
-            // Called when the player is not in redis
-            if (e2.getCause() instanceof UserNotFoundException) {
-                return null;
-            }
-
-            throw e2;
-        }
-
-        return null;
-    }
-
-    public void addPlayerToRedis(PlayerData playerData) {
-        playerData.setBungeeCordId(this.bungeeCordId);
-        this.playerCache.put(playerData.getUsername(), playerData);
-
-        try (Jedis jedis = this.jedisPool.getResource()) {
-            jedis.hset("players#" + playerData.getUsername(), playerData.toMap());
-            jedis.publish("events#playerJoin", new RedisPlayerAddEvent(playerData.getUsername()).serialize());
-        }
-    }
-
-    public void loadPlayerFromRedis(String username) {
-        try {
-            this.playerCache.refresh(username);
-
-        } catch (UncheckedExecutionException e2) {
-            // Called when the player is not in redis
-            if (e2.getCause() instanceof UserNotFoundException) {
-                // Pass
-            }
-
-            throw e2;
-        }
-    }
-
-    public void removePlayerFromRedis(String username) {
-        try (Jedis jedis = this.jedisPool.getResource()) {
-            jedis.hdel("players#" + username, "uuid", "address", "server", "username", "bungeeCordId");
-            jedis.publish("events#playerLeave", new RedisPlayerRemoveEvent(username).serialize());
-        }
-
-        this.playerCache.invalidate(username);
-    }
-
-    public void removePlayerFromCache(String username) {
-        this.playerCache.invalidate(username);
-    }
-
-    public void updatePlayersServerInRedis(ProxiedPlayer player, Server server) {
-        try (Jedis jedis = this.jedisPool.getResource()) {
-            jedis.hset("players#" + player.getDisplayName(), "server", server.getInfo().getName());
-            jedis.publish("events#playerServerChange", new RedisPlayerServerChangeEvent(player.getDisplayName()).serialize());
-        }
-
-        try {
-            PlayerData playerData = this.playerCache.get(player.getDisplayName());
-            playerData.setServer(server.getInfo().getName());
-            this.playerCache.put(player.getDisplayName(), playerData);
-
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    public int getServersPlayerCount(String serverName) {
-        return (int) this.playerCache.asMap().values().stream()
-                .filter(o -> o.getServer().equals(serverName))
-                .count();
-    }
-
-    public int getOverallPlayerCount() {
-        try (Jedis jedis = this.jedisPool.getResource()) {
-            try {
-                return Integer.parseInt(jedis.get("playerCount"));
-
-            } catch (NullPointerException e1) {
-                return -1;
-            } catch (NumberFormatException e2) {
-                return -2;
-            }
-        }
+    public PlayerData getPlayer(String username) {
+        return this.players.get(username);
     }
 
     /**
-     * Sends a send-player message to the redis network using Redis pub sub
-     * @param msg Message to send
+     * Adds a player to the cache
+     * @param playerData Player data to add
      */
-    public void sendConnectMessage(RedisPlayerConnectMessage msg) {
-        if (!msg.getTargetBungee().equals(this.bungeeCordId)) {
-            try (Jedis jedis = this.jedisPool.getResource()) {
-                jedis.publish("messages#connectPlayer", msg.serialize());
-            }
+    public void addPlayer(PlayerData playerData) {
+        this.players.put(playerData.getUsername(), playerData);
+        this.incrementPlayerCount(playerData.getServer());
+    }
 
-        } else  {
-            ProxiedPlayer player = ProxyServer.getInstance().getPlayer(msg.getUsername());
-            if (player == null) {
-                System.err.printf("Player %s to send not found.\n", msg.getUsername());
-                return;
-            }
-
-            ServerInfo target = ProxyServer.getInstance().getServerInfo(msg.getTargetServer());
-            if (target == null) {
-                System.err.printf("Send target %s not found.\n", msg.getTargetServer());
-                return;
-            }
-
-            player.connect(target);
+    /**
+     * Removes a player from the cache
+     * @param username Name of the player to remove
+     * @return true if the player was removed, otherwise false
+     */
+    public boolean removePlayer(String username) {
+        PlayerData playerData = this.players.remove(username);
+        if (playerData != null) {
+            this.decrementPlayerCount(playerData.getServer());
         }
+
+        return playerData != null;
+    }
+
+    /**
+     * Checks if a player is in the cache
+     * @param username Player to check if in the cache.
+     * @return Yes or no
+     */
+    public boolean containsPlayer(String username) {
+        return this.players.containsKey(username);
+    }
+
+    /**
+     * Returns a list of player on a certain server.
+     * @param servername Name of the server to filter
+     * @return The players on the server
+     */
+    public List<PlayerData> getPlayersOnServer(String servername) {
+        return this.players.entrySet().stream()
+                .filter(e -> e.getValue().getServer().equals(servername))
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Gets all players connected through a certain BungeeCord instance
+     * @param bungeeId The id of the BungeeCord to get the player for
+     */
+    public List<PlayerData> getPlayersOnProxy(String bungeeId) {
+        return this.players.entrySet().stream()
+                .filter(e -> e.getValue().getBungeeCordId().equals(bungeeId))
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Increments the player count on a certain server
+     * @param serverName Name of the server to increment
+     */
+    public void incrementPlayerCount(String serverName) {
+        this.playerCounts.put(serverName, this.playerCounts.getOrDefault(serverName, 0) + 1);
+    }
+
+    /**
+     * Decrements the player count on a certain server
+     * @param serverName Name of the server to decrement
+     */
+    public void decrementPlayerCount(String serverName) {
+        this.playerCounts.put(serverName, this.playerCounts.getOrDefault(serverName, 1) - 1);
     }
 
 
@@ -207,20 +117,27 @@ public class RedisDataCache {
         private String uuid;
         private String address;
         @Setter private String server;
-        @Setter private String bungeeCordId;
+        @Setter private String bungeeCordId = BungeePlugin.BUNGEECORD_ID;
 
         public PlayerData(@NotNull Map<String, String> input) {
             this.username = input.get("username");
             this.uuid = input.get("uuid");
             this.address = input.get("address");
             this.server = input.get("server");
-            this.bungeeCordId = input.get("bungeeCordId");
         }
 
         public PlayerData(@NotNull ProxiedPlayer player) {
             this.username = player.getDisplayName();
             this.uuid = player.getUniqueId().toString();
             this.address = player.getAddress().toString();
+
+            Server server = player.getServer();
+            if (server == null)
+                return;
+            ServerInfo serverInfo = server.getInfo();
+            if (serverInfo == null)
+                return;
+            this.server = serverInfo.getName();
         }
 
 
@@ -238,31 +155,13 @@ public class RedisDataCache {
             return map;
         }
 
-    }
-
-    /**
-     * Class responsible for loading new players from redis if the cache doesn't contain them
-     */
-    private static class PlayerCacheLoader extends CacheLoader<String, PlayerData> {
-
-        private JedisPool jedisPool;
-
-        public PlayerCacheLoader(JedisPool jedisPool) {
-            this.jedisPool = jedisPool;
+        /**
+         * Returns all class fields, which are saved in redis.
+         */
+        public static String[] getFields() {
+            return new String[]{"username", "uuid", "address", "server", "bungeeCordId"};
         }
 
-        @Override
-        public PlayerData load(String key) throws Exception {
-            try (Jedis jedis = this.jedisPool.getResource()) {
-                Map<String, String> data = jedis.hgetAll("players#" + key);
-
-                if (data != null && data.size() > 0) {
-                    return new PlayerData(data);
-                }
-
-                throw new UserNotFoundException();
-            }
-        }
     }
 
 }

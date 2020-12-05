@@ -14,7 +14,7 @@ permissions:
   - bungeecord.command.reload
   - bungeecord.command.send
   - bungeecord.command.find
-  - bungeecord.server.*
+  - bungeecord.command.blist
 player_limit: -1
 prevent_proxy_connections: false
 server_connect_timeout: 5000
