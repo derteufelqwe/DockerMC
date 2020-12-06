@@ -21,7 +21,9 @@ import java.util.stream.Collectors;
 public class RedisDataCache {
 
     private Map<String, PlayerData> players = new HashMap<>();
-    private Map<String, Integer> playerCounts = new HashMap<>();
+    private Map<String, Integer> serverPlayerCounts = new HashMap<>();
+    private Map<String, Integer> proxyPlayerCounts = new HashMap<>();
+
 
     public RedisDataCache() {
 
@@ -43,8 +45,15 @@ public class RedisDataCache {
      * @param playerData Player data to add
      */
     public void addPlayer(PlayerData playerData) {
+        PlayerData oldData = this.players.get(playerData.getUsername());
+        if (oldData != null) {
+            this.decrementServerPlayerCount(oldData.getServer());
+            this.decrementProxyPlayerCount(oldData.getBungeeCordId());
+        }
+
         this.players.put(playerData.getUsername(), playerData);
-        this.incrementPlayerCount(playerData.getServer());
+        this.incrementServerPlayerCount(playerData.getServer());
+        this.incrementProxyPlayerCount(playerData.getBungeeCordId());
     }
 
     /**
@@ -55,7 +64,8 @@ public class RedisDataCache {
     public boolean removePlayer(String username) {
         PlayerData playerData = this.players.remove(username);
         if (playerData != null) {
-            this.decrementPlayerCount(playerData.getServer());
+            this.decrementServerPlayerCount(playerData.getServer());
+            this.decrementProxyPlayerCount(playerData.getBungeeCordId());
         }
 
         return playerData != null;
@@ -97,16 +107,63 @@ public class RedisDataCache {
      * Increments the player count on a certain server
      * @param serverName Name of the server to increment
      */
-    public void incrementPlayerCount(String serverName) {
-        this.playerCounts.put(serverName, this.playerCounts.getOrDefault(serverName, 0) + 1);
+    public void incrementServerPlayerCount(String serverName) {
+        this.serverPlayerCounts.put(serverName, this.serverPlayerCounts.getOrDefault(serverName, 0) + 1);
     }
 
     /**
      * Decrements the player count on a certain server
      * @param serverName Name of the server to decrement
      */
-    public void decrementPlayerCount(String serverName) {
-        this.playerCounts.put(serverName, this.playerCounts.getOrDefault(serverName, 1) - 1);
+    public void decrementServerPlayerCount(String serverName) {
+        this.serverPlayerCounts.put(serverName, this.serverPlayerCounts.getOrDefault(serverName, 1) - 1);
+    }
+
+    /**
+     * Increments the player count on a proxy
+     * @param proxyname
+     */
+    public void incrementProxyPlayerCount(String proxyname) {
+        this.proxyPlayerCounts.put(proxyname, this.proxyPlayerCounts.getOrDefault(proxyname, 0) + 1);
+    }
+
+    /**
+     * Decrements the player count on a proxy
+     * @param proxyName
+     */
+    public void decrementProxyPlayerCount(String proxyName) {
+        this.proxyPlayerCounts.put(proxyName, this.proxyPlayerCounts.getOrDefault(proxyName, 1) - 1);
+    }
+
+    /**
+     * Updates the server a player is on
+     * @param username
+     * @param newServer
+     */
+    public void updatePlayerServer(String username, String newServer) {
+        String oldServer = this.players.get(username).getServer();
+        this.players.get(username).setServer(newServer);
+
+        this.decrementServerPlayerCount(oldServer);
+        this.incrementServerPlayerCount(newServer);
+    }
+
+    /**
+     * Returns the player count on a certain server
+     * @param serverName
+     * @return
+     */
+    public int getServerPlayerCount(String serverName) {
+        return this.serverPlayerCounts.getOrDefault(serverName, 0);
+    }
+
+    /**
+     * Returns the player count on a certain bungee proxy
+     * @param proxyName
+     * @return
+     */
+    public int getProxyPlayerCount(String proxyName) {
+        return this.proxyPlayerCounts.getOrDefault(proxyName, 0);
     }
 
 
@@ -124,6 +181,7 @@ public class RedisDataCache {
             this.uuid = input.get("uuid");
             this.address = input.get("address");
             this.server = input.get("server");
+            this.bungeeCordId = input.get("bungeeCordId");
         }
 
         public PlayerData(@NotNull ProxiedPlayer player) {

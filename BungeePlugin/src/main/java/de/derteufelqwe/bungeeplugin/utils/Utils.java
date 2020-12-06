@@ -32,7 +32,7 @@ public class Utils {
      * Returns a copy of all available servers excluding the reserved servers, which have special purposes.
      */
     public static Map<String, ServerInfo> getServers() {
-        Map<String, ServerInfo> serverMap = HashBiMap.create();
+        Map<String, ServerInfo> serverMap = new HashMap<>();
         serverMap.putAll(ProxyServer.getInstance().getServersCopy());
 
         serverMap.remove("default");

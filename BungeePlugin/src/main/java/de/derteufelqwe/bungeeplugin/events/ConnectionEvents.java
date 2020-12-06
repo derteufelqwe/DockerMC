@@ -1,6 +1,8 @@
 package de.derteufelqwe.bungeeplugin.events;
 
 import com.orbitz.consul.model.kv.Value;
+import de.derteufelqwe.bungeeplugin.BungeePlugin;
+import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.bungeeplugin.utils.Utils;
 import de.derteufelqwe.commons.consul.ICacheChangeListener;
 import net.md_5.bungee.api.ChatColor;
@@ -30,6 +32,7 @@ public class ConnectionEvents implements Listener, ICacheChangeListener<String, 
     private  String lobbyServerName = "";
     // ToDo: SoftPlayerLimit == -1 -> unlimited
     private Map<String, Integer> softPlayerLimits = new HashMap<>();
+    private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
 
 
     public ConnectionEvents() {
@@ -102,14 +105,6 @@ public class ConnectionEvents implements Listener, ICacheChangeListener<String, 
             return;
         }
 
-        // Send the Player to the best lobby if they connect to the special "toLobby" server
-        if (reason == ServerConnectEvent.Reason.COMMAND || reason == ServerConnectEvent.Reason.PLUGIN_MESSAGE) {
-            if (event.getTarget().getName().equals("toLobby")) {
-                this.connectPlayerToLobby(event);
-                return;
-            }
-        }
-
         // Sends the player to the best lobby if they need a fallback server
         if (reason == ServerConnectEvent.Reason.LOBBY_FALLBACK) {
             this.connectPlayerToLobby(event);
@@ -126,6 +121,11 @@ public class ConnectionEvents implements Listener, ICacheChangeListener<String, 
         if (event.getTarget().getName().equals("default")) {
             this.connectPlayerToLobby(event);
             return;
+        }
+
+        // Send the Player to the best lobby if they connect to the special "toLobby" server
+        if (event.getTarget().getName().equals("toLobby")) {
+            this.connectPlayerToLobby(event);
         }
 
     }
@@ -160,12 +160,7 @@ public class ConnectionEvents implements Listener, ICacheChangeListener<String, 
                     return;
                 }
 
-                if (playerLimit == -1) {
-                    event.setTarget(serverInfo);
-                    return;
-                }
-
-                if (serverInfo.getPlayers().size() < playerLimit) {
+                if (redisDataManager.getServersPlayerCount(serverInfo.getName()) < playerLimit) {
                     event.setTarget(serverInfo);
                     return;
                 }
