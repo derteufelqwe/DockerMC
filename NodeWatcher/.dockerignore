@@ -8,5 +8,5 @@ target/test-classes/
 pom.xml
 docker-compose.yml
 
-target/LogCollector-1.0-shaded.jar
-target/original-LogCollector-1.0.jar
+target/NodeWatcher-1.0-shaded.jar
+target/original-NodeWatcher-1.0.jar

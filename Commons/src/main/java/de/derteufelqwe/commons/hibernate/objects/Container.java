@@ -1,53 +1,57 @@
 package de.derteufelqwe.commons.hibernate.objects;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.List;
 
-@Data
+@Getter
+@Setter
+@ToString(exclude = {"containerStats"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(name = "containers")
 public class Container {
 
     @Id
-    private String containerId;
+    @Type(type = "text")
+    private String id;
 
-    private String containerName;
+    @Type(type = "text")
+    private String name;
 
-    /**
-     * Name of the server like LobbyServer or Minigame
-     */
-    private String serverName;
+    @Type(type = "text")
+    private String image;
 
-    private String nodeId;
-
-    /**
-     * Contains the logs of the container
-     */
     @Type(type = "text")
     private String log;
 
-    private String image;
+    @ManyToOne(fetch = FetchType.EAGER)
+    private Node node;
 
-    private Timestamp stopTimestamp;
+    @Column(name = "\"startTime\"")
+    private Timestamp startTime;
 
-    private short exitCode = Short.MIN_VALUE;
+    @Column(name = "\"stopTime\"")
+    private Timestamp stopTime;
 
-    private Timestamp lastLogTimestamp;
+    @Column(name = "\"exitCode\"")
+    private Short exitcode;
 
+    @Column(name = "\"maxRam\"")
+    private Integer maxRam;
 
-    public Container(String containerId, String image, String log, Timestamp stopTimestamp, Timestamp lastLogTimestamp) {
-        this.containerId = containerId;
+    @Column(name = "\"containerStats\"")
+    @OneToMany(mappedBy = "container", cascade = CascadeType.ALL)
+    private List<ContainerStats> containerStats;
+
+    public Container(String id, String image, Timestamp startTime) {
+        this.id = id;
         this.image = image;
-        this.log = log;
-        this.stopTimestamp = stopTimestamp;
-        this.lastLogTimestamp = lastLogTimestamp;
+        this.startTime = startTime;
     }
 
 }

@@ -11,10 +11,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.connection.Server;
 import net.md_5.bungee.api.plugin.Command;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -67,6 +64,15 @@ public class GlistCommand extends Command {
             return "";
 
         return serverInfo.getName();
+    }
+
+    private List<String> getServerNames() {
+        Map<String, ServerInfo> servers = Utils.getServers();
+        List<String> keys = new ArrayList<>(servers.keySet());
+
+        Collections.sort(keys);
+
+        return keys;
     }
 
     private void glist(CommandSender sender, int page) {

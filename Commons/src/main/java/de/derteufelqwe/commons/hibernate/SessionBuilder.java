@@ -1,6 +1,9 @@
 package de.derteufelqwe.commons.hibernate;
 
 import de.derteufelqwe.commons.hibernate.objects.Container;
+import de.derteufelqwe.commons.hibernate.objects.ContainerStats;
+import de.derteufelqwe.commons.hibernate.objects.Node;
+import de.derteufelqwe.commons.hibernate.objects.NodeStats;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
@@ -17,6 +20,9 @@ public class SessionBuilder {
         this.sessionFactory = new Configuration()
             .setProperties(this.getProperties(user, password, url, dropTable))
              .addAnnotatedClass(Container.class)
+             .addAnnotatedClass(Node.class)
+             .addAnnotatedClass(ContainerStats.class)
+             .addAnnotatedClass(NodeStats.class)
              .buildSessionFactory();
     }
     
@@ -32,10 +38,11 @@ public class SessionBuilder {
         properties.setProperty(Environment.URL, "jdbc:postgresql://" + url + "/postgres?useSSL=false");
         properties.setProperty(Environment.USER, user);
         properties.setProperty(Environment.PASS, password);
-        properties.setProperty(Environment.DIALECT, "org.hibernate.dialect.PostgreSQL95Dialect");
+        properties.setProperty(Environment.DIALECT, "org.hibernate.dialect.PostgreSQLDialect");
         properties.setProperty(Environment.SHOW_SQL, "false");
         properties.setProperty(Environment.HBM2DDL_AUTO, hbm2ddlType); // create / update
         properties.setProperty(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread");
+        properties.setProperty(Environment.PHYSICAL_NAMING_STRATEGY, "org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl");
 
         return properties;
     }

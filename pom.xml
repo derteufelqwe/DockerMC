@@ -13,7 +13,7 @@
         <module>Server</module>
         <module>BungeePlugin</module>
         <module>Commons</module>
-        <module>LogCollector</module>
+        <module>NodeWatcher</module>
         <module>MinecraftPlugin</module>
     </modules>
 

@@ -16,7 +16,9 @@ public class InfrastructureSetup {
     private RegistryCertificates registryCertificates;
     private RegistryContainer registryContainer = new RegistryContainer();
     private ConsulContainer consulContainer = new ConsulContainer();
-
+    private PostgresDBContainer postgresDBContainer = new PostgresDBContainer();
+    private LogCollectorService logCollectorService = new LogCollectorService();
+    private RedisContainer redisContainer = new RedisContainer();
 
 
     public InfrastructureSetup(Docker docker) {
@@ -25,6 +27,9 @@ public class InfrastructureSetup {
         this.registryCertificates = new RegistryCertificates(docker);
         this.registryContainer.init(docker);
         this.consulContainer.init(docker);
+        this.postgresDBContainer.init(docker);
+        this.logCollectorService.init(docker);
+        this.redisContainer.init(docker);
     }
 
 
@@ -119,9 +124,68 @@ public class InfrastructureSetup {
         return response;
     }
 
-    public ServiceCreateResponse createLogDatabaseContainer() {
-        ServiceCreateResponse response = new ServiceCreateResponse("LogsDatabase", Constants.ContainerType.POSTGRES_DB);
+    public ServiceCreateResponse createPostgresContainer() {
+        ServiceCreateResponse response = new ServiceCreateResponse("PostgresDatabase", Constants.ContainerType.POSTGRES_DB);
 
+        if (!this.postgresDBContainer.find().isFound()) {
+            DockerObjTemplate.CreateResponse createResponse = this.postgresDBContainer.create();
+            response.setServiceId(createResponse.getServiceID());
+
+            if (createResponse.isCreated()) {
+                response.setResult(ServiceStart.OK);
+
+            } else {
+                response.setResult(ServiceStart.FAILED_GENERIC);
+                response.setAdditionalInfos(createResponse.getMessage());
+            }
+
+        } else {
+            response.setResult(ServiceStart.RUNNING);
+        }
+
+        return response;
+    }
+
+    public ServiceCreateResponse createLogcollectorService() {
+        ServiceCreateResponse response = new ServiceCreateResponse("LogCollector", Constants.ContainerType.LOGCOLLECTOR);
+
+        if (!this.logCollectorService.find().isFound()) {
+            DockerObjTemplate.CreateResponse createResponse = this.logCollectorService.create();
+            response.setServiceId(createResponse.getServiceID());
+
+            if (createResponse.isCreated()) {
+                response.setResult(ServiceStart.OK);
+
+            } else {
+                response.setResult(ServiceStart.FAILED_GENERIC);
+                response.setAdditionalInfos(createResponse.getMessage());
+            }
+
+        } else {
+            response.setResult(ServiceStart.RUNNING);
+        }
+
+        return response;
+    }
+
+    public ServiceCreateResponse createRedisContainer() {
+        ServiceCreateResponse response = new ServiceCreateResponse("Redis", Constants.ContainerType.REDIS_DB);
+
+        if (!this.redisContainer.find().isFound()) {
+            DockerObjTemplate.CreateResponse createResponse = this.redisContainer.create();
+            response.setServiceId(createResponse.getServiceID());
+
+            if (createResponse.isCreated()) {
+                response.setResult(ServiceStart.OK);
+
+            } else {
+                response.setResult(ServiceStart.FAILED_GENERIC);
+                response.setAdditionalInfos(createResponse.getMessage());
+            }
+
+        } else {
+            response.setResult(ServiceStart.RUNNING);
+        }
 
         return response;
     }

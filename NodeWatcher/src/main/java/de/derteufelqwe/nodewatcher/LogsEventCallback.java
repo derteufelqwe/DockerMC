@@ -1,4 +1,4 @@
-package de.derteufelqwe.logcollector;
+package de.derteufelqwe.nodewatcher;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
@@ -9,7 +9,6 @@ import de.derteufelqwe.commons.hibernate.objects.Container;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
-import javax.persistence.PersistenceException;
 import java.io.Closeable;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -36,20 +35,21 @@ public class LogsEventCallback implements ResultCallback<Event> {
             labels = event.getActor().getAttributes();
         }
 
-        Container container = new Container(event.getId(), event.getFrom(), log,
-                new Timestamp(event.getTime() * 1000), lastLogTimestamp);
+//        Container container = new Container(event.getId(), event.getFrom(), log,
+//                new Timestamp(event.getTime() * 1000), lastLogTimestamp);
+//
+//        if (labels != null) {
+//            container.setContainerName(labels.get("name"));
+//            container.setServerName(labels.get("ServerName"));
+//            container.setNodeId(labels.get("com.docker.swarm.node.id"));
+//            try {
+//                container.setExitCode(Short.parseShort(labels.get("exitCode")));
+//            } catch (NumberFormatException ignored) {
+//            }
+//        }
 
-        if (labels != null) {
-            container.setContainerName(labels.get("name"));
-            container.setServerName(labels.get("ServerName"));
-            container.setNodeId(labels.get("com.docker.swarm.node.id"));
-            try {
-                container.setExitCode(Short.parseShort(labels.get("exitCode")));
-            } catch (NumberFormatException ignored) {
-            }
-        }
-
-        return container;
+//        return container;
+        return null;
     }
 
 

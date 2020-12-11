@@ -8,11 +8,11 @@
     <file url="file://$PROJECT_DIR$/Commons" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Commons/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Commons/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/LogCollector/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/LogCollector/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/MinecraftPlugin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/MinecraftPlugin/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/MinecraftPlugin/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/NodeWatcher/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/NodeWatcher/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Server" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Server/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Server/src/main/resources" charset="UTF-8" />

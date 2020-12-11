@@ -27,8 +27,8 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.0.0</version>
                 <configuration>
-<!--                    <outputDirectory>target</outputDirectory>-->
-                    <outputDirectory>C:/Users/Arne/Desktop/ServerManager/BungeeCord</outputDirectory>
+                    <outputDirectory>target</outputDirectory>
+<!--                    <outputDirectory>C:/Users/Arne/Desktop/ServerManager/BungeeCord</outputDirectory>-->
                 </configuration>
             </plugin>
 

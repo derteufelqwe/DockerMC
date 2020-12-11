@@ -36,6 +36,7 @@ public class TeleportSignWatcher implements ICacheChangeListener<String, Catalog
     private SignConfig signConfig;
     private Map<String, Short> maxPlayerCountMap = new HashMap<>();
 
+
     public TeleportSignWatcher(CatalogClient catalogClient, KeyValueClient kvClient) {
         this.catalogClient = catalogClient;
         this.kvClient = kvClient;
@@ -45,6 +46,7 @@ public class TeleportSignWatcher implements ICacheChangeListener<String, Catalog
         this.serviceCatalogCache = ServiceCatalogCache.newCache(catalogClient, "minecraft");
         this.serviceCatalogCache.addListener(this.consulCacheDistributor);
     }
+
 
     public void start() {
         this.serviceCatalogCache.start();

@@ -58,6 +58,8 @@ public class Constants {
     // -----  Databases  -----
     public static String POSTGRESDB_CONTAINER_NAME = "Postgres";
     public static int POSTGRESDB_PORT = 5432;
+    public static String REDIS_CONTAINER_NAME = "Redis";
+    public static int REDIS_PORT = 6379;
 
     // -----  Consul  -----
     public static String CONSUL_HOST = "Consul";
@@ -73,6 +75,7 @@ public class Constants {
         LOGCOLLECTOR,
         LOGCOLLECTOR_POOL,
         POSTGRES_DB,
+        REDIS_DB,
 
         NGINX,
         NGINX_POOL,
@@ -95,7 +98,8 @@ public class Constants {
         HTPASSWD("xmartlabs/htpasswd:latest"),
         CONSUL("consul:latest"),
         POSTGRES("postgres:latest"),
-        LOGCOLLECTOR("registry.swarm/logcollector")
+        LOGCOLLECTOR("registry.swarm/logcollector"),
+        REDIS("redis:latest")
         ;
 
         private String imageName;

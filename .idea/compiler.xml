@@ -7,9 +7,9 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="LogCollector" />
         <module name="Server" />
         <module name="MinecraftPlugin" />
+        <module name="NodeWatcher" />
         <module name="BungeePlugin" />
         <module name="Commons" />
       </profile>

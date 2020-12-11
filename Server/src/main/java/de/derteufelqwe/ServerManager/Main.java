@@ -8,9 +8,6 @@ public class Main {
         try {
             serverManager.start();
 
-
-
-
         } finally {
             serverManager.stop();
         }

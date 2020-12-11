@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 
 /**
  * Problems:
- * - BungeeCord servers are not synced
+ * + BungeeCord servers are not synced
  */
 
 /**
@@ -105,22 +105,12 @@ public class ServerManager {
             return;
         }
 
-//        this.checkAndCreateInfrastructure();
+        this.checkAndCreateInfrastructure();
 
         this.consul = Consul.builder().withHostAndPort(HostAndPort.fromParts("ubuntu1", Constants.CONSUL_PORT)).build();
         this.keyValueClient = this.consul.keyValueClient();
 
-//        this.checkAndCreateMCServers();
-
-        PostgresDBContainer container = new PostgresDBContainer();
-        container.init(docker);
-        System.out.println(container.create());
-
-//        TimeUnit.SECONDS.sleep(5);
-
-//        LogCollectorService collectorService = new LogCollectorService();
-//        collectorService.init(docker);
-//        System.out.println(collectorService.create());
+        this.checkAndCreateMCServers();
 
     }
 
@@ -154,7 +144,6 @@ public class ServerManager {
                 throw new NotImplementedException("Result " + response0.getResult() + " not implemented.");
         }
 
-
         // Registry Certificates
         ServiceCreateResponse response1 = setup.createRegistryCerts();
         switch (response1.getResult()) {
@@ -185,7 +174,7 @@ public class ServerManager {
                 throw new NotImplementedException("Result " + response2.getResult() + " not implemented.");
         }
 
-        // Consul Service
+        // Consul Container
         ServiceCreateResponse response3 = setup.createConsulContainer();
         switch (response3.getResult()) {
             case OK:
@@ -198,6 +187,53 @@ public class ServerManager {
 
             default:
                 throw new NotImplementedException("Result " + response3.getResult() + " not implemented.");
+        }
+
+        // Postgres Database
+        ServiceCreateResponse response4 = setup.createPostgresContainer();
+        switch (response4.getResult()) {
+            case OK:
+                System.out.println("Created Postgres DB container successfully.");
+                Utils.sleep(TimeUnit.SECONDS, 5);
+                break;
+            case RUNNING:
+                System.out.println("Postgres DB container already running."); break;
+            case FAILED_GENERIC:
+                System.err.printf("Failed to create the Postgres DB container! ID: %s, Message: %s.%n",
+                        response4.getServiceId(), response4.getAdditionalInfos()); break;
+
+            default:
+                throw new NotImplementedException("Result " + response4.getResult() + " not implemented.");
+        }
+
+        // Logcollector service
+        ServiceCreateResponse response5 = setup.createLogcollectorService();
+        switch (response5.getResult()) {
+            case OK:
+                System.out.println("Created LogCollector service successfully."); break;
+            case RUNNING:
+                System.out.println("LogCollector service already running."); break;
+            case FAILED_GENERIC:
+                System.err.printf("Failed to create the LogCollector service! ID: %s, Message: %s.%n",
+                        response5.getServiceId(), response5.getAdditionalInfos()); break;
+
+            default:
+                throw new NotImplementedException("Result " + response5.getResult() + " not implemented.");
+        }
+
+        // Redis container
+        ServiceCreateResponse response6 = setup.createRedisContainer();
+        switch (response6.getResult()) {
+            case OK:
+                System.out.println("Created Redis container successfully."); break;
+            case RUNNING:
+                System.out.println("Redis container already running."); break;
+            case FAILED_GENERIC:
+                System.err.printf("Failed to create the Redis container! ID: %s, Message: %s.%n",
+                        response6.getServiceId(), response6.getAdditionalInfos()); break;
+
+            default:
+                throw new NotImplementedException("Result " + response6.getResult() + " not implemented.");
         }
 
         return true;

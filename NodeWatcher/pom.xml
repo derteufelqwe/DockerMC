@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>LogCollector</artifactId>
+    <artifactId>NodeWatcher</artifactId>
 
 
     <build>
@@ -24,7 +24,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>de.derteufelqwe.logcollector.Main</mainClass>
+                            <mainClass>de.derteufelqwe.nodewatcher.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -45,7 +45,7 @@
 
                         <!--                        Exclude Files from the jar  -->
                         <configuration>
-                            <finalName>LogCollector-1.0</finalName>
+                            <finalName>NodeWatcher-1.0</finalName>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <filters>
                                 <filter>

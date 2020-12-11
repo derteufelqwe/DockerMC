@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import de.derteufelqwe.commons.Constants;
@@ -28,7 +29,6 @@ public class Utils {
         return splits;
     }
 
-
     /**
      * Creates the labels required for container identification.
      * @return
@@ -40,7 +40,6 @@ public class Utils {
 
         return labelsMap;
     }
-
 
     /**
      * Converts a String like 512M to the amount of bytes.
@@ -66,8 +65,7 @@ public class Utils {
         }
     }
 
-
-    public List<String> getHostIPAddresses() {
+    public static List<String> getHostIPAddresses() {
         List<String> resList = new ArrayList<>();
 
         try {
@@ -89,5 +87,14 @@ public class Utils {
         return resList;
     }
 
+    public static boolean sleep(TimeUnit timeUnit, long duration) {
+        try {
+            timeUnit.sleep(duration);
+            return true;
+
+        } catch (InterruptedException e) {
+            return false;
+        }
+    }
 
 }
