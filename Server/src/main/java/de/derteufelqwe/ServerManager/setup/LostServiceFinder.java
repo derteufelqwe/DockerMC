@@ -3,15 +3,14 @@ package de.derteufelqwe.ServerManager.setup;
 import com.github.dockerjava.api.model.Service;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
-import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.config.InfrastructureConfig;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Identifies and removed "lost" services.
@@ -32,8 +31,8 @@ public class LostServiceFinder {
      * Returns all running docker services, which have the required labels.
      */
     private List<Service> getRelevantServices() {
-        Map<String, String> labels1 = Utils.quickLabel(Constants.ContainerType.BUNGEE_POOL);
-        Map<String, String> labels2 = Utils.quickLabel(Constants.ContainerType.MINECRAFT_POOL);
+        Map<String, String> labels1 = de.derteufelqwe.commons.Utils.quickLabel(Constants.ContainerType.BUNGEE_POOL);
+        Map<String, String> labels2 = de.derteufelqwe.commons.Utils.quickLabel(Constants.ContainerType.MINECRAFT_POOL);
         Map<String, String> labels3 = Utils.quickLabel(Constants.ContainerType.MINECRAFT_POOL_PERSISTENT);
 
         List<Service> existingServices = this.docker.getDocker().listServicesCmd().withLabelFilter(labels1).exec();

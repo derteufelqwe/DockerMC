@@ -1,9 +1,9 @@
 package de.derteufelqwe.ServerManager.setup.infrastructure;
 
 import com.github.dockerjava.api.model.*;
-import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.setup.templates.ExposableContainerTemplate;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.Utils;
 
 import java.util.List;
 import java.util.Map;

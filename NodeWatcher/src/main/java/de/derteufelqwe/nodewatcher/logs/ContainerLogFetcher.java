@@ -2,9 +2,10 @@ package de.derteufelqwe.nodewatcher.logs;
 
 import com.github.dockerjava.api.DockerClient;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
-import de.derteufelqwe.commons.hibernate.objects.Container;
+import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.nodewatcher.ContainerWatcher;
 import de.derteufelqwe.nodewatcher.misc.INewContainerObserver;
+import de.derteufelqwe.nodewatcher.misc.IRemoveContainerObserver;
 import de.derteufelqwe.nodewatcher.misc.NWUtils;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import lombok.SneakyThrows;
@@ -20,12 +21,12 @@ import java.util.concurrent.TimeUnit;
  * Responsible for periodically downloading the new logs for a container.
  * Containers are added by {@link ContainerWatcher} and removed by {@link LogLoadCallback}
  */
-public class ContainerLogFetcher extends Thread implements INewContainerObserver {
+public class ContainerLogFetcher extends Thread implements INewContainerObserver, IRemoveContainerObserver {
 
-    private final int FETCH_INTERVAL = 5;  // in seconds
+    private final int FETCH_INTERVAL = 10;  // in seconds
 
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
-    private final DockerClient dockerClient = NodeWatcher.getDockerClient();
+    private final DockerClient dockerClient = NodeWatcher.getDockerClientFactory().forceNewDockerClient();
 
     private boolean doRun = true;
     private Set<String> runningContainers;
@@ -43,30 +44,35 @@ public class ContainerLogFetcher extends Thread implements INewContainerObserver
         }
     }
 
-    public synchronized void removeContainer(String containerId) {
-        this.runningContainers.remove(containerId);
+    @Override
+    public void onRemoveContainer(String containerId) {
+        synchronized (this.runningContainers) {
+            this.runningContainers.remove(containerId);
+        }
     }
-
 
     @SuppressWarnings("SynchronizeOnNonFinalField") // Just dont change the field runningContainers
     @SneakyThrows
     @Override
     public void run() {
-        this.runningContainers = NWUtils.findLocalRunningContainers(sessionBuilder);
-        System.out.println("Initialized ContainerLogFetcher with " + runningContainers.size() + " containers.");
-
         while (this.doRun) {
             synchronized (this.runningContainers) {
                 for (String id : this.runningContainers) {
                     this.updateContainerLogs(id);
                 }
             }
-            System.out.println("updated " + this.runningContainers.size());
 
             this.interruptableSleep(FETCH_INTERVAL);
         }
 
     }
+
+
+    public void init() {
+        this.runningContainers = NWUtils.findLocalRunningContainers(sessionBuilder);
+        System.out.println("[ContainerLogFetcher] Initialized with " + runningContainers.size() + " containers.");
+    }
+
 
     public void interrupt() {
         this.doRun = false;
@@ -93,7 +99,7 @@ public class ContainerLogFetcher extends Thread implements INewContainerObserver
         try (Session session = sessionBuilder.openSession()) {
             Transaction tx = session.beginTransaction();
             try {
-                Container container = session.get(Container.class, containerId);
+                DBContainer container = session.get(DBContainer.class, containerId);
                 if (container == null) {
                     System.err.println("Failed to get container for " + containerId + "!");
                     return 0;

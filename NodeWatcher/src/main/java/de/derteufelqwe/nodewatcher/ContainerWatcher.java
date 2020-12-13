@@ -3,33 +3,37 @@ package de.derteufelqwe.nodewatcher;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Event;
 import com.github.dockerjava.api.model.EventActor;
+import com.github.dockerjava.api.model.ServicePlacement;
+import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
-import de.derteufelqwe.commons.hibernate.objects.Container;
+import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.Node;
 import de.derteufelqwe.nodewatcher.misc.INewContainerObserver;
 import de.derteufelqwe.nodewatcher.misc.InvalidSystemStateException;
+import de.derteufelqwe.nodewatcher.misc.NWUtils;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Watches for docker events.
  */
 public class ContainerWatcher implements ResultCallback<Event> {
 
-    private DockerClient dockerClient = NodeWatcher.getDockerClient();
+    private DockerClient dockerClient = NodeWatcher.getDockerClientFactory().forceNewDockerClient();
     private SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
 
     private final List<INewContainerObserver> newContainerObservers = new ArrayList<>();
@@ -79,9 +83,59 @@ public class ContainerWatcher implements ResultCallback<Event> {
 
     /**
      * Initializes the ContainerWatcher and makes sure that all running containers are stored in the database
+     * and containers the stopped while this ContainerWatcher was offline, are updated accordingly
      */
     public void init() {
-        this.addContainerEntry("5aefcf23eae67f80c777486888a87d37cd02340e0775db2b24d4409729188160");
+        List<Container> containers = this.getRunningBungeeMinecraftContainers();
+        List<String> containerIds = containers.stream().map(Container::getId).collect(Collectors.toList());
+
+        // Create new container entries if they are not yet present in the database.
+        try (Session session = sessionBuilder.openSession()) {
+            for (Container container : containers) {
+                Transaction tx = session.beginTransaction();
+
+                try {
+                    DBContainer dbContainer = session.get(DBContainer.class, container.getId());
+                    if (dbContainer != null) {
+                        continue;
+                    }
+
+                    this.addContainerEntry(container.getId());
+
+                } finally {
+                    tx.commit();
+                }
+            }
+        }
+
+        // Finish the database entries for stopped containers
+        Set<String> existingDbContainerIds = NWUtils.findLocalRunningContainers(sessionBuilder);
+
+        try (Session session = sessionBuilder.openSession()) {
+            for (String containerId : existingDbContainerIds) {
+                // Only execute for not running containers
+                if (containerIds.contains(containerId)) {
+                    continue;
+                }
+
+                Transaction tx = session.beginTransaction();
+                try {
+                    DBContainer dbContainer = session.get(DBContainer.class, containerId);
+                    if (dbContainer == null) {
+                        System.err.println("[ContainerWatcher] Failed to find container object for " + containerId + ".");
+                        continue;
+                    }
+
+                    InspectContainerResponse response = dockerClient.inspectContainerCmd(containerId).exec();
+                    this.finishContainerEntry(containerId, NWUtils.parseDockerTimestamp(response.getState().getFinishedAt()), response.getState().getExitCodeLong().shortValue());
+
+                } finally {
+                    tx.commit();
+                }
+            }
+        }
+
+
     }
 
     public void addNewContainerObserver(INewContainerObserver newContainerObserver) {
@@ -90,15 +144,6 @@ public class ContainerWatcher implements ResultCallback<Event> {
         }
     }
 
-    @CheckForNull
-    private String getNodeId(InspectContainerResponse containerResponse) {
-        Map<String, String> labels = containerResponse.getConfig().getLabels();
-        if (labels != null) {
-            return labels.get("com.docker.swarm.node.id");
-        }
-
-        return null;
-    }
 
     /**
      * Saves a container to the database when its started
@@ -109,24 +154,13 @@ public class ContainerWatcher implements ResultCallback<Event> {
         this.addContainerEntry(event.getId());
     }
 
-
-    @CheckForNull
-    private Timestamp parseTimestamp(String tsRaw) {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS");
-        format.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-        try {
-            return new Timestamp(format.parse(tsRaw).getTime());
-
-        } catch (ParseException e) {
-            return null;
-        }
-    }
-
-
+    /**
+     * Creates a database entry for a docker container
+     * @param id Container id
+     */
     private void addContainerEntry(String id) {
         InspectContainerResponse cont = dockerClient.inspectContainerCmd(id).exec();
-        Container container = new Container(id, cont.getConfig().getImage(), this.parseTimestamp(cont.getCreated()));  // getFrom, //getTime
+        DBContainer container = new DBContainer(id, cont.getConfig().getImage(), NWUtils.parseDockerTimestamp(cont.getCreated()));
         container.setName(cont.getName());
         container.setMaxRam((int) (cont.getHostConfig().getMemory() / 1024 / 1024));
 
@@ -146,10 +180,51 @@ public class ContainerWatcher implements ResultCallback<Event> {
                 session.persist(container);
                 System.out.println("[ContainerWatcher] Created container entry " + id + ".");
 
-                // Notify observers
-                for (INewContainerObserver observer : this.newContainerObservers) {
-                    observer.onNewContainer(id);
+            } finally {
+                tx.commit();
+            }
+        }
+
+        // Notify observers
+        for (INewContainerObserver observer : this.newContainerObservers) {
+            observer.onNewContainer(id);
+        }
+    }
+
+    /**
+     * Called, when a container dies
+     * @param event
+     */
+    private void onContainerDie(Event event) {
+        EventActor actor = event.getActor();
+        Short exitCode = null;
+        if (actor != null) {
+            exitCode = this.getContainerExitCode(event.getActor().getAttributes());
+        }
+
+        this.finishContainerEntry(event.getId(), new Timestamp(event.getTime() * 1000), exitCode);
+    }
+
+    /**
+     * "Finishes" a container in the database. This means that its stop timestamp and exit code are saved
+     * @param id
+     */
+    private void finishContainerEntry(String id, Timestamp stopTime, Short exitCode) {
+        try (Session session = this.sessionBuilder.openSession()) {
+            Transaction tx = session.beginTransaction();
+
+            try {
+                DBContainer container = session.get(DBContainer.class, id);
+                if (container == null) {
+                    System.err.println("Stopped Container with id " + id + " not found!");
+                    return;
                 }
+
+                container.setStopTime(stopTime);
+                container.setExitcode(exitCode);
+
+                session.update(container);
+                System.out.println("[ContainerWatcher] Updated container entry " + id + ".");
 
             } finally {
                 tx.commit();
@@ -158,14 +233,14 @@ public class ContainerWatcher implements ResultCallback<Event> {
         }
     }
 
-    @CheckForNull
-    private Short getContainerExitCode(Event event) {
-        EventActor actor = event.getActor();
-        if (actor == null) {
-            return null;
-        }
+    // -----  Utility methods  -----
 
-        Map<String, String> labels = actor.getAttributes();
+    /**
+     * Tries to get the containers exit code from its attributes
+     * @return
+     */
+    @CheckForNull
+    private Short getContainerExitCode(@Nullable Map<String, String> labels) {
         if (labels == null) {
             return null;
         }
@@ -178,29 +253,33 @@ public class ContainerWatcher implements ResultCallback<Event> {
         }
     }
 
-    private void onContainerDie(Event event) {
-
-        try (Session session = this.sessionBuilder.openSession()) {
-            Transaction tx = session.beginTransaction();
-
-            try {
-                Container container = session.get(Container.class, event.getId());
-                if (container == null) {
-                    System.err.println("Stopped Container with id " + event.getId() + " not found!");
-                    return;
-                }
-
-                container.setStopTime(new Timestamp(event.getTime() * 1000));
-                container.setExitcode(this.getContainerExitCode(event));
-
-                session.update(container);
-                System.out.println("[ContainerWatcher] Updated container entry " + event.getId() + ".");
-
-            } finally {
-                tx.commit();
-            }
-
+    /**
+     * Tries to get the containers swarm node id from its labels
+     * @param containerResponse
+     * @return
+     */
+    @CheckForNull
+    private String getNodeId(InspectContainerResponse containerResponse) {
+        Map<String, String> labels = containerResponse.getConfig().getLabels();
+        if (labels != null) {
+            return labels.get("com.docker.swarm.node.id");
         }
+
+        return null;
+    }
+
+    /**
+     * Returns all docker containers, which are currently cunning
+     * @return
+     */
+    private List<Container> getRunningBungeeMinecraftContainers() {
+        List<Container> bungeeContainers = dockerClient.listContainersCmd().withLabelFilter(Utils.quickLabel(Constants.ContainerType.BUNGEE)).exec();
+
+        List<Container> minecraftContainers = dockerClient.listContainersCmd().withLabelFilter(Utils.quickLabel(Constants.ContainerType.MINECRAFT)).exec();
+
+        bungeeContainers.addAll(minecraftContainers);
+
+        return bungeeContainers;
     }
 
 }

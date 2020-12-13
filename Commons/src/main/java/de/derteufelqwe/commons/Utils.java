@@ -1,14 +1,16 @@
 package de.derteufelqwe.commons;
 
-import javax.annotation.CheckForNull;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Utils {
 
     /**
      * Executes a command on the java host and returns its result
+     *
      * @param commands
      * @return
      */
@@ -36,4 +38,16 @@ public class Utils {
         return "";
     }
 
+    /**
+     * Creates the labels required for container identification.
+     *
+     * @return
+     */
+    public static Map<String, String> quickLabel(Constants.ContainerType containerType) {
+        Map<String, String> labelsMap = new HashMap<>();
+        labelsMap.put(Constants.DOCKER_IDENTIFIER_KEY, Constants.DOCKER_IDENTIFIER_VALUE);
+        labelsMap.put(Constants.CONTAINER_IDENTIFIER_KEY, containerType.name());
+
+        return labelsMap;
+    }
 }

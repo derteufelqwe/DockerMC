@@ -1,6 +1,6 @@
 package de.derteufelqwe.commons.hibernate;
 
-import de.derteufelqwe.commons.hibernate.objects.Container;
+import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.ContainerStats;
 import de.derteufelqwe.commons.hibernate.objects.Node;
 import de.derteufelqwe.commons.hibernate.objects.NodeStats;
@@ -19,7 +19,7 @@ public class SessionBuilder {
     public SessionBuilder(String user, String password, String url, boolean dropTable) {
         this.sessionFactory = new Configuration()
             .setProperties(this.getProperties(user, password, url, dropTable))
-             .addAnnotatedClass(Container.class)
+             .addAnnotatedClass(DBContainer.class)
              .addAnnotatedClass(Node.class)
              .addAnnotatedClass(ContainerStats.class)
              .addAnnotatedClass(NodeStats.class)

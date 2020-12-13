@@ -30,18 +30,6 @@ public class Utils {
     }
 
     /**
-     * Creates the labels required for container identification.
-     * @return
-     */
-    public static Map<String, String> quickLabel(Constants.ContainerType containerType) {
-        Map<String, String> labelsMap = new HashMap<>();
-        labelsMap.put(Constants.DOCKER_IDENTIFIER_KEY, Constants.DOCKER_IDENTIFIER_VALUE);
-        labelsMap.put(Constants.CONTAINER_IDENTIFIER_KEY, containerType.name());
-
-        return labelsMap;
-    }
-
-    /**
      * Converts a String like 512M to the amount of bytes.
      */
     public static long convertMemoryString(String memoryString) {

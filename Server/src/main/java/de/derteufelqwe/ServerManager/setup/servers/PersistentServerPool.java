@@ -1,8 +1,8 @@
 package de.derteufelqwe.ServerManager.setup.servers;
 
-import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.Utils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -30,7 +30,7 @@ public class PersistentServerPool extends ServerPool {
 
     @Override
     protected Map<String, String> getContainerLabels() {
-        Map<String, String> containerLabels = Utils.quickLabel(Constants.ContainerType.MINECRAFT_PERSISTENT);
+        Map<String, String> containerLabels = de.derteufelqwe.commons.Utils.quickLabel(Constants.ContainerType.MINECRAFT_PERSISTENT);
         containerLabels.put(Constants.SERVER_NAME_KEY, this.name);
 
         return containerLabels;

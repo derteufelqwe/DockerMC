@@ -3,7 +3,7 @@ package de.derteufelqwe.nodewatcher.stats;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.model.Statistics;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
-import de.derteufelqwe.commons.hibernate.objects.Container;
+import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.ContainerStats;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.misc.ContainerNoLongerExistsException;
@@ -20,7 +20,7 @@ public class ContainerStatsCallback implements ResultCallback<Statistics> {
 
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
     private String containerId;
-    private Container containerObj; // To map the stats to it
+    private DBContainer containerObj; // To map the stats to it
     private int noResultCounter = 0;
     private long sysCpuOld = -1;
     private long cpuCpuOld = -1;
@@ -37,7 +37,7 @@ public class ContainerStatsCallback implements ResultCallback<Statistics> {
             Transaction tx = session.beginTransaction();
 
             try {
-                Container container = session.get(Container.class, this.containerId);
+                DBContainer container = session.get(DBContainer.class, this.containerId);
                 if (container == null) {
                     throw new InvalidSystemStateException("Failed to find container %s for the ContainerStatsCallback!", this.containerId);
                 }

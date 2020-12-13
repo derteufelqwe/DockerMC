@@ -1,15 +1,12 @@
 package de.derteufelqwe.ServerManager.commands.status;
 
-import com.github.dockerjava.api.command.ListContainersCmd;
 import com.github.dockerjava.api.model.Container;
-import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.ServerManager.ServerManager;
+import de.derteufelqwe.commons.Utils;
 import picocli.CommandLine;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Command to list all currently running BungeeCord Proxies.

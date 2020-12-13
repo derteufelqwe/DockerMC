@@ -25,7 +25,7 @@ public class Node {
     private Integer maxRam;
 
     @OneToMany(mappedBy = "node", cascade = CascadeType.ALL)
-    private List<Container> containers;
+    private List<DBContainer> containers;
 
     @Column(name = "\"nodeStats\"")
     @OneToMany(mappedBy = "node", cascade = CascadeType.ALL)

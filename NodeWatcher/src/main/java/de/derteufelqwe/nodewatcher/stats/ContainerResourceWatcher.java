@@ -8,6 +8,7 @@ import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.misc.NWUtils;
 import lombok.SneakyThrows;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -15,7 +16,7 @@ import java.util.Set;
  */
 public class ContainerResourceWatcher implements INewContainerObserver {
 
-    private final DockerClient dockerClient = NodeWatcher.getDockerClient();
+    private final DockerClient dockerClient = NodeWatcher.getDockerClientFactory().forceNewDockerClient();
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
 
 
@@ -44,7 +45,7 @@ public class ContainerResourceWatcher implements INewContainerObserver {
             this.startContainerStat(id);
         }
 
-        System.out.println("Initialized ContainerResourceWatcher with " + runningContainers.size() + " containers.");
+        System.out.println("[ContainerResourceWatcher] Initialized with " + runningContainers.size() + " containers.");
     }
 
 

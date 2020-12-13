@@ -1,9 +1,9 @@
 package de.derteufelqwe.ServerManager.setup.servers;
 
-import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.setup.templates.ExposableServiceTemplate;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.Utils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -32,7 +32,7 @@ public class BungeePool extends ExposableServiceTemplate {
 
     @Override
     protected Map<String, String> getContainerLabels() {
-        Map<String, String> containerLabels = Utils.quickLabel(Constants.ContainerType.BUNGEE);
+        Map<String, String> containerLabels = de.derteufelqwe.commons.Utils.quickLabel(Constants.ContainerType.BUNGEE);
         containerLabels.put(Constants.SERVER_NAME_KEY, this.name);
 
         return containerLabels;

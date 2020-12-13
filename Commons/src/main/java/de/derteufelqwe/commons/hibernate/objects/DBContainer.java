@@ -14,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "containers")
-public class Container {
+public class DBContainer {
 
     @Id
     @Type(type = "text")
@@ -52,7 +52,7 @@ public class Container {
     private List<ContainerStats> containerStats;
 
 
-    public Container(String id, String image, Timestamp startTime) {
+    public DBContainer(String id, String image, Timestamp startTime) {
         this.id = id;
         this.image = image;
         this.startTime = startTime;

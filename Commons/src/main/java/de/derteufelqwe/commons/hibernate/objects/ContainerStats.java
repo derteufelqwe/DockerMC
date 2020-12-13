@@ -1,11 +1,9 @@
 package de.derteufelqwe.commons.hibernate.objects;
 
 import lombok.*;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
-import java.util.List;
 
 @Getter
 @Setter
@@ -20,7 +18,7 @@ public class ContainerStats {
     private Integer id;
 
     @ManyToOne
-    private Container container;
+    private DBContainer container;
 
     private Timestamp timestamp;
 
@@ -31,7 +29,7 @@ public class ContainerStats {
     private Float memCurr;
 
 
-    public ContainerStats(Container container, Timestamp timestamp, float cpuPerc, float memCurr) {
+    public ContainerStats(DBContainer container, Timestamp timestamp, float cpuPerc, float memCurr) {
         this.container = container;
         this.timestamp = timestamp;
         this.cpuPerc = cpuPerc;

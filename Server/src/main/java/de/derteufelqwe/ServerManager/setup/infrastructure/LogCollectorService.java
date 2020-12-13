@@ -1,12 +1,10 @@
 package de.derteufelqwe.ServerManager.setup.infrastructure;
 
-import com.github.dockerjava.api.model.BindOptions;
 import com.github.dockerjava.api.model.Mount;
-import com.github.dockerjava.api.model.NetworkAttachmentConfig;
-import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceTemplate;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.Utils;
 
 import java.util.List;
 import java.util.Map;
@@ -36,7 +34,7 @@ public class LogCollectorService extends ServiceTemplate {
     protected Map<String, String> getServiceLabels() {
         Map<String, String> labels = super.getServiceLabels();
 
-        labels.putAll(Utils.quickLabel(Constants.ContainerType.LOGCOLLECTOR_POOL));
+        labels.putAll(de.derteufelqwe.commons.Utils.quickLabel(Constants.ContainerType.LOGCOLLECTOR_POOL));
 
         return labels;
     }

@@ -3,11 +3,14 @@ package de.derteufelqwe.nodewatcher.logs;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.model.Frame;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
-import de.derteufelqwe.commons.hibernate.objects.Container;
+import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
+import de.derteufelqwe.nodewatcher.misc.IRemoveContainerObserver;
+import de.derteufelqwe.nodewatcher.misc.NWUtils;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import javax.annotation.CheckForNull;
 import java.io.Closeable;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -29,12 +32,12 @@ public class LogLoadCallback implements ResultCallback<Frame> {
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
     private final String containerId;
     private StringBuilder rawLogBuilder = new StringBuilder();
-    private ContainerLogFetcher caller; // To be able to remove deactivated containers
+    private IRemoveContainerObserver observer; // To be able to remove deactivated containers
 
 
-    public LogLoadCallback(String containerId, ContainerLogFetcher caller) {
+    public LogLoadCallback(String containerId, ContainerLogFetcher observer) {
         this.containerId = containerId;
-        this.caller = caller;
+        this.observer = observer;
     }
 
 
@@ -73,7 +76,7 @@ public class LogLoadCallback implements ResultCallback<Frame> {
             Transaction tx = session.beginTransaction();
 
             try {
-                Container container = session.get(Container.class, this.containerId);
+                DBContainer container = session.get(DBContainer.class, this.containerId);
                 if (container == null) {
                     System.err.println("Failed to find container " + this.containerId + "!");
                     return;
@@ -89,11 +92,11 @@ public class LogLoadCallback implements ResultCallback<Frame> {
                 container.setLastLogTimestamp(lastLogTimestamp);
 
                 session.update(container);
-                System.out.println("updated logs for " + this.containerId);
+                System.out.println("[ContainerLogFetcher] Updated logs of " + this.containerId + ".");
 
                 // Remove the container from active log downloading when it's stopped by now
                 if (container.getStopTime() != null) {
-                    this.caller.removeContainer(this.containerId);
+                    this.observer.onRemoveContainer(this.containerId);
                 }
 
             } finally {
@@ -112,23 +115,19 @@ public class LogLoadCallback implements ResultCallback<Frame> {
     /**
      * Parses the latest timestamp from the newly read logs.
      */
+    @CheckForNull
     private Timestamp getLastTimestamp() {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS");
-        format.setTimeZone(TimeZone.getTimeZone("UTC"));
-
         Matcher m = RE_TIMESTAMP.matcher(this.rawLogBuilder.toString());
         String timeString = null;
         while (m.find()) {
             timeString = m.group(m.groupCount());
         }
 
-        try {
-            return new Timestamp(format.parse(timeString).getTime());
-
-        } catch (ParseException | NullPointerException e) {
-            System.err.println("Failed to parse last log timestamp for container " + this.containerId + ".");
+        if (timeString == null) {
             return null;
         }
+
+        return NWUtils.parseDockerTimestamp(timeString);
     }
 
     /**

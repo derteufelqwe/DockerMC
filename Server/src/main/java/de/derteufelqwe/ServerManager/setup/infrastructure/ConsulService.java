@@ -1,10 +1,10 @@
 package de.derteufelqwe.ServerManager.setup.infrastructure;
 
 import com.github.dockerjava.api.model.PortConfig;
-import de.derteufelqwe.ServerManager.Utils;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceTemplate;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.Utils;
 
 import java.util.*;
 
@@ -23,7 +23,7 @@ public class ConsulService extends ServiceTemplate {
     protected Map<String, String> getContainerLabels() {
         Map<String, String> labels = super.getContainerLabels();
 
-        labels.putAll(Utils.quickLabel(Constants.ContainerType.CONSUL));
+        labels.putAll(de.derteufelqwe.commons.Utils.quickLabel(Constants.ContainerType.CONSUL));
 
         return labels;
     }

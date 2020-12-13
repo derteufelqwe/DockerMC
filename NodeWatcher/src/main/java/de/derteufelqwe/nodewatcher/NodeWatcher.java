@@ -4,15 +4,11 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.Info;
 import com.github.dockerjava.api.model.SwarmNode;
 import com.github.dockerjava.api.model.SwarmNodeSpec;
-import com.github.dockerjava.core.DefaultDockerClientConfig;
-import com.github.dockerjava.core.DockerClientConfig;
-import com.github.dockerjava.core.DockerClientImpl;
-import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
-import com.github.dockerjava.transport.DockerHttpClient;
 import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.Node;
 import de.derteufelqwe.nodewatcher.logs.ContainerLogFetcher;
+import de.derteufelqwe.nodewatcher.misc.DockerClientFactory;
 import de.derteufelqwe.nodewatcher.misc.InvalidSystemStateException;
 import de.derteufelqwe.nodewatcher.stats.ContainerResourceWatcher;
 import de.derteufelqwe.nodewatcher.stats.HostResourceWatcher;
@@ -25,6 +21,7 @@ import javax.annotation.CheckForNull;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,19 +30,21 @@ import java.util.regex.Pattern;
  */
 public class NodeWatcher {
 
+    // ToDo: solve the docker client / thread problems
+
     private final Pattern RE_MEM_TOTAL = Pattern.compile("MemTotal:\\s+(\\d+).+");
     private final String CONTAINER_FILTER = "Owner=DockerMC";
     private final String EVENT_TYPE = "die";
 
     @Getter
-    private static DockerClient dockerClient;
+    private static DockerClientFactory dockerClientFactory;
     @Getter
     private static SessionBuilder sessionBuilder;
     @Getter
     private static String swarmNodeId;
 
-    private final String dockerHost;
     private final String postgresHost;
+    private DockerClient dockerClient;
 
     // --- Executors ---
     private HostResourceWatcher hostResourceWatcherThread;
@@ -55,34 +54,13 @@ public class NodeWatcher {
 
 
     public NodeWatcher(String dockerHost, String postgresHost) {
-        this.dockerHost = dockerHost;
         this.postgresHost = postgresHost;
-        dockerClient = this.createDockerClient();
+        NodeWatcher.dockerClientFactory = new DockerClientFactory(dockerHost);
+        this.dockerClient = dockerClientFactory.getDockerClient();
         sessionBuilder = this.createSessionBuilder();
         swarmNodeId = this.getLocalSwarmNodeId();
     }
 
-
-    private DockerClientConfig getDockerClientConfig() {
-        return DefaultDockerClientConfig.createDefaultConfigBuilder()
-                .withDockerHost(dockerHost)
-                .withDockerTlsVerify(false)
-                .withApiVersion("1.40")
-                .build();
-    }
-
-    private DockerHttpClient getDockerHttpClient() {
-        DockerClientConfig clientConfig = this.getDockerClientConfig();
-
-        return new ApacheDockerHttpClient.Builder()
-                .dockerHost(clientConfig.getDockerHost())
-                .sslConfig(clientConfig.getSSLConfig())
-                .build();
-    }
-
-    private DockerClient createDockerClient() {
-        return DockerClientImpl.getInstance(this.getDockerClientConfig(), this.getDockerHttpClient());
-    }
 
     private SessionBuilder createSessionBuilder() {
         return new SessionBuilder("admin", "password", this.postgresHost, false);
@@ -163,7 +141,7 @@ public class NodeWatcher {
 
                 // Node already known
                 if (node != null) {
-                    System.out.println("Local node already known.");
+                    System.out.println("[NodeWatcher] Local node already known.");
                     return;
                 }
 
@@ -172,7 +150,7 @@ public class NodeWatcher {
                 node.setMaxRam(this.getMaxHostMemory());
 
                 session.save(node);
-                System.out.println("Added new node " + node);
+                System.out.println("[NodeWatcher] Added new node " + node);
 
             } finally {
                 tx.commit();
@@ -193,7 +171,9 @@ public class NodeWatcher {
         this.containerWatcher.addNewContainerObserver(this.logFetcher);
         this.containerWatcher.addNewContainerObserver(this.containerResourceWatcher);
 
+        System.out.println("init start");
         this.containerWatcher.init();
+        System.out.println("init ende");
     }
 
     /**
@@ -209,6 +189,7 @@ public class NodeWatcher {
      */
     private void startContainerLogFetcher() {
         this.logFetcher = new ContainerLogFetcher();
+        this.logFetcher.init();
         this.logFetcher.start();
     }
 
@@ -226,14 +207,12 @@ public class NodeWatcher {
         dockerClient.pingCmd().exec();
 
         this.saveSwarmNode();
-//        this.startHostResourceMonitor();
-//        this.startContainerLogFetcher();
+        this.startHostResourceMonitor();
+        this.startContainerLogFetcher();
         this.startContainerResourceWatcher();
         this.startContainerWatcher();   // Start last, since most watchers need its event
 
-        System.out.println("NodeWatcher started successfully.");
-//        this.hostResourceWatcherThread.join();
-//        this.logFetcher.join();
+        System.out.println("[NodeWatcher] Started successfully.");
     }
 
     @SneakyThrows
