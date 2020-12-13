@@ -4,6 +4,7 @@ import lombok.*;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.util.List;
 
 @Getter
@@ -21,12 +22,20 @@ public class ContainerStats {
     @ManyToOne
     private Container container;
 
-    private Integer timestamp;
+    private Timestamp timestamp;
 
     @Column(name = "cpu_perc")
     private Float cpuPerc;
 
-    @Column(name = "mem_curr")
+    @Column(name = "mem_cur")
     private Float memCurr;
+
+
+    public ContainerStats(Container container, Timestamp timestamp, float cpuPerc, float memCurr) {
+        this.container = container;
+        this.timestamp = timestamp;
+        this.cpuPerc = cpuPerc;
+        this.memCurr = memCurr;
+    }
 
 }

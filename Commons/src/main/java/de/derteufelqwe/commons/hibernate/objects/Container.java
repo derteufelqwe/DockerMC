@@ -29,6 +29,9 @@ public class Container {
     @Type(type = "text")
     private String log;
 
+    @Column(name = "\"lastLogTimestamp\"")
+    private Timestamp lastLogTimestamp;
+
     @ManyToOne(fetch = FetchType.EAGER)
     private Node node;
 
@@ -48,10 +51,24 @@ public class Container {
     @OneToMany(mappedBy = "container", cascade = CascadeType.ALL)
     private List<ContainerStats> containerStats;
 
+
     public Container(String id, String image, Timestamp startTime) {
         this.id = id;
         this.image = image;
         this.startTime = startTime;
+    }
+
+    /**
+     * Appends to the log
+     * @param toAdd
+     */
+    public void appendToLog(String toAdd) {
+        if (this.log == null) {
+            this.log = toAdd;
+
+        } else {
+            this.log += toAdd;
+        }
     }
 
 }

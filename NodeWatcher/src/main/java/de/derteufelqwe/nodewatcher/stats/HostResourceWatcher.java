@@ -1,9 +1,10 @@
-package de.derteufelqwe.nodewatcher;
+package de.derteufelqwe.nodewatcher.stats;
 
 import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.Node;
 import de.derteufelqwe.commons.hibernate.objects.NodeStats;
+import de.derteufelqwe.nodewatcher.NodeWatcher;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.hibernate.Session;

@@ -3,10 +3,15 @@ package de.derteufelqwe.nodewatcher;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.Container;
+import de.derteufelqwe.commons.hibernate.objects.Node;
 import lombok.SneakyThrows;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,12 +30,21 @@ public class Main {
         Session session = sessionBuilder.openSession();
         Transaction tx = session.beginTransaction();
 
-//        Node n = session.get(Node.class, "testId");
-        Container c = session.get(Container.class, "testId");
-        System.out.println(c);
-        System.out.println(c.getNode());
+        Node n1 = session.get(Node.class, "kulkf9nq5m8s3vlsu35go0wlz");
 
         tx.commit();
+
+        tx = session.beginTransaction();
+
+        Node n2 = session.get(Node.class, "kulkf9nq5m8s3vlsu35go0wlz");
+        n2.setName("new5");
+        session.update(n2);
+
+        n1.setMaxRam(3);
+        session.update(n1);
+
+        tx.commit();
+
         session.close();
 
     }

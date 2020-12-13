@@ -12,14 +12,16 @@ import com.github.dockerjava.transport.DockerHttpClient;
 import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.Node;
+import de.derteufelqwe.nodewatcher.logs.ContainerLogFetcher;
+import de.derteufelqwe.nodewatcher.misc.InvalidSystemStateException;
+import de.derteufelqwe.nodewatcher.stats.ContainerResourceWatcher;
+import de.derteufelqwe.nodewatcher.stats.HostResourceWatcher;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import javax.annotation.CheckForNull;
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +47,11 @@ public class NodeWatcher {
     private final String dockerHost;
     private final String postgresHost;
 
+    // --- Executors ---
     private HostResourceWatcher hostResourceWatcherThread;
+    private ContainerWatcher containerWatcher;
+    private ContainerLogFetcher logFetcher;
+    private ContainerResourceWatcher containerResourceWatcher;
 
 
     public NodeWatcher(String dockerHost, String postgresHost) {
@@ -135,17 +141,17 @@ public class NodeWatcher {
         return info.getSwarm().getNodeID();
     }
 
+
     /**
      * Saves the docker swarm nodes in the database
      */
-    private void saveSwarmNodes() {
+    private void saveSwarmNode() {
         List<SwarmNode> nodes = dockerClient.listSwarmNodesCmd()
                 .withIdFilter(Collections.singletonList(swarmNodeId))
                 .exec();
 
         if (nodes.size() != 1) {
-            System.err.printf("Found %s node: %s.\n", nodes.size(), nodes);
-            System.exit(600);
+            throw new InvalidSystemStateException("Found %s nodes: %s.\n", nodes.size(), nodes);
         }
 
         try (Session session = sessionBuilder.openSession()) {
@@ -157,6 +163,7 @@ public class NodeWatcher {
 
                 // Node already known
                 if (node != null) {
+                    System.out.println("Local node already known.");
                     return;
                 }
 
@@ -179,36 +186,70 @@ public class NodeWatcher {
      * Starts the watcher for container starts / deaths
      */
     private void startContainerWatcher() {
-        dockerClient.eventsCmd()
+        this.containerWatcher = dockerClient.eventsCmd()
                 .withLabelFilter(CONTAINER_FILTER)
                 .withEventFilter("start", "die")
                 .exec(new ContainerWatcher());
+        this.containerWatcher.addNewContainerObserver(this.logFetcher);
+        this.containerWatcher.addNewContainerObserver(this.containerResourceWatcher);
+
+        this.containerWatcher.init();
     }
 
-
+    /**
+     * Starts the watcher for the docker hosts resources
+     */
     private void startHostResourceMonitor() {
         this.hostResourceWatcherThread = new HostResourceWatcher();
         this.hostResourceWatcherThread.start();
     }
 
+    /**
+     * Starts the container log fetcher, which periodically fetches the containers new logs
+     */
+    private void startContainerLogFetcher() {
+        this.logFetcher = new ContainerLogFetcher();
+        this.logFetcher.start();
+    }
 
+    /**
+     * Starts the container stats monitor
+     */
+    private void startContainerResourceWatcher() {
+        this.containerResourceWatcher = new ContainerResourceWatcher();
+        this.containerResourceWatcher.init();
+    }
+
+
+    @SneakyThrows
     public void start() {
         dockerClient.pingCmd().exec();
 
-        this.saveSwarmNodes();
+        this.saveSwarmNode();
 //        this.startHostResourceMonitor();
-        this.startContainerWatcher();
+//        this.startContainerLogFetcher();
+        this.startContainerResourceWatcher();
+        this.startContainerWatcher();   // Start last, since most watchers need its event
 
+        System.out.println("NodeWatcher started successfully.");
+//        this.hostResourceWatcherThread.join();
+//        this.logFetcher.join();
     }
 
     @SneakyThrows
     public void stop() {
-        if (dockerClient != null) {
-            dockerClient.close();
-        }
         if (hostResourceWatcherThread != null) {
             hostResourceWatcherThread.interrupt();
         }
+        if (logFetcher != null) {
+            logFetcher.interrupt();
+        }
+        if (containerWatcher != null) {
+            containerWatcher.close();
+        }
+
+        dockerClient.close();
+        sessionBuilder.close();
     }
 
 }
