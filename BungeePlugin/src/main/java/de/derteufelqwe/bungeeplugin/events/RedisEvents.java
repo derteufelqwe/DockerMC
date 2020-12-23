@@ -49,6 +49,7 @@ public class RedisEvents implements Listener {
             this.redisDataManager.addPlayer(new RedisDataCache.PlayerData(event.getPlayer()));
 
             jedis.incr("playerCount");
+            jedis.incr("playerCount#" + BungeePlugin.BUNGEECORD_ID);
         }
     }
 
@@ -61,6 +62,7 @@ public class RedisEvents implements Listener {
             this.redisDataManager.removePlayer(event.getPlayer().getDisplayName());
 
             jedis.decr("playerCount");
+            jedis.decr("playerCount#" + BungeePlugin.BUNGEECORD_ID);
         }
     }
 

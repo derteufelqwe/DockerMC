@@ -32,6 +32,7 @@ public class PostgresDBContainer extends ExposableContainerTemplate {
         envs.add("POSTGRES_USER=admin");
         envs.add("POSTGRES_PASSWORD=password");
         envs.add("POSTGRES_DB=minecraft_logs");
+        envs.add("POSTGRES_INITDB_ARGS=-E UTF8");   // UTF-8 character encoding required by django
 
         return envs;
     }

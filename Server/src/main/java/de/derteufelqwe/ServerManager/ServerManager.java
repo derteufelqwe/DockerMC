@@ -207,19 +207,19 @@ public class ServerManager {
         }
 
         // Logcollector service
-        ServiceCreateResponse response5 = setup.createLogcollectorService();
-        switch (response5.getResult()) {
-            case OK:
-                System.out.println("Created LogCollector service successfully."); break;
-            case RUNNING:
-                System.out.println("LogCollector service already running."); break;
-            case FAILED_GENERIC:
-                System.err.printf("Failed to create the LogCollector service! ID: %s, Message: %s.%n",
-                        response5.getServiceId(), response5.getAdditionalInfos()); break;
-
-            default:
-                throw new NotImplementedException("Result " + response5.getResult() + " not implemented.");
-        }
+//        ServiceCreateResponse response5 = setup.createLogcollectorService();
+//        switch (response5.getResult()) {
+//            case OK:
+//                System.out.println("Created LogCollector service successfully."); break;
+//            case RUNNING:
+//                System.out.println("LogCollector service already running."); break;
+//            case FAILED_GENERIC:
+//                System.err.printf("Failed to create the LogCollector service! ID: %s, Message: %s.%n",
+//                        response5.getServiceId(), response5.getAdditionalInfos()); break;
+//
+//            default:
+//                throw new NotImplementedException("Result " + response5.getResult() + " not implemented.");
+//        }
 
         // Redis container
         ServiceCreateResponse response6 = setup.createRedisContainer();

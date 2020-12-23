@@ -17,6 +17,10 @@
 
     <description>BungeeCord Plugin for interaction with DockerMC</description>
 
+    <properties>
+        <outputDir>target</outputDir>
+    </properties>
+
     <build>
         <defaultGoal>clean package</defaultGoal>
         <plugins>
@@ -27,8 +31,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.0.0</version>
                 <configuration>
-                    <outputDirectory>target</outputDirectory>
-<!--                    <outputDirectory>C:/Users/Arne/Desktop/ServerManager/BungeeCord</outputDirectory>-->
+                    <outputDirectory>${outputDir}</outputDirectory>
                 </configuration>
             </plugin>
 
@@ -117,5 +120,24 @@
 
 
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <outputDir>target</outputDir>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>develop</id>
+            <properties>
+                <outputDir>C:/Users/Arne/Desktop/ServerManager/BungeeCord</outputDir>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>

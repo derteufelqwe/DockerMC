@@ -21,6 +21,10 @@ public class DBContainer {
     private String id;
 
     @Type(type = "text")
+    @Column(name = "\"taskId\"")
+    private String taskId;
+
+    @Type(type = "text")
     private String name;
 
     @Type(type = "text")
@@ -35,6 +39,9 @@ public class DBContainer {
     @ManyToOne(fetch = FetchType.EAGER)
     private Node node;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    private DBService service;
+
     @Column(name = "\"startTime\"")
     private Timestamp startTime;
 
@@ -43,9 +50,6 @@ public class DBContainer {
 
     @Column(name = "\"exitCode\"")
     private Short exitcode;
-
-    @Column(name = "\"maxRam\"")
-    private Integer maxRam;
 
     @Column(name = "\"containerStats\"")
     @OneToMany(mappedBy = "container", cascade = CascadeType.ALL)

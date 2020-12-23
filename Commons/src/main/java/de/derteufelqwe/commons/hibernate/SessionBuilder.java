@@ -1,9 +1,6 @@
 package de.derteufelqwe.commons.hibernate;
 
-import de.derteufelqwe.commons.hibernate.objects.DBContainer;
-import de.derteufelqwe.commons.hibernate.objects.ContainerStats;
-import de.derteufelqwe.commons.hibernate.objects.Node;
-import de.derteufelqwe.commons.hibernate.objects.NodeStats;
+import de.derteufelqwe.commons.hibernate.objects.*;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
@@ -23,6 +20,7 @@ public class SessionBuilder {
              .addAnnotatedClass(Node.class)
              .addAnnotatedClass(ContainerStats.class)
              .addAnnotatedClass(NodeStats.class)
+             .addAnnotatedClass(DBService.class)
              .buildSessionFactory();
     }
     

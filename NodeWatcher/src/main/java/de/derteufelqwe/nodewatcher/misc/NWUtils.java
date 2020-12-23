@@ -69,7 +69,7 @@ public class NWUtils {
     @CheckForNull
     public static Timestamp parseDockerTimestamp(String timeString) {
         String rightLength = timeString.substring(0, 23);
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS");
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
         format.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         try {

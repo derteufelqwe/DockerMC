@@ -20,7 +20,6 @@ public class ContainerResourceWatcher implements INewContainerObserver {
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
 
 
-    @SneakyThrows
     public ContainerResourceWatcher() {
 
     }

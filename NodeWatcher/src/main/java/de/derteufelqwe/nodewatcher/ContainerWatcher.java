@@ -6,11 +6,12 @@ import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Event;
 import com.github.dockerjava.api.model.EventActor;
-import com.github.dockerjava.api.model.ServicePlacement;
+import com.github.dockerjava.api.model.Service;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
+import de.derteufelqwe.commons.hibernate.objects.DBService;
 import de.derteufelqwe.commons.hibernate.objects.Node;
 import de.derteufelqwe.nodewatcher.misc.INewContainerObserver;
 import de.derteufelqwe.nodewatcher.misc.InvalidSystemStateException;
@@ -23,9 +24,10 @@ import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -156,15 +158,26 @@ public class ContainerWatcher implements ResultCallback<Event> {
 
     /**
      * Creates a database entry for a docker container
+     *
      * @param id Container id
      */
     private void addContainerEntry(String id) {
         InspectContainerResponse cont = dockerClient.inspectContainerCmd(id).exec();
-        DBContainer container = new DBContainer(id, cont.getConfig().getImage(), NWUtils.parseDockerTimestamp(cont.getCreated()));
-        container.setName(cont.getName());
-        container.setMaxRam((int) (cont.getHostConfig().getMemory() / 1024 / 1024));
-
         String nodeId = this.getNodeId(cont);
+        String serviceId = this.getContainerServiceId(cont);
+        String taskId = this.getContainerTaskId(cont);
+
+        if (serviceId == null) {
+            throw new InvalidSystemStateException("Container %s has no information about its service.", id);
+        }
+        if (taskId == null) {
+            throw new InvalidSystemStateException("Container %s has no information about its task id.", id);
+        }
+
+        DBContainer container = new DBContainer(id, cont.getConfig().getImage(), NWUtils.parseDockerTimestamp(cont.getCreated()));
+        container.setName(cont.getName().substring(1));
+
+        DBService dbService = this.getOrCreateService(serviceId);
 
         try (Session session = this.sessionBuilder.openSession()) {
             Transaction tx = session.beginTransaction();
@@ -176,6 +189,8 @@ public class ContainerWatcher implements ResultCallback<Event> {
 
                 Node node = session.get(Node.class, nodeId);
                 container.setNode(node);
+                container.setService(dbService);
+                container.setTaskId(taskId);
 
                 session.persist(container);
                 System.out.println("[ContainerWatcher] Created container entry " + id + ".");
@@ -193,6 +208,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
 
     /**
      * Called, when a container dies
+     *
      * @param event
      */
     private void onContainerDie(Event event) {
@@ -207,6 +223,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
 
     /**
      * "Finishes" a container in the database. This means that its stop timestamp and exit code are saved
+     *
      * @param id
      */
     private void finishContainerEntry(String id, Timestamp stopTime, Short exitCode) {
@@ -237,6 +254,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
 
     /**
      * Tries to get the containers exit code from its attributes
+     *
      * @return
      */
     @CheckForNull
@@ -255,6 +273,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
 
     /**
      * Tries to get the containers swarm node id from its labels
+     *
      * @param containerResponse
      * @return
      */
@@ -270,6 +289,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
 
     /**
      * Returns all docker containers, which are currently cunning
+     *
      * @return
      */
     private List<Container> getRunningBungeeMinecraftContainers() {
@@ -280,6 +300,71 @@ public class ContainerWatcher implements ResultCallback<Event> {
         bungeeContainers.addAll(minecraftContainers);
 
         return bungeeContainers;
+    }
+
+    /**
+     * Tries to get the containers service id from its labels
+     *
+     * @param containerResponse
+     * @return
+     */
+    @CheckForNull
+    private String getContainerServiceId(InspectContainerResponse containerResponse) {
+        Map<String, String> labels = containerResponse.getConfig().getLabels();
+        if (labels != null) {
+            return labels.get("com.docker.swarm.service.id");
+        }
+
+        return null;
+    }
+
+    /**
+     * Gets or creates the service entry in the database
+     *
+     * @param serviceId
+     * @return
+     */
+    private DBService getOrCreateService(String serviceId) {
+        try (Session session = sessionBuilder.openSession()) {
+            Transaction tx = session.beginTransaction();
+
+            try {
+                DBService dbService = session.get(DBService.class, serviceId);
+                if (dbService != null) {
+                    return dbService;
+                }
+
+                Service service = dockerClient.inspectServiceCmd(serviceId).exec();
+
+                dbService = new DBService(service.getId(), service.getSpec().getName());
+                dbService.setMaxRam(new Long(service.getSpec().getTaskTemplate().getResources().getLimits().getMemoryBytes() / 1024 / 1024).intValue());
+                dbService.setMaxCpu((float) (service.getSpec().getTaskTemplate().getResources().getLimits().getNanoCPUs() / 1000000000.0));
+
+                session.persist(dbService);
+
+                System.out.println("[ContainerWatcher] Added new Service " + dbService.getId() + ".");
+                return dbService;
+
+            } finally {
+                tx.commit();
+            }
+        }
+    }
+
+    /**
+     * Tries to get the containers services task id from its labels
+     *
+     * @param containerResponse
+     * @return
+     */
+    @CheckForNull
+    private String getContainerTaskId(InspectContainerResponse containerResponse) {
+        Map<String, String> labels = containerResponse.getConfig().getLabels();
+        if (labels != null) {
+            return labels.get("com.docker.swarm.task.id");
+        }
+
+        return null;
     }
 
 }
