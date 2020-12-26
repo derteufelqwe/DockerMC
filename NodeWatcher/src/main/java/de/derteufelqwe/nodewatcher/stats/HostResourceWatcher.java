@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
  */
 public class HostResourceWatcher extends Thread {
 
-    private final Pattern RE_MEM_FREE = Pattern.compile("MemFree:\\s+(\\d+).+");
+    private final Pattern RE_MEM_FREE = Pattern.compile("MemAvailable:\\s+(\\d+).+");
     private final Pattern RE_CPU_USAGE = Pattern.compile("cpu\\s+(\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+)");
 
     private SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
@@ -111,7 +111,7 @@ public class HostResourceWatcher extends Thread {
         int idleDelta = newData.getAllIdle() - oldData.getAllIdle();
 
         this.oldData = newData;
-        return (totalDelta - idleDelta) / (double) totalDelta;
+        return ((totalDelta - idleDelta) / (double) totalDelta) * 100;
     }
 
     @SneakyThrows

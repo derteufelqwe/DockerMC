@@ -136,11 +136,19 @@
 
     <profiles>
         <profile>
-            <id>fast-package</id>
+            <id>default</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
+                <outputDir>target</outputDir>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>develop</id>
+            <properties>
+                <outputDir>C:/Users/Arne/Desktop/ServerManager/Minecraft</outputDir>
                 <maven.test.skip>true</maven.test.skip>
             </properties>
         </profile>

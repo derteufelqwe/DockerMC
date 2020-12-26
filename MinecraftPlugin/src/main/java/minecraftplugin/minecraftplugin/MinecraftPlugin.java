@@ -24,6 +24,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginBase;
 import org.bukkit.plugin.java.JavaPlugin;
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
 
 import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Field;
@@ -46,6 +48,7 @@ public final class MinecraftPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        this.addSignalHandlers();
         INSTANCE = this;
         CONFIG.registerConfig(SignConfig.class, "plugins/MinecraftPlugin", "SignConfig.yml");
         CONFIG.loadAll();
@@ -100,6 +103,9 @@ public final class MinecraftPlugin extends JavaPlugin {
         healthCheck.stop();
     }
 
+    /**
+     * Called before the actual onDisable method
+     */
     public void preDisable() {
         // Connect all players to the special "toLobby" server, which redirects them to a lobby server
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -109,6 +115,23 @@ public final class MinecraftPlugin extends JavaPlugin {
             out.writeUTF("toLobby");
             player.sendPluginMessage(this, "BungeeCord", out.toByteArray());
         }
+    }
+
+    /**
+     * Registers handlers for UNIX signals to ensure correct server shutdown, when the server gets forcefully stopped.
+     */
+    private void addSignalHandlers() {
+        SignalHandler signalHandler = new SignalHandler() {
+            @Override
+            public void handle(Signal signal) {
+                System.err.println("HANDLING SIGNAL " + signal);
+                Bukkit.shutdown();
+            }
+        };
+
+        Signal.handle(new Signal("TERM"), signalHandler);
+        Signal.handle(new Signal("INT"), signalHandler);
+        Signal.handle(new Signal("HUP"), signalHandler);
     }
 
     /**

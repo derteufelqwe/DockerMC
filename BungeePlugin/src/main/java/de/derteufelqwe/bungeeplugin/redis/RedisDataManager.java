@@ -135,7 +135,8 @@ public class RedisDataManager {
     }
 
     /**
-     * Updates the server a player is on
+     * Updates the server a player is on.
+     * Only called on the proxy the player is changing the server
      *
      * @param username  Name of the player
      * @param newServer New servername of the player
@@ -178,16 +179,30 @@ public class RedisDataManager {
      * @return The player count
      */
     public int getServersPlayerCount(String serverName) {
-        return this.playerCache.getServerPlayerCount(serverName);
+        try (Jedis jedis = jedisPool.getResource()) {
+            try {
+                return Integer.parseInt(jedis.get("minecraft#playerCount#" + serverName));
+
+            } catch (NumberFormatException e1) {
+                return 0;
+            }
+        }
     }
 
     /**
      * Returns the player count over a certain BungeeCord instance
      *
-     * @param bungeeId The id of the BungeeCord proxy
+     * @param bungeeName The name of the BungeeCord proxy like BungeeCord.1.1ks3h
      */
-    public int getBungeesPlayerCount(String bungeeId) {
-        return this.playerCache.getProxyPlayerCount(bungeeId);
+    public int getBungeesPlayerCount(String bungeeName) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            try {
+                return Integer.parseInt(jedis.get("bungee#playerCount#" + bungeeName));
+
+            } catch (NumberFormatException e1) {
+                return 0;
+            }
+        }
     }
 
     /**

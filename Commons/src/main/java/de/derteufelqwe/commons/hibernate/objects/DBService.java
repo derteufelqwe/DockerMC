@@ -8,7 +8,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString(exclude = {"containers"})
+@ToString(exclude = {"containers", "onlineDurations"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -22,15 +22,17 @@ public class DBService {
     @Type(type = "text")
     private String name;
 
-    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL)
-    private List<DBContainer> containers;
-
     @Column(name = "\"maxRam\"")
     private Integer maxRam;
 
     @Column(name = "\"maxCpu\"")
     private Float maxCpu;
 
+    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL)
+    private List<DBContainer> containers;
+
+    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL)
+    private List<PlayerOnlineDurations> onlineDurations;
 
     public DBService(String id, String name) {
         this.id = id;

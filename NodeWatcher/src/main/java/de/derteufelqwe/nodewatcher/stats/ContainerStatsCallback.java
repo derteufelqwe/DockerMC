@@ -8,6 +8,7 @@ import de.derteufelqwe.commons.hibernate.objects.ContainerStats;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.misc.ContainerNoLongerExistsException;
 import de.derteufelqwe.nodewatcher.misc.InvalidSystemStateException;
+import de.derteufelqwe.nodewatcher.misc.NWUtils;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
@@ -78,6 +79,7 @@ public class ContainerStatsCallback implements ResultCallback<Statistics> {
 
                 try {
                     Timestamp ts = new Timestamp(new Date().getTime());
+//                    Timestamp ts = NWUtils.getLocalTimestampWithoutTimezone();
                     ContainerStats containerStats = new ContainerStats(this.containerObj, ts, (float) cpuPercent, ramUsage);
                     session.persist(containerStats);
 

@@ -1,36 +1,4 @@
-connection_throttle: -1
-ip_forward: true
-connection_throttle_limit: -1
-timeout: 30000
-stats: caf0f43d-e058-4d64-a5db-505eb930e0de
-permissions:
-  default:
-  - bungeecord.command.server
-  - bungeecord.command.list
-  admin:
-  - bungeecord.command.alert
-  - bungeecord.command.end
-  - bungeecord.command.ip
-  - bungeecord.command.reload
-  - bungeecord.command.send
-  - bungeecord.command.find
-  - bungeecord.command.blist
-player_limit: -1
-prevent_proxy_connections: false
 server_connect_timeout: 5000
-remote_ping_timeout: 5000
-forge_support: true
-remote_ping_cache: -1
-log_commands: false
-log_pings: true
-network_compression_threshold: 256
-disabled_commands:
-- disabledcommandhere
-groups:
-  md_5:
-  - admin
-  derteufelqwe:
-  - admin
 listeners:
 - query_port: 25577
   motd: '&6Waterfall Proxy 1.3'
@@ -47,8 +15,39 @@ listeners:
   max_players: 1000
   tab_size: 60
   force_default_server: false
+remote_ping_cache: -1
+permissions:
+  default:
+  - bungeecord.command.server
+  - bungeecord.command.list
+  admin:
+  - bungeecord.command.alert
+  - bungeecord.command.end
+  - bungeecord.command.ip
+  - bungeecord.command.reload
+  - bungeecord.command.send
+  - bungeecord.command.find
+  - bungeecord.command.blist
+network_compression_threshold: 256
+timeout: 30000
+log_pings: true
+connection_throttle_limit: -1
+prevent_proxy_connections: false
+player_limit: -1
+ip_forward: true
+groups:
+  md_5:
+  - admin
+  derteufelqwe:
+  - admin
+remote_ping_timeout: 5000
+connection_throttle: -1
+log_commands: false
+stats: caf0f43d-e058-4d64-a5db-505eb930e0de
 online_mode: false
-
+forge_support: true
+disabled_commands:
+- disabledcommandhere
 servers:
   default:
     motd: Default server. Don't remove. This is a dummy.

@@ -1,7 +1,6 @@
 package de.derteufelqwe.nodewatcher;
 
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
-import de.derteufelqwe.commons.hibernate.objects.Node;
 import lombok.SneakyThrows;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -20,22 +19,12 @@ public class Main {
 
 
     public static void test() {
-        SessionBuilder sessionBuilder = new SessionBuilder("admin", "password", "ubuntu1:5432", false);
+        SessionBuilder sessionBuilder = new SessionBuilder("admin", "password", "ubuntu1", 5432);
         Session session = sessionBuilder.openSession();
         Transaction tx = session.beginTransaction();
 
-        Node n1 = session.get(Node.class, "kulkf9nq5m8s3vlsu35go0wlz");
-
-        tx.commit();
-
-        tx = session.beginTransaction();
-
-        Node n2 = session.get(Node.class, "kulkf9nq5m8s3vlsu35go0wlz");
-        n2.setName("new5");
-        session.update(n2);
-
-        n1.setMaxRam(3);
-        session.update(n1);
+//        Player player = new Player(new UUID(16, 16), "test");
+//        session.persist(player);
 
         tx.commit();
 
@@ -47,8 +36,8 @@ public class Main {
     public static void main(String[] args) {
         Logger.getLogger("org.hibernate").setLevel(Level.WARNING);
 
-        NodeWatcher nodeWatcher = new NodeWatcher("tcp://ubuntu1:2375", "ubuntu1:5432");
-//        NodeWatcher nodeWatcher = new NodeWatcher("unix:///var/run/docker.sock", String.format("%s:%s", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT));
+        NodeWatcher nodeWatcher = new NodeWatcher("tcp://ubuntu1:2375", new SessionBuilder("admin", "password", "ubuntu1", 5432));
+//        NodeWatcher nodeWatcher = new NodeWatcher("unix:///var/run/docker.sock", new SessionBuilder("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT));
 
         nodeWatcher.start();
 

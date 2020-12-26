@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,6 +55,8 @@ public class LogLoadCallback implements ResultCallback<Frame> {
     @Override
     public void onError(Throwable throwable) {
         System.err.println("Failed to download " + this.containerId + " containers log.");
+        System.err.println(Arrays.toString(throwable.getStackTrace()));
+        System.err.println(throwable.getMessage());
     }
 
     @Override

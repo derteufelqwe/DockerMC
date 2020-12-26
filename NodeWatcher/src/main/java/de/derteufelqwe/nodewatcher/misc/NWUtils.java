@@ -15,6 +15,8 @@ import javax.persistence.criteria.Root;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 public class NWUtils {
@@ -70,7 +72,7 @@ public class NWUtils {
     public static Timestamp parseDockerTimestamp(String timeString) {
         String rightLength = timeString.substring(0, 23);
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-        format.setTimeZone(TimeZone.getTimeZone("UTC"));
+//        format.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         try {
             return new Timestamp(format.parse(rightLength).getTime());

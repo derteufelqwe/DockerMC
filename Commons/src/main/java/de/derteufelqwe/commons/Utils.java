@@ -3,6 +3,9 @@ package de.derteufelqwe.commons;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.Timestamp;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,4 +53,16 @@ public class Utils {
 
         return labelsMap;
     }
+
+    /**
+     *
+     * @return
+     */
+    public static Timestamp getLocalTimestampWithoutTimezone() {
+        ZonedDateTime zonedDateTime = ZonedDateTime.now();
+        ZoneOffset offset = zonedDateTime.getOffset();
+
+        return new Timestamp(System.currentTimeMillis() - (offset.getTotalSeconds() * 1000L));
+    }
+
 }

@@ -4,7 +4,6 @@ import com.orbitz.consul.*;
 import com.orbitz.consul.model.agent.ImmutableRegCheck;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
 import com.orbitz.consul.model.agent.Registration;
-import com.orbitz.consul.model.catalog.CatalogService;
 import com.orbitz.google.common.net.HostAndPort;
 import de.derteufelqwe.bungeeplugin.commands.*;
 import de.derteufelqwe.bungeeplugin.consul.*;
@@ -16,12 +15,15 @@ import de.derteufelqwe.bungeeplugin.redis.*;
 import de.derteufelqwe.bungeeplugin.utils.MetaData;
 import de.derteufelqwe.bungeeplugin.utils.ServerState;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
 
 public final class BungeePlugin extends Plugin {
 
@@ -35,10 +37,11 @@ public final class BungeePlugin extends Plugin {
 
     // --- Infrastructure ---
     private HealthCheck healthCheck = new HealthCheck();
+    @Getter public static RedisHandler redisHandler;
+    @Getter public static SessionBuilder sessionBuilder = new SessionBuilder("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT);
 
     // --- Static ---
     @Getter public static Plugin PLUGIN;
-    @Getter public static RedisHandler redisHandler;
     @Getter public static ServerState STATE = ServerState.STARTING;
     @Getter private static RedisDataManager redisDataManager;   // Manage data from and to redis
     public static final MetaData META_DATA = new MetaData();
@@ -50,6 +53,7 @@ public final class BungeePlugin extends Plugin {
 
     @Override
     public void onEnable() {
+        this.addSignalHandlers();
         BungeePlugin.PLUGIN = this;
         // Redis stuff
         BungeePlugin.redisHandler = new RedisHandler("redis");
@@ -109,6 +113,23 @@ public final class BungeePlugin extends Plugin {
         }
     }
 
+    /**
+     * Registers handlers for UNIX signals to ensure correct server shutdown, when the server gets forcefully stopped.
+     */
+    private void addSignalHandlers() {
+        SignalHandler signalHandler = new SignalHandler() {
+            @Override
+            public void handle(Signal signal) {
+                System.err.println("HANDLING SIGNAL " + signal);
+                ProxyServer.getInstance().stop("Received " + signal + " signal.");
+            }
+        };
+
+        Signal.handle(new Signal("TERM"), signalHandler);
+        Signal.handle(new Signal("INT"), signalHandler);
+        Signal.handle(new Signal("HUP"), signalHandler);
+    }
+
 
     /**
      * Register this container to Consul
@@ -134,6 +155,10 @@ public final class BungeePlugin extends Plugin {
                         .timeout("5s")
                         .build())
                 .putMeta("ip", containerIP)
+                .putMeta("name", META_DATA.getTaskName())
+                .putMeta("serviceName", META_DATA.getServiceName())
+                .putMeta("slot", Integer.toString(META_DATA.getSlot()))
+                .putMeta("taskId", META_DATA.getTaskId())
                 .build();
         System.out.println("Adding Proxy " + BUNGEECORD_ID + " to Consul.");
         agentClient.register(newService);
@@ -158,7 +183,7 @@ public final class BungeePlugin extends Plugin {
 
         } catch (ConsulException e) {
             System.err.println(e.getMessage());
-            System.out.println("This is most likely due to no TASK_NAME beeing set!");
+            System.out.println("This is most likely due to no TASK_NAME being set!");
         }
     }
 

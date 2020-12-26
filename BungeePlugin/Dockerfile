@@ -24,6 +24,9 @@ RUN mkdir "$JAVA_HOME/lib/amd64/dcevm" \
 
 # Waterfall part
 
+# This name is also used by the Website
+LABEL DockerMCType="BungeeCord"
+
 STOPSIGNAL SIGINT
 EXPOSE 25577
 EXPOSE 8001

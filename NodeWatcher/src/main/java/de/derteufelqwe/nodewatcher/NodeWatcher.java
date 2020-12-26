@@ -43,7 +43,6 @@ public class NodeWatcher {
     @Getter
     private static String swarmNodeId;
 
-    private final String postgresHost;
     private DockerClient dockerClient;
 
     // --- Executors ---
@@ -53,17 +52,11 @@ public class NodeWatcher {
     private ContainerResourceWatcher containerResourceWatcher;
 
 
-    public NodeWatcher(String dockerHost, String postgresHost) {
-        this.postgresHost = postgresHost;
+    public NodeWatcher(String dockerHost, SessionBuilder sessionBuilder) {
         NodeWatcher.dockerClientFactory = new DockerClientFactory(dockerHost);
+        NodeWatcher.sessionBuilder = sessionBuilder;
         this.dockerClient = dockerClientFactory.getDockerClient();
-        sessionBuilder = this.createSessionBuilder();
         swarmNodeId = this.getLocalSwarmNodeId();
-    }
-
-
-    private SessionBuilder createSessionBuilder() {
-        return new SessionBuilder("admin", "password", this.postgresHost, false);
     }
 
 
@@ -171,9 +164,7 @@ public class NodeWatcher {
         this.containerWatcher.addNewContainerObserver(this.logFetcher);
         this.containerWatcher.addNewContainerObserver(this.containerResourceWatcher);
 
-        System.out.println("init start");
         this.containerWatcher.init();
-        System.out.println("init ende");
     }
 
     /**

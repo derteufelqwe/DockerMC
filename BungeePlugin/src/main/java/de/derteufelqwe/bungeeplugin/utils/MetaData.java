@@ -16,10 +16,22 @@ public class MetaData extends MetaDataBase {
      * Explanation: ServiceName.InstanceNumber.TaskId
      */
     private String taskName;
+    private String serviceName;
+    private int slot = -1;
+    private String taskId;
 
     public MetaData() {
         this.containerIP = this.overnetIp();
         this.taskName = this.getString("TASK_NAME");
+
+        if (this.taskName != null) {
+            String[] split = this.taskName.split("\\.");
+            this.serviceName = split[0];
+            this.slot = Integer.parseInt(split[1]);
+            this.taskId = split[2];
+
+            assert this.serviceName.equals(this.getString("SERVER_NAME"));
+        }
     }
 
 

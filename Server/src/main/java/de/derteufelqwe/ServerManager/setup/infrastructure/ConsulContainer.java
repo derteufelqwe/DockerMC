@@ -12,7 +12,7 @@ public class ConsulContainer extends ExposableContainerTemplate {
 
 
     public ConsulContainer() {
-        super("consul", Constants.Images.CONSUL.image(), "512M", 0.5F, Constants.CONSUL_PORT);
+        super(Constants.CONSUL_HOST, Constants.Images.CONSUL.image(), "512M", 0.5F, Constants.CONSUL_PORT);
     }
 
 
