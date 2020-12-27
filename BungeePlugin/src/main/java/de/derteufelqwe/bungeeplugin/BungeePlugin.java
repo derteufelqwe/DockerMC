@@ -6,12 +6,15 @@ import com.orbitz.consul.model.agent.ImmutableRegistration;
 import com.orbitz.consul.model.agent.Registration;
 import com.orbitz.google.common.net.HostAndPort;
 import de.derteufelqwe.bungeeplugin.commands.*;
-import de.derteufelqwe.bungeeplugin.consul.*;
+import de.derteufelqwe.bungeeplugin.consul.KVCacheListener;
+import de.derteufelqwe.bungeeplugin.consul.ServiceCatalogListener;
 import de.derteufelqwe.bungeeplugin.events.ConnectionEvents;
+import de.derteufelqwe.bungeeplugin.events.RedisEvents;
 import de.derteufelqwe.bungeeplugin.events.ServerRegistrator;
 import de.derteufelqwe.bungeeplugin.health.HealthCheck;
-import de.derteufelqwe.bungeeplugin.events.RedisEvents;
-import de.derteufelqwe.bungeeplugin.redis.*;
+import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
+import de.derteufelqwe.bungeeplugin.redis.RedisHandler;
+import de.derteufelqwe.bungeeplugin.redis.RedisPublishListener;
 import de.derteufelqwe.bungeeplugin.utils.MetaData;
 import de.derteufelqwe.bungeeplugin.utils.ServerState;
 import de.derteufelqwe.commons.Constants;
@@ -37,13 +40,18 @@ public final class BungeePlugin extends Plugin {
 
     // --- Infrastructure ---
     private HealthCheck healthCheck = new HealthCheck();
-    @Getter public static RedisHandler redisHandler;
-    @Getter public static SessionBuilder sessionBuilder = new SessionBuilder("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT);
+    @Getter
+    public static RedisHandler redisHandler;
+    @Getter
+    public static SessionBuilder sessionBuilder = new SessionBuilder("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT);
 
     // --- Static ---
-    @Getter public static Plugin PLUGIN;
-    @Getter public static ServerState STATE = ServerState.STARTING;
-    @Getter private static RedisDataManager redisDataManager;   // Manage data from and to redis
+    @Getter
+    public static Plugin PLUGIN;
+    @Getter
+    public static ServerState STATE = ServerState.STARTING;
+    @Getter
+    private static RedisDataManager redisDataManager;   // Manage data from and to redis
     public static final MetaData META_DATA = new MetaData();
     public static final String BUNGEECORD_ID = META_DATA.getTaskName(); // Identifies the current node
 

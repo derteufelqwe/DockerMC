@@ -26,6 +26,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Root;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -105,13 +106,33 @@ public class RedisEvents implements Listener {
      */
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerDisconnectEvent(PlayerDisconnectEvent event) {
-        System.out.println("quit");
+        ProxiedPlayer player = event.getPlayer();
+
+        // Redis stuff
         try (Jedis jedis = this.jedisPool.getResource()) {
             this.redisDataManager.removePlayer(event.getPlayer().getDisplayName());
 
             jedis.decr("playerCount");
             jedis.decr("bungee#playerCount#" + BungeePlugin.BUNGEECORD_ID);
             jedis.srem("bungee#players#" + BungeePlugin.BUNGEECORD_ID, event.getPlayer().getDisplayName());
+        }
+
+        // Create player object
+        try (Session session = sessionBuilder.openSession()) {
+            Transaction tx = session.beginTransaction();
+
+            try {
+                // Create player object when he joins
+                DBPlayer dbPlayer = session.get(DBPlayer.class, player.getUniqueId());
+
+                dbPlayer.setLastOnline(new Timestamp(System.currentTimeMillis()));
+
+                session.update(dbPlayer);
+
+            } finally {
+                tx.commit();
+            }
+
         }
     }
 

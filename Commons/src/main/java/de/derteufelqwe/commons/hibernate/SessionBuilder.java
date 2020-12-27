@@ -23,6 +23,7 @@ public class SessionBuilder {
             .addAnnotatedClass(DBService.class)
             .addAnnotatedClass(DBPlayer.class)
             .addAnnotatedClass(PlayerOnlineDurations.class)
+            .addAnnotatedClass(PlayerBans.class)
             .buildSessionFactory();
     }
     

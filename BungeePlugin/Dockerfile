@@ -53,6 +53,6 @@ ADD docker/locations.yml /server/locations.yml
 ADD docker/waterfall.yml /server/waterfall.yml
 ADD docker/modules.yml /server/modules.yml
 ADD docker/config.yml /server/config.yml
-ADD target/BungeePlugin-1.0.jar /server/plugins/BungeePlugin.jar
+ADD target/BungeePlugin-1.0.jar /server/plugins/BungeePlugin-1.0.jar
 
 CMD ["java", "-Xmx20G", "-XXaltjvm=dcevm", "-javaagent:/install/hotswap-agent_latest.jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005", "-jar", "waterfall.jar"]

@@ -87,9 +87,18 @@
         <dependency>
             <groupId>io.github.waterfallmc</groupId>
             <artifactId>waterfall-api</artifactId>
-            <version>1.12-SNAPSHOT</version>
+            <version>1.16-R0.4-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>io.github.waterfallmc</groupId>-->
+<!--            <artifactId>waterfall</artifactId>-->
+<!--            <version>1.16-R0.4-SNAPSHOT</version>-->
+<!--            <scope>system</scope>-->
+<!--            <systemPath>${project.basedir}/docker/waterfall.jar</systemPath>-->
+<!--        </dependency>-->
+
 
         <dependency>
             <groupId>com.github.docker-java</groupId>
