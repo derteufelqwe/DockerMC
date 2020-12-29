@@ -4,17 +4,17 @@ import lombok.*;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import java.net.Inet4Address;
 import java.sql.Timestamp;
-import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "player_bans")
-public class PlayerBans {
+@Entity(name = "ip_bans")
+public class IPBan {
 
     // ----- General Information -----
 
@@ -24,14 +24,14 @@ public class PlayerBans {
 
     // ----- Ban information -----
 
-    @ManyToOne
-    private DBPlayer bannedPlayer;
+    @Type(type = "text")
+    private Inet4Address bannedIp;
 
     @ManyToOne
     private DBPlayer bannedBy;
 
     /*
-     * Timestamp when the player was banned
+     * Timestamp when the ip was banned
      */
     private Timestamp bannedAt = new Timestamp(System.currentTimeMillis() / 1000L);
 
@@ -40,9 +40,15 @@ public class PlayerBans {
     @Type(type = "text")
     private String banMessage;
 
+    @ManyToOne
+    private DBPlayer unbannedBy;
 
-    public PlayerBans(DBPlayer bannedPlayer, DBPlayer bannedBy, String banMessage, Timestamp bannedUntil) {
-        this.bannedPlayer = bannedPlayer;
+    private Timestamp unbanTime;
+
+
+
+    public IPBan(Inet4Address ip, DBPlayer bannedBy, String banMessage, Timestamp bannedUntil) {
+        this.bannedIp = ip;
         this.bannedBy = bannedBy;
         this.banMessage = banMessage;
         this.bannedUntil = bannedUntil;
@@ -50,19 +56,23 @@ public class PlayerBans {
 
     /**
      *
-     * @param bannedPlayer
+     * @param ip
      * @param bannedBy
      * @param banMessage
      * @param banDuration In seconds
      */
-    public PlayerBans(DBPlayer bannedPlayer, DBPlayer bannedBy, String banMessage, int banDuration) {
-        this(bannedPlayer, bannedBy, banMessage,
+    public IPBan(Inet4Address ip, DBPlayer bannedBy, String banMessage, int banDuration) {
+        this(ip, bannedBy, banMessage,
                 new Timestamp((System.currentTimeMillis() / 1000L) + banDuration));
     }
 
 
     public int getDuration() {
         return (int) (this.bannedUntil.getTime() - this.bannedAt.getTime());
+    }
+
+    public boolean wasUnbanned() {
+        return this.unbannedBy != null || this.unbanTime != null;
     }
 
 }

@@ -131,6 +131,12 @@ public class RedisDataCache {
             this.server = serverInfo.getName();
         }
 
+        public PlayerData(String username, String uuid, String address) {
+            this.username = username;
+            this.uuid = uuid;
+            this.address = address;
+        }
+
 
         public Map<String, String> toMap() {
             Map<String, String> map = new HashMap<>();

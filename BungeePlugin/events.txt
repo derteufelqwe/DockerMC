@@ -1,0 +1,5 @@
+Player join
+    PlayerJoinEvent
+        (async) Redis / DB stuff
+        Call BungeePlayerJoin (local node only)
+        Send bungee join message through redis (will call BungeePlayerJoin on all other nodes)

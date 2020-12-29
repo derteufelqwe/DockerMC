@@ -1,10 +1,10 @@
 package de.derteufelqwe.bungeeplugin.redis;
 
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
-import de.derteufelqwe.bungeeplugin.redis.events.RedisPlayerAddEvent;
-import de.derteufelqwe.bungeeplugin.redis.events.RedisPlayerRemoveEvent;
-import de.derteufelqwe.bungeeplugin.redis.events.RedisPlayerServerChangeEvent;
-import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerConnectMessage;
+import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerJoinNetwork;
+import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerLeaveNetwork;
+import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerServerChange;
+import de.derteufelqwe.bungeeplugin.redis.messages.RedisRequestPlayerServerSend;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -82,7 +82,7 @@ public class RedisDataManager {
 
         try (Jedis jedis = this.jedisPool.getResource()) {
             jedis.hset("players#" + playerData.getUsername(), playerData.toMap());
-            jedis.publish("events#playerJoin", new RedisPlayerAddEvent(playerData.getUsername()).serialize());
+            jedis.publish("events#playerJoin", new RedisPlayerJoinNetwork(playerData.getUsername()).serialize());
         }
     }
 
@@ -104,7 +104,7 @@ public class RedisDataManager {
 
         try (Jedis jedis = this.jedisPool.getResource()) {
             jedis.hdel("players#" + username, RedisDataCache.PlayerData.getFields());
-            jedis.publish("events#playerLeave", new RedisPlayerRemoveEvent(username).serialize());
+            jedis.publish("events#playerLeave", new RedisPlayerLeaveNetwork(username).serialize());
         }
     }
 
@@ -146,7 +146,7 @@ public class RedisDataManager {
 
         try (Jedis jedis = this.jedisPool.getResource()) {
             jedis.hset("players#" + username, "server", newServer);
-            jedis.publish("events#playerServerChange", new RedisPlayerServerChangeEvent(username).serialize());
+            jedis.publish("events#playerServerChange", new RedisPlayerServerChange(username).serialize());
         }
     }
 
@@ -233,7 +233,7 @@ public class RedisDataManager {
      *
      * @param msg Message to send
      */
-    public void sendConnectMessage(RedisPlayerConnectMessage msg) {
+    public void sendConnectMessage(RedisRequestPlayerServerSend msg) {
         if (!msg.getTargetBungee().equals(BungeePlugin.BUNGEECORD_ID)) {
             try (Jedis jedis = this.jedisPool.getResource()) {
                 jedis.publish("messages#connectPlayer", msg.serialize());
@@ -253,6 +253,16 @@ public class RedisDataManager {
             }
 
             player.connect(target);
+        }
+    }
+
+    /**
+     * Publishes a BungeePlugin known message to redis for the other nodes to receive it
+     * @param data
+     */
+    public void sendMessage(RedisPubSubData data) {
+        try (Jedis jedis = this.jedisPool.getResource()) {
+            jedis.publish("messages#" + data.getMessageType(), data.serialize());
         }
     }
 

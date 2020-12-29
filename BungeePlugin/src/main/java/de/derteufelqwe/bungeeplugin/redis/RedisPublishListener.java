@@ -1,10 +1,10 @@
 package de.derteufelqwe.bungeeplugin.redis;
 
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
-import de.derteufelqwe.bungeeplugin.redis.events.RedisPlayerAddEvent;
-import de.derteufelqwe.bungeeplugin.redis.events.RedisPlayerRemoveEvent;
-import de.derteufelqwe.bungeeplugin.redis.events.RedisPlayerServerChangeEvent;
-import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerConnectMessage;
+import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerJoinNetwork;
+import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerLeaveNetwork;
+import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerServerChange;
+import de.derteufelqwe.bungeeplugin.redis.messages.RedisRequestPlayerServerSend;
 import de.derteufelqwe.bungeeplugin.utils.Utils;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
@@ -61,23 +61,23 @@ public class RedisPublishListener extends JedisPubSub implements Runnable {
 
         switch (event) {
             case "playerJoin":
-                redisEvent = RedisPubSubData.deserialize(data, RedisPlayerAddEvent.class);
+                redisEvent = RedisPubSubData.deserialize(data, RedisPlayerJoinNetwork.class);
                 if (this.checkEventNotFromHere(redisEvent)) {
-                    this.onPlayerAddEvent((RedisPlayerAddEvent) redisEvent);
+                    this.onPlayerAddEvent((RedisPlayerJoinNetwork) redisEvent);
                 }
                 break;
 
             case "playerLeave":
-                redisEvent = RedisPubSubData.deserialize(data, RedisPlayerRemoveEvent.class);
+                redisEvent = RedisPubSubData.deserialize(data, RedisPlayerLeaveNetwork.class);
                 if (this.checkEventNotFromHere(redisEvent)) {
-                    this.onPlayerRemoveEvent((RedisPlayerRemoveEvent) redisEvent);
+                    this.onPlayerRemoveEvent((RedisPlayerLeaveNetwork) redisEvent);
                 }
                 break;
 
             case "playerServerChange":
-                redisEvent = RedisPubSubData.deserialize(data, RedisPlayerServerChangeEvent.class);
+                redisEvent = RedisPubSubData.deserialize(data, RedisPlayerServerChange.class);
                 if (this.checkEventNotFromHere(redisEvent)) {
-                    this.onPlayerServerChangeEvent((RedisPlayerServerChangeEvent) redisEvent);
+                    this.onPlayerServerChangeEvent((RedisPlayerServerChange) redisEvent);
                 }
                 break;
 
@@ -92,9 +92,9 @@ public class RedisPublishListener extends JedisPubSub implements Runnable {
 
         switch (message) {
             case "connectPlayer":
-                redisMsg = RedisPubSubData.deserialize(data, RedisPlayerConnectMessage.class);
+                redisMsg = RedisPubSubData.deserialize(data, RedisRequestPlayerServerSend.class);
                 if (this.checkEventNotFromHere(redisMsg)) {
-                    this.onConnectPlayerMessage((RedisPlayerConnectMessage) redisMsg);
+                    this.onConnectPlayerMessage((RedisRequestPlayerServerSend) redisMsg);
                 }
                 break;
 
@@ -116,24 +116,24 @@ public class RedisPublishListener extends JedisPubSub implements Runnable {
 
     // -----  Event handlers  -----
 
-    private void onPlayerAddEvent(RedisPlayerAddEvent event) {
+    private void onPlayerAddEvent(RedisPlayerJoinNetwork event) {
         System.out.printf("Event: PlayerAdd %s.\n", event.getUsername());
         this.redisDataManager.loadPlayer(event.getUsername());
     }
 
-    private void onPlayerRemoveEvent(RedisPlayerRemoveEvent event) {
+    private void onPlayerRemoveEvent(RedisPlayerLeaveNetwork event) {
         System.out.printf("Event: PlayerRemove %s.\n", event.getUsername());
         this.redisDataManager.removePlayerLoc(event.getUsername());
     }
 
-    private void onPlayerServerChangeEvent(RedisPlayerServerChangeEvent event) {
+    private void onPlayerServerChangeEvent(RedisPlayerServerChange event) {
         System.out.printf("Event: PlayerChange %s.\n", event.getUsername());
         this.redisDataManager.loadPlayer(event.getUsername());
     }
 
     // -----  Message handlers  -----
 
-    private void onConnectPlayerMessage(RedisPlayerConnectMessage message) {
+    private void onConnectPlayerMessage(RedisRequestPlayerServerSend message) {
         // Only execute this, if the message is intended for this bungeecord
         if (!message.getTargetBungee().equals(BungeePlugin.BUNGEECORD_ID)) {
             return;

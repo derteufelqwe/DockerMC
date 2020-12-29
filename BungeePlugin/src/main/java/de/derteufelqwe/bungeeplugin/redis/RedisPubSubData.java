@@ -12,7 +12,6 @@ import lombok.Data;
  */
 @Data
 public abstract class RedisPubSubData {
-
     private Gson gson = RedisPubSubData.getGson();
 
     /**
@@ -51,5 +50,11 @@ public abstract class RedisPubSubData {
     public static RedisPubSubData deserialize(String data, Class<? extends RedisPubSubData> type) {
         return RedisPubSubData.getGson().fromJson(data, type);
     }
+
+    /**
+     * The name under which this event gets sent
+     * @return
+     */
+    public abstract MessageType getMessageType();
 
 }

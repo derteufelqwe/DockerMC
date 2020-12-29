@@ -3,7 +3,7 @@ package de.derteufelqwe.bungeeplugin.commands;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataCache;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
-import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerConnectMessage;
+import de.derteufelqwe.bungeeplugin.redis.messages.RedisRequestPlayerServerSend;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -90,7 +90,7 @@ public class SendCommand extends Command {
             return;
         }
 
-        redisDataManager.sendConnectMessage(new RedisPlayerConnectMessage(playerName, playerData.getBungeeCordId(), target.getName()));
+        redisDataManager.sendConnectMessage(new RedisRequestPlayerServerSend(playerName, playerData.getBungeeCordId(), target.getName()));
         sender.sendMessage(new TextComponent(PREFIX + "Sending " + playerName + " to " + target.getName() + "."));
     }
 
@@ -103,7 +103,7 @@ public class SendCommand extends Command {
     private void sendAll(CommandSender sender, ServerInfo target) {
         List<RedisDataCache.PlayerData> targetPlayers = this.redisDataManager.getPlayersOnBungee(this.redisDataManager.getPlayer(sender.getName()).getBungeeCordId());
         for (RedisDataCache.PlayerData player : targetPlayers) {
-            redisDataManager.sendConnectMessage(new RedisPlayerConnectMessage(player.getUsername(), player.getBungeeCordId(), target.getName()));
+            redisDataManager.sendConnectMessage(new RedisRequestPlayerServerSend(player.getUsername(), player.getBungeeCordId(), target.getName()));
         }
 
         sender.sendMessage(new TextComponent(String.format(
@@ -120,7 +120,7 @@ public class SendCommand extends Command {
     private void sendCurrent(ProxiedPlayer sender, ServerInfo target) {
         List<RedisDataCache.PlayerData> targetPlayers = this.redisDataManager.getPlayerOnServer(this.redisDataManager.getPlayer(sender.getName()).getServer());
         for (RedisDataCache.PlayerData player : targetPlayers) {
-            redisDataManager.sendConnectMessage(new RedisPlayerConnectMessage(player.getUsername(), player.getBungeeCordId(), target.getName()));
+            redisDataManager.sendConnectMessage(new RedisRequestPlayerServerSend(player.getUsername(), player.getBungeeCordId(), target.getName()));
         }
 
         sender.sendMessage(new TextComponent(String.format(

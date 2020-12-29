@@ -1,13 +1,23 @@
-package de.derteufelqwe.bungeeplugin.events;
+package de.derteufelqwe.bungeeplugin.eventhandlers;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.sun.istack.NotNull;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
+import de.derteufelqwe.bungeeplugin.TestEvent;
+import de.derteufelqwe.bungeeplugin.events.BungeePlayerJoinEvent;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataCache;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
+import de.derteufelqwe.bungeeplugin.utils.mojangapi.MojangAPIProfile;
+import de.derteufelqwe.bungeeplugin.utils.mojangapi.MojangAPIProfileDeserializer;
+import de.derteufelqwe.bungeeplugin.utils.mojangapi.PlayerTextureDeserializer;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
 import de.derteufelqwe.commons.hibernate.objects.DBService;
+import de.derteufelqwe.commons.hibernate.objects.PlayerLogin;
 import de.derteufelqwe.commons.hibernate.objects.PlayerOnlineDurations;
 import lombok.SneakyThrows;
+import net.md_5.bungee.api.Callback;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.ServerPing;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -20,14 +30,20 @@ import org.hibernate.Transaction;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import javax.annotation.CheckForNull;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Root;
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.sql.Timestamp;
-import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 
@@ -39,9 +55,19 @@ public class RedisEvents implements Listener {
     private SessionBuilder sessionBuilder = BungeePlugin.getSessionBuilder();
     private JedisPool jedisPool = BungeePlugin.getRedisHandler().getJedisPool();
     private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
+    private Gson mojangGson = createMojangGson();
+    private int counter = 0;
 
 
     public RedisEvents() {
+    }
+
+
+    private Gson createMojangGson() {
+        return new GsonBuilder()
+                .registerTypeAdapter(MojangAPIProfile.class, new MojangAPIProfileDeserializer())
+                .registerTypeAdapter(MojangAPIProfile.PlayerTexture.class, new PlayerTextureDeserializer())
+                .create();
     }
 
 
@@ -62,7 +88,7 @@ public class RedisEvents implements Listener {
     /**
      * Adds a player to redis when he joins the network
      */
-    @EventHandler(priority = EventPriority.LOWEST)
+//    @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoinEvent(PostLoginEvent event) {
         ProxiedPlayer player = event.getPlayer();
 
@@ -83,16 +109,39 @@ public class RedisEvents implements Listener {
                 DBPlayer dbPlayer = session.get(DBPlayer.class, player.getUniqueId());
                 if (dbPlayer == null) {
                     dbPlayer = new DBPlayer(player.getUniqueId(), player.getDisplayName());
-                    session.persist(dbPlayer);
+                }
+
 
                 // Update players name if it changed
-                } else {
-                    if (!dbPlayer.getName().equals(player.getDisplayName())) {
-                        dbPlayer.setName(player.getDisplayName());
-
-                        session.update(dbPlayer);
-                    }
+                if (!dbPlayer.getName().equals(player.getDisplayName())) {
+                    dbPlayer.setName(player.getDisplayName());
                 }
+
+
+                // Update players texture
+                if (dbPlayer.getLastSkinUpdate() == null || (System.currentTimeMillis() - dbPlayer.getLastSkinUpdate().getTime()) >= 10 * 60 * 1000) {  // 10 Minutes
+                    MojangAPIProfile profileData = this.downloadPlayerProfileData(dbPlayer.getUuid());
+                    dbPlayer.setLastSkinUpdate(new Timestamp(System.currentTimeMillis()));
+
+                    if (profileData != null && profileData.getTexture() != null) {
+                        MojangAPIProfile.PlayerTexture texture = profileData.getTexture();
+
+                        BufferedImage skin = texture.downloadSkinImage();
+
+                        if (skin != null) {
+                            dbPlayer.setSkin(skin);
+                        }
+                    }
+
+                }
+
+
+                // Create a login object for the player
+                PlayerLogin playerLogin = new PlayerLogin(dbPlayer);
+                session.save(playerLogin);
+
+
+                session.saveOrUpdate(dbPlayer);
 
             } finally {
                 tx.commit();
@@ -104,7 +153,7 @@ public class RedisEvents implements Listener {
     /**
      * Removes a player from redis when he disconnects from the network
      */
-    @EventHandler(priority = EventPriority.LOWEST)
+//    @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerDisconnectEvent(PlayerDisconnectEvent event) {
         ProxiedPlayer player = event.getPlayer();
 
@@ -127,6 +176,22 @@ public class RedisEvents implements Listener {
 
                 dbPlayer.setLastOnline(new Timestamp(System.currentTimeMillis()));
 
+                // Update the login object
+                CriteriaBuilder cb = session.getCriteriaBuilder();
+                CriteriaQuery<PlayerLogin> cq = cb.createQuery(PlayerLogin.class);
+                Root<PlayerLogin> root = cq.from(PlayerLogin.class);
+
+                cq.select(root)
+                        .where(cb.equal(root.get("player"), dbPlayer))
+                        .orderBy(cb.desc(root.get("joinTime")));
+
+                Query query = session.createQuery(cq);
+                query.setMaxResults(1);
+                PlayerLogin playerLogin = (PlayerLogin) query.getSingleResult();
+
+                playerLogin.setLeaveTime(new Timestamp(System.currentTimeMillis()));
+                session.update(playerLogin);
+
                 session.update(dbPlayer);
 
             } finally {
@@ -141,7 +206,7 @@ public class RedisEvents implements Listener {
      * Increments player counts on a server
      */
     @SneakyThrows
-    @EventHandler(priority = EventPriority.HIGH)
+//    @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerServerConnect(ServerConnectedEvent event) {
         String serverName = event.getServer().getInfo().getName();
         String playerName = event.getPlayer().getDisplayName();
@@ -159,7 +224,7 @@ public class RedisEvents implements Listener {
     /**
      * Redis handler when players disconnec from a server
      */
-    @EventHandler(priority = EventPriority.HIGH)
+//    @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerServerDisconnect(ServerDisconnectEvent event) {
         String serverName = event.getTarget().getName();
         String playerName = event.getPlayer().getDisplayName();
@@ -207,7 +272,7 @@ public class RedisEvents implements Listener {
 
                     cq.select(onlineRoot)
                             .where(cb.equal(onlineRoot.get("player"), dbPlayer), cb.equal(onlineRoot.get("service"), dbService))
-                            ;
+                    ;
 
                     Query queryres = session.createQuery(cq);
                     queryres.setMaxResults(1);
@@ -232,6 +297,99 @@ public class RedisEvents implements Listener {
             }
 
         }
+    }
+
+    // -----  Utility methods  -----
+
+    @CheckForNull
+    private MojangAPIProfile downloadPlayerProfileData(@NotNull UUID playerId) {
+        String uid = playerId.toString().replace("-", "");
+
+        try {
+            URL url = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uid);
+            URLConnection yc = url.openConnection();
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(
+                            yc.getInputStream()));
+
+            String response = "";
+            String s;
+            while ((s = in.readLine()) != null)
+                response += s;
+            in.close();
+
+            // If no valid uuid was supplied return a default response
+            if (response.equals("")) {
+                return new MojangAPIProfile(playerId);
+            }
+
+            return mojangGson.fromJson(response, MojangAPIProfile.class);
+
+        } catch (IOException e1) {
+            return null;
+        }
+    }
+
+    public void add() {
+
+    }
+
+    @EventHandler
+    @SneakyThrows
+    public void ononLogin(LoginEvent event) {
+//        event.registerIntent(BungeePlugin.PLUGIN);
+//        add();
+//        ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, () -> {
+//            try {
+//                TimeUnit.SECONDS.sleep(3);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//            System.out.println("call2 done.");
+//            event.completeIntent(BungeePlugin.PLUGIN);
+//        });
+//
+
+        System.out.println("handler2 done");
+    }
+
+    @EventHandler
+    @SneakyThrows
+    public void onLogin(ServerConnectedEvent event) {
+
+        TestEvent testEvent = new TestEvent(event.getPlayer(), new Callback<TestEvent>() {
+            @Override
+            public void done(TestEvent result, Throwable error) {
+                System.out.println("callback done");
+                result.completeIntent(BungeePlugin.PLUGIN);
+            }
+        });
+
+        testEvent.registerIntent(BungeePlugin.PLUGIN);
+        testEvent.callEvent();
+
+    }
+
+
+    @EventHandler
+    @SneakyThrows
+    public void onTest(TestEvent event) {
+
+        TimeUnit.SECONDS.sleep(3);
+
+//        event.registerIntent(BungeePlugin.PLUGIN);
+//
+//        ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, () -> {
+//            try {
+//                TimeUnit.SECONDS.sleep(3);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//            System.out.println("call done.");
+//            event.completeIntent(BungeePlugin.PLUGIN);
+//        });
+//
+//        System.out.println("handler done");
     }
 
 }
