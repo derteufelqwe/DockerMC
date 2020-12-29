@@ -1738,6 +1738,7 @@ sequence|table|16640|16642|1
     </table>
     <table id="62" parent="15" name="players">
       <ObjectId>16936</ObjectId>
+      <Outdated>1</Outdated>
       <Owner>admin</Owner>
       <StateNumber>500597</StateNumber>
     </table>

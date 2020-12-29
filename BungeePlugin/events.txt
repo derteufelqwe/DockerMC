@@ -3,3 +3,13 @@ Player join
         (async) Redis / DB stuff
         Call BungeePlayerJoin (local node only)
         Send bungee join message through redis (will call BungeePlayerJoin on all other nodes)
+
+Player server change
+    Order: Connect -> Disconnect
+
+Join:
+    Connect -> On Server
+
+Change server:
+    Connect, Disconnect -> On Server
+

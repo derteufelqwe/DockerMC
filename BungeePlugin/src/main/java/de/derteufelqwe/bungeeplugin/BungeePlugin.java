@@ -8,10 +8,7 @@ import com.orbitz.google.common.net.HostAndPort;
 import de.derteufelqwe.bungeeplugin.commands.*;
 import de.derteufelqwe.bungeeplugin.consul.KVCacheListener;
 import de.derteufelqwe.bungeeplugin.consul.ServiceCatalogListener;
-import de.derteufelqwe.bungeeplugin.eventhandlers.ConnectionEvents;
-import de.derteufelqwe.bungeeplugin.eventhandlers.OwnEventsHandler;
-import de.derteufelqwe.bungeeplugin.eventhandlers.RedisEvents;
-import de.derteufelqwe.bungeeplugin.eventhandlers.ServerRegistrator;
+import de.derteufelqwe.bungeeplugin.eventhandlers.*;
 import de.derteufelqwe.bungeeplugin.health.HealthCheck;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.bungeeplugin.redis.RedisHandler;
@@ -62,9 +59,6 @@ public final class BungeePlugin extends Plugin {
 
     @Override
     public void onEnable() {
-
-
-
         this.addSignalHandlers();
         BungeePlugin.PLUGIN = this;
         // Redis stuff
@@ -90,7 +84,8 @@ public final class BungeePlugin extends Plugin {
         // ---  Events  ---
         getProxy().getPluginManager().registerListener(this, connectionEvents);
         getProxy().getPluginManager().registerListener(this, new RedisEvents());
-        getProxy().getPluginManager().registerListener(this, new OwnEventsHandler());
+        getProxy().getPluginManager().registerListener(this, new EventsDispatcher());
+        getProxy().getPluginManager().registerListener(this, new BungeeEventsHandler());
 
         // ---  Commands  ---
         getProxy().getPluginManager().registerCommand(this, new DockerMCCommand());

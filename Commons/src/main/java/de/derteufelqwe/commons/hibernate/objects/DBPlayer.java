@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
@@ -29,6 +30,11 @@ public class DBPlayer {
 
     @Type(type = "text")
     private String name;
+
+    /*
+     * The timestamp when the user joined the network the first time
+     */
+    private Timestamp firstJoinDate;
 
     // ----- Textures -----
 
@@ -70,6 +76,7 @@ public class DBPlayer {
     public DBPlayer(UUID uuid, String name) {
         this.uuid = uuid;
         this.name = name;
+        this.firstJoinDate = new Timestamp(System.currentTimeMillis());
     }
 
 

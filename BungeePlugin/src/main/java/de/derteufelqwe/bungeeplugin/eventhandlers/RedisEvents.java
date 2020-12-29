@@ -334,7 +334,7 @@ public class RedisEvents implements Listener {
 
     }
 
-    @EventHandler
+//    @EventHandler
     @SneakyThrows
     public void ononLogin(LoginEvent event) {
 //        event.registerIntent(BungeePlugin.PLUGIN);
@@ -353,7 +353,7 @@ public class RedisEvents implements Listener {
         System.out.println("handler2 done");
     }
 
-    @EventHandler
+//    @EventHandler
     @SneakyThrows
     public void onLogin(ServerConnectedEvent event) {
 
@@ -371,7 +371,7 @@ public class RedisEvents implements Listener {
     }
 
 
-    @EventHandler
+//    @EventHandler
     @SneakyThrows
     public void onTest(TestEvent event) {
 

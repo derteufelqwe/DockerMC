@@ -41,6 +41,7 @@ public class SessionBuilder {
         properties.setProperty(Environment.HBM2DDL_AUTO, "update"); // create / update
         properties.setProperty(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread");
         properties.setProperty(Environment.PHYSICAL_NAMING_STRATEGY, "org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl");
+        properties.setProperty(Environment.POOL_SIZE, "64");
 
         return properties;
     }

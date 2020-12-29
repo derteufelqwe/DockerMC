@@ -146,7 +146,7 @@ public class RedisDataManager {
 
         try (Jedis jedis = this.jedisPool.getResource()) {
             jedis.hset("players#" + username, "server", newServer);
-            jedis.publish("events#playerServerChange", new RedisPlayerServerChange(username).serialize());
+//            jedis.publish("events#playerServerChange", new RedisPlayerServerChange(username).serialize());
         }
     }
 

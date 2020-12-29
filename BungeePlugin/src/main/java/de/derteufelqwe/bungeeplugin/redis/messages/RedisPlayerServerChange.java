@@ -17,6 +17,18 @@ public class RedisPlayerServerChange extends RedisPubSubData {
     @Expose
     private String username;
 
+    @Expose
+    private String oldServer;
+
+    @Expose
+    private String newServer;
+
+
+    public RedisPlayerServerChange(String username, String newServer) {
+        this.username = username;
+        this.newServer = newServer;
+    }
+
 
     @Override
     public MessageType getMessageType() {
