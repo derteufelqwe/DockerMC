@@ -434,8 +434,7 @@ public class EventsDispatcher implements Listener {
     private void callBungeePlayerServerChangeEvent(String username) {
         RedisPlayerServerChange redisMessage = this.playerServerChangeEventMap.get(username);
 
-        BungeePlayerServerChangeEvent event = new BungeePlayerServerChangeEvent(redisMessage.getUsername(), redisMessage.getOldServer(),
-                redisMessage.getNewServer(), new Callback<BungeePlayerServerChangeEvent>() {
+        BungeePlayerServerChangeEvent event = new BungeePlayerServerChangeEvent(redisMessage, new Callback<BungeePlayerServerChangeEvent>() {
             @Override
             public void done(BungeePlayerServerChangeEvent result, Throwable error) {
 

@@ -1,21 +1,27 @@
 package de.derteufelqwe.bungeeplugin.redis;
 
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
+import de.derteufelqwe.bungeeplugin.events.BungeePlayerJoinEvent;
+import de.derteufelqwe.bungeeplugin.events.BungeePlayerLeaveEvent;
+import de.derteufelqwe.bungeeplugin.events.BungeePlayerServerChangeEvent;
+import de.derteufelqwe.bungeeplugin.events.BungeeRequestPlayerServerSendEvent;
 import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerJoinNetwork;
 import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerLeaveNetwork;
 import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerServerChange;
 import de.derteufelqwe.bungeeplugin.redis.messages.RedisRequestPlayerServerSend;
 import de.derteufelqwe.bungeeplugin.utils.Utils;
+import net.md_5.bungee.api.Callback;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.ServerConnectEvent;
+import org.checkerframework.checker.units.qual.C;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPubSub;
 
 /**
- * Receives the published messages on redis and dispatches them.
+ * Receives the published messages on redis and dispatches them into BungeeCord events
  * This class should run in a different thread since the {@link #run()} method is blocking
  */
 public class RedisPublishListener extends JedisPubSub implements Runnable {
@@ -32,7 +38,7 @@ public class RedisPublishListener extends JedisPubSub implements Runnable {
     @Override
     public void run() {
         try (Jedis jedis = this.jedisPool.getResource()) {
-            jedis.psubscribe(this, "events#*", "messages#*");
+            jedis.psubscribe(this, "messages#*");
         }
     }
 
@@ -45,61 +51,56 @@ public class RedisPublishListener extends JedisPubSub implements Runnable {
     @Override
     public void onPMessage(String pattern, String channel, String message) {
 
-        if (pattern.equals("events#*")) {
-            String event = channel.substring(7);
-            this.onEventMessage(event, message);
-
-        } else if (pattern.equals("messages#*")) {
+        if (pattern.equals("messages#*")) {
             String msg = channel.substring(9);
-            this.onMessageMessage(msg, message);
+            try {
+                MessageType messageType = MessageType.valueOf(msg);
+                this.onMessageMessage(messageType, message);
+
+            } catch (IllegalArgumentException e) {
+                System.err.println("Received invalid message type " + msg + ".");
+            }
+
+        } else {
+            System.err.println("Received unknown Pub-Sub pattern '" + pattern + "'.");
         }
 
     }
 
-    private void onEventMessage(String event, String data) {
-        RedisPubSubData redisEvent = null;
+    private void onMessageMessage(MessageType type, String data) {
+        RedisPubSubData redisMessage;
 
-        switch (event) {
-            case "playerJoin":
-                redisEvent = RedisPubSubData.deserialize(data, RedisPlayerJoinNetwork.class);
-                if (this.checkEventNotFromHere(redisEvent)) {
-                    this.onPlayerAddEvent((RedisPlayerJoinNetwork) redisEvent);
+        switch (type) {
+            case PLAYER_JOIN:
+                redisMessage = RedisPubSubData.deserialize(data, RedisPlayerJoinNetwork.class);
+                if (this.checkEventNotFromHere(redisMessage)) {
+                    this.onPlayerAddMessage((RedisPlayerJoinNetwork) redisMessage);
                 }
                 break;
 
-            case "playerLeave":
-                redisEvent = RedisPubSubData.deserialize(data, RedisPlayerLeaveNetwork.class);
-                if (this.checkEventNotFromHere(redisEvent)) {
-                    this.onPlayerRemoveEvent((RedisPlayerLeaveNetwork) redisEvent);
+            case PLAYER_LEAVE:
+                redisMessage = RedisPubSubData.deserialize(data, RedisPlayerLeaveNetwork.class);
+                if (this.checkEventNotFromHere(redisMessage)) {
+                    this.onPlayerRemoveMessage((RedisPlayerLeaveNetwork) redisMessage);
                 }
                 break;
 
-            case "playerServerChange":
-                redisEvent = RedisPubSubData.deserialize(data, RedisPlayerServerChange.class);
-                if (this.checkEventNotFromHere(redisEvent)) {
-                    this.onPlayerServerChangeEvent((RedisPlayerServerChange) redisEvent);
+            case PLAYER_SERVER_CHANGE:
+                redisMessage = RedisPubSubData.deserialize(data, RedisPlayerServerChange.class);
+                if (this.checkEventNotFromHere(redisMessage)) {
+                    this.onPlayerServerChangeMessage((RedisPlayerServerChange) redisMessage);
                 }
                 break;
 
-            default:
-                System.err.println("Found unknown event '" + event + "'.");
-                break;
-        }
-    }
-
-    private void onMessageMessage(String message, String data) {
-        RedisPubSubData redisMsg;
-
-        switch (message) {
-            case "connectPlayer":
-                redisMsg = RedisPubSubData.deserialize(data, RedisRequestPlayerServerSend.class);
-                if (this.checkEventNotFromHere(redisMsg)) {
-                    this.onConnectPlayerMessage((RedisRequestPlayerServerSend) redisMsg);
+            case REQUEST_PLAYER_SERVER_CHANGE:
+                redisMessage = RedisPubSubData.deserialize(data, RedisRequestPlayerServerSend.class);
+                if (this.checkEventNotFromHere(redisMessage)) {
+                    this.onConnectPlayerMessage((RedisRequestPlayerServerSend) redisMessage);
                 }
                 break;
 
             default:
-                System.err.printf("Found unknown message %s.\n", message);
+                System.err.printf("Found unknown message %s.\n", type);
                 break;
 
         }
@@ -114,45 +115,73 @@ public class RedisPublishListener extends JedisPubSub implements Runnable {
         return !event.getBungeeCordId().equals(BungeePlugin.META_DATA.getTaskName());
     }
 
-    // -----  Event handlers  -----
-
-    private void onPlayerAddEvent(RedisPlayerJoinNetwork event) {
-        System.out.printf("Event: PlayerAdd %s.\n", event.getUsername());
-        this.redisDataManager.loadPlayer(event.getUsername());
-    }
-
-    private void onPlayerRemoveEvent(RedisPlayerLeaveNetwork event) {
-        System.out.printf("Event: PlayerRemove %s.\n", event.getUsername());
-        this.redisDataManager.removePlayerLoc(event.getUsername());
-    }
-
-    private void onPlayerServerChangeEvent(RedisPlayerServerChange event) {
-        System.out.printf("Event: PlayerChange %s.\n", event.getUsername());
-        this.redisDataManager.loadPlayer(event.getUsername());
-    }
-
     // -----  Message handlers  -----
 
+    private void onPlayerAddMessage(RedisPlayerJoinNetwork message) {
+        System.out.printf("Event: PlayerAdd %s.\n", message.getUsername());
+        ProxyServer.getInstance().getPluginManager().callEvent(new BungeePlayerJoinEvent(message.getUsername(), new Callback<BungeePlayerJoinEvent>() {
+            @Override
+            public void done(BungeePlayerJoinEvent result, Throwable error) {
+
+            }
+        }));
+    }
+
+    private void onPlayerRemoveMessage(RedisPlayerLeaveNetwork message) {
+        System.out.printf("Event: PlayerRemove %s.\n", message.getUsername());
+
+        ProxyServer.getInstance().getPluginManager().callEvent(new BungeePlayerLeaveEvent(message.getUsername(), new Callback<BungeePlayerLeaveEvent>() {
+            @Override
+            public void done(BungeePlayerLeaveEvent result, Throwable error) {
+
+            }
+        }));
+    }
+
+    private void onPlayerServerChangeMessage(RedisPlayerServerChange message) {
+        System.out.printf("Event: PlayerChange %s.\n", message.getUsername());
+
+        ProxyServer.getInstance().getPluginManager().callEvent(new BungeePlayerServerChangeEvent(message, new Callback<BungeePlayerServerChangeEvent>() {
+            @Override
+            public void done(BungeePlayerServerChangeEvent result, Throwable error) {
+
+            }
+        }));
+    }
+
     private void onConnectPlayerMessage(RedisRequestPlayerServerSend message) {
-        // Only execute this, if the message is intended for this bungeecord
+        System.out.printf("Event: RequestPlayerSend %s -> %s.\n", message.getUsername(), message.getTargetServer());
+        // You can only send players that are connected on your proxy
         if (!message.getTargetBungee().equals(BungeePlugin.BUNGEECORD_ID)) {
             return;
         }
 
-        ServerInfo serverInfo = Utils.getServers().get(message.getTargetServer());
-        if (serverInfo == null) {
-            System.err.printf("Trying to connect to invalid server %s.\n", message.getTargetServer());
-            return;
-        }
+        ProxyServer.getInstance().getPluginManager().callEvent(new BungeeRequestPlayerServerSendEvent(message, new Callback<BungeeRequestPlayerServerSendEvent>() {
+            @Override
+            public void done(BungeeRequestPlayerServerSendEvent result, Throwable error) {
 
-        ProxiedPlayer player = ProxyServer.getInstance().getPlayer(message.getUsername());
-        if (player == null) {
-            System.err.printf("Couldn't find user %s to connect to %s.\n", message.getUsername(), message.getTargetServer());
-            return;
-        }
-
-        player.connect(serverInfo, ServerConnectEvent.Reason.PLUGIN);
+            }
+        }));
     }
 
 }
+
+//// Only execute this, if the message is intended for this bungeecord
+//        if (!message.getTargetBungee().equals(BungeePlugin.BUNGEECORD_ID)) {
+//                return;
+//                }
+//
+//                ServerInfo serverInfo = Utils.getServers().get(message.getTargetServer());
+//                if (serverInfo == null) {
+//                System.err.printf("Trying to connect to invalid server %s.\n", message.getTargetServer());
+//                return;
+//                }
+//
+//                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(message.getUsername());
+//                if (player == null) {
+//                System.err.printf("Couldn't find user %s to connect to %s.\n", message.getUsername(), message.getTargetServer());
+//                return;
+//                }
+//
+//                player.connect(serverInfo, ServerConnectEvent.Reason.PLUGIN);
 
