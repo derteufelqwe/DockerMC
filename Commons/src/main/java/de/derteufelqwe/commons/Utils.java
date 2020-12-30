@@ -4,8 +4,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -63,6 +66,30 @@ public class Utils {
         ZoneOffset offset = zonedDateTime.getOffset();
 
         return new Timestamp(System.currentTimeMillis() - (offset.getTotalSeconds() * 1000L));
+    }
+
+    public static String formatTimestamp(Timestamp timestamp) {
+        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yy HH:mm:ss");
+
+        return format.format(timestamp);
+    }
+
+    public static String formatDuration(long duration) {
+        Duration d = Duration.of(duration, ChronoUnit.SECONDS);
+
+        long tmp = d.getSeconds();
+        long seconds = tmp % 60;
+        tmp = tmp / 60;
+        long minutes = tmp % 60;
+        tmp = tmp / 60;
+        long hours = tmp % 24;
+        tmp = tmp / 60;
+        long days = tmp;
+
+        if (days == 0)
+            return String.format("%d:%02d:%02d", hours, minutes, seconds);
+        else
+            return String.format("%d days %d:%02d:%02d", days, hours, minutes, seconds);
     }
 
 }

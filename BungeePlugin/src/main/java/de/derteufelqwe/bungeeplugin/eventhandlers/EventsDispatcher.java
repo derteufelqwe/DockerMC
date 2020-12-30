@@ -10,13 +10,12 @@ import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerJoinNetwork;
 import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerLeaveNetwork;
 import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerServerChange;
 import de.derteufelqwe.bungeeplugin.runnables.PlayerSkinDownloadRunnable;
+import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.exceptions.NotFoundException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
-import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
-import de.derteufelqwe.commons.hibernate.objects.DBService;
-import de.derteufelqwe.commons.hibernate.objects.PlayerLogin;
-import de.derteufelqwe.commons.hibernate.objects.PlayerOnlineDurations;
+import de.derteufelqwe.commons.hibernate.objects.*;
 import net.md_5.bungee.api.Callback;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -26,6 +25,7 @@ import net.md_5.bungee.api.event.ServerConnectedEvent;
 import net.md_5.bungee.api.event.ServerDisconnectEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.connection.InitialHandler;
+import net.md_5.bungee.connection.LoginResult;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
 import org.hibernate.Session;
@@ -79,6 +79,11 @@ public class EventsDispatcher implements Listener {
 
             // ToDo: Maybe make these functions run in parallel
             this.prepareOnPlayerJoinNetworkDB(event);
+            if (this.checkPlayerBan(event))
+                return;
+            if (this.checkIPBan(event))
+                return;
+
             this.prepareOnPlayerJoinNetworkRedis(event);
 
             // --- Setup finished, call events ---
@@ -88,7 +93,7 @@ public class EventsDispatcher implements Listener {
         } catch (Exception e) {
             e.printStackTrace();
             event.setCancelled(true);
-            event.setCancelReason(new TextComponent("Internal server error. Failed to login. Please notify the staff " +
+            event.setCancelReason(new TextComponent(ChatColor.RED + "Internal server error. Failed to login. Please notify the staff " +
                     "with the following timestamp: " + (System.currentTimeMillis() / 1000L)));
         }
     }
@@ -101,7 +106,7 @@ public class EventsDispatcher implements Listener {
         InitialHandler handler = (InitialHandler) event.getConnection();
         String playerName = handler.getLoginRequest().getData();
         String uuid = handler.getUniqueId().toString();
-        String userIp = handler.getAddress().toString().substring(1);
+        String userIp = handler.getAddress().toString().substring(1).split(":")[0];
         PlayerData playerData = new PlayerData(playerName, uuid, userIp);
 
         // Add the relevant data to redis
@@ -162,6 +167,100 @@ public class EventsDispatcher implements Listener {
             }
 
             tx.commit();
+        }
+
+    }
+
+    /**
+     * Checks if a player is banned and prevents him from connecting if he is banned
+     * @param event
+     * @return Banned or not
+     */
+    private boolean checkPlayerBan(LoginEvent event) {
+        InitialHandler handler = (InitialHandler) event.getConnection();
+        UUID uuid = handler.getUniqueId();
+
+        try (Session session = sessionBuilder.openSession()) {
+            Transaction tx = session.beginTransaction();
+
+            try {
+                // Create player object when he joins
+                DBPlayer dbPlayer = session.get(DBPlayer.class, uuid);
+                PlayerBan activeBan = dbPlayer.getActiveBan();
+
+                if (activeBan == null) {
+                    return false;
+                }
+
+                event.setCancelled(true);
+                event.setCancelReason(new TextComponent(ChatColor.RED + String.format(
+                        "You are banned until %s. %s Reason: '%s'.",
+                        Utils.formatTimestamp(activeBan.getBannedUntil()), ChatColor.RESET, activeBan.getBanMessage()
+                )));
+
+                tx.commit();
+
+                return true;
+
+            } catch (Exception e) {
+                tx.rollback();
+                throw e;
+            }
+        }
+    }
+
+    /**
+     * Checks if the users IP is banned
+     * @param event
+     * @return
+     */
+    private boolean checkIPBan(LoginEvent event) {
+        InitialHandler handler = (InitialHandler) event.getConnection();
+        String userIp = handler.getAddress().toString().substring(1).split(":")[0];
+
+        try (Session session = sessionBuilder.openSession()) {
+            Transaction tx = session.beginTransaction();
+
+            try {
+                CriteriaBuilder cb = session.getCriteriaBuilder();
+                CriteriaQuery<IPBan> cq = cb.createQuery(IPBan.class);
+                Root<IPBan> root = cq.from(IPBan.class);
+
+                cq.select(root).where(cb.equal(root.get("bannedIp"), userIp)).orderBy(cb.desc(root.get("bannedAt")));
+
+                // --- Execute the query ---
+
+                Query queryRes = session.createQuery(cq);
+                List<IPBan> res = (List<IPBan>) queryRes.getResultList();
+
+                IPBan ipBan = null;
+
+                for (IPBan b : res) {
+                    if (b.isActive()) {
+                        ipBan = b;
+                        break;
+                    }
+                }
+
+                if (ipBan == null) {
+                    return false;
+                }
+
+                event.setCancelled(true);
+                event.setCancelReason(new TextComponent(ChatColor.RED + String.format(
+                        "Your ip is banned until %s. %s Reason: '%s'.",
+                        Utils.formatTimestamp(ipBan.getBannedUntil()), ChatColor.RESET, ipBan.getBanMessage()
+                )));
+
+                tx.commit();
+
+                return true;
+
+            } catch (Exception e) {
+                tx.rollback();
+                throw e;
+            }
+
         }
 
     }

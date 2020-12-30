@@ -1,5 +1,7 @@
 package de.derteufelqwe.ServerManager.exceptions;
 
+import de.derteufelqwe.commons.exceptions.DockerMCException;
+
 public class InvalidServiceConfig extends DockerMCException {
 
     public InvalidServiceConfig() {

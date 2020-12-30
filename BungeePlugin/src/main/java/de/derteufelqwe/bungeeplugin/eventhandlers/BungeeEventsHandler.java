@@ -1,13 +1,12 @@
 package de.derteufelqwe.bungeeplugin.eventhandlers;
 
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
-import de.derteufelqwe.bungeeplugin.events.BungeePlayerJoinEvent;
-import de.derteufelqwe.bungeeplugin.events.BungeePlayerLeaveEvent;
-import de.derteufelqwe.bungeeplugin.events.BungeePlayerServerChangeEvent;
-import de.derteufelqwe.bungeeplugin.events.BungeeRequestPlayerServerSendEvent;
+import de.derteufelqwe.bungeeplugin.events.*;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.bungeeplugin.utils.Utils;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.ServerConnectEvent;
@@ -58,5 +57,20 @@ public class BungeeEventsHandler implements Listener {
         player.connect(serverInfo, ServerConnectEvent.Reason.PLUGIN);
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onRequestPlayerKick(BungeeRequestPlayerKickEvent event) {
+        ProxiedPlayer player = ProxyServer.getInstance().getPlayer(event.getPlayerName());
+
+        if (player == null) {
+            return;
+        }
+
+        TextComponent kickMessage = new TextComponent(ChatColor.RED + "You got kicked!");
+        if (event.getReason() != null) {
+            kickMessage.addExtra(" Reason: '" + event.getReason() + "'.");
+        }
+
+        player.disconnect(kickMessage);
+    }
 
 }

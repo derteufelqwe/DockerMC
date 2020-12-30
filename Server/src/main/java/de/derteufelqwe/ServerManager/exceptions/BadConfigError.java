@@ -1,5 +1,7 @@
 package de.derteufelqwe.ServerManager.exceptions;
 
+import de.derteufelqwe.commons.exceptions.DockerMCException;
+
 public class BadConfigError extends DockerMCException {
 
     public BadConfigError() {

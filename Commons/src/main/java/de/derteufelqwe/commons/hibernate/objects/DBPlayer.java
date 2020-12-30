@@ -10,14 +10,13 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
 
 @Getter
 @Setter
-@ToString(exclude = {"onlineStats", "gottenBans", "executedBans", "skinData", "liftedBans"})
+@ToString(exclude = {"skinData", "onlineStats", "logins", "gottenBans", "executedBans", "executedIpBans", "liftedBans", "liftedIpBans"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "players")
@@ -83,7 +82,7 @@ public class DBPlayer {
     public void setSkin(BufferedImage image) {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            ImageIO.write(image,"png", out);
+            ImageIO.write(image, "png", out);
 
             this.skinData = out.toByteArray();
         } catch (IOException e) {
@@ -107,6 +106,35 @@ public class DBPlayer {
             System.err.println("Failed to load skin");
             return null;
         }
+    }
+
+    /**
+     * Returns the active ban of a player
+     *
+     * @return
+     */
+    @CheckForNull
+    public PlayerBan getActiveBan() {
+
+        for (PlayerBan ban : this.gottenBans) {
+            if (ban.isActive()) {
+                return ban;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the overall online duration for a player
+     *
+     * @return
+     */
+    public long getPlaytime() {
+        return this.onlineStats.stream()
+                .map(PlayerOnlineDurations::getDuration)
+                .reduce(0, Integer::sum)
+                .longValue();
     }
 
 }

@@ -1,4 +1,4 @@
-package de.derteufelqwe.ServerManager.exceptions;
+package de.derteufelqwe.commons.exceptions;
 
 public class DockerMCException extends RuntimeException {
 

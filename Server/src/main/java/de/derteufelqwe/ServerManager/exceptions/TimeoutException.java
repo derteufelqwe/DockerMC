@@ -1,6 +1,6 @@
 package de.derteufelqwe.ServerManager.exceptions;
 
-import de.derteufelqwe.ServerManager.exceptions.DockerMCException;
+import de.derteufelqwe.commons.exceptions.DockerMCException;
 
 public class TimeoutException extends DockerMCException {
 

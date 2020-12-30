@@ -1,5 +1,7 @@
 package de.derteufelqwe.ServerManager.exceptions;
 
+import de.derteufelqwe.commons.exceptions.DockerMCException;
+
 /**
  * Used when an invalid config is loaded
  */

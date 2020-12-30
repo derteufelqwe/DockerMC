@@ -3,6 +3,7 @@ package de.derteufelqwe.bungeeplugin.eventhandlers;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.ServerPing;
+import net.md_5.bungee.api.event.PermissionCheckEvent;
 import net.md_5.bungee.api.event.ProxyPingEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
@@ -29,6 +30,11 @@ public class GeneralEvents implements Listener {
             playerLimit = playerLimit < 0 ? 65535 : playerLimit;
             event.getResponse().setPlayers(new ServerPing.Players(playerLimit, playerCount, null));
         }
+    }
+
+    @EventHandler
+    public void onPermCheck(PermissionCheckEvent event) {
+        event.setHasPermission(true);
     }
 
 }

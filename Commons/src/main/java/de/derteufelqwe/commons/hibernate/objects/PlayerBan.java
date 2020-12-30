@@ -73,4 +73,14 @@ public class PlayerBan {
         return this.unbannedBy != null || this.unbanTime != null;
     }
 
+    public boolean isActive() {
+        if (this.wasUnbanned()) {
+            return false;
+        }
+
+        return (System.currentTimeMillis() - this.bannedUntil.getTime()) <= 0;
+    }
+
+
+
 }

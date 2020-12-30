@@ -2,10 +2,17 @@ package de.derteufelqwe.bungeeplugin.redis;
 
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.exceptions.RedisCacheException;
-import redis.clients.jedis.*;
+import de.derteufelqwe.commons.exceptions.InvalidStateError;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.Transaction;
 
 import javax.annotation.CheckForNull;
-import java.util.*;
+import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -67,8 +74,30 @@ public class RedisDataManager {
      * @return The player data or null
      */
     @CheckForNull
-    public PlayerData getPlayer(String username) {
+    public PlayerData getPlayer(@Nullable String username) {
+        if (username == null) {
+            return null;
+        }
+
         return this.playersMap.get(username);
+    }
+
+    @CheckForNull
+    public PlayerData getPlayer(UUID uuid) throws InvalidStateError {
+        List<PlayerData> players = this.playersMap.entrySet().stream()
+                .filter(e -> e.getValue().getUuid().equals(uuid.toString()))
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
+
+        if (players.size() == 0) {
+            return null;
+
+        } else if (players.size() == 1) {
+            return players.get(0);
+
+        } else {
+            throw new InvalidStateError("Found multiple players for uuid %s.", uuid.toString());
+        }
     }
 
     /**
@@ -210,6 +239,7 @@ public class RedisDataManager {
 
     /**
      * Publishes a BungeePlugin known message to redis for the other nodes to receive it
+     *
      * @param data
      */
     public void sendMessage(RedisPubSubData data) {

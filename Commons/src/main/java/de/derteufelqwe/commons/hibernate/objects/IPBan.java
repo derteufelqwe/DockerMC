@@ -25,7 +25,7 @@ public class IPBan {
     // ----- Ban information -----
 
     @Type(type = "text")
-    private Inet4Address bannedIp;
+    private String bannedIp;
 
     @ManyToOne
     private DBPlayer bannedBy;
@@ -47,7 +47,7 @@ public class IPBan {
 
 
 
-    public IPBan(Inet4Address ip, DBPlayer bannedBy, String banMessage, Timestamp bannedUntil) {
+    public IPBan(String ip, DBPlayer bannedBy, String banMessage, Timestamp bannedUntil) {
         this.bannedIp = ip;
         this.bannedBy = bannedBy;
         this.banMessage = banMessage;
@@ -61,7 +61,7 @@ public class IPBan {
      * @param banMessage
      * @param banDuration In seconds
      */
-    public IPBan(Inet4Address ip, DBPlayer bannedBy, String banMessage, int banDuration) {
+    public IPBan(String ip, DBPlayer bannedBy, String banMessage, int banDuration) {
         this(ip, bannedBy, banMessage,
                 new Timestamp((System.currentTimeMillis() / 1000L) + banDuration));
     }
@@ -73,6 +73,14 @@ public class IPBan {
 
     public boolean wasUnbanned() {
         return this.unbannedBy != null || this.unbanTime != null;
+    }
+
+    public boolean isActive() {
+        if (this.wasUnbanned()) {
+            return false;
+        }
+
+        return (System.currentTimeMillis() - this.bannedUntil.getTime()) <= 0;
     }
 
 }

@@ -1,5 +1,7 @@
 package de.derteufelqwe.ServerManager.exceptions;
 
+import de.derteufelqwe.commons.exceptions.DockerMCException;
+
 /**
  * Thrown when the code can't handle certain events
  */

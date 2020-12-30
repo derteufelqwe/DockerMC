@@ -1,6 +1,5 @@
 package de.derteufelqwe.ServerManager.setup.templates;
 
-import de.derteufelqwe.ServerManager.exceptions.DockerMCException;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;

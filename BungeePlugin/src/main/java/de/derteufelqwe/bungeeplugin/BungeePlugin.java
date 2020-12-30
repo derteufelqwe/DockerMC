@@ -5,6 +5,7 @@ import com.orbitz.consul.model.agent.ImmutableRegCheck;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
 import com.orbitz.consul.model.agent.Registration;
 import com.orbitz.google.common.net.HostAndPort;
+import de.derteufelqwe.bungeeplugin.api.BungeeAPI;
 import de.derteufelqwe.bungeeplugin.commands.*;
 import de.derteufelqwe.bungeeplugin.consul.KVCacheListener;
 import de.derteufelqwe.bungeeplugin.consul.ServerRegistrator;
@@ -53,6 +54,9 @@ public final class BungeePlugin extends Plugin {
     private static RedisDataManager redisDataManager;   // Manage data from and to redis
     public static final MetaData META_DATA = new MetaData();
     public static final String BUNGEECORD_ID = META_DATA.getTaskName(); // Identifies the current node
+    @Getter
+    private static BungeeAPI bungeeApi;
+
 
     private ConnectionEvents connectionEvents;
     private RedisPublishListener redisPublishListener;
@@ -94,10 +98,16 @@ public final class BungeePlugin extends Plugin {
         getProxy().getPluginManager().registerCommand(this, new GlistCommand());
         getProxy().getPluginManager().registerCommand(this, new SendCommand());
         getProxy().getPluginManager().registerCommand(this, new BlistCommand(this.catalogClient));
+        getProxy().getPluginManager().registerCommand(this, new KickCommand());
+        getProxy().getPluginManager().registerCommand(this, new BanCommand());
+        getProxy().getPluginManager().registerCommand(this, new PlayerStatsCommand());
 
         // ---  Consul  ---
         this.healthCheck.start();
         this.registerContainer();
+
+        // --- Misc ---
+        this.setupAPI();
 
         BungeePlugin.STATE = ServerState.RUNNING;
         System.out.printf("[System] Server %s started successfully.\n", META_DATA.getTaskName());
@@ -137,6 +147,13 @@ public final class BungeePlugin extends Plugin {
         Signal.handle(new Signal("TERM"), signalHandler);
         Signal.handle(new Signal("INT"), signalHandler);
         Signal.handle(new Signal("HUP"), signalHandler);
+    }
+
+    /**
+     * Creates all required API objects
+     */
+    private void setupAPI() {
+        bungeeApi = new BungeeAPI();
     }
 
 

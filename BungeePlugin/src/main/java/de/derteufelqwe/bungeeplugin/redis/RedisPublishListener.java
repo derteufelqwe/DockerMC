@@ -5,13 +5,13 @@ import de.derteufelqwe.bungeeplugin.events.BungeePlayerJoinEvent;
 import de.derteufelqwe.bungeeplugin.events.BungeePlayerLeaveEvent;
 import de.derteufelqwe.bungeeplugin.events.BungeePlayerServerChangeEvent;
 import de.derteufelqwe.bungeeplugin.events.BungeeRequestPlayerServerSendEvent;
-import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerJoinNetwork;
-import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerLeaveNetwork;
-import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerServerChange;
-import de.derteufelqwe.bungeeplugin.redis.messages.RedisRequestPlayerServerSend;
+import de.derteufelqwe.bungeeplugin.redis.messages.*;
 import de.derteufelqwe.bungeeplugin.utils.Utils;
+import de.derteufelqwe.commons.exceptions.NotFoundException;
 import net.md_5.bungee.api.Callback;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.ServerConnectEvent;
@@ -19,6 +19,8 @@ import org.checkerframework.checker.units.qual.C;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPubSub;
+
+import java.util.UUID;
 
 /**
  * Receives the published messages on redis and dispatches them into BungeeCord events
@@ -99,6 +101,14 @@ public class RedisPublishListener extends JedisPubSub implements Runnable {
                 }
                 break;
 
+            case REQUEST_PLAYER_KICK:
+                redisMessage = RedisPubSubData.deserialize(data, RedisRequestPlayerKick.class);
+                if (this.checkEventNotFromHere(redisMessage)) {
+                    this.onKickPlayerMessage((RedisRequestPlayerKick) redisMessage);
+                }
+                break;
+
+
             default:
                 System.err.printf("Found unknown message %s.\n", type);
                 break;
@@ -164,24 +174,21 @@ public class RedisPublishListener extends JedisPubSub implements Runnable {
         }));
     }
 
+    private void onKickPlayerMessage(RedisRequestPlayerKick message) {
+        try {
+            try {
+                UUID uuid = UUID.fromString(message.getUsername());
+                BungeePlugin.getBungeeApi().kickPlayer(uuid, message.getReason());
+
+            } catch (IllegalArgumentException e) {
+                BungeePlugin.getBungeeApi().kickPlayer(message.getUsername(), message.getReason());
+            }
+
+        } catch (NotFoundException e) {
+
+        }
+    }
+
 }
 
-//// Only execute this, if the message is intended for this bungeecord
-//        if (!message.getTargetBungee().equals(BungeePlugin.BUNGEECORD_ID)) {
-//                return;
-//                }
-//
-//                ServerInfo serverInfo = Utils.getServers().get(message.getTargetServer());
-//                if (serverInfo == null) {
-//                System.err.printf("Trying to connect to invalid server %s.\n", message.getTargetServer());
-//                return;
-//                }
-//
-//                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(message.getUsername());
-//                if (player == null) {
-//                System.err.printf("Couldn't find user %s to connect to %s.\n", message.getUsername(), message.getTargetServer());
-//                return;
-//                }
-//
-//                player.connect(serverInfo, ServerConnectEvent.Reason.PLUGIN);
 
