@@ -1,4 +1,4 @@
-package de.derteufelqwe.bungeeplugin.eventhandlers;
+package de.derteufelqwe.bungeeplugin.consul;
 
 import com.orbitz.consul.model.catalog.CatalogService;
 import de.derteufelqwe.commons.consul.ICacheChangeListener;

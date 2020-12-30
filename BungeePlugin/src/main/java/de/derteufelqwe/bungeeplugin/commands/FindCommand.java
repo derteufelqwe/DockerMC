@@ -1,7 +1,7 @@
 package de.derteufelqwe.bungeeplugin.commands;
 
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
-import de.derteufelqwe.bungeeplugin.redis.RedisDataCache;
+import de.derteufelqwe.bungeeplugin.redis.PlayerData;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -43,7 +43,7 @@ public class FindCommand extends Command {
     }
 
     private void findPlayer(CommandSender sender, String username) {
-        RedisDataCache.PlayerData playerData = this.redisDataManager.getPlayer(username);
+        PlayerData playerData = this.redisDataManager.getPlayer(username);
 
         if (playerData == null) {
             sender.sendMessage(new TextComponent(String.format(

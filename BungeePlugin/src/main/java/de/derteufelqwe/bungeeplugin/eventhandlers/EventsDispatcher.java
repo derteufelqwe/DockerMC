@@ -1,21 +1,15 @@
 package de.derteufelqwe.bungeeplugin.eventhandlers;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.sun.istack.NotNull;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.events.BungeePlayerJoinEvent;
 import de.derteufelqwe.bungeeplugin.events.BungeePlayerLeaveEvent;
 import de.derteufelqwe.bungeeplugin.events.BungeePlayerServerChangeEvent;
-import de.derteufelqwe.bungeeplugin.redis.RedisDataCache;
+import de.derteufelqwe.bungeeplugin.redis.PlayerData;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerJoinNetwork;
 import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerLeaveNetwork;
 import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerServerChange;
 import de.derteufelqwe.bungeeplugin.runnables.PlayerSkinDownloadRunnable;
-import de.derteufelqwe.bungeeplugin.utils.mojangapi.MojangAPIProfile;
-import de.derteufelqwe.bungeeplugin.utils.mojangapi.MojangAPIProfileDeserializer;
-import de.derteufelqwe.bungeeplugin.utils.mojangapi.PlayerTextureDeserializer;
 import de.derteufelqwe.commons.exceptions.NotFoundException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
@@ -34,7 +28,6 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.connection.InitialHandler;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
-import org.checkerframework.checker.units.qual.C;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import redis.clients.jedis.Jedis;
@@ -45,12 +38,6 @@ import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -65,7 +52,10 @@ public class EventsDispatcher implements Listener {
 
     /*
      * Contains players, joined the network but didn't connect to a server yet. This is used to identify when to send the
-     * BungeePlayerServerChangeEvent
+     * BungeePlayerServerChangeEvent.
+     * If a players name is in here, the BungeePlayerServerChangeEvent gets sent in the ServerConnectEvent handler.
+     * If its name is not in here the event will be sent in the ServerDisconnectEvent handler, because the player is
+     * changing the server instead of newly connecting to one.
      */
     private Set<String> newlyJoinedPlayers = new HashSet<>();
     /*
@@ -112,7 +102,7 @@ public class EventsDispatcher implements Listener {
         String playerName = handler.getLoginRequest().getData();
         String uuid = handler.getUniqueId().toString();
         String userIp = handler.getAddress().toString().substring(1);
-        RedisDataCache.PlayerData playerData = new RedisDataCache.PlayerData(playerName, uuid, userIp);
+        PlayerData playerData = new PlayerData(playerName, uuid, userIp);
 
         // Add the relevant data to redis
         try (Jedis jedis = this.jedisPool.getResource()) {
@@ -227,7 +217,7 @@ public class EventsDispatcher implements Listener {
             jedis.decr("playerCount");
             jedis.decr("bungee#playerCount#" + BungeePlugin.BUNGEECORD_ID);
             jedis.srem("bungee#players#" + BungeePlugin.BUNGEECORD_ID, player.getDisplayName());
-            jedis.hdel("players#" + player.getDisplayName(), RedisDataCache.PlayerData.getFields());
+            jedis.hdel("players#" + player.getDisplayName(), PlayerData.getFields());
         }
     }
 
@@ -316,11 +306,11 @@ public class EventsDispatcher implements Listener {
         try (Jedis jedis = this.jedisPool.getResource()) {
             jedis.incr("minecraft#playerCount#" + serverName);
             jedis.sadd("minecraft#players#" + serverName, playerName);
-            jedis.set("players#joinTime#" + playerName + "#" + serverName, Long.toString(System.currentTimeMillis() / 1000L));
+            jedis.hset("players#" + playerName, "server", serverName);
+            jedis.set("playerJoinTime#" + playerName + "#" + serverName, Long.toString(System.currentTimeMillis() / 1000L));
         }
 
     }
-
 
     // --- Player disconnect from server ---
 
@@ -423,7 +413,7 @@ public class EventsDispatcher implements Listener {
 
         jedis.decr("minecraft#playerCount#" + serverName);
         jedis.srem("minecraft#players#" + serverName, playerName);
-        jedis.del("players#joinTime#" + playerName + "#" + serverName);
+        jedis.del("playerJoinTime#" + playerName + "#" + serverName);
 
     }
 
@@ -461,7 +451,7 @@ public class EventsDispatcher implements Listener {
      */
     private Long getOldJoinTime(Jedis jedis, String playerName, String serverName) throws NotFoundException {
         Long oldJoinTime = null;
-        String oldJoinTimeString = jedis.get("players#joinTime#" + playerName + "#" + serverName);
+        String oldJoinTimeString = jedis.get("playerJoinTime#" + playerName + "#" + serverName);
 
         if (oldJoinTimeString == null) {
             throw new NotFoundException("Jointime for player %s on server %s not found.", playerName, serverName);

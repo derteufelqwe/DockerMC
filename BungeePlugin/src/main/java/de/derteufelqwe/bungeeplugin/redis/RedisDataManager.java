@@ -1,23 +1,13 @@
 package de.derteufelqwe.bungeeplugin.redis;
 
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
-import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerJoinNetwork;
-import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerLeaveNetwork;
-import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerServerChange;
-import de.derteufelqwe.bungeeplugin.redis.messages.RedisRequestPlayerServerSend;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.Response;
+import de.derteufelqwe.bungeeplugin.exceptions.RedisCacheException;
+import redis.clients.jedis.*;
 
 import javax.annotation.CheckForNull;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Class responsible for interacting with redis
@@ -25,7 +15,8 @@ import java.util.Set;
 public class RedisDataManager {
 
     private final JedisPool jedisPool = BungeePlugin.getRedisHandler().getJedisPool();
-    private RedisDataCache playerCache = new RedisDataCache();
+
+    private Map<String, PlayerData> playersMap = new ConcurrentHashMap<>();
 
 
     public RedisDataManager() {
@@ -39,20 +30,29 @@ public class RedisDataManager {
     public void init() {
         try (Jedis jedis = this.jedisPool.getResource()) {
             Set<String> playerKeys = jedis.keys("players#*");
-            Set<Response<Map<String, String>>> responses = new HashSet<>();
 
-            // Load the data from redis
-            Pipeline p = jedis.pipelined();
+            // Request all available players from redis in an atomic transaction
+            Transaction tx = jedis.multi();
             for (String player : playerKeys) {
-                responses.add(p.hgetAll(player));
+                tx.hgetAll(player);
             }
-            p.sync();
+            List<Object> responses = tx.exec();
 
-            // Load the players to the cache
-            for (Response<Map<String, String>> r : responses) {
-                Map<String, String> data = r.get();
-                if (data != null && data.get("username") != null) {
-                    this.playerCache.addPlayer(new RedisDataCache.PlayerData(data));
+            // Load the players from the response into the cache
+            for (Object r : responses) {
+                if (r == null) {
+                    System.err.println("Received null value from redis");
+                    continue;
+                }
+
+                Map<String, String> data = (Map<String, String>) r;
+                String userName = data.get("username");
+
+                if (userName != null) {
+                    this.playersMap.put(userName, new PlayerData(data));
+
+                } else {
+                    System.err.println("Read incomplete player data from redis for player");
                 }
             }
         }
@@ -67,30 +67,27 @@ public class RedisDataManager {
      * @return The player data or null
      */
     @CheckForNull
-    public RedisDataCache.PlayerData getPlayer(String username) {
-        return this.playerCache.getPlayer(username);
+    public PlayerData getPlayer(String username) {
+        return this.playersMap.get(username);
     }
 
     /**
-     * Adds a new player object to the network.
-     * Adds it to the local cache and redis and notifies other BungeeCord instances about it.
+     * Loads a player from redis into the cache.
      *
-     * @param playerData Player to add
+     * @param username Name of the player to load.
+     * @return Found or not
      */
-    public void addPlayer(RedisDataCache.PlayerData playerData) {
-        this.addPlayerLoc(playerData);
-
+    public boolean loadPlayer(String username) throws RedisCacheException {
         try (Jedis jedis = this.jedisPool.getResource()) {
-            jedis.hset("players#" + playerData.getUsername(), playerData.toMap());
-            jedis.publish("events#playerJoin", new RedisPlayerJoinNetwork(playerData.getUsername()).serialize());
-        }
-    }
+            Map<String, String> data = jedis.hgetAll("players#" + username);
 
-    /**
-     * The {@link #addPlayer(RedisDataCache.PlayerData)} method for local adding only.
-     */
-    public void addPlayerLoc(RedisDataCache.PlayerData playerData) {
-        this.playerCache.addPlayer(playerData);
+            if (data != null && data.size() > 0) {
+                this.playersMap.put(data.get("username"), new PlayerData(data));
+                return true;
+            }
+
+            throw new RedisCacheException("Can't load player %s. Not found in redis.", username);
+        }
     }
 
     /**
@@ -100,38 +97,7 @@ public class RedisDataManager {
      * @param username Name of the player to remove
      */
     public void removePlayer(String username) {
-        this.removePlayerLoc(username);
-
-        try (Jedis jedis = this.jedisPool.getResource()) {
-            jedis.hdel("players#" + username, RedisDataCache.PlayerData.getFields());
-            jedis.publish("events#playerLeave", new RedisPlayerLeaveNetwork(username).serialize());
-        }
-    }
-
-    /**
-     * The {@link #removePlayer(String)} method for local removal only
-     */
-    public void removePlayerLoc(String username) {
-        this.playerCache.removePlayer(username);
-    }
-
-    /**
-     * Loads a player from redis into the cache.
-     *
-     * @param username Name of the player to load.
-     * @return Found or not
-     */
-    public boolean loadPlayer(String username) {
-        try (Jedis jedis = this.jedisPool.getResource()) {
-            Map<String, String> data = jedis.hgetAll("players#" + username);
-
-            if (data != null && data.size() > 0) {
-                this.playerCache.addPlayer(new RedisDataCache.PlayerData(data));
-                return true;
-            }
-
-            return false;
-        }
+        this.playersMap.remove(username);
     }
 
     /**
@@ -141,13 +107,13 @@ public class RedisDataManager {
      * @param username  Name of the player
      * @param newServer New servername of the player
      */
-    public void updatePlayersServer(String username, String newServer) {
-        this.playerCache.updatePlayerServer(username, newServer);
-
-        try (Jedis jedis = this.jedisPool.getResource()) {
-            jedis.hset("players#" + username, "server", newServer);
-//            jedis.publish("events#playerServerChange", new RedisPlayerServerChange(username).serialize());
+    public void updatePlayersServer(String username, String newServer) throws RedisCacheException {
+        PlayerData data = this.playersMap.get(username);
+        if (data == null) {
+            throw new RedisCacheException("Player %s not found in the cache.", username);
         }
+
+        data.setServer(newServer);
     }
 
     // -----  Server methods  -----
@@ -155,19 +121,20 @@ public class RedisDataManager {
     /**
      * Returns the number of players on the whole network.
      *
-     * @return If successful: the player count, otherwise:
-     * -1: No player count set in redis
-     * -2: Invalid entry in redis
+     * @return The overall player count
+     * @throws RedisCacheException When the redis value is an invalid integer
      */
-    public int getOverallPlayerCount() {
+    public int getOverallPlayerCount() throws RedisCacheException {
         try (Jedis jedis = this.jedisPool.getResource()) {
+            String value = jedis.get("playerCount");
             try {
-                return Integer.parseInt(jedis.get("playerCount"));
+                return Integer.parseInt(value);
 
             } catch (NullPointerException e1) {
-                return -1;
+                return 0;
+
             } catch (NumberFormatException e2) {
-                return -2;
+                throw new RedisCacheException("Redis playerCount contains non integer value '%s'.", value);
             }
         }
     }
@@ -178,13 +145,17 @@ public class RedisDataManager {
      * @param serverName Name of the server to get the count of
      * @return The player count
      */
-    public int getServersPlayerCount(String serverName) {
+    public int getServersPlayerCount(String serverName) throws RedisCacheException {
         try (Jedis jedis = jedisPool.getResource()) {
+            String value = jedis.get("minecraft#playerCount#" + serverName);
             try {
-                return Integer.parseInt(jedis.get("minecraft#playerCount#" + serverName));
+                if (value != null)
+                    return Integer.parseInt(value);
+                else
+                    return 0;
 
-            } catch (NumberFormatException e1) {
-                return 0;
+            } catch (NumberFormatException e2) {
+                throw new RedisCacheException("Redis minecraft servers %s player count contains non integer value '%s'.", serverName, value);
             }
         }
     }
@@ -194,13 +165,17 @@ public class RedisDataManager {
      *
      * @param bungeeName The name of the BungeeCord proxy like BungeeCord.1.1ks3h
      */
-    public int getBungeesPlayerCount(String bungeeName) {
+    public int getBungeesPlayerCount(String bungeeName) throws RedisCacheException {
         try (Jedis jedis = jedisPool.getResource()) {
+            String value = jedis.get("bungee#playerCount#" + bungeeName);
             try {
-                return Integer.parseInt(jedis.get("bungee#playerCount#" + bungeeName));
+                if (value != null)
+                    return Integer.parseInt(value);
+                else
+                    return 0;
 
-            } catch (NumberFormatException e1) {
-                return 0;
+            } catch (NumberFormatException e2) {
+                throw new RedisCacheException("Redis bungee servers %s player count contains non integer value '%s'.", bungeeName, value);
             }
         }
     }
@@ -211,8 +186,11 @@ public class RedisDataManager {
      * @param serverName
      * @return
      */
-    public List<RedisDataCache.PlayerData> getPlayerOnServer(String serverName) {
-        return this.playerCache.getPlayersOnServer(serverName);
+    public List<PlayerData> getPlayerOnServer(String serverName) {
+        return this.playersMap.entrySet().stream()
+                .filter(e -> e.getValue().getServer().equals(serverName))
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -221,40 +199,14 @@ public class RedisDataManager {
      * @param bungeeId
      * @return
      */
-    public List<RedisDataCache.PlayerData> getPlayersOnBungee(String bungeeId) {
-        return this.playerCache.getPlayersOnProxy(bungeeId);
+    public List<PlayerData> getPlayersOnBungee(String bungeeId) {
+        return this.playersMap.entrySet().stream()
+                .filter(e -> e.getValue().getBungeeCordId().equals(bungeeId))
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
     }
 
     // -----  Message methods  -----
-
-    /**
-     * Sends a send-player message to the redis network using Redis pub sub if the player is not on the current server.
-     * Sends the player specified in msg to a new server.
-     *
-     * @param msg Message to send
-     */
-    public void sendConnectMessage(RedisRequestPlayerServerSend msg) {
-        if (!msg.getTargetBungee().equals(BungeePlugin.BUNGEECORD_ID)) {
-            try (Jedis jedis = this.jedisPool.getResource()) {
-                jedis.publish("messages#connectPlayer", msg.serialize());
-            }
-
-        } else {
-            ProxiedPlayer player = ProxyServer.getInstance().getPlayer(msg.getUsername());
-            if (player == null) {
-                System.err.printf("Player %s to send not found.\n", msg.getUsername());
-                return;
-            }
-
-            ServerInfo target = ProxyServer.getInstance().getServerInfo(msg.getTargetServer());
-            if (target == null) {
-                System.err.printf("Send target %s not found.\n", msg.getTargetServer());
-                return;
-            }
-
-            player.connect(target);
-        }
-    }
 
     /**
      * Publishes a BungeePlugin known message to redis for the other nodes to receive it

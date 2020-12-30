@@ -7,6 +7,7 @@ import com.orbitz.consul.model.agent.Registration;
 import com.orbitz.google.common.net.HostAndPort;
 import de.derteufelqwe.bungeeplugin.commands.*;
 import de.derteufelqwe.bungeeplugin.consul.KVCacheListener;
+import de.derteufelqwe.bungeeplugin.consul.ServerRegistrator;
 import de.derteufelqwe.bungeeplugin.consul.ServiceCatalogListener;
 import de.derteufelqwe.bungeeplugin.eventhandlers.*;
 import de.derteufelqwe.bungeeplugin.health.HealthCheck;
@@ -83,7 +84,7 @@ public final class BungeePlugin extends Plugin {
 
         // ---  Events  ---
         getProxy().getPluginManager().registerListener(this, connectionEvents);
-        getProxy().getPluginManager().registerListener(this, new RedisEvents());
+        getProxy().getPluginManager().registerListener(this, new GeneralEvents());
         getProxy().getPluginManager().registerListener(this, new EventsDispatcher());
         getProxy().getPluginManager().registerListener(this, new BungeeEventsHandler());
 

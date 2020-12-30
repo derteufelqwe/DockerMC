@@ -5,8 +5,13 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 /**
- * Namespaces
- * -
+ * Manages the redis pool
+ * Namespaces:
+ *  - Playerinformation: players#[username]
+ *  - PlayerJoinTime: playerJoinTime#[username]#[serverName]
+ *  - Overall player count: playerCount
+ *  - Bungee player count: bungee#playerCount#[serverName]
+ *  - Minecraft player count: minecraft#playerCount#[serverName]
  */
 
 public class RedisHandler {
@@ -33,7 +38,7 @@ public class RedisHandler {
         config.setTestOnReturn(true);
         config.setTestWhileIdle(true);
 
-//        config.setBlockWhenExhausted(true);
+        config.setBlockWhenExhausted(true);
 
         return config;
     }
