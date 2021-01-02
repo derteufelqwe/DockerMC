@@ -1,5 +1,8 @@
 package de.derteufelqwe.commons;
 
+import java.sql.Timestamp;
+import java.util.UUID;
+
 public class Constants {
 
 
@@ -60,10 +63,15 @@ public class Constants {
     public static int POSTGRESDB_PORT = 5432;
     public static String REDIS_CONTAINER_NAME = "Redis";
     public static int REDIS_PORT = 6379;
+    public static UUID CONSOLE_USER_UUID = new UUID(Long.MAX_VALUE, Long.MAX_VALUE);
+    public static String CONSOLE_USER_NAME = "Console-Website-User";
 
     // -----  Consul  -----
     public static String CONSUL_HOST = "Consul";
     public static int CONSUL_PORT = 8500;
+
+    // BungeeCord
+    public static Timestamp BAN_PERMANENT_TIMESTAMP = new Timestamp(4102444800000L);
 
     // Values for the Tag CONTAINER_IDENTIFIER_KEY
     public enum ContainerType {

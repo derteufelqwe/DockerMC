@@ -6,13 +6,13 @@ import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
+import de.derteufelqwe.commons.hibernate.objects.PlayerBan;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.chat.KeybindComponent;
-import net.md_5.bungee.api.chat.SelectorComponent;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.*;
 import net.md_5.bungee.api.plugin.Command;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
@@ -43,29 +43,46 @@ public class PlayerStatsCommand extends Command {
     public void execute(CommandSender sender, String[] rawArgs) {
         List<String> args = Arrays.asList(rawArgs);
 
+        String name = "";
+        String type = "";
+
         if (args.size() == 0) {
             this.printHelp(sender);
+            return;
 
         } else if (args.size() == 1) {
-            String name = args.get(0);
+            name = args.get(0);
+            type = "infos";
 
-            if (!name.equals(sender.getName()) && !sender.hasPermission("dockermc.bungee.playerstats.others")) {
-                sender.sendMessage(format(ChatColor.RED + "You aren't allowed to display other peoples stats."));
+        } else if (args.size() <= 2) {
+            name = args.get(0);
+            type = args.get(1);
+        }
 
-            } else {
+
+        switch (type) {
+            case "infos":
+            case "info":
                 this.printGeneralInfos(sender, name);
+                break;
 
-            }
+            case "bans":
+                this.printBanInfos(sender, name);
+                break;
 
-
-        } else {
-
+            default:
+                sender.sendMessage(new TextComponent(ChatColor.RED + "Unknown subcommand " + type + "."));
+                break;
         }
 
     }
 
     private TextComponent format(String msg, Object... args) {
         return new TextComponent(String.format(msg, args));
+    }
+
+    private void send(CommandSender sender, String msg, Object... args) {
+        sender.sendMessage(new TextComponent(String.format(msg, args)));
     }
 
     private void printHelp(CommandSender sender) {
@@ -105,8 +122,15 @@ public class PlayerStatsCommand extends Command {
             sender.sendMessage(format(ChatColor.YELLOW + "UUID:%s  %s", ChatColor.RESET, dbPlayer.getUuid()));
             sender.sendMessage(format(ChatColor.YELLOW + "Online:%s  %s", ChatColor.RESET, online));
             if (playerData != null) {
+                TextComponent serverName = new TextComponent(playerData.getServer());
+                serverName.setItalic(true);
+                serverName.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,  new ComponentBuilder("Join server").create()));
+                serverName.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/server " + playerData.getServer()));
+                TextComponent server = new TextComponent(ChatColor.YELLOW + "Server: ");
+                server.addExtra(serverName);
+
                 sender.sendMessage(format(ChatColor.YELLOW + "Proxy:%s  %s", ChatColor.RESET, playerData.getBungeeCordId()));
-                sender.sendMessage(format(ChatColor.YELLOW + "Server:%s  %s", ChatColor.RESET, playerData.getServer()));
+                sender.sendMessage(server);
                 sender.sendMessage(format(ChatColor.YELLOW + "IP:%s  %s", ChatColor.RESET, playerData.getAddress()));
             }
             sender.sendMessage(format(ChatColor.YELLOW + "First joined:%s   %s", ChatColor.RESET, Utils.formatTimestamp(dbPlayer.getFirstJoinDate())));
@@ -120,5 +144,23 @@ public class PlayerStatsCommand extends Command {
 
     }
 
+    private void printBanInfos(CommandSender sender, String playerName) {
+
+        try (Session session = this.sessionBuilder.openSession()) {
+
+            DBPlayer dbPlayer = BungeePlugin.getBungeeApi().getPlayerFromDB(session, playerName);
+
+            this.send(sender, "%s--------  Gotten bans  --------", ChatColor.GOLD);
+
+            for (PlayerBan ban : dbPlayer.getGottenBans()) {
+                String active = ban.isActive() ? ChatColor.RED + "Yes" + ChatColor.RESET : ChatColor.GREEN + "No" + ChatColor.RESET;
+                String duration = ban.isPermanent() ? "inf" : Utils.formatDuration(ban.getDuration());
+
+                this.send(sender, "%s %s %s %s", active, Utils.formatTimestamp(ban.getBannedAt()), duration, "");
+            }
+
+        }
+
+    }
 
 }

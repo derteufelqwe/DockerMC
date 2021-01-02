@@ -19,14 +19,19 @@ import de.derteufelqwe.bungeeplugin.utils.MetaData;
 import de.derteufelqwe.bungeeplugin.utils.ServerState;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
+import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
+
+import java.util.UUID;
 
 public final class BungeePlugin extends Plugin {
 
@@ -66,6 +71,7 @@ public final class BungeePlugin extends Plugin {
     public void onEnable() {
         this.addSignalHandlers();
         BungeePlugin.PLUGIN = this;
+
         // Redis stuff
         BungeePlugin.redisHandler = new RedisHandler("redis");
         BungeePlugin.redisDataManager = new RedisDataManager();
@@ -108,6 +114,7 @@ public final class BungeePlugin extends Plugin {
 
         // --- Misc ---
         this.setupAPI();
+        this.setupConsoleUserInDatabase();
 
         BungeePlugin.STATE = ServerState.RUNNING;
         System.out.printf("[System] Server %s started successfully.\n", META_DATA.getTaskName());
@@ -154,6 +161,26 @@ public final class BungeePlugin extends Plugin {
      */
     private void setupAPI() {
         bungeeApi = new BungeeAPI();
+    }
+
+    /**
+     * Creates the Console User in the database
+     */
+    private void setupConsoleUserInDatabase() {
+
+        try (Session session = sessionBuilder.openSession()) {
+            Transaction tx = session.beginTransaction();
+
+            DBPlayer player = session.get(DBPlayer.class, Constants.CONSOLE_USER_UUID);
+            if (player == null) {
+                System.out.println("Created console user");
+                player = new DBPlayer(Constants.CONSOLE_USER_UUID, Constants.CONSOLE_USER_NAME);
+                session.persist(player);
+            }
+
+            tx.commit();
+        }
+
     }
 
 

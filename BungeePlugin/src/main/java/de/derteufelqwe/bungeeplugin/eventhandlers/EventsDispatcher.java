@@ -193,10 +193,18 @@ public class EventsDispatcher implements Listener {
                 }
 
                 event.setCancelled(true);
-                event.setCancelReason(new TextComponent(ChatColor.RED + String.format(
-                        "You are banned until %s. %s Reason: '%s'.",
-                        Utils.formatTimestamp(activeBan.getBannedUntil()), ChatColor.RESET, activeBan.getBanMessage()
-                )));
+                if (activeBan.isPermanent()) {
+                    event.setCancelReason(new TextComponent(ChatColor.RED + String.format(
+                            "You are permanently banned. %s Reason: '%s'.", ChatColor.RESET, activeBan.getBanMessage()
+                    )));
+
+                } else {
+                    event.setCancelReason(new TextComponent(ChatColor.RED + String.format(
+                            "You are banned until %s. %s Reason: '%s'.",
+                            Utils.formatTimestamp(activeBan.getBannedUntil()), ChatColor.RESET, activeBan.getBanMessage()
+                    )));
+                }
+
 
                 tx.commit();
 

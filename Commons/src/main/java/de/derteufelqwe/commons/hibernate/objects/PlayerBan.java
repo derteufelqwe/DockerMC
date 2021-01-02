@@ -1,5 +1,6 @@
 package de.derteufelqwe.commons.hibernate.objects;
 
+import de.derteufelqwe.commons.Constants;
 import lombok.*;
 import org.hibernate.annotations.Type;
 
@@ -31,7 +32,7 @@ public class PlayerBan {
     /*
      * Timestamp when the player was banned
      */
-    private Timestamp bannedAt = new Timestamp(System.currentTimeMillis() / 1000L);
+    private Timestamp bannedAt = new Timestamp(System.currentTimeMillis());
 
     private Timestamp bannedUntil;
 
@@ -59,14 +60,28 @@ public class PlayerBan {
      * @param banMessage
      * @param banDuration In seconds
      */
-    public PlayerBan(DBPlayer bannedPlayer, DBPlayer bannedBy, String banMessage, int banDuration) {
+    public PlayerBan(DBPlayer bannedPlayer, DBPlayer bannedBy, String banMessage, long banDuration) {
         this(bannedPlayer, bannedBy, banMessage,
-                new Timestamp((System.currentTimeMillis() / 1000L) + banDuration));
+                new Timestamp((System.currentTimeMillis()) + banDuration));
+    }
+
+    /**
+     * Ban with infinite duration
+     * @param bannedPlayer
+     * @param bannedBy
+     * @param banMessage
+     */
+    public PlayerBan(DBPlayer bannedPlayer, DBPlayer bannedBy, String banMessage) {
+        this(bannedPlayer, bannedBy, banMessage, Constants.BAN_PERMANENT_TIMESTAMP);
     }
 
 
     public int getDuration() {
         return (int) (this.bannedUntil.getTime() - this.bannedAt.getTime());
+    }
+
+    public boolean isPermanent() {
+        return this.bannedUntil.compareTo(Constants.BAN_PERMANENT_TIMESTAMP) >= 0;
     }
 
     public boolean wasUnbanned() {

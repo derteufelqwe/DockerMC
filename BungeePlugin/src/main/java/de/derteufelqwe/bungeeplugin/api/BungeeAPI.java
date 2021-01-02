@@ -3,15 +3,25 @@ package de.derteufelqwe.bungeeplugin.api;
 import com.sun.istack.NotNull;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.events.BungeeRequestPlayerKickEvent;
+import de.derteufelqwe.bungeeplugin.exceptions.DmcAPIException;
 import de.derteufelqwe.bungeeplugin.redis.PlayerData;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.bungeeplugin.redis.messages.RedisRequestPlayerKick;
 import de.derteufelqwe.commons.exceptions.NotFoundException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
+import de.derteufelqwe.commons.hibernate.objects.IPBan;
 import net.md_5.bungee.api.Callback;
 import net.md_5.bungee.api.ProxyServer;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 
+import javax.annotation.CheckForNull;
+import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -60,8 +70,27 @@ public class BungeeAPI {
     }
 
 
-    public DBPlayer getPlayerFromDB(UUID uuid) {
-        return null;
+    @CheckForNull
+    public DBPlayer getPlayerFromDB(Session session, String name) throws DmcAPIException {
+        CriteriaBuilder cb = session.getCriteriaBuilder();
+        CriteriaQuery<DBPlayer> cq = cb.createQuery(DBPlayer.class);
+        Root<DBPlayer> root = cq.from(DBPlayer.class);
+
+        cq.select(root).where(cb.equal(root.get("name"), name));
+
+        Query queryRes = session.createQuery(cq);
+        List<DBPlayer> res = (List<DBPlayer>) queryRes.getResultList();
+
+        if (res.size() == 0) {
+            return null;
+
+        } else if (res.size() == 1) {
+            return res.get(0);
+
+        } else {
+            throw new DmcAPIException("Found %s users with the name '%s'.", res.size(), name);
+        }
+
     }
 
 

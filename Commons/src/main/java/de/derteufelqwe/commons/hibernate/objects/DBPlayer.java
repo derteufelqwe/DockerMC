@@ -125,6 +125,10 @@ public class DBPlayer {
         return null;
     }
 
+    public boolean isBanned() {
+        return this.getActiveBan() != null;
+    }
+
     /**
      * Returns the overall online duration for a player
      *

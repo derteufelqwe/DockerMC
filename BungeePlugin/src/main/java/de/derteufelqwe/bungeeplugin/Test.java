@@ -118,22 +118,6 @@ public class Test {
 //        multiSet();
 //        readDb();
 
-        Duration d = Duration.of(4300010, ChronoUnit.SECONDS);
-
-
-        long tmp = d.getSeconds();
-        long seconds = tmp % 60;
-        tmp = tmp / 60;
-        long minutes = tmp % 60;
-        tmp = tmp / 60;
-        long hours = tmp % 24;
-        tmp = tmp / 60;
-        long days = tmp;
-
-        System.out.println(String.format(
-                "%d days %d:%02d:%02d",
-            days, hours, minutes, seconds
-        ));
 
 
         System.out.println("Done");
