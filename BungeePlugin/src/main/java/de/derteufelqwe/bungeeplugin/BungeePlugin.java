@@ -97,6 +97,7 @@ public final class BungeePlugin extends Plugin {
         getProxy().getPluginManager().registerListener(this, new GeneralEvents());
         getProxy().getPluginManager().registerListener(this, new EventsDispatcher());
         getProxy().getPluginManager().registerListener(this, new BungeeEventsHandler());
+        getProxy().getPluginManager().registerListener(this, new PermissionEvent());
 
         // ---  Commands  ---
         getProxy().getPluginManager().registerCommand(this, new DockerMCCommand());
@@ -106,6 +107,7 @@ public final class BungeePlugin extends Plugin {
         getProxy().getPluginManager().registerCommand(this, new BlistCommand(this.catalogClient));
         getProxy().getPluginManager().registerCommand(this, new KickCommand());
         getProxy().getPluginManager().registerCommand(this, new BanCommand());
+        getProxy().getPluginManager().registerCommand(this, new UnbanCommand());
         getProxy().getPluginManager().registerCommand(this, new PlayerStatsCommand());
 
         // ---  Consul  ---

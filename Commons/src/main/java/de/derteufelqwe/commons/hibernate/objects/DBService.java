@@ -22,11 +22,14 @@ public class DBService {
     @Type(type = "text")
     private String name;
 
-    @Column(name = "\"maxRam\"")
     private Integer maxRam;
 
-    @Column(name = "\"maxCpu\"")
     private Float maxCpu;
+
+    /*
+     * Indicates that the service was removed
+     */
+    private boolean active = true;
 
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL)
     private List<DBContainer> containers;

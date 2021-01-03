@@ -19,7 +19,7 @@ public class IPBan {
     // ----- General Information -----
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     // ----- Ban information -----

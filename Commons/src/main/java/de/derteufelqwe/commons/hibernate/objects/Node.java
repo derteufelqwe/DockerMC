@@ -21,13 +21,11 @@ public class Node {
     @Type(type = "text")
     private String name;
 
-    @Column(name = "\"maxRam\"")
     private Integer maxRam;
 
     @OneToMany(mappedBy = "node", cascade = CascadeType.ALL)
     private List<DBContainer> containers;
 
-    @Column(name = "\"nodeStats\"")
     @OneToMany(mappedBy = "node", cascade = CascadeType.ALL)
     private List<NodeStats> nodeStats;
 

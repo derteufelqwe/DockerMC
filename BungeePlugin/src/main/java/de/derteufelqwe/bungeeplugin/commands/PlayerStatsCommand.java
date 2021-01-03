@@ -77,16 +77,28 @@ public class PlayerStatsCommand extends Command {
 
     }
 
+    /**
+     * Formats a String and arguments to a TextComponent
+     * @param msg
+     * @param args
+     * @return
+     */
     private TextComponent format(String msg, Object... args) {
         return new TextComponent(String.format(msg, args));
     }
 
+    /**
+     * Shortcut to send messages to a player
+     * @param sender
+     * @param msg
+     * @param args
+     */
     private void send(CommandSender sender, String msg, Object... args) {
-        sender.sendMessage(new TextComponent(String.format(msg, args)));
+        sender.sendMessage(this.format(msg, args));
     }
 
     private void printHelp(CommandSender sender) {
-        sender.sendMessage(this.format(ChatColor.RED + "/playerstats <username>"));
+        sender.sendMessage(this.format(ChatColor.RED + "/playerstats <username> [stats|bans]"));
     }
 
     private void printGeneralInfos(CommandSender sender, String playerName) {
@@ -94,36 +106,24 @@ public class PlayerStatsCommand extends Command {
 
         try (Session session = this.sessionBuilder.openSession()) {
 
-            CriteriaBuilder cb = session.getCriteriaBuilder();
-            CriteriaQuery<DBPlayer> cq = cb.createQuery(DBPlayer.class);
-            Root<DBPlayer> root = cq.from(DBPlayer.class);
-
-            cq.select(root).where(cb.equal(root.get("name"), playerName));
-
-            // --- Execute the query ---
-
-            DBPlayer dbPlayer = null;
-
-            Query queryRes = session.createQuery(cq);
-            try {
-                dbPlayer = (DBPlayer) queryRes.getSingleResult();
-
-            } catch (NoResultException e) {
+            DBPlayer dbPlayer = BungeePlugin.getBungeeApi().getPlayerFromDB(session, playerName);
+            if (dbPlayer == null) {
                 sender.sendMessage(this.format(PREFIX + ChatColor.RED + "Player %s not found.", playerName));
-
                 return;
             }
 
             String banned = dbPlayer.getActiveBan() == null ? ChatColor.GREEN + "No" : ChatColor.RED + "Yes";
-            String online = playerData == null ? ChatColor.WHITE + "No" : ChatColor.GREEN + "Yes";
+            String online = playerData == null ? ChatColor.RED + "No" : ChatColor.GREEN + "Yes";
+            String firstJoin = dbPlayer.getFirstJoinDate() == null ? "-" : Utils.formatTimestamp(dbPlayer.getFirstJoinDate());
+            String lastOnline = dbPlayer.getLastOnline() == null ? "-" : Utils.formatTimestamp(dbPlayer.getLastOnline());
 
+            // --- Print the information ---
             sender.sendMessage(this.format("%s-----------  Player information  -----------", ChatColor.GOLD));
             sender.sendMessage(format(ChatColor.YELLOW + "Name:%s  %s", ChatColor.RESET, dbPlayer.getName()));
             sender.sendMessage(format(ChatColor.YELLOW + "UUID:%s  %s", ChatColor.RESET, dbPlayer.getUuid()));
             sender.sendMessage(format(ChatColor.YELLOW + "Online:%s  %s", ChatColor.RESET, online));
             if (playerData != null) {
-                TextComponent serverName = new TextComponent(playerData.getServer());
-                serverName.setItalic(true);
+                TextComponent serverName = new TextComponent(ChatColor.ITALIC + playerData.getServer());
                 serverName.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,  new ComponentBuilder("Join server").create()));
                 serverName.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/server " + playerData.getServer()));
                 TextComponent server = new TextComponent(ChatColor.YELLOW + "Server: ");
@@ -133,8 +133,8 @@ public class PlayerStatsCommand extends Command {
                 sender.sendMessage(server);
                 sender.sendMessage(format(ChatColor.YELLOW + "IP:%s  %s", ChatColor.RESET, playerData.getAddress()));
             }
-            sender.sendMessage(format(ChatColor.YELLOW + "First joined:%s   %s", ChatColor.RESET, Utils.formatTimestamp(dbPlayer.getFirstJoinDate())));
-            sender.sendMessage(format(ChatColor.YELLOW + "Last seen:%s  %s", ChatColor.RESET, Utils.formatTimestamp(dbPlayer.getLastOnline())));
+            sender.sendMessage(format(ChatColor.YELLOW + "First joined:%s   %s", ChatColor.RESET, firstJoin));
+            sender.sendMessage(format(ChatColor.YELLOW + "Last seen:%s  %s", ChatColor.RESET, lastOnline));
             sender.sendMessage(format(ChatColor.YELLOW + "Banned:%s  %s", ChatColor.RESET, banned));
             sender.sendMessage(format(ChatColor.YELLOW + "Bans:%s  %s", ChatColor.RESET, dbPlayer.getGottenBans().size()));
             sender.sendMessage(format(ChatColor.YELLOW + "Logins:%s  %s", ChatColor.RESET, dbPlayer.getLogins().size()));
@@ -149,14 +149,25 @@ public class PlayerStatsCommand extends Command {
         try (Session session = this.sessionBuilder.openSession()) {
 
             DBPlayer dbPlayer = BungeePlugin.getBungeeApi().getPlayerFromDB(session, playerName);
+            if (dbPlayer == null) {
+                sender.sendMessage(this.format(PREFIX + ChatColor.RED + "Player %s not found.", playerName));
+                return;
+            }
 
             this.send(sender, "%s--------  Gotten bans  --------", ChatColor.GOLD);
 
+            this.send(sender, "Status | Ban time | duration | Message");
             for (PlayerBan ban : dbPlayer.getGottenBans()) {
                 String active = ban.isActive() ? ChatColor.RED + "Yes" + ChatColor.RESET : ChatColor.GREEN + "No" + ChatColor.RESET;
                 String duration = ban.isPermanent() ? "inf" : Utils.formatDuration(ban.getDuration());
 
-                this.send(sender, "%s %s %s %s", active, Utils.formatTimestamp(ban.getBannedAt()), duration, "");
+                TextComponent banMsg = new TextComponent(ChatColor.ITALIC + "Msg");
+                banMsg.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ban.getBanMessage()).create()));
+
+                TextComponent msg = this.format("%s | %s | %s | ", active, Utils.formatTimestamp(ban.getBannedAt()), duration);
+                msg.addExtra(banMsg);
+
+                sender.sendMessage(msg);
             }
 
         }

@@ -31,6 +31,7 @@ public class BanCommand extends Command {
 
     private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
     private SessionBuilder sessionBuilder = BungeePlugin.getSessionBuilder();
+    private static String PREFIX = ChatColor.YELLOW + "[DMCBan] " + ChatColor.RESET;
 
 
     public BanCommand() {
@@ -89,6 +90,10 @@ public class BanCommand extends Command {
             long hours = Long.parseLong(splits[1]);
             long minutes = Long.parseLong(splits[2]);
 
+            assert  days >= 0;
+            assert  hours >= 0;
+            assert  minutes >= 0;
+
             return (days * 12 * 60 * 60 + hours * 60 * 60 + minutes * 60) * 1000;
 
         } catch (NumberFormatException | AssertionError e) {
@@ -121,19 +126,15 @@ public class BanCommand extends Command {
                 DBPlayer executor = this.getExecutorUser(session, sender);
                 DBPlayer target = BungeePlugin.getBungeeApi().getPlayerFromDB(session, targetPlayer);
                 if (target == null) {
-                    sender.sendMessage(new TextComponent(ChatColor.RED + "User " + targetPlayer + " not found."));
+                    sender.sendMessage(new TextComponent(PREFIX + ChatColor.RED + "User " + targetPlayer + " not found."));
                     return;
                 }
 
-                PlayerBan ban;
-                if (duration == -1) {
-                    ban = new PlayerBan(target, executor, reason);
-                } else {
-                    ban = new PlayerBan(target, executor, reason, duration);
-                }
-                session.save(ban);
+                this.createNewBan(session, target, executor, reason, duration);
 
                 tx.commit();
+
+                sender.sendMessage(new TextComponent(PREFIX + ChatColor.RED + "Banned " + target.getName() + "."));
 
             } catch (Exception e) {
                 tx.rollback();
@@ -145,8 +146,16 @@ public class BanCommand extends Command {
 
             } catch (NotFoundException ignored) {}
         }
+    }
 
-
+    private void createNewBan(Session session, DBPlayer target, DBPlayer executor, String reason, long duration) {
+        PlayerBan ban;
+        if (duration == -1) {
+            ban = new PlayerBan(target, executor, reason);
+        } else {
+            ban = new PlayerBan(target, executor, reason, duration);
+        }
+        session.save(ban);
     }
 
 

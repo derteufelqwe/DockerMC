@@ -26,6 +26,10 @@ public class SessionBuilder {
             .addAnnotatedClass(PlayerBan.class)
             .addAnnotatedClass(PlayerLogin.class)
             .addAnnotatedClass(IPBan.class)
+            .addAnnotatedClass(PermissionGroup.class)
+            .addAnnotatedClass(PlayerPermissionGroup.class)
+            .addAnnotatedClass(Permission.class)
+            .addAnnotatedClass(TimedPermission.class)
             .buildSessionFactory();
     }
     

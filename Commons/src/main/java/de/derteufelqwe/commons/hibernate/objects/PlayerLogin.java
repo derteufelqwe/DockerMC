@@ -18,7 +18,7 @@ public class PlayerLogin {
     // ----- General Information -----
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     // ----- Login information -----

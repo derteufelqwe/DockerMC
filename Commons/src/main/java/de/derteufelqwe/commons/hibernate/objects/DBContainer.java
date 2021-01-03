@@ -21,7 +21,6 @@ public class DBContainer {
     private String id;
 
     @Type(type = "text")
-    @Column(name = "\"taskId\"")
     private String taskId;
 
     @Type(type = "text")
@@ -33,25 +32,20 @@ public class DBContainer {
     @Type(type = "text")
     private String log;
 
-    @Column(name = "\"lastLogTimestamp\"")
     private Timestamp lastLogTimestamp;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     private Node node;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     private DBService service;
 
-    @Column(name = "\"startTime\"")
     private Timestamp startTime;
 
-    @Column(name = "\"stopTime\"")
     private Timestamp stopTime;
 
-    @Column(name = "\"exitCode\"")
     private Short exitcode;
 
-    @Column(name = "\"containerStats\"")
     @OneToMany(mappedBy = "container", cascade = CascadeType.ALL)
     private List<ContainerStats> containerStats;
 

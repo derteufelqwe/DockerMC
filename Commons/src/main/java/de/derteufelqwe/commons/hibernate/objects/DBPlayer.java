@@ -12,11 +12,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
 @Setter
-@ToString(exclude = {"skinData", "onlineStats", "logins", "gottenBans", "executedBans", "executedIpBans", "liftedBans", "liftedIpBans"})
+@ToString(exclude = {"skinData", "onlineStats", "logins", "gottenBans", "executedBans", "executedIpBans", "liftedBans",
+        "liftedIpBans", "additionPermGroups"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "players")
@@ -44,7 +46,6 @@ public class DBPlayer {
     // ----- Stats -----
 
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL)
-    @Column(name = "\"onlineStats\"")
     private List<PlayerOnlineDurations> onlineStats;
 
     private Timestamp lastOnline;
@@ -52,14 +53,27 @@ public class DBPlayer {
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL)
     private List<PlayerLogin> logins;
 
+    // ----- Permissions -----
+
+    @ManyToOne
+    private PermissionGroup mainPermGroup;
+
+    @OneToMany(mappedBy = "player")
+    private Set<PlayerPermissionGroup> additionPermGroups;
+
+    @OneToMany
+    @JoinColumn(name = "player_uuid")
+    private Set<Permission> addedPerms;
+//
+//    @ManyToMany
+//    private Set<Permission> removedPerms;
+
     // ----- Ban information -----
 
     @OneToMany(mappedBy = "bannedPlayer", cascade = CascadeType.ALL)
-    @Column(name = "\"gottenBans\"")
     private List<PlayerBan> gottenBans;
 
     @OneToMany(mappedBy = "bannedBy", cascade = CascadeType.ALL)
-    @Column(name = "\"executedBans\"")
     private List<PlayerBan> executedBans;
 
     @OneToMany(mappedBy = "bannedBy", cascade = CascadeType.ALL)

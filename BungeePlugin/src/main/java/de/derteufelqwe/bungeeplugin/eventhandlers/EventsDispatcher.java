@@ -135,6 +135,7 @@ public class EventsDispatcher implements Listener {
                 DBPlayer dbPlayer = session.get(DBPlayer.class, uuid);
                 if (dbPlayer == null) {
                     dbPlayer = new DBPlayer(uuid, playerName);
+                    session.save(dbPlayer);
                 }
 
                 // Update players name if it changed

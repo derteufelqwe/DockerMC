@@ -18,7 +18,7 @@ public class PlayerBan {
     // ----- General Information -----
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     // ----- Ban information -----
@@ -99,3 +99,32 @@ public class PlayerBan {
 
 
 }
+
+
+/*
+-- auto-generated definition
+create table player_bans
+(
+    id                bigint not null
+        constraint player_bans_pkey
+            primary key,
+    banmessage        text,
+    bannedat          timestamp,
+    banneduntil       timestamp,
+    unbantime         timestamp,
+    bannedby_uuid     uuid
+        constraint fk7dgd1vah0l28ssk4x5ufcl277
+            references players,
+    bannedplayer_uuid uuid
+        constraint fkqx0hx67p0gth1r9qmh1p4oh7v
+            references players,
+    unbannedby_uuid   uuid
+        constraint fk25jwsu0kx2rp6rrsdextffw7i
+            references players
+);
+
+alter table player_bans
+    owner to admin;
+
+
+ */

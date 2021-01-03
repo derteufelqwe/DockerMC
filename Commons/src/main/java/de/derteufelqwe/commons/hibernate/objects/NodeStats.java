@@ -14,18 +14,16 @@ import java.sql.Timestamp;
 public class NodeStats {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
-    private Integer id;
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    private long id;
 
     @ManyToOne
     private Node node;
 
     private Timestamp timestamp;
 
-    @Column(name = "cpu_perc")
     private Float cpuPerc;
 
-    @Column(name = "mem_cur")
     private Integer memCurr;
 
 

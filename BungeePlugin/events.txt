@@ -1,15 +1,12 @@
-Player join
-    PlayerJoinEvent
-        (async) Redis / DB stuff
-        Call BungeePlayerJoin (local node only)
-        Send bungee join message through redis (will call BungeePlayerJoin on all other nodes)
+Permissions:
 
-Player server change
-    Order: Connect -> Disconnect
+- Groups
+- Inheritance
+- Exclude from inheritance
+- Individual permission
+- Individual exclude permissions
+- Star permission
+- Permission timeout
 
-Join:
-    Connect -> On Server
 
-Change server:
-    Connect, Disconnect -> On Server
 

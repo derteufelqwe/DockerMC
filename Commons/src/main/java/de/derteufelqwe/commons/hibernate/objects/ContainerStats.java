@@ -14,18 +14,16 @@ import java.sql.Timestamp;
 public class ContainerStats {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
-    private Integer id;
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    private long id;
 
     @ManyToOne
     private DBContainer container;
 
     private Timestamp timestamp;
 
-    @Column(name = "cpu_perc")
     private Float cpuPerc;
 
-    @Column(name = "mem_cur")
     private Float memCurr;
 
 

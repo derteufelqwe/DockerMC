@@ -22,6 +22,7 @@ import minecraftplugin.minecraftplugin.teleportsigns.TeleportSignWatcher;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginBase;
 import org.bukkit.plugin.java.JavaPlugin;
 import sun.misc.Signal;

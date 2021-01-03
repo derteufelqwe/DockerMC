@@ -117,7 +117,7 @@ public class Test {
 //        multiBlock();
 //        multiSet();
 //        readDb();
-
+        System.out.println(UUID.randomUUID());
 
 
         System.out.println("Done");
