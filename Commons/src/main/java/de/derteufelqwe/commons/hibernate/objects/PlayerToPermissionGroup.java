@@ -18,7 +18,7 @@ import java.util.UUID;
 @Table(uniqueConstraints = {
         @UniqueConstraint(columnNames = {"player_uuid", "permissionGroup_id"})
 })
-public class PlayerPermissionGroup {
+public class PlayerToPermissionGroup {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

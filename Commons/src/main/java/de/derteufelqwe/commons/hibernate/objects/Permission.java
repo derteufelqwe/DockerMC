@@ -1,5 +1,6 @@
 package de.derteufelqwe.commons.hibernate.objects;
 
+import jakarta.validation.Constraint;
 import lombok.*;
 import org.hibernate.annotations.DiscriminatorOptions;
 import org.hibernate.annotations.Type;

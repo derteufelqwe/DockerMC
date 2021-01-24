@@ -6,6 +6,9 @@ import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 public class SessionBuilder {
@@ -27,7 +30,7 @@ public class SessionBuilder {
             .addAnnotatedClass(PlayerLogin.class)
             .addAnnotatedClass(IPBan.class)
             .addAnnotatedClass(PermissionGroup.class)
-            .addAnnotatedClass(PlayerPermissionGroup.class)
+            .addAnnotatedClass(PlayerToPermissionGroup.class)
             .addAnnotatedClass(Permission.class)
             .addAnnotatedClass(TimedPermission.class)
             .buildSessionFactory();

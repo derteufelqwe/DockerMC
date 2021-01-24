@@ -59,7 +59,7 @@ public class DBPlayer {
     private PermissionGroup mainPermGroup;
 
     @OneToMany(mappedBy = "player")
-    private Set<PlayerPermissionGroup> additionPermGroups;
+    private Set<PlayerToPermissionGroup> additionPermGroups;
 
     @OneToMany
     @JoinColumn(name = "player_uuid")

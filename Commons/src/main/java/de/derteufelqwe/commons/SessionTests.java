@@ -2,7 +2,6 @@ package de.derteufelqwe.commons;
 
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.Permission;
-import de.derteufelqwe.commons.hibernate.objects.PermissionGroup;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
