@@ -76,4 +76,13 @@ public class PlayerData {
         return new String[]{"username", "uuid", "address", "server", "bungeeCordId"};
     }
 
+    /**
+     * Returns the name of the service the player is connected to
+     * @return
+     */
+    @NotNull
+    public String getServiceName() {
+        return this.server.split("-")[0];
+    }
+
 }

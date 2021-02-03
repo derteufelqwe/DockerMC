@@ -1,7 +1,8 @@
 package de.derteufelqwe.commons;
 
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
-import de.derteufelqwe.commons.hibernate.objects.Permission;
+import de.derteufelqwe.commons.hibernate.objects.Notification;
+import de.derteufelqwe.commons.hibernate.objects.permissions.Permission;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
@@ -14,8 +15,11 @@ public class SessionTests {
         try (Session session = sessionBuilder.openSession()) {
             Transaction tx = session.beginTransaction();
 
-            Permission permission1 = session.get(Permission.class, 1L);
-            Permission permission2 = session.get(Permission.class, 2L);
+//            Permission permission1 = session.get(Permission.class, 1L);
+//            Permission permission2 = session.get(Permission.class, 2L);
+
+
+            Notification notification = session.get(Notification.class, 1L);
 
             tx.commit();
         }

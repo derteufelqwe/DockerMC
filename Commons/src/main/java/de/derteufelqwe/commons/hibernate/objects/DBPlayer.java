@@ -1,5 +1,6 @@
 package de.derteufelqwe.commons.hibernate.objects;
 
+import de.derteufelqwe.commons.hibernate.objects.permissions.*;
 import lombok.*;
 import org.hibernate.annotations.Type;
 
@@ -63,10 +64,16 @@ public class DBPlayer {
 
     @OneToMany
     @JoinColumn(name = "player_uuid")
-    private Set<Permission> addedPerms;
-//
-//    @ManyToMany
-//    private Set<Permission> removedPerms;
+    private Set<Permission> permissions;
+
+    @OneToMany
+    @JoinColumn(name = "player_uuid")
+    private Set<TimedPermission> timedPermissions;
+
+    @OneToMany
+    @JoinColumn(name = "player_uuid")
+    private Set<ServicePermission> servicePermissions;
+
 
     // ----- Ban information -----
 
@@ -129,6 +136,8 @@ public class DBPlayer {
      */
     @CheckForNull
     public PlayerBan getActiveBan() {
+        if (this.gottenBans == null)
+            return null;
 
         for (PlayerBan ban : this.gottenBans) {
             if (ban.isActive()) {

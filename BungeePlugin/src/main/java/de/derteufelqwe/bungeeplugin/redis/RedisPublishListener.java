@@ -6,6 +6,7 @@ import de.derteufelqwe.bungeeplugin.events.BungeePlayerLeaveEvent;
 import de.derteufelqwe.bungeeplugin.events.BungeePlayerServerChangeEvent;
 import de.derteufelqwe.bungeeplugin.events.BungeeRequestPlayerServerSendEvent;
 import de.derteufelqwe.bungeeplugin.redis.messages.*;
+import de.derteufelqwe.bungeeplugin.runnables.DefaultCallback;
 import de.derteufelqwe.bungeeplugin.utils.Utils;
 import de.derteufelqwe.commons.exceptions.NotFoundException;
 import net.md_5.bungee.api.Callback;
@@ -129,7 +130,7 @@ public class RedisPublishListener extends JedisPubSub implements Runnable {
 
     private void onPlayerAddMessage(RedisPlayerJoinNetwork message) {
         System.out.printf("Event: PlayerAdd %s.\n", message.getUsername());
-        ProxyServer.getInstance().getPluginManager().callEvent(new BungeePlayerJoinEvent(message.getUsername(), new Callback<BungeePlayerJoinEvent>() {
+        ProxyServer.getInstance().getPluginManager().callEvent(new BungeePlayerJoinEvent(message.getUuid(), message.getUsername(), new Callback<BungeePlayerJoinEvent>() {
             @Override
             public void done(BungeePlayerJoinEvent result, Throwable error) {
 
@@ -140,12 +141,7 @@ public class RedisPublishListener extends JedisPubSub implements Runnable {
     private void onPlayerRemoveMessage(RedisPlayerLeaveNetwork message) {
         System.out.printf("Event: PlayerRemove %s.\n", message.getUsername());
 
-        ProxyServer.getInstance().getPluginManager().callEvent(new BungeePlayerLeaveEvent(message.getUsername(), new Callback<BungeePlayerLeaveEvent>() {
-            @Override
-            public void done(BungeePlayerLeaveEvent result, Throwable error) {
-
-            }
-        }));
+        ProxyServer.getInstance().getPluginManager().callEvent(new BungeePlayerLeaveEvent(message.getUuid(), message.getUsername(), new DefaultCallback<>()));
     }
 
     private void onPlayerServerChangeMessage(RedisPlayerServerChange message) {

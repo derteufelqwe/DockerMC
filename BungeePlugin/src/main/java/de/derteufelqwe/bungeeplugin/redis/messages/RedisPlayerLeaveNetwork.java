@@ -6,6 +6,8 @@ import de.derteufelqwe.bungeeplugin.redis.RedisPubSubData;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.UUID;
+
 
 /**
  * Called when a player leaves the BungeeCord network
@@ -13,6 +15,9 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class RedisPlayerLeaveNetwork extends RedisPubSubData {
+
+    @Expose
+    private UUID uuid;
 
     @Expose
     private String username;

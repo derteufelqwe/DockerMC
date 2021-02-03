@@ -3,6 +3,7 @@ package de.derteufelqwe.bungeeplugin.commands;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.redis.PlayerData;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
+import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
@@ -106,7 +107,7 @@ public class PlayerStatsCommand extends Command {
 
         try (Session session = this.sessionBuilder.openSession()) {
 
-            DBPlayer dbPlayer = BungeePlugin.getBungeeApi().getPlayerFromDB(session, playerName);
+            DBPlayer dbPlayer = CommonsAPI.getInstance().getPlayerFromDB(session, playerName);
             if (dbPlayer == null) {
                 sender.sendMessage(this.format(PREFIX + ChatColor.RED + "Player %s not found.", playerName));
                 return;
@@ -148,7 +149,7 @@ public class PlayerStatsCommand extends Command {
 
         try (Session session = this.sessionBuilder.openSession()) {
 
-            DBPlayer dbPlayer = BungeePlugin.getBungeeApi().getPlayerFromDB(session, playerName);
+            DBPlayer dbPlayer = CommonsAPI.getInstance().getPlayerFromDB(session, playerName);
             if (dbPlayer == null) {
                 sender.sendMessage(this.format(PREFIX + ChatColor.RED + "Player %s not found.", playerName));
                 return;

@@ -1,14 +1,12 @@
 package de.derteufelqwe.commons.hibernate;
 
 import de.derteufelqwe.commons.hibernate.objects.*;
+import de.derteufelqwe.commons.hibernate.objects.permissions.*;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
 
 public class SessionBuilder {
@@ -33,10 +31,12 @@ public class SessionBuilder {
             .addAnnotatedClass(PlayerToPermissionGroup.class)
             .addAnnotatedClass(Permission.class)
             .addAnnotatedClass(TimedPermission.class)
+            .addAnnotatedClass(ServicePermission.class)
+            .addAnnotatedClass(Notification.class)
             .buildSessionFactory();
     }
     
-    private Properties getProperties(String user, String password, String host, int port) {
+    protected Properties getProperties(String user, String password, String host, int port) {
         Properties properties = new Properties();
 
         properties.setProperty(Environment.DRIVER, "org.postgresql.Driver");

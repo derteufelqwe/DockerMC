@@ -7,6 +7,8 @@ import lombok.ToString;
 import net.md_5.bungee.api.Callback;
 import net.md_5.bungee.api.event.AsyncEvent;
 
+import java.util.UUID;
+
 /**
  * Fired when a player joins the Network.
  * Corresponds to {@link de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerJoinNetwork}
@@ -18,10 +20,13 @@ import net.md_5.bungee.api.event.AsyncEvent;
 @EqualsAndHashCode
 public class BungeePlayerJoinEvent extends AsyncEvent<BungeePlayerJoinEvent> {
 
+    private UUID playerId;
+
     private String playerName;
 
-    public BungeePlayerJoinEvent(String playerName, Callback<BungeePlayerJoinEvent> done) {
+    public BungeePlayerJoinEvent(UUID playerId,String playerName, Callback<BungeePlayerJoinEvent> done) {
         super(done);
+        this.playerId = playerId;
         this.playerName = playerName;
     }
 

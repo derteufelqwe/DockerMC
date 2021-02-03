@@ -26,7 +26,7 @@ public class GlistCommand extends Command {
 
 
     public GlistCommand() {
-        super("glist", "bungeecord.command.list");
+        super("glist", "bungeecord.command.glist");
     }
 
     @Override

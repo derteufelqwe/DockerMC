@@ -9,6 +9,7 @@ import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerJoinNetwork;
 import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerLeaveNetwork;
 import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerServerChange;
+import de.derteufelqwe.bungeeplugin.runnables.DefaultCallback;
 import de.derteufelqwe.bungeeplugin.runnables.PlayerSkinDownloadRunnable;
 import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.exceptions.NotFoundException;
@@ -187,8 +188,11 @@ public class EventsDispatcher implements Listener {
             try {
                 // Create player object when he joins
                 DBPlayer dbPlayer = session.get(DBPlayer.class, uuid);
-                PlayerBan activeBan = dbPlayer.getActiveBan();
+                if (dbPlayer == null) {
+                    return false;
+                }
 
+                PlayerBan activeBan = dbPlayer.getActiveBan();
                 if (activeBan == null) {
                     return false;
                 }
@@ -281,19 +285,15 @@ public class EventsDispatcher implements Listener {
     private void callBungeePlayerJoinEvent(LoginEvent event) {
         InitialHandler handler = (InitialHandler) event.getConnection();
         String playerName = handler.getLoginRequest().getData();
+        UUID uuid = handler.getUniqueId();
 
         // Call the event locally
-        BungeePlayerJoinEvent bungeeEvent = new BungeePlayerJoinEvent(playerName, new Callback<BungeePlayerJoinEvent>() {
-            @Override
-            public void done(BungeePlayerJoinEvent result, Throwable error) {
-
-            }
-        });
+        BungeePlayerJoinEvent bungeeEvent = new BungeePlayerJoinEvent(uuid, playerName, new DefaultCallback<>());
         bungeeEvent.callEvent();
 
         // Send redis message
         try (Jedis jedis = this.jedisPool.getResource()) {
-            RedisPlayerJoinNetwork redisMessage = new RedisPlayerJoinNetwork(playerName);
+            RedisPlayerJoinNetwork redisMessage = new RedisPlayerJoinNetwork(uuid, playerName);
             jedis.publish("messages#" + redisMessage.getMessageType(), redisMessage.serialize());
         }
     }
@@ -371,16 +371,11 @@ public class EventsDispatcher implements Listener {
         try (Jedis jedis = this.jedisPool.getResource()) {
 
             // Call the event locally
-            BungeePlayerLeaveEvent bungeeEvent = new BungeePlayerLeaveEvent(player.getDisplayName(), new Callback<BungeePlayerLeaveEvent>() {
-                @Override
-                public void done(BungeePlayerLeaveEvent result, Throwable error) {
-
-                }
-            });
+            BungeePlayerLeaveEvent bungeeEvent = new BungeePlayerLeaveEvent(player.getUniqueId(), player.getDisplayName(), new DefaultCallback<>());
             bungeeEvent.callEvent();
 
             // Send redis message
-            RedisPlayerLeaveNetwork redisMessage = new RedisPlayerLeaveNetwork(player.getDisplayName());
+            RedisPlayerLeaveNetwork redisMessage = new RedisPlayerLeaveNetwork(player.getUniqueId(), player.getDisplayName());
             jedis.publish("messages#" + redisMessage.getMessageType(), redisMessage.serialize());
         }
     }

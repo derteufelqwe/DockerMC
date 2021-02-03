@@ -57,6 +57,7 @@ public class BungeeEventsHandler implements Listener {
         player.connect(serverInfo, ServerConnectEvent.Reason.PLUGIN);
     }
 
+
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onRequestPlayerKick(BungeeRequestPlayerKickEvent event) {
         ProxiedPlayer player = ProxyServer.getInstance().getPlayer(event.getPlayerName());

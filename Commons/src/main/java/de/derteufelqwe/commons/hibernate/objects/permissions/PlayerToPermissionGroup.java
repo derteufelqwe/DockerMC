@@ -1,10 +1,9 @@
-package de.derteufelqwe.commons.hibernate.objects;
+package de.derteufelqwe.commons.hibernate.objects.permissions;
 
+import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
 import lombok.*;
 
 import javax.persistence.*;
-import java.io.Serializable;
-import java.util.UUID;
 
 /**
  * Defines the Many to many relation table for Players and PermissionGroups

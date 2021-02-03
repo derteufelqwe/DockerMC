@@ -6,6 +6,8 @@ import de.derteufelqwe.bungeeplugin.redis.RedisPubSubData;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.UUID;
+
 /**
  * Sent through redis when a player a player joins the network.
  * The message only gets processed on nodes, that didn't send it
@@ -13,6 +15,9 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class RedisPlayerJoinNetwork extends RedisPubSubData {
+
+    @Expose
+    private UUID uuid;
 
     @Expose
     private String username;

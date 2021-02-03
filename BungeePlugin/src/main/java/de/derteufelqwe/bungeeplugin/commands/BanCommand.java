@@ -2,6 +2,7 @@ package de.derteufelqwe.bungeeplugin.commands;
 
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
+import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.exceptions.NotFoundException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
@@ -124,7 +125,7 @@ public class BanCommand extends Command {
 
             try {
                 DBPlayer executor = this.getExecutorUser(session, sender);
-                DBPlayer target = BungeePlugin.getBungeeApi().getPlayerFromDB(session, targetPlayer);
+                DBPlayer target = CommonsAPI.getInstance().getPlayerFromDB(session, targetPlayer);
                 if (target == null) {
                     sender.sendMessage(new TextComponent(PREFIX + ChatColor.RED + "User " + targetPlayer + " not found."));
                     return;
