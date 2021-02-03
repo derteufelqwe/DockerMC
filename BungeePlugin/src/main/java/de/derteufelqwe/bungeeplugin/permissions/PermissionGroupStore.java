@@ -4,8 +4,12 @@ import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.permissions.PermissionGroup;
+import de.derteufelqwe.commons.misc.Pair;
+import de.derteufelqwe.commons.misc.TimeoutMap;
+import de.derteufelqwe.commons.misc.TimeoutPermissionStore;
 import org.hibernate.Session;
 
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -23,12 +27,17 @@ public class PermissionGroupStore {
     // Data: <PermGroupId, <ServiceId, Set<permissions> > >
     private Map<Long, Map<String, Set<String>>> servicePermissions = new HashMap<>();
 
+    // Data: <PermGroupId>
+    private TimeoutPermissionStore<Long> timeoutPermissions = new TimeoutPermissionStore<>(60000);
+
 
     public PermissionGroupStore() {
-
+        this.timeoutPermissions.start();
     }
 
-    // Initializes the permissions
+    /**
+     * Initializes the permissions
+     */
     public void init() {
         try (Session session = sessionBuilder.openSession()) {
             for (PermissionGroup group : CommonsAPI.getInstance().getAllPermissionGroups(session)) {
@@ -37,6 +46,11 @@ public class PermissionGroupStore {
 
                 // Service bound permissions
                 this.servicePermissions.put(group.getId(), group.getAllServicePermissions());
+
+                // Timeout permissions
+                for (Pair<String, Timestamp> perm : group.getAllTimedPermissions()) {
+                    this.timeoutPermissions.add(group.getId(), perm.getA(), perm.getB());
+                }
             }
         }
 
@@ -48,7 +62,7 @@ public class PermissionGroupStore {
      * Checks if a permission is present in the permission group
      */
     public boolean hasPermission(Long groupId, String permission) {
-        return this.normalPermissions.get(groupId).contains(permission);
+        return this.normalPermissions.get(groupId).contains(permission) || this.timeoutPermissions.contains(groupId, permission);
     }
 
     /**

@@ -1,9 +1,11 @@
 package de.derteufelqwe.commons.hibernate.objects.permissions;
 
+import de.derteufelqwe.commons.misc.Pair;
 import lombok.*;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,6 +38,10 @@ public class PermissionGroup {
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "group_id")
     private List<ServicePermission> servicePermissions;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "group_id")
+    private List<TimedPermission> timedPermissions;
 
 
     public PermissionGroup(String name) {
@@ -79,6 +85,27 @@ public class PermissionGroup {
 
                 perms.get(serviceId).add(p.getPermissionText());
             }
+        }
+
+        return perms;
+    }
+
+    /**
+     * Returns all timed permissions including the permissions of the parents
+     * @return
+     */
+    public Set<Pair<String, Timestamp>> getAllTimedPermissions() {
+        Set<Pair<String, Timestamp>> perms = new HashSet<>();
+        if (this.parent != null) {
+            perms = this.parent.getAllTimedPermissions();
+        }
+
+        if (this.timedPermissions != null) {
+            perms.addAll(
+                    this.timedPermissions.stream()
+                            .map(p -> new Pair<String, Timestamp>(p.getPermissionText(), p.getTimeout()))
+                            .collect(Collectors.toSet())
+            );
         }
 
         return perms;

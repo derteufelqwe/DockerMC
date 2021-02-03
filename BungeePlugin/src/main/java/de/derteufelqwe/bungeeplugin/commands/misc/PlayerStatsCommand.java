@@ -1,4 +1,4 @@
-package de.derteufelqwe.bungeeplugin.commands;
+package de.derteufelqwe.bungeeplugin.commands.misc;
 
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.redis.PlayerData;

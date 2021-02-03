@@ -60,19 +60,19 @@ public class DBPlayer {
     private PermissionGroup mainPermGroup;
 
     @OneToMany(mappedBy = "player")
-    private Set<PlayerToPermissionGroup> additionPermGroups;
+    private List<PlayerToPermissionGroup> additionPermGroups;
 
     @OneToMany
     @JoinColumn(name = "player_uuid")
-    private Set<Permission> permissions;
+    private List<Permission> permissions;
 
     @OneToMany
     @JoinColumn(name = "player_uuid")
-    private Set<TimedPermission> timedPermissions;
+    private List<TimedPermission> timedPermissions;
 
     @OneToMany
     @JoinColumn(name = "player_uuid")
-    private Set<ServicePermission> servicePermissions;
+    private List<ServicePermission> servicePermissions;
 
 
     // ----- Ban information -----
@@ -162,6 +162,19 @@ public class DBPlayer {
                 .map(PlayerOnlineDurations::getDuration)
                 .reduce(0, Integer::sum)
                 .longValue();
+    }
+
+
+    /**
+     * Checks if the player has a certain normal permission
+     */
+    public boolean hasPermission(String permission) {
+        for (Permission perm : this.permissions) {
+            if (perm.getPermissionText().equals(permission))
+                return true;
+        }
+
+        return false;
     }
 
 }

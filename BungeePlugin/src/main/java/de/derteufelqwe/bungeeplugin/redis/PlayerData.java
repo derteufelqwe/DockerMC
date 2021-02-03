@@ -21,10 +21,9 @@ public class PlayerData {
     private String username;
     private String uuid;
     private String address;
-    @Setter
-    private String server;
-    @Setter
-    private String bungeeCordId = BungeePlugin.BUNGEECORD_ID;
+    @Setter private String server;
+    @Setter private String bungeeCordId = BungeePlugin.BUNGEECORD_ID;
+
 
     public PlayerData(@NotNull Map<String, String> input) {
         this.username = input.get("username");

@@ -1,12 +1,15 @@
 package de.derteufelqwe.bungeeplugin;
 
+import co.aikar.commands.BungeeCommandManager;
+import co.aikar.commands.CommandManager;
 import com.orbitz.consul.*;
 import com.orbitz.consul.model.agent.ImmutableRegCheck;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
 import com.orbitz.consul.model.agent.Registration;
 import com.orbitz.google.common.net.HostAndPort;
 import de.derteufelqwe.bungeeplugin.api.BungeeAPI;
-import de.derteufelqwe.bungeeplugin.commands.*;
+import de.derteufelqwe.bungeeplugin.commands.misc.*;
+import de.derteufelqwe.bungeeplugin.commands.permission.PermissionCommand;
 import de.derteufelqwe.bungeeplugin.consul.KVCacheListener;
 import de.derteufelqwe.bungeeplugin.consul.ServerRegistrator;
 import de.derteufelqwe.bungeeplugin.consul.ServiceCatalogListener;
@@ -15,15 +18,12 @@ import de.derteufelqwe.bungeeplugin.health.HealthCheck;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.bungeeplugin.redis.RedisHandler;
 import de.derteufelqwe.bungeeplugin.redis.RedisPublishListener;
+import de.derteufelqwe.bungeeplugin.utils.DBCache;
 import de.derteufelqwe.bungeeplugin.utils.MetaData;
 import de.derteufelqwe.bungeeplugin.utils.ServerState;
-import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
-import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
-import de.derteufelqwe.commons.hibernate.objects.DBService;
-import de.derteufelqwe.commons.hibernate.objects.Node;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
@@ -34,11 +34,6 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
-
-import javax.security.auth.callback.TextInputCallback;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.UUID;
 
 public final class BungeePlugin extends Plugin {
 
@@ -64,10 +59,10 @@ public final class BungeePlugin extends Plugin {
     public static final MetaData META_DATA = new MetaData();
     public static final String BUNGEECORD_ID = META_DATA.getTaskName(); // Identifies the current node
     @Getter private static BungeeAPI bungeeApi;
+    public final DBCache DB_CACHE = new DBCache();
 
-    public static String serviceId;
 
-
+    private BungeeCommandManager commandManager = new BungeeCommandManager(this);
     private ConnectionEvents connectionEvents;
     private RedisPublishListener redisPublishListener;
 
@@ -77,8 +72,8 @@ public final class BungeePlugin extends Plugin {
         // --- Setup --
         this.addSignalHandlers();
         BungeePlugin.PLUGIN = this;
-        this.createDevContainers();
-        serviceId = this.getDBServiceId();
+        commandManager.enableUnstableAPI("help");
+
 
         // --- Redis stuff ---
         BungeePlugin.redisHandler = new RedisHandler("redis");
@@ -117,6 +112,7 @@ public final class BungeePlugin extends Plugin {
         getProxy().getPluginManager().registerCommand(this, new BanCommand());
         getProxy().getPluginManager().registerCommand(this, new UnbanCommand());
         getProxy().getPluginManager().registerCommand(this, new PlayerStatsCommand());
+        commandManager.registerCommand(new PermissionCommand());
 
         // ---  Consul  ---
         this.healthCheck.start();
@@ -184,48 +180,6 @@ public final class BungeePlugin extends Plugin {
             tx.commit();
         }
 
-    }
-
-    /**
-     * Gets the service this container is running on
-     * @return
-     */
-    private String getDBServiceId() {
-        try (Session session = sessionBuilder.openSession()) {
-            DBService service = CommonsAPI.getInstance().getContainerFromDB(session, BUNGEECORD_ID).getService();
-
-            return service.getId();
-        }
-    }
-
-    private void createDevContainers() {
-        try (Session session = sessionBuilder.openSession()) {
-            Transaction tx = session.beginTransaction();
-
-            DBService service = CommonsAPI.getInstance().getActiveServiceFromDB(session, "DevService");
-            if (service == null) {
-                service = new DBService("iddev123iddef", "DevService", 1024, 1.0f, true, new ArrayList<>(), new ArrayList<>());
-                session.persist(service);
-            }
-
-            tx.commit();
-
-
-            tx = session.beginTransaction();
-
-            DBContainer container = CommonsAPI.getInstance().getContainerFromDB(session, BUNGEECORD_ID);
-            if (container == null) {
-                container = new DBContainer("id" + BUNGEECORD_ID, "devimage", new Timestamp(System.currentTimeMillis()));
-                container.setName(BUNGEECORD_ID);
-                container.setService(service);
-                container.setTaskId(BUNGEECORD_ID);
-                container.setNode(session.get(Node.class, "kulkf9nq5m8s3vlsu35go0wlz"));
-            }
-
-            session.persist(container);
-
-            tx.commit();
-        }
     }
 
 

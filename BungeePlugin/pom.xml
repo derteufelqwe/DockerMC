@@ -25,6 +25,20 @@
         <defaultGoal>clean package</defaultGoal>
         <plugins>
 
+            <plugin>
+                <version>3.7.0</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <compilerArgs>
+<!--                    Required for the ACF-->
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+
             <!--  Change the location of the jar  -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -46,21 +60,35 @@
                         <goals>
                             <goal>shade</goal>
                         </goals>
-                        <configuration>
-                            <finalName>BungeePlugin-1.0</finalName>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.SF</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
                     </execution>
                 </executions>
+
+                <configuration>
+                    <finalName>BungeePlugin-1.0</finalName>
+<!--                        ACF-->
+<!--                    <dependencyReducedPomLocation>${project.build.directory}/dependency-reduced-pom.xml</dependencyReducedPomLocation>-->
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.SF</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+<!--                        ACF-->
+                    <relocations>
+<!--                        <relocation>-->
+<!--                            <pattern>co.aikar.commands</pattern>-->
+<!--                            <shadedPattern>de.derteufelqwe.bungeeplugin.acf</shadedPattern>-->
+<!--                        </relocation>-->
+<!--                        <relocation>-->
+<!--                            <pattern>co.aikar.locales</pattern>-->
+<!--                            <shadedPattern>de.derteufelqwe.bungeeplugin.locales</shadedPattern>-->
+<!--                        </relocation>-->
+                    </relocations>
+                </configuration>
             </plugin>
         </plugins>
 
@@ -74,6 +102,10 @@
         <repository>
             <id>destroystokyo-repo</id>
             <url>https://repo.destroystokyo.com/repository/maven-public/</url>
+        </repository>
+        <repository>
+            <id>aikar</id>
+            <url>https://repo.aikar.co/content/groups/aikar/</url>
         </repository>
     </repositories>
 
@@ -133,6 +165,12 @@
             <groupId>commons-cli</groupId>
             <artifactId>commons-cli</artifactId>
             <version>1.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>co.aikar</groupId>
+            <artifactId>acf-bungee</artifactId>
+            <version>0.5.0-SNAPSHOT</version>
         </dependency>
 
     </dependencies>

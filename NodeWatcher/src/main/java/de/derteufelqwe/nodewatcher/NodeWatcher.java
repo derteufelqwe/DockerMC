@@ -50,6 +50,7 @@ public class NodeWatcher {
     private ContainerWatcher containerWatcher;
     private ContainerLogFetcher logFetcher;
     private ContainerResourceWatcher containerResourceWatcher;
+    private TimedPermissionWatcher timedPermissionWatcher;
 
 
     public NodeWatcher(String dockerHost, SessionBuilder sessionBuilder) {
@@ -192,6 +193,14 @@ public class NodeWatcher {
         this.containerResourceWatcher.init();
     }
 
+    /**
+     * Starts the timed permissions watcher
+     */
+    private void startTimedPermissionWatcher() {
+        this.timedPermissionWatcher = new TimedPermissionWatcher();
+        this.timedPermissionWatcher.start();
+    }
+
 
     @SneakyThrows
     public void start() {
@@ -202,6 +211,7 @@ public class NodeWatcher {
         this.startContainerLogFetcher();
         this.startContainerResourceWatcher();
         this.startContainerWatcher();   // Start last, since most watchers need its event
+        this.startTimedPermissionWatcher();
 
         System.out.println("[NodeWatcher] Started successfully.");
     }
@@ -216,6 +226,9 @@ public class NodeWatcher {
         }
         if (containerWatcher != null) {
             containerWatcher.close();
+        }
+        if (this.timedPermissionWatcher != null) {
+            this.timedPermissionWatcher.interrupt();
         }
 
         dockerClient.close();

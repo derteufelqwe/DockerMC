@@ -6,6 +6,8 @@ import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
 import de.derteufelqwe.commons.hibernate.objects.permissions.PermissionBase;
 import de.derteufelqwe.commons.hibernate.objects.permissions.PlayerToPermissionGroup;
 import de.derteufelqwe.commons.hibernate.objects.permissions.ServicePermission;
+import de.derteufelqwe.commons.hibernate.objects.permissions.TimedPermission;
+import de.derteufelqwe.commons.misc.TimeoutPermissionStore;
 import org.hibernate.Session;
 
 import java.util.*;
@@ -30,9 +32,11 @@ public class PlayerPermissionStore {
     // Data: <PlayerId, <GroupId> >
     private Map<UUID, Set<Long>> groups = new HashMap<>();
 
+    private TimeoutPermissionStore<UUID> timedPermissions = new TimeoutPermissionStore<>(60000);
+
 
     public PlayerPermissionStore() {
-
+        this.timedPermissions.start();
     }
 
 
@@ -80,6 +84,13 @@ public class PlayerPermissionStore {
                 }
             }
 
+            // Timed permissions
+            if (player.getTimedPermissions() != null) {
+                for (TimedPermission perm : player.getTimedPermissions()) {
+                    this.timedPermissions.add(player.getUuid(), perm.getPermissionText(), perm.getTimeout());
+                }
+            }
+
         }
     }
 
@@ -90,6 +101,7 @@ public class PlayerPermissionStore {
         this.groups.remove(playerId);
         this.normalPermissions.remove(playerId);
         this.servicePermissions.remove(playerId);
+        this.timedPermissions.remove(playerId);
     }
 
     /**
@@ -97,6 +109,8 @@ public class PlayerPermissionStore {
      */
     public boolean hasPermission(UUID playerId, String permission) {
         if (this.normalPermissions.get(playerId).contains(permission))
+            return true;
+        else if (this.timedPermissions.contains(playerId, permission))
             return true;
 
         for (Long groupId : this.groups.get(playerId)) {

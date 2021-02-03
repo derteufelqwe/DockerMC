@@ -1,4 +1,4 @@
-package de.derteufelqwe.bungeeplugin.commands;
+package de.derteufelqwe.bungeeplugin.commands.misc;
 
 import com.orbitz.consul.CatalogClient;
 import com.orbitz.consul.model.ConsulResponse;
