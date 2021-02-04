@@ -17,6 +17,10 @@
 
     <description>Essentials for DockerMC</description>
 
+    <properties>
+        <outputDir>target</outputDir>
+    </properties>
+
     <build>
         <defaultGoal>clean package</defaultGoal>
         <plugins>
@@ -27,24 +31,28 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                    <compilerArgs>
+<!--                    Required for the ACF-->
+                        <arg>-parameters</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
 
 <!--            Display active profile in compile phase-->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-help-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <id>show-profiles</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>active-profiles</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-help-plugin</artifactId>-->
+<!--                <version>3.1.0</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>show-profiles</id>-->
+<!--                        <phase>compile</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>active-profiles</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
 
 <!--            Specify the output directory-->
             <plugin>
@@ -52,8 +60,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>2.3.1</version>
                 <configuration>
-<!--                    <outputDirectory>target</outputDirectory>-->
-                    <outputDirectory>C:/Users/Arne/Desktop/ServerManager/Minecraft</outputDirectory>
+                    <outputDirectory>${outputDir}</outputDirectory>
                 </configuration>
             </plugin>
 
@@ -78,6 +85,14 @@
                                         <include>com.google.common.**</include>
                                     </includes>
                                 </relocation>
+<!--                                    <relocation>-->
+<!--                                        <pattern>co.aikar.commands</pattern>-->
+<!--                                        <shadedPattern>de.derteufelqwe.bungeeplugin.acf</shadedPattern>-->
+<!--                                    </relocation>-->
+<!--                                    <relocation>-->
+<!--                                        <pattern>co.aikar.locales</pattern>-->
+<!--                                        <shadedPattern>de.derteufelqwe.bungeeplugin.locales</shadedPattern>-->
+<!--                                    </relocation>-->
                             </relocations>
                         </configuration>
                     </execution>
@@ -101,6 +116,10 @@
         <repository>
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/groups/public/</url>
+        </repository>
+        <repository>
+            <id>aikar</id>
+            <url>https://repo.aikar.co/content/groups/aikar/</url>
         </repository>
     </repositories>
 
@@ -129,6 +148,12 @@
             <groupId>de.derteufelqwe.SpigotHotswapPlugin</groupId>
             <artifactId>spigothotswap</artifactId>
             <version>1.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>co.aikar</groupId>
+            <artifactId>acf-paper</artifactId>
+            <version>0.5.0-SNAPSHOT</version>
         </dependency>
 
     </dependencies>

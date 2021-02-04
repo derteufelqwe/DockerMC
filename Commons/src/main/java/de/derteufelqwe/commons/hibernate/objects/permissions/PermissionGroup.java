@@ -1,5 +1,6 @@
 package de.derteufelqwe.commons.hibernate.objects.permissions;
 
+import com.sun.istack.NotNull;
 import de.derteufelqwe.commons.misc.Pair;
 import lombok.*;
 import org.hibernate.annotations.Type;
@@ -48,6 +49,14 @@ public class PermissionGroup {
         this.name = name;
     }
 
+    // -----  Custom getters  -----
+
+    @NotNull
+    public String getPrefix() {
+        return this.prefix != null ? this.prefix : "";
+    }
+
+    // -----  Other methods  -----
 
     /**
      * Returns the permissions including the permissions of the parents

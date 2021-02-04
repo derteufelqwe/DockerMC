@@ -30,4 +30,9 @@ public class ServicePermission extends PermissionBase {
     @ManyToOne
     private DBService service;
 
+
+    public ServicePermission(String permission) {
+        super(permission);
+    }
+
 }

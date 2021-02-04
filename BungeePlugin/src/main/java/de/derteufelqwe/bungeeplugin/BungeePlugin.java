@@ -10,6 +10,7 @@ import com.orbitz.google.common.net.HostAndPort;
 import de.derteufelqwe.bungeeplugin.api.BungeeAPI;
 import de.derteufelqwe.bungeeplugin.commands.misc.*;
 import de.derteufelqwe.bungeeplugin.commands.permission.PermissionCommand;
+import de.derteufelqwe.bungeeplugin.commands.permission.PermissionGroupCommand;
 import de.derteufelqwe.bungeeplugin.consul.KVCacheListener;
 import de.derteufelqwe.bungeeplugin.consul.ServerRegistrator;
 import de.derteufelqwe.bungeeplugin.consul.ServiceCatalogListener;
@@ -113,6 +114,7 @@ public final class BungeePlugin extends Plugin {
         getProxy().getPluginManager().registerCommand(this, new UnbanCommand());
         getProxy().getPluginManager().registerCommand(this, new PlayerStatsCommand());
         commandManager.registerCommand(new PermissionCommand());
+        commandManager.registerCommand(new PermissionGroupCommand());
 
         // ---  Consul  ---
         this.healthCheck.start();

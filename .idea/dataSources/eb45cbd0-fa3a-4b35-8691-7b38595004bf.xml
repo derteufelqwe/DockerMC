@@ -1821,16 +1821,19 @@ UC/10
     </table>
     <table id="67" parent="17" name="notifications">
       <ObjectId>43565</ObjectId>
+      <Outdated>1</Outdated>
       <Owner>admin</Owner>
       <StateNumber>576842</StateNumber>
     </table>
     <table id="68" parent="17" name="permission_groups">
       <ObjectId>43576</ObjectId>
+      <Outdated>1</Outdated>
       <Owner>admin</Owner>
       <StateNumber>576842</StateNumber>
     </table>
     <table id="69" parent="17" name="permissions">
       <ObjectId>43668</ObjectId>
+      <Outdated>1</Outdated>
       <Owner>admin</Owner>
       <StateNumber>576842</StateNumber>
     </table>
@@ -1856,6 +1859,7 @@ UC/10
     </table>
     <table id="74" parent="17" name="players_permission_groups">
       <ObjectId>43625</ObjectId>
+      <Outdated>1</Outdated>
       <Owner>admin</Owner>
       <StateNumber>576842</StateNumber>
     </table>

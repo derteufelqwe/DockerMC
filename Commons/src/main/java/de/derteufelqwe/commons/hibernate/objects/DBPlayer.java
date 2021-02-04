@@ -1,5 +1,6 @@
 package de.derteufelqwe.commons.hibernate.objects;
 
+import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.hibernate.objects.permissions.*;
 import lombok.*;
 import org.hibernate.annotations.Type;
@@ -175,6 +176,75 @@ public class DBPlayer {
         }
 
         return false;
+    }
+
+    /**
+     * Checks if the player has a certain service permission
+     */
+    public boolean hasServicePermission(String permission, DBService service) {
+        for (ServicePermission perm : this.servicePermissions) {
+            if (perm.getPermissionText().equals(permission) && perm.getService().getId().equals(service.getId()))
+                return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if the player has a certain timed permission.
+     * The timeout is irrelevant
+     */
+    public boolean hasTimedPermission(String permission) {
+        for (TimedPermission perm : this.timedPermissions) {
+            if (perm.getPermissionText().equals(permission)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Finds a normal permission if available
+     */
+    @CheckForNull
+    public Permission findPermission(String permission) {
+        for (Permission perm : this.permissions) {
+            if (perm.getPermissionText().equals(permission)) {
+                return perm;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Finds a service permission if available
+     */
+    @CheckForNull
+    public ServicePermission findServicePermission(DBService service, String permission) {
+        for (ServicePermission perm : this.servicePermissions) {
+            if (perm.getPermissionText().equals(permission) && perm.getService().getId().equals(service.getId())) {
+                return perm;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Finds a timed permission if available
+     */
+    @CheckForNull
+    public TimedPermission findTimedPermission(String permission) {
+        for (TimedPermission perm : this.timedPermissions) {
+            if (perm.getPermissionText().equals(permission)) {
+                return perm;
+            }
+        }
+
+        return null;
     }
 
 }

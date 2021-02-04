@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.Timestamp;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.ZoneOffset;
@@ -90,6 +91,15 @@ public class Utils {
             return String.format("%d:%02d:%02d", hours, minutes, seconds);
         else
             return String.format("%d days %d:%02d:%02d", days, hours, minutes, seconds);
+    }
+
+    /**
+     * Parses timestamps like "1.12.21-23:10"
+     */
+    public static Timestamp parseTimestamp(String timestamp) throws ParseException {
+        SimpleDateFormat format = new SimpleDateFormat("dd.MM.yy-HH:mm");
+
+        return new Timestamp(format.parse(timestamp).getTime());
     }
 
 }

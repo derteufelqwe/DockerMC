@@ -27,4 +27,10 @@ public class TimedPermission extends PermissionBase {
 
     private Timestamp timeout;
 
+
+    public TimedPermission(String permission, Timestamp timeout) {
+        super(permission);
+        this.timeout = timeout;
+    }
+
 }
