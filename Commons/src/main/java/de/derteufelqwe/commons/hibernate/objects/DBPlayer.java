@@ -1,6 +1,8 @@
 package de.derteufelqwe.commons.hibernate.objects;
 
 import de.derteufelqwe.commons.CommonsAPI;
+import de.derteufelqwe.commons.hibernate.objects.economy.Bank;
+import de.derteufelqwe.commons.hibernate.objects.economy.PlayerToBank;
 import de.derteufelqwe.commons.hibernate.objects.permissions.*;
 import lombok.*;
 import org.hibernate.annotations.Type;
@@ -13,6 +15,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -92,6 +95,16 @@ public class DBPlayer {
 
     @OneToMany(mappedBy = "unbannedBy", cascade = CascadeType.ALL)
     private List<PlayerBan> liftedIpBans;
+
+    // -----  Economy  -----
+
+    private double moneyBalance = 0;
+
+    @OneToMany(mappedBy = "owner")
+    private List<Bank> ownedBanks = new ArrayList<>();
+
+    @OneToMany(mappedBy = "player")
+    private List<PlayerToBank> banks = new ArrayList<>();
 
 
     public DBPlayer(UUID uuid, String name) {

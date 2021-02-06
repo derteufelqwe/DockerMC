@@ -9,6 +9,7 @@ import lombok.SneakyThrows;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import javax.persistence.EntityManager;
 import java.util.concurrent.TimeUnit;
 
 public class SessionTests {
@@ -20,34 +21,16 @@ public class SessionTests {
 
         long start = System.nanoTime();
 
-        TimeoutMap<String, String> map = new TimeoutMap<>(1000);
-        map.start();
 
-        map.put("a", "1", 20000);
-        map.put("b", "2", 200);
-
-        System.out.println(map.get("a"));
-        System.out.println(map.get("b"));
-
-        TimeUnit.SECONDS.sleep(2);
-
-        System.out.println(map.get("a"));
-        System.out.println(map.get("b"));
-
-//        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 10000; i++) {
 //            try (Session session = sessionBuilder.openSession()) {
-//                Transaction tx = session.beginTransaction();
-//
-//                DBService service = session.get(DBService.class, "nyhfm6fzpi6qgpka0lam26fjb");
-//                DBService service2 = CommonsAPI.getInstance().getActiveServiceFromDB(session, "LobbyServer");
-//
-//                tx.commit();
+////                DBService service = session.get(DBService.class, "nyhfm6fzpi6qgpka0lam26fjb");
+//                session.createNativeQuery("select * from services as s where s.name = 'LobbyServer'", DBService.class).getSingleResult();
 //            }
-//        }
+        }
 
         long end = System.nanoTime();
 
-        map.interrupt();
 
         System.out.println("Duration: " + (end - start) / 1000000);
     }

@@ -1,5 +1,6 @@
 package minecraftplugin.minecraftplugin;
 
+import co.aikar.commands.PaperCommandManager;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.google.common.net.HostAndPort;
@@ -11,40 +12,47 @@ import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
 import de.derteufelqwe.commons.config.providers.MinecraftGsonProvider;
+import de.derteufelqwe.commons.hibernate.SessionBuilder;
+import lombok.Getter;
+import minecraftplugin.minecraftplugin.commands.economy.*;
 import minecraftplugin.minecraftplugin.config.SignConfig;
 import minecraftplugin.minecraftplugin.dockermc.DockerMCCommands;
 import minecraftplugin.minecraftplugin.dockermc.DockerMCTabComplete;
+import minecraftplugin.minecraftplugin.economy.DMCEconomy;
+import minecraftplugin.minecraftplugin.economy.DMCEconomyImpl;
+import minecraftplugin.minecraftplugin.eventhandlers.MiscEventHandler;
 import minecraftplugin.minecraftplugin.health.HealthCheck;
 import minecraftplugin.minecraftplugin.teleportsigns.TeleportSignCommand;
 import minecraftplugin.minecraftplugin.teleportsigns.TeleportSignEvents;
 import minecraftplugin.minecraftplugin.teleportsigns.TeleportSignTabComplete;
-import minecraftplugin.minecraftplugin.teleportsigns.TeleportSignWatcher;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permission;
-import org.bukkit.plugin.PluginBase;
+import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
-import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Field;
-import java.util.concurrent.TimeUnit;
 
 public final class MinecraftPlugin extends JavaPlugin {
 
-    public static MinecraftPlugin INSTANCE;
+    @Getter public static MinecraftPlugin INSTANCE;
     public static Config CONFIG = new Config(new DefaultYamlConverter(), new MinecraftGsonProvider());
+    @Getter private static SessionBuilder sessionBuilder = new SessionBuilder("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT);
 
     private Consul consul = Consul.builder().withHostAndPort(HostAndPort.fromParts(Constants.CONSUL_HOST, Constants.CONSUL_PORT)).build();
     private AgentClient agentClient = consul.agentClient();
     private KeyValueClient kvClient = consul.keyValueClient();
     private CatalogClient catalogClient = consul.catalogClient();
+    private PaperCommandManager commandManager;
 
-    private ContainerMetaData metaData = new ContainerMetaData();
+    @Getter private static ContainerMetaData metaData = new ContainerMetaData();
     private HealthCheck healthCheck = new HealthCheck();
-    private TeleportSignWatcher teleportSignWatcher;
+//    private TeleportSignWatcher teleportSignWatcher;
+
+    @Getter private static DMCEconomy economy = new DMCEconomyImpl();
 
 
     @Override
@@ -54,6 +62,10 @@ public final class MinecraftPlugin extends JavaPlugin {
         CONFIG.registerConfig(SignConfig.class, "plugins/MinecraftPlugin", "SignConfig.yml");
         CONFIG.loadAll();
         CONFIG.get(SignConfig.class).setup();
+        commandManager = new PaperCommandManager(this);
+
+        // Register economy
+        getServer().getServicesManager().register(Economy.class, economy, this, ServicePriority.Normal);
 
         // -----  Listeners / Watchers  -----
 //        this.teleportSignWatcher = new TeleportSignWatcher(this.catalogClient, this.kvClient);
@@ -68,8 +80,14 @@ public final class MinecraftPlugin extends JavaPlugin {
         getServer().getPluginCommand("dockermc").setTabCompleter(new DockerMCTabComplete());
         getServer().getPluginCommand("teleportsign").setExecutor(new TeleportSignCommand(CONFIG.get(SignConfig.class)));
         getServer().getPluginCommand("teleportsign").setTabCompleter(new TeleportSignTabComplete());
+        commandManager.registerCommand(new MainBalance());
+        commandManager.registerCommand(new MainPay());
+        commandManager.registerCommand(new ServiceBalance());
+        commandManager.registerCommand(new ServicePay());
+        commandManager.registerCommand(new BankCmd());
 
         // -----  Events  -----
+        getServer().getPluginManager().registerEvents(new MiscEventHandler(), this);
         getServer().getPluginManager().registerEvents(new TeleportSignEvents(), this);
 
         // -----  Docker registration  -----
@@ -103,6 +121,7 @@ public final class MinecraftPlugin extends JavaPlugin {
 
         healthCheck.stop();
     }
+
 
     /**
      * Called before the actual onDisable method

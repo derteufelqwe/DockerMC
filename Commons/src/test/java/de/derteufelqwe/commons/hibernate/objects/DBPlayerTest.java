@@ -5,10 +5,12 @@ import de.derteufelqwe.commons.hibernate.objects.permissions.Permission;
 import de.derteufelqwe.commons.hibernate.objects.permissions.PermissionGroup;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.jpa.boot.spi.EntityManagerFactoryBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import javax.persistence.EntityManagerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +31,7 @@ class DBPlayerTest {
 
     @BeforeAll
     public void setup() {
-        this.sessionBuilder = new TestSessionBuilder("admin", "password", "ubuntu1", 5432);
+        this.sessionBuilder = new TestSessionBuilder();
 
         this.createPlayers();
         this.createPermissions();

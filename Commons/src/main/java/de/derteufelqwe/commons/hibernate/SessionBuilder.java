@@ -1,6 +1,7 @@
 package de.derteufelqwe.commons.hibernate;
 
 import de.derteufelqwe.commons.hibernate.objects.*;
+import de.derteufelqwe.commons.hibernate.objects.economy.*;
 import de.derteufelqwe.commons.hibernate.objects.permissions.*;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -11,32 +12,24 @@ import java.util.Properties;
 
 public class SessionBuilder {
 
+    private String user;
+    private String password;
+    private String host;
+    private int port;
+
     private SessionFactory sessionFactory;
 
 
     public SessionBuilder(String user, String password, String host, int port) {
-        this.sessionFactory = new Configuration()
-            .setProperties(this.getProperties(user, password, host, port))
-            .addAnnotatedClass(DBContainer.class)
-            .addAnnotatedClass(Node.class)
-            .addAnnotatedClass(ContainerStats.class)
-            .addAnnotatedClass(NodeStats.class)
-            .addAnnotatedClass(DBService.class)
-            .addAnnotatedClass(DBPlayer.class)
-            .addAnnotatedClass(PlayerOnlineDurations.class)
-            .addAnnotatedClass(PlayerBan.class)
-            .addAnnotatedClass(PlayerLogin.class)
-            .addAnnotatedClass(IPBan.class)
-            .addAnnotatedClass(PermissionGroup.class)
-            .addAnnotatedClass(PlayerToPermissionGroup.class)
-            .addAnnotatedClass(Permission.class)
-            .addAnnotatedClass(TimedPermission.class)
-            .addAnnotatedClass(ServicePermission.class)
-            .addAnnotatedClass(Notification.class)
-            .buildSessionFactory();
+        this.user = user;
+        this.password = password;
+        this.host = host;
+        this.port = port;
+
+        this.sessionFactory = this.buildSessionFactory();
     }
     
-    protected Properties getProperties(String user, String password, String host, int port) {
+    protected Properties getProperties() {
         Properties properties = new Properties();
 
         properties.setProperty(Environment.DRIVER, "org.postgresql.Driver");
@@ -51,6 +44,33 @@ public class SessionBuilder {
         properties.setProperty(Environment.POOL_SIZE, "64");
 
         return properties;
+    }
+
+    protected SessionFactory buildSessionFactory() {
+        return new Configuration()
+                .setProperties(this.getProperties())
+                .addAnnotatedClass(DBContainer.class)
+                .addAnnotatedClass(Node.class)
+                .addAnnotatedClass(ContainerStats.class)
+                .addAnnotatedClass(NodeStats.class)
+                .addAnnotatedClass(DBService.class)
+                .addAnnotatedClass(DBPlayer.class)
+                .addAnnotatedClass(PlayerOnlineDurations.class)
+                .addAnnotatedClass(PlayerBan.class)
+                .addAnnotatedClass(PlayerLogin.class)
+                .addAnnotatedClass(IPBan.class)
+                .addAnnotatedClass(PermissionGroup.class)
+                .addAnnotatedClass(PlayerToPermissionGroup.class)
+                .addAnnotatedClass(Permission.class)
+                .addAnnotatedClass(TimedPermission.class)
+                .addAnnotatedClass(ServicePermission.class)
+                .addAnnotatedClass(Notification.class)
+                .addAnnotatedClass(ServiceBalance.class)
+                .addAnnotatedClass(PlayerTransaction.class)
+                .addAnnotatedClass(ServiceTransaction.class)
+                .addAnnotatedClass(Bank.class)
+                .addAnnotatedClass(PlayerToBank.class)
+                .buildSessionFactory();
     }
 
     public Session openSession() {

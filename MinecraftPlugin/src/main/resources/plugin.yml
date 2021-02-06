@@ -4,6 +4,9 @@ main: minecraftplugin.minecraftplugin.MinecraftPlugin
 authors: [derteufelqwe]
 description: Essentials for DockerMC
 
+depend:
+    - Vault
+
 commands:
     dockermc:
         description: Utility commands for DockerMC

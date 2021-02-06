@@ -7,6 +7,7 @@ import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
 import de.derteufelqwe.commons.hibernate.objects.DBService;
 import de.derteufelqwe.commons.hibernate.objects.Notification;
+import de.derteufelqwe.commons.hibernate.objects.economy.ServiceBalance;
 import de.derteufelqwe.commons.hibernate.objects.permissions.PermissionGroup;
 import de.derteufelqwe.commons.hibernate.objects.permissions.PlayerToPermissionGroup;
 import de.derteufelqwe.commons.hibernate.objects.permissions.ServicePermission;
@@ -26,6 +27,7 @@ import javax.persistence.criteria.Root;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Commons api
@@ -74,8 +76,8 @@ public class CommonsAPI {
     }
 
     @CheckForNull
-    public DBPlayer getPlayerFromDB(Session session, long id) {
-        return session.get(DBPlayer.class, id);
+    public DBPlayer getPlayerFromDB(Session session, UUID uuid) {
+        return session.get(DBPlayer.class, uuid);
     }
 
     // -----  Services  -----
@@ -210,13 +212,29 @@ public class CommonsAPI {
         if (group == null)
             return -1;
 
-        String SQL = "SELECT COUNT(*) FROM players_permission_groups WHERE permissiongroup_id = :group_id ;";
+        String SQL = "SELECT COUNT(*) FROM players_permission_groups WHERE permissiongroup_id = :group_id";
         NativeQuery query = session.createSQLQuery(SQL)
                 .setParameter("group_id", group.getId());
 
         Object res = query.getSingleResult();
 
         return ((BigInteger) res).longValue();
+    }
+
+
+    // -----  Money  -----
+
+    @CheckForNull
+    public ServiceBalance getPlayerBalanceOnService(Session session, DBPlayer dbPlayer, DBService dbService) {
+        try {
+            return session.createNativeQuery("SELECT * FROM service_balance WHERE player_uuid = :pid and service_id = :sid", ServiceBalance.class)
+                    .setParameter("pid", dbPlayer.getUuid())
+                    .setParameter("sid", dbService.getId())
+                    .getSingleResult();
+
+        } catch (NoResultException e) {
+            return null;
+        }
     }
 
 

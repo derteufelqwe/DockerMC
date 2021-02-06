@@ -7,7 +7,9 @@ import de.derteufelqwe.bungeeplugin.permissions.PlayerPermissionStore;
 import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBService;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PermissionCheckEvent;
 import net.md_5.bungee.api.plugin.Listener;
@@ -51,6 +53,7 @@ public class PermissionEvent implements Listener {
 
         } catch (Exception e) {
             event.setHasPermission(false);
+            event.getSender().sendMessage(new TextComponent(ChatColor.RED + "Exception occurred while checking the permission."));
             throw e;
         }
 

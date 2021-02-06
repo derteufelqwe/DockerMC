@@ -3,17 +3,18 @@ package de.derteufelqwe.commons.hibernate.objects;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import org.hibernate.cfg.Environment;
 
+import javax.persistence.EntityManager;
 import java.util.Properties;
 
 public class TestSessionBuilder extends SessionBuilder {
 
-    public TestSessionBuilder(String user, String password, String host, int port) {
-        super(user, password, host, port);
+    public TestSessionBuilder() {
+        super("", "", "", -1);
     }
 
     @Override
-    protected Properties getProperties(String user, String password, String host, int port) {
-        Properties properties = super.getProperties(user, password, host, port);
+    protected Properties getProperties() {
+        Properties properties = super.getProperties();
 
         properties.setProperty(Environment.URL, "jdbc:h2:mem:test1");
         properties.setProperty(Environment.DRIVER, "org.h2.Driver");
@@ -23,4 +24,9 @@ public class TestSessionBuilder extends SessionBuilder {
 
         return properties;
     }
+
+    public Properties getProp() {
+        return this.getProperties();
+    }
+
 }
