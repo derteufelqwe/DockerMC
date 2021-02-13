@@ -24,3 +24,6 @@ Server/server/images/*
 Server/server/internal/security/api-certs/*
 Server/server/internal/security/registry-certs/*
 Server/server/internal/workdirs/dns/*
+
+# Tools
+Tools

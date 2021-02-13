@@ -1,5 +1,7 @@
 package minecraftplugin.minecraftplugin;
 
+import de.derteufelqwe.commons.misc.Pair;
+
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -34,6 +36,30 @@ public class Utils {
         }
 
         return resMap;
+    }
+
+    /**
+     * Returns the list slice indices when displaying long lists on multiple pages in minecraft.
+     * @param pageNumber Page number
+     * @param itemsPerPage Amount of items per page
+     * @param maxLength Length of the available objects to display
+     * @return
+     */
+    public static Pair<Integer, Integer> getPageSlices(int pageNumber, int itemsPerPage, int maxLength) {
+        int start = 0;
+        int end = itemsPerPage;
+
+        if (pageNumber > 1) {
+            start = (pageNumber - 1) * itemsPerPage;
+            end = pageNumber * itemsPerPage;
+        }
+
+        if (end >= maxLength) {
+            end = maxLength;
+            start = end / itemsPerPage;
+        }
+
+        return new Pair<>(start, end);
     }
 
 }

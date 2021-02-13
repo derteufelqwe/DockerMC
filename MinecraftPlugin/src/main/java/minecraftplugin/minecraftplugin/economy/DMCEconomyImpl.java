@@ -14,10 +14,13 @@ import org.bukkit.OfflinePlayer;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import javax.annotation.CheckForNull;
 import javax.persistence.PersistenceException;
 import javax.persistence.criteria.CriteriaBuilder;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DMCEconomyImpl implements DMCEconomy {
 
@@ -488,7 +491,7 @@ public class DMCEconomyImpl implements DMCEconomy {
             return new EconomyResponse(0, 0, EconomyResponse.ResponseType.SUCCESS, "Is owner.");
 
         } else {
-            return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Not owner.");
+            return new EconomyResponse(1, 0, EconomyResponse.ResponseType.FAILURE, "Not owner.");
         }
     }
 
@@ -516,12 +519,12 @@ public class DMCEconomyImpl implements DMCEconomy {
 
 
     private EconomyResponse isBankMember(Session session, DBPlayer dbPlayer, String bankName) {
-        long count = session.createNativeQuery("SELECT COUNT(*) FROM player_banks as pb WHERE pb.player_uuid = :pid and pb.bank_name = :bn", Long.class)
+        BigInteger count = (BigInteger) session.createNativeQuery("SELECT COUNT(*) FROM player_banks as pb WHERE pb.player_uuid = :pid and pb.bank_name = :bn")
                 .setParameter("pid", dbPlayer.getUuid())
                 .setParameter("bn", bankName)
                 .getSingleResult();
 
-        if (count == 1) {
+        if (count.equals(BigInteger.valueOf(1))) {
             return new EconomyResponse(0, 0, EconomyResponse.ResponseType.SUCCESS, "Success.");
 
         } else {
@@ -536,7 +539,7 @@ public class DMCEconomyImpl implements DMCEconomy {
             if (dbPlayer == null)
                 return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Player not found");
 
-            return isBankOwner(session, dbPlayer, name);
+            return isBankMember(session, dbPlayer, name);
         }
     }
 
@@ -547,7 +550,7 @@ public class DMCEconomyImpl implements DMCEconomy {
             if (dbPlayer == null)
                 return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Player not found");
 
-            return isBankOwner(session, dbPlayer, name);
+            return isBankMember(session, dbPlayer, name);
         }
     }
 
@@ -610,5 +613,107 @@ public class DMCEconomyImpl implements DMCEconomy {
         }
     }
 
+    // --- Own methods ---
 
+
+    @Override
+    public EconomyResponse changeBankOwner(String bankName, String newOwnerName) {
+        try (Session session = sessionBuilder.openSession()) {
+            Bank bank = session.get(Bank.class, bankName);
+            if (bank == null)
+                return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Bank not found.");
+
+            DBPlayer newOwner = CommonsAPI.getInstance().getPlayerFromDB(session, newOwnerName);
+            if (newOwner == null)
+                return new EconomyResponse(1, 0, EconomyResponse.ResponseType.FAILURE, "Player not found.");
+
+            Transaction tx = session.beginTransaction();
+            bank.setOwner(newOwner);
+            session.update(bank);
+            tx.commit();
+
+            return new EconomyResponse(0, 0, EconomyResponse.ResponseType.SUCCESS, "Success.");
+        }
+    }
+
+    @Override
+    public EconomyResponse addBankMember(String bankName, String playerName) {
+        try (Session session = sessionBuilder.openSession()) {
+            Bank bank = session.get(Bank.class, bankName);
+            if (bank == null)
+                return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Bank not found.");
+
+            DBPlayer player = CommonsAPI.getInstance().getPlayerFromDB(session, playerName);
+            if (player == null)
+                return new EconomyResponse(1, 0, EconomyResponse.ResponseType.FAILURE, "Player not found.");
+
+            if (bank.getOwner().getUuid().equals(player.getUuid()))
+                return new EconomyResponse(2, 0, EconomyResponse.ResponseType.FAILURE, "Player is the owner.");
+
+            if (bank.hasMember(player))
+                return new EconomyResponse(3, 0, EconomyResponse.ResponseType.FAILURE, "Player already a member.");
+
+            Transaction tx = session.beginTransaction();
+            PlayerToBank ptb = new PlayerToBank(player, bank);
+            bank.getMembers().add(ptb);
+            session.persist(ptb);
+            session.update(bank);
+            tx.commit();
+
+            return new EconomyResponse(0, 0, EconomyResponse.ResponseType.SUCCESS, "Success.");
+        }
+    }
+
+    @Override
+    public EconomyResponse removeBankMember(String bankName, String playerName) {
+        try (Session session = sessionBuilder.openSession()) {
+            Bank bank = session.get(Bank.class, bankName);
+            if (bank == null)
+                return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Bank not found.");
+
+            DBPlayer player = CommonsAPI.getInstance().getPlayerFromDB(session, playerName);
+            if (player == null)
+                return new EconomyResponse(1, 0, EconomyResponse.ResponseType.FAILURE, "Player not found.");
+
+            if (!bank.hasMember(player))
+                return new EconomyResponse(2, 0, EconomyResponse.ResponseType.FAILURE, "Player is no member.");
+
+            Transaction tx = session.beginTransaction();
+            for (PlayerToBank member : bank.getMembers()) {
+                if (member.getPlayer().getUuid().equals(player.getUuid())) {
+                    session.delete(member);
+                }
+            }
+            session.persist(bank);
+            tx.commit();
+
+            return new EconomyResponse(0, 0, EconomyResponse.ResponseType.SUCCESS, "Success.");
+        }
+    }
+
+    @CheckForNull
+    @Override
+    public String getBankOwner(String bankName) {
+        try (Session session = sessionBuilder.openSession()) {
+            Bank bank = session.get(Bank.class, bankName);
+            if (bank == null)
+                return null;
+
+            return bank.getOwner().getName();
+        }
+    }
+
+    @CheckForNull
+    @Override
+    public List<String> getBankMembers(String bankName) {
+        try (Session session = sessionBuilder.openSession()) {
+            Bank bank = session.get(Bank.class, bankName);
+            if (bank == null)
+                return null;
+
+            return bank.getMembers().stream()
+                    .map(p -> p.getPlayer().getName())
+                    .collect(Collectors.toList());
+        }
+    }
 }

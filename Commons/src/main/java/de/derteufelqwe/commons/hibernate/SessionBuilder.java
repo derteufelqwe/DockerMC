@@ -70,6 +70,7 @@ public class SessionBuilder {
                 .addAnnotatedClass(ServiceTransaction.class)
                 .addAnnotatedClass(Bank.class)
                 .addAnnotatedClass(PlayerToBank.class)
+                .addAnnotatedClass(BankTransaction.class)
                 .buildSessionFactory();
     }
 

@@ -41,7 +41,7 @@ public class ServiceBalance extends BaseCommand {
             return;
         }
 
-        send(player, "Your balance on %s: %s%s%s$", serviceName, ChatColor.GOLD, balance, ChatColor.GRAY);
+        send(player, "Your balance on %s%s%s: %s%s%s$", ChatColor.GREEN, serviceName, ChatColor.RESET, ChatColor.GOLD, balance, ChatColor.GRAY);
     }
 
 
