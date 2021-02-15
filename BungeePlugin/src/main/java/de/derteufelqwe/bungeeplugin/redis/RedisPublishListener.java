@@ -7,16 +7,9 @@ import de.derteufelqwe.bungeeplugin.events.BungeePlayerServerChangeEvent;
 import de.derteufelqwe.bungeeplugin.events.BungeeRequestPlayerServerSendEvent;
 import de.derteufelqwe.bungeeplugin.redis.messages.*;
 import de.derteufelqwe.bungeeplugin.runnables.DefaultCallback;
-import de.derteufelqwe.bungeeplugin.utils.Utils;
 import de.derteufelqwe.commons.exceptions.NotFoundException;
 import net.md_5.bungee.api.Callback;
-import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.event.ServerConnectEvent;
-import org.checkerframework.checker.units.qual.C;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPubSub;
@@ -29,7 +22,7 @@ import java.util.UUID;
  */
 public class RedisPublishListener extends JedisPubSub implements Runnable {
 
-    private JedisPool jedisPool = BungeePlugin.getRedisHandler().getJedisPool();
+    private JedisPool jedisPool = BungeePlugin.getRedisPool().getJedisPool();
     private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
 
 

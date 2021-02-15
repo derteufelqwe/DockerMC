@@ -12,7 +12,7 @@ import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 
-@CommandAlias("mainbalance|mbal")
+@CommandAlias("balance|bal")
 public class MainBalance extends BaseCommand {
 
     private final String PREFIX = ChatColor.GOLD + "[DMCBal] " + ChatColor.RESET;

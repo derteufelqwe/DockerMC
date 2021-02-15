@@ -6,6 +6,9 @@ import lombok.*;
 
 import javax.persistence.*;
 
+/**
+ * Stores the players balance on a certain service. The money differs across different services
+ */
 @Getter
 @Setter
 @ToString

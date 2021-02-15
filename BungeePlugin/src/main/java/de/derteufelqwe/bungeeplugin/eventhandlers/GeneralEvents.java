@@ -14,7 +14,7 @@ import redis.clients.jedis.JedisPool;
  */
 public class GeneralEvents implements Listener {
 
-    private JedisPool jedisPool = BungeePlugin.getRedisHandler().getJedisPool();
+    private JedisPool jedisPool = BungeePlugin.getRedisPool().getJedisPool();
 
 
     /**

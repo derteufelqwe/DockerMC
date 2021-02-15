@@ -6,6 +6,9 @@ import lombok.*;
 
 import javax.persistence.*;
 
+/**
+ * Many-To-Many table to connect players and banks
+ */
 @Getter
 @Setter
 @ToString

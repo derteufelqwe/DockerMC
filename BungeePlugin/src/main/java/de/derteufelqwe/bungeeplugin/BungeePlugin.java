@@ -1,7 +1,6 @@
 package de.derteufelqwe.bungeeplugin;
 
 import co.aikar.commands.BungeeCommandManager;
-import co.aikar.commands.CommandManager;
 import com.orbitz.consul.*;
 import com.orbitz.consul.model.agent.ImmutableRegCheck;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
@@ -17,7 +16,7 @@ import de.derteufelqwe.bungeeplugin.consul.ServiceCatalogListener;
 import de.derteufelqwe.bungeeplugin.eventhandlers.*;
 import de.derteufelqwe.bungeeplugin.health.HealthCheck;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
-import de.derteufelqwe.bungeeplugin.redis.RedisHandler;
+import de.derteufelqwe.commons.redis.RedisPool;
 import de.derteufelqwe.bungeeplugin.redis.RedisPublishListener;
 import de.derteufelqwe.bungeeplugin.utils.DBCache;
 import de.derteufelqwe.bungeeplugin.utils.MetaData;
@@ -49,7 +48,7 @@ public final class BungeePlugin extends Plugin {
     // --- Infrastructure ---
     private final HealthCheck healthCheck = new HealthCheck();
     @Getter
-    public static RedisHandler redisHandler;
+    public static RedisPool redisPool;
     @Getter
     public static SessionBuilder sessionBuilder = new SessionBuilder("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT);
 
@@ -77,7 +76,7 @@ public final class BungeePlugin extends Plugin {
 
 
         // --- Redis stuff ---
-        BungeePlugin.redisHandler = new RedisHandler("redis");
+        BungeePlugin.redisPool = new RedisPool("redis");
         BungeePlugin.redisDataManager = new RedisDataManager();
         BungeePlugin.redisDataManager.init();
         this.connectionEvents = new ConnectionEvents();
@@ -139,7 +138,7 @@ public final class BungeePlugin extends Plugin {
         this.kvCacheListener.stop();
         this.serviceCatalogListener.stop();
         this.consul.destroy();
-        BungeePlugin.redisHandler.destroy();
+        BungeePlugin.redisPool.destroy();
 
         for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
             player.disconnect(new TextComponent(ChatColor.RED + "BungeeCord Proxy shutting down!"));

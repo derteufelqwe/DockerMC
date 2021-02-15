@@ -1,4 +1,4 @@
-package de.derteufelqwe.bungeeplugin.redis;
+package de.derteufelqwe.commons.redis;
 
 import lombok.Getter;
 import redis.clients.jedis.JedisPool;
@@ -13,18 +13,17 @@ import redis.clients.jedis.JedisPoolConfig;
  *  - Bungee player count: bungee#playerCount#[serverName]
  *  - Minecraft player count: minecraft#playerCount#[serverName]
  */
-
-public class RedisHandler {
+public class RedisPool {
 
     @Getter
     private JedisPool jedisPool;
 
 
-    public RedisHandler(String host, int port) {
+    public RedisPool(String host, int port) {
         this.jedisPool = new JedisPool(this.getJedisPoolConfig(), host, port);
     }
 
-    public RedisHandler(String host) {
+    public RedisPool(String host) {
         this(host, 6379);
     }
 

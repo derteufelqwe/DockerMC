@@ -26,7 +26,6 @@ import net.md_5.bungee.api.event.ServerConnectedEvent;
 import net.md_5.bungee.api.event.ServerDisconnectEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.connection.InitialHandler;
-import net.md_5.bungee.connection.LoginResult;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
 import org.hibernate.Session;
@@ -48,7 +47,7 @@ import java.util.*;
 public class EventsDispatcher implements Listener {
 
     private SessionBuilder sessionBuilder = BungeePlugin.getSessionBuilder();
-    private JedisPool jedisPool = BungeePlugin.getRedisHandler().getJedisPool();
+    private JedisPool jedisPool = BungeePlugin.getRedisPool().getJedisPool();
     private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
 
     /*

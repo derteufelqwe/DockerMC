@@ -7,6 +7,9 @@ import lombok.*;
 import javax.persistence.*;
 import java.sql.Timestamp;
 
+/**
+ * Stores service bound transactions between players
+ */
 @Getter
 @Setter
 @ToString

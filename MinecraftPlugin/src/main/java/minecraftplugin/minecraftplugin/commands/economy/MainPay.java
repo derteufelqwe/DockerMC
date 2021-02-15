@@ -17,7 +17,7 @@ import org.bukkit.entity.Player;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
-@CommandAlias("mainpay|mpay")
+@CommandAlias("pay")
 public class MainPay extends BaseCommand {
 
     private final String PREFIX = ChatColor.GOLD + "[DMCBal] " + ChatColor.RESET;

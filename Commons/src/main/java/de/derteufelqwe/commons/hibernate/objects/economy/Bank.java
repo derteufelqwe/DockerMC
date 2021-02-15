@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Table for money banks. Banks are available across all servers
+ */
 @Getter
 @Setter
 @ToString(exclude = {"transactions"})

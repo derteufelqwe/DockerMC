@@ -6,6 +6,9 @@ import lombok.*;
 import javax.persistence.*;
 import java.sql.Timestamp;
 
+/**
+ * Stores all general, server wide, transactions between players
+ */
 @Getter
 @Setter
 @ToString

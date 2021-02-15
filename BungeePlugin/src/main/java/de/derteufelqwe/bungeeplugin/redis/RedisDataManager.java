@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  */
 public class RedisDataManager {
 
-    private final JedisPool jedisPool = BungeePlugin.getRedisHandler().getJedisPool();
+    private final JedisPool jedisPool = BungeePlugin.getRedisPool().getJedisPool();
 
     private Map<String, PlayerData> playersMap = new ConcurrentHashMap<>();
 

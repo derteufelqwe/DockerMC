@@ -1,66 +1,46 @@
 package de.derteufelqwe.bungeeplugin;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import de.derteufelqwe.bungeeplugin.redis.RedisHandler;
-import de.derteufelqwe.bungeeplugin.utils.mojangapi.MojangAPIProfile;
-import de.derteufelqwe.bungeeplugin.utils.mojangapi.MojangAPIProfileDeserializer;
-import de.derteufelqwe.bungeeplugin.utils.mojangapi.PlayerTextureDeserializer;
-import de.derteufelqwe.commons.hibernate.SessionBuilder;
-import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
+import de.derteufelqwe.commons.redis.RedisPool;
+import de.derteufelqwe.commons.protobuf.RedisMessages;
 import lombok.SneakyThrows;
-import org.hibernate.FetchMode;
-import org.hibernate.LockMode;
-import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPubSub;
-import redis.clients.jedis.Transaction;
+import redis.clients.jedis.*;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.net.URL;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Random;
-import java.util.Scanner;
-import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class Test {
 
-    public static JedisPool pool = new RedisHandler("ubuntu1").getJedisPool();
+    public static JedisPool pool = new RedisPool("ubuntu1").getJedisPool();
 //    public static SessionBuilder sessionBuilder = new SessionBuilder("admin", "password", "ubuntu1", 5432);
 
 
     public static void receive() {
         try (Jedis jedis = pool.getResource()) {
             System.out.println("Start receive");
-            jedis.psubscribe(new JedisPubSub() {
+            jedis.subscribe(new BinaryJedisPubSub() {
+                @SneakyThrows
                 @Override
-                public void onPMessage(String pattern, String channel, String message) {
-                    String time = message.split("-")[1];
-                    long lTime = Long.parseLong(time);
-
-                    System.out.println("Delta: " + (System.currentTimeMillis() - lTime));
+                public void onMessage(byte[] channel, byte[] message){
+                    RedisMessages.RedisMessage msg = RedisMessages.RedisMessage.parseFrom(message);
+                    System.out.println("got message");
                 }
-            }, "test#*");        }
+            }, "messages".getBytes(StandardCharsets.UTF_8));
+        }
     }
 
 
     public static void send() {
-
-    for (int i = 0; i < 10000; i++) {
         try (Jedis jedis = pool.getResource()) {
             System.out.println("Start send");
-                jedis.publish("test#msg", i + "-" + System.currentTimeMillis());
-            }
+            RedisMessages.RedisMessage msg = RedisMessages.RedisMessage.newBuilder()
+                    .setType(RedisMessages.PackageType.PLAYER_JOIN_NETWORK)
+                    .setPlayerChangeServer(RedisMessages.PlayerChangeServer.newBuilder()
+                            .setOldServer("sdf")
+                            .build())
+                    .build();
+
+            jedis.publish("messages".getBytes(StandardCharsets.UTF_8), msg.toByteArray());
         }
 
     }
@@ -112,14 +92,15 @@ public class Test {
     @SneakyThrows
     public static void main(String[] args) {
 
-//        receive();
-//        send();
-//        multiBlock();
-//        multiSet();
-//        readDb();
-        System.out.println(UUID.randomUUID());
 
+        Thread t1 = new Thread(Test::receive);
+        t1.start();
 
+        TimeUnit.MILLISECONDS.sleep(100);
+
+        send();
+
+        t1.stop();
         System.out.println("Done");
     }
 

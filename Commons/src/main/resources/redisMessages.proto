@@ -1,0 +1,94 @@
+syntax = "proto3";
+package de.derteufelqwe.commons.protobuf;
+
+
+message UUID {
+  string data = 1;
+}
+
+
+/**
+ * Types of the available packages
+ */
+enum PackageType {
+  PLAYER_JOIN_NETWORK   = 0;
+  PLAYER_LEAVE_NETWORK  = 1;
+  PLAYER_CHANGE_SERVER  = 2;
+  REQUEST_PLAYER_KICK   = 3;
+  REQUEST_PLAYER_SEND   = 4;
+}
+
+
+/**
+ * Basic data, which all BungeeCord packages need
+ */
+message BungeeMessageBase {
+  string bungeeCordId   = 1;
+}
+
+
+/**
+ * Player joining the bungee network
+ */
+message PlayerJoinNetwork {
+  BungeeMessageBase base  = 1;
+  UUID uuid               = 2;
+  string username         = 3;
+}
+
+
+/**
+ * Player leaving the bungee network
+ */
+message PlayerLeaveNetwork {
+  BungeeMessageBase base  = 1;
+  UUID uuid               = 2;
+  string username         = 3;
+}
+
+
+/**
+ * Player changing the server on the network
+ */
+message PlayerChangeServer {
+  BungeeMessageBase base  = 1;
+  UUID uuid               = 2;
+  string username         = 3;
+  string oldServer        = 4;
+  string newServer        = 5;
+}
+
+
+/**
+ * Request a player kick
+ */
+message RequestPlayerKick {
+  BungeeMessageBase base  = 1;
+  UUID uuid               = 2;
+  string username         = 3;
+  string reason           = 4;
+}
+
+
+/**
+ * Requests the proxy to send the player to a different server
+ */
+message RequestPlayerSend {
+  BungeeMessageBase base  = 1;
+  UUID uuid               = 2;
+  string username         = 3;
+  string targetServer     = 4;
+}
+
+
+/**
+ * The redis pub sub messages
+ */
+message RedisMessage {
+  PackageType type                      = 1;
+  PlayerJoinNetwork playerJoinNetwork   = 2;
+  PlayerLeaveNetwork playerLeaveNetwork = 3;
+  PlayerChangeServer playerChangeServer = 4;
+  RequestPlayerKick requestPlayerKick   = 5;
+  RequestPlayerSend requestPlayerSend   = 6;
+}

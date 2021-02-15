@@ -4,9 +4,6 @@ import com.sun.istack.NotNull;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import lombok.Getter;
 import lombok.Setter;
-import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.connection.Server;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,8 +18,10 @@ public class PlayerData {
     private String username;
     private String uuid;
     private String address;
-    @Setter private String server;
-    @Setter private String bungeeCordId = BungeePlugin.BUNGEECORD_ID;
+    @Setter
+    private String server;
+    @Setter
+    private String bungeeCordId = BungeePlugin.BUNGEECORD_ID;
 
 
     public PlayerData(@NotNull Map<String, String> input) {
@@ -31,20 +30,6 @@ public class PlayerData {
         this.address = input.get("address");
         this.server = input.get("server");
         this.bungeeCordId = input.get("bungeeCordId");
-    }
-
-    public PlayerData(@NotNull ProxiedPlayer player) {
-        this.username = player.getDisplayName();
-        this.uuid = player.getUniqueId().toString();
-        this.address = player.getAddress().toString();
-
-        Server server = player.getServer();
-        if (server == null)
-            return;
-        ServerInfo serverInfo = server.getInfo();
-        if (serverInfo == null)
-            return;
-        this.server = serverInfo.getName();
     }
 
     public PlayerData(String username, String uuid, String address) {
@@ -77,6 +62,7 @@ public class PlayerData {
 
     /**
      * Returns the name of the service the player is connected to
+     *
      * @return
      */
     @NotNull

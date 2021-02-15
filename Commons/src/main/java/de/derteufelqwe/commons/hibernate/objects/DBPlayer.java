@@ -23,7 +23,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @ToString(exclude = {"skinData", "onlineStats", "logins", "gottenBans", "executedBans", "executedIpBans", "liftedBans",
-        "liftedIpBans", "additionPermGroups"})
+        "liftedIpBans", "additionPermGroups", "ownedBanks", "banks"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "players")

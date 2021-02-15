@@ -6,6 +6,10 @@ import lombok.*;
 import javax.persistence.*;
 import java.sql.Timestamp;
 
+/**
+ * Transactions for a bank account.
+ * Stores which players deposit / withdraw money from a bank account
+ */
 @Getter
 @Setter
 @ToString
