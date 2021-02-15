@@ -36,6 +36,10 @@ import org.hibernate.Transaction;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+
 public final class BungeePlugin extends Plugin {
 
     // --- Consul ---
@@ -74,7 +78,6 @@ public final class BungeePlugin extends Plugin {
         this.addSignalHandlers();
         BungeePlugin.PLUGIN = this;
         commandManager.enableUnstableAPI("help");
-
 
         // --- Redis stuff ---
         BungeePlugin.redisPool = new RedisPool("redis");

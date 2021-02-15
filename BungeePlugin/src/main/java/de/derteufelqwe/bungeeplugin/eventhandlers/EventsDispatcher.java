@@ -131,13 +131,14 @@ public class EventsDispatcher implements Listener {
         InitialHandler handler = (InitialHandler) event.getConnection();
         String playerName = handler.getLoginRequest().getData();
         UUID uuid = handler.getUniqueId();
+        DBPlayer dbPlayer;
 
         try (Session session = sessionBuilder.openSession()) {
             Transaction tx = session.beginTransaction();
 
             try {
                 // Create player object when he joins
-                DBPlayer dbPlayer = session.get(DBPlayer.class, uuid);
+                dbPlayer = session.get(DBPlayer.class, uuid);
                 if (dbPlayer == null) {
                     dbPlayer = new DBPlayer(uuid, playerName);
                     session.save(dbPlayer);
@@ -157,24 +158,23 @@ public class EventsDispatcher implements Listener {
 
                 // ToDo: Tidy this up. This is probably not the best Hibernate way
 
-                tx = session.beginTransaction();
-
-                // Update the players skin.
-                // This is done asynchronously to prevent login times from up to 15 seconds.
-                if (dbPlayer.getLastSkinUpdate() == null ||
-                        (System.currentTimeMillis() - dbPlayer.getLastSkinUpdate().getTime()) >= 10 * 60 * 1000) { // 10 Minutes
-                    ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, new PlayerSkinDownloadRunnable(uuid));
-
-                }
-
             } catch (Exception e) {
                 tx.rollback();
                 throw e;
             }
-
             tx.commit();
         }
 
+
+        if (dbPlayer != null) {
+            // Update the players skin.
+            // This is done asynchronously to prevent login times from up to 15 seconds.
+            if (dbPlayer.getLastSkinUpdate() == null ||
+                    (System.currentTimeMillis() - dbPlayer.getLastSkinUpdate().getTime()) >= 10 * 60 * 1000) { // 10 Minutes
+                ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, new PlayerSkinDownloadRunnable(uuid));
+
+            }
+        }
     }
 
     /**

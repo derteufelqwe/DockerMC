@@ -141,8 +141,6 @@ public class RedisPublishListener extends BinaryJedisPubSub implements Runnable 
     }
 
     private void onSendPlayerMessage(RedisMessages.RequestPlayerSend message) {
-        if (checkEventNotFromHere(message.getBase()))
-            return;
         System.out.printf("Event: RequestPlayerSend %s -> %s.\n", message.getUsername(), message.getTargetServer());
 
         UUID uuid = parseUUID(message.getUuid().getData());

@@ -49,7 +49,7 @@ public class BungeeEventsHandler implements Listener {
             return;
 
         // Only send players, which are on this proxy
-        if (playerData.getBungeeCordId().equals(BungeePlugin.BUNGEECORD_ID))
+        if (!playerData.getBungeeCordId().equals(BungeePlugin.BUNGEECORD_ID))
             return;
 
         ServerInfo serverInfo = Utils.getServers().get(event.getTargetServer());
