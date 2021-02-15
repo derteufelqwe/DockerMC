@@ -11,7 +11,7 @@ import java.util.UUID;
 
 /**
  * Fired when a player joins the Network.
- * Corresponds to {@link de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerJoinNetwork}
+ * Corresponds to {@link de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetwork}
  *
  * When this event gets fired, you can be sure, that all required objects in the DB and redis are set
  */

@@ -1,26 +1,28 @@
 package de.derteufelqwe.bungeeplugin.redis;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.events.BungeePlayerJoinEvent;
 import de.derteufelqwe.bungeeplugin.events.BungeePlayerLeaveEvent;
 import de.derteufelqwe.bungeeplugin.events.BungeePlayerServerChangeEvent;
 import de.derteufelqwe.bungeeplugin.events.BungeeRequestPlayerServerSendEvent;
-import de.derteufelqwe.bungeeplugin.redis.messages.*;
 import de.derteufelqwe.bungeeplugin.runnables.DefaultCallback;
-import de.derteufelqwe.commons.exceptions.NotFoundException;
-import net.md_5.bungee.api.Callback;
+import de.derteufelqwe.commons.protobuf.RedisMessages;
 import net.md_5.bungee.api.ProxyServer;
+import redis.clients.jedis.BinaryJedisPubSub;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPubSub;
 
+import javax.annotation.CheckForNull;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.UUID;
 
 /**
  * Receives the published messages on redis and dispatches them into BungeeCord events
  * This class should run in a different thread since the {@link #run()} method is blocking
  */
-public class RedisPublishListener extends JedisPubSub implements Runnable {
+public class RedisPublishListener extends BinaryJedisPubSub implements Runnable {
 
     private JedisPool jedisPool = BungeePlugin.getRedisPool().getJedisPool();
     private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
@@ -34,148 +36,133 @@ public class RedisPublishListener extends JedisPubSub implements Runnable {
     @Override
     public void run() {
         try (Jedis jedis = this.jedisPool.getResource()) {
-            jedis.psubscribe(this, "messages#*");
+            jedis.subscribe(this, "messages".getBytes(StandardCharsets.UTF_8));
         }
     }
 
-    /**
-     * Dispatches the incoming redis publish messages.
-     * @param pattern
-     * @param channel
-     * @param message
-     */
+
     @Override
-    public void onPMessage(String pattern, String channel, String message) {
+    public void onMessage(byte[] channel, byte[] message) {
+        try {
+            RedisMessages.RedisMessage msg = RedisMessages.RedisMessage.parseFrom(message);
 
-        if (pattern.equals("messages#*")) {
-            String msg = channel.substring(9);
-            try {
-                MessageType messageType = MessageType.valueOf(msg);
-                this.onMessageMessage(messageType, message);
+            switch (msg.getType()) {
+                case PLAYER_JOIN_NETWORK:
+                    this.onPlayerJoinMessage(msg.getPlayerJoinNetwork());
+                    break;
 
-            } catch (IllegalArgumentException e) {
-                System.err.println("Received invalid message type " + msg + ".");
+                case PLAYER_LEAVE_NETWORK:
+                    this.onPlayerLeaveMessage(msg.getPlayerLeaveNetwork());
+                    break;
+
+                case PLAYER_CHANGE_SERVER:
+                    this.onPlayerServerChangeMessage(msg.getPlayerChangeServer());
+                    break;
+
+                case REQUEST_PLAYER_KICK:
+                    this.onKickPlayerMessage(msg.getRequestPlayerKick());
+                    break;
+
+                case REQUEST_PLAYER_SEND:
+                    this.onSendPlayerMessage(msg.getRequestPlayerSend());
+                    break;
+
+                default:
+                    System.err.println("Found invalid packet type " + msg.getType());
             }
 
-        } else {
-            System.err.println("Received unknown Pub-Sub pattern '" + pattern + "'.");
-        }
-
-    }
-
-    private void onMessageMessage(MessageType type, String data) {
-        RedisPubSubData redisMessage;
-
-        switch (type) {
-            case PLAYER_JOIN:
-                redisMessage = RedisPubSubData.deserialize(data, RedisPlayerJoinNetwork.class);
-                if (this.checkEventNotFromHere(redisMessage)) {
-                    this.onPlayerAddMessage((RedisPlayerJoinNetwork) redisMessage);
-                }
-                break;
-
-            case PLAYER_LEAVE:
-                redisMessage = RedisPubSubData.deserialize(data, RedisPlayerLeaveNetwork.class);
-                if (this.checkEventNotFromHere(redisMessage)) {
-                    this.onPlayerRemoveMessage((RedisPlayerLeaveNetwork) redisMessage);
-                }
-                break;
-
-            case PLAYER_SERVER_CHANGE:
-                redisMessage = RedisPubSubData.deserialize(data, RedisPlayerServerChange.class);
-                if (this.checkEventNotFromHere(redisMessage)) {
-                    this.onPlayerServerChangeMessage((RedisPlayerServerChange) redisMessage);
-                }
-                break;
-
-            case REQUEST_PLAYER_SERVER_CHANGE:
-                redisMessage = RedisPubSubData.deserialize(data, RedisRequestPlayerServerSend.class);
-                if (this.checkEventNotFromHere(redisMessage)) {
-                    this.onConnectPlayerMessage((RedisRequestPlayerServerSend) redisMessage);
-                }
-                break;
-
-            case REQUEST_PLAYER_KICK:
-                redisMessage = RedisPubSubData.deserialize(data, RedisRequestPlayerKick.class);
-                if (this.checkEventNotFromHere(redisMessage)) {
-                    this.onKickPlayerMessage((RedisRequestPlayerKick) redisMessage);
-                }
-                break;
-
-
-            default:
-                System.err.printf("Found unknown message %s.\n", type);
-                break;
-
+        } catch (InvalidProtocolBufferException e) {
+            System.err.println("Failed to decode redis message: " + Arrays.toString(message));
         }
     }
 
 
     /**
-     * Returns false if the event was fired from this host.
+     * Returns true if the event was fired from this host.
      * @return
      */
-    private boolean checkEventNotFromHere(RedisPubSubData event) {
-        return !event.getBungeeCordId().equals(BungeePlugin.META_DATA.getTaskName());
+    private boolean checkEventNotFromHere(RedisMessages.BungeeMessageBase message) {
+        return message.getBungeeCordId().equals(BungeePlugin.META_DATA.getTaskName());
+    }
+
+    @CheckForNull
+    private UUID parseUUID(String uuid) {
+        try {
+            return UUID.fromString(uuid);
+
+        } catch (IllegalArgumentException e) {
+            System.err.println("Got invalid uuid " + uuid);
+            return null;
+        }
     }
 
     // -----  Message handlers  -----
 
-    private void onPlayerAddMessage(RedisPlayerJoinNetwork message) {
+    private void onPlayerJoinMessage(RedisMessages.PlayerJoinNetwork message) {
+        if (checkEventNotFromHere(message.getBase()))
+            return;
         System.out.printf("Event: PlayerAdd %s.\n", message.getUsername());
-        ProxyServer.getInstance().getPluginManager().callEvent(new BungeePlayerJoinEvent(message.getUuid(), message.getUsername(), new Callback<BungeePlayerJoinEvent>() {
-            @Override
-            public void done(BungeePlayerJoinEvent result, Throwable error) {
 
-            }
-        }));
+        UUID uuid = parseUUID(message.getUuid().getData());
+        if (uuid == null)
+            return;
+
+        ProxyServer.getInstance().getPluginManager().callEvent(
+                new BungeePlayerJoinEvent(uuid, message.getUsername(), new DefaultCallback<>())
+        );
     }
 
-    private void onPlayerRemoveMessage(RedisPlayerLeaveNetwork message) {
+    private void onPlayerLeaveMessage(RedisMessages.PlayerLeaveNetwork message) {
+        if (checkEventNotFromHere(message.getBase()))
+            return;
         System.out.printf("Event: PlayerRemove %s.\n", message.getUsername());
 
-        ProxyServer.getInstance().getPluginManager().callEvent(new BungeePlayerLeaveEvent(message.getUuid(), message.getUsername(), new DefaultCallback<>()));
+        UUID uuid = parseUUID(message.getUuid().getData());
+        if (uuid == null)
+            return;
+
+        ProxyServer.getInstance().getPluginManager().callEvent(
+                new BungeePlayerLeaveEvent(uuid, message.getUsername(), new DefaultCallback<>())
+        );
     }
 
-    private void onPlayerServerChangeMessage(RedisPlayerServerChange message) {
+    private void onPlayerServerChangeMessage(RedisMessages.PlayerChangeServer message) {
+        if (checkEventNotFromHere(message.getBase()))
+            return;
         System.out.printf("Event: PlayerChange %s.\n", message.getUsername());
 
-        ProxyServer.getInstance().getPluginManager().callEvent(new BungeePlayerServerChangeEvent(message, new Callback<BungeePlayerServerChangeEvent>() {
-            @Override
-            public void done(BungeePlayerServerChangeEvent result, Throwable error) {
-
-            }
-        }));
-    }
-
-    private void onConnectPlayerMessage(RedisRequestPlayerServerSend message) {
-        System.out.printf("Event: RequestPlayerSend %s -> %s.\n", message.getUsername(), message.getTargetServer());
-        // You can only send players that are connected on your proxy
-        if (!message.getTargetBungee().equals(BungeePlugin.BUNGEECORD_ID)) {
+        UUID uuid = parseUUID(message.getUuid().getData());
+        if (uuid == null)
             return;
-        }
 
-        ProxyServer.getInstance().getPluginManager().callEvent(new BungeeRequestPlayerServerSendEvent(message, new Callback<BungeeRequestPlayerServerSendEvent>() {
-            @Override
-            public void done(BungeeRequestPlayerServerSendEvent result, Throwable error) {
-
-            }
-        }));
+        ProxyServer.getInstance().getPluginManager().callEvent(
+                new BungeePlayerServerChangeEvent(uuid, message.getUsername(), message.getOldServer(), message.getNewServer(), new DefaultCallback<>())
+        );
     }
 
-    private void onKickPlayerMessage(RedisRequestPlayerKick message) {
-        try {
-            try {
-                UUID uuid = UUID.fromString(message.getUsername());
-                BungeePlugin.getBungeeApi().kickPlayer(uuid, message.getReason());
+    private void onSendPlayerMessage(RedisMessages.RequestPlayerSend message) {
+        if (checkEventNotFromHere(message.getBase()))
+            return;
+        System.out.printf("Event: RequestPlayerSend %s -> %s.\n", message.getUsername(), message.getTargetServer());
 
-            } catch (IllegalArgumentException e) {
-                BungeePlugin.getBungeeApi().kickPlayer(message.getUsername(), message.getReason());
-            }
+        UUID uuid = parseUUID(message.getUuid().getData());
+        if (uuid == null)
+            return;
 
-        } catch (NotFoundException e) {
+        ProxyServer.getInstance().getPluginManager().callEvent(
+                new BungeeRequestPlayerServerSendEvent(uuid, message.getUsername(), message.getTargetServer(), new DefaultCallback<>())
+        );
+    }
 
-        }
+    private void onKickPlayerMessage(RedisMessages.RequestPlayerKick message) {
+        if (checkEventNotFromHere(message.getBase()))
+            return;
+
+        UUID uuid = parseUUID(message.getUuid().getData());
+        if (uuid != null)
+            BungeePlugin.getBungeeApi().kickPlayer(uuid, message.getReason());
+
+        BungeePlugin.getBungeeApi().kickPlayer(message.getUsername(), message.getReason());
     }
 
 }

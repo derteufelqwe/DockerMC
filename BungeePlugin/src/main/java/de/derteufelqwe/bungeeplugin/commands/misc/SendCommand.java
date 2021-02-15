@@ -1,9 +1,10 @@
 package de.derteufelqwe.bungeeplugin.commands.misc;
 
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
+import de.derteufelqwe.bungeeplugin.exceptions.RedisCacheException;
 import de.derteufelqwe.bungeeplugin.redis.PlayerData;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
-import de.derteufelqwe.bungeeplugin.redis.messages.RedisRequestPlayerServerSend;
+import de.derteufelqwe.commons.protobuf.RedisMessages;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -23,10 +24,16 @@ public class SendCommand extends Command {
 
     private final String PREFIX = ChatColor.YELLOW + "[Send] " + ChatColor.RESET;
 
+    private RedisMessages.BungeeMessageBase messageBase;
+
     private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
+
 
     public SendCommand() {
         super("send", "bungeecord.command.send");
+        this.messageBase = RedisMessages.BungeeMessageBase.newBuilder()
+                .setBungeeCordId(BungeePlugin.BUNGEECORD_ID)
+                .build();
     }
 
 
@@ -90,7 +97,7 @@ public class SendCommand extends Command {
             return;
         }
 
-        redisDataManager.sendMessage(new RedisRequestPlayerServerSend(playerName, playerData.getBungeeCordId(), target.getName()));
+        this.sendSinglePlayer(playerData.getUuid(), playerName, target.getName());
         sender.sendMessage(new TextComponent(PREFIX + "Sending " + playerName + " to " + target.getName() + "."));
     }
 
@@ -101,9 +108,13 @@ public class SendCommand extends Command {
      * @param target
      */
     private void sendAll(CommandSender sender, ServerInfo target) {
-        List<PlayerData> targetPlayers = this.redisDataManager.getPlayersOnBungee(this.redisDataManager.getPlayer(sender.getName()).getBungeeCordId());
+        PlayerData caller = this.redisDataManager.getPlayer(sender.getName());
+        if (caller == null)
+            throw new RedisCacheException("Player %s not found in the redis cache.", sender.getName());
+
+        List<PlayerData> targetPlayers = this.redisDataManager.getPlayersOnBungee(caller.getBungeeCordId());
         for (PlayerData player : targetPlayers) {
-            redisDataManager.sendMessage(new RedisRequestPlayerServerSend(player.getUsername(), player.getBungeeCordId(), target.getName()));
+            this.sendSinglePlayer(player.getUuid(), player.getUsername(), target.getName());
         }
 
         sender.sendMessage(new TextComponent(String.format(
@@ -118,14 +129,31 @@ public class SendCommand extends Command {
      * @param target
      */
     private void sendCurrent(ProxiedPlayer sender, ServerInfo target) {
-        List<PlayerData> targetPlayers = this.redisDataManager.getPlayerOnServer(this.redisDataManager.getPlayer(sender.getName()).getServer());
+        PlayerData caller = this.redisDataManager.getPlayer(sender.getName());
+        if (caller == null)
+            throw new RedisCacheException("Player %s not found in the redis cache.", sender.getName());
+
+        List<PlayerData> targetPlayers = this.redisDataManager.getPlayerOnServer(caller.getServer());
         for (PlayerData player : targetPlayers) {
-            redisDataManager.sendMessage(new RedisRequestPlayerServerSend(player.getUsername(), player.getBungeeCordId(), target.getName()));
+            this.sendSinglePlayer(player.getUuid(), player.getUsername(), target.getName());
         }
 
         sender.sendMessage(new TextComponent(String.format(
                 "%sSent %s players from the current server to %s.", PREFIX, targetPlayers.size(), target.getName()
         )));
+    }
+
+    private void sendSinglePlayer(String uuid, String playerName, String targetServer) {
+        RedisMessages.RequestPlayerSend requestPlayerSend = RedisMessages.RequestPlayerSend.newBuilder()
+                .setBase(this.messageBase)
+                .setUuid(RedisMessages.UUID.newBuilder()
+                        .setData(uuid)
+                        .build())
+                .setUsername(playerName)
+                .setTargetServer(targetServer)
+                .build();
+
+        redisDataManager.sendMessage(requestPlayerSend);
     }
 
 }

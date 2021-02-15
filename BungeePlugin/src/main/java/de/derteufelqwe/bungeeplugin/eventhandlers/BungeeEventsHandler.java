@@ -1,7 +1,9 @@
 package de.derteufelqwe.bungeeplugin.eventhandlers;
 
+import com.sun.istack.Nullable;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.events.*;
+import de.derteufelqwe.bungeeplugin.redis.PlayerData;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.bungeeplugin.utils.Utils;
 import net.md_5.bungee.api.ChatColor;
@@ -42,6 +44,14 @@ public class BungeeEventsHandler implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onRequestPlayerSend(BungeeRequestPlayerServerSendEvent event) {
+        PlayerData playerData = this.redisDataManager.getPlayer(event.getPlayerId());
+        if (playerData == null)
+            return;
+
+        // Only send players, which are on this proxy
+        if (playerData.getBungeeCordId().equals(BungeePlugin.BUNGEECORD_ID))
+            return;
+
         ServerInfo serverInfo = Utils.getServers().get(event.getTargetServer());
         if (serverInfo == null) {
             System.err.printf("Trying to connect to invalid server %s.\n", event.getTargetServer());
@@ -60,15 +70,21 @@ public class BungeeEventsHandler implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onRequestPlayerKick(BungeeRequestPlayerKickEvent event) {
-        ProxiedPlayer player = ProxyServer.getInstance().getPlayer(event.getPlayerName());
+        ProxiedPlayer uuidPlayer = ProxyServer.getInstance().getPlayer(event.getPlayerId());
+        if (uuidPlayer != null)
+            this.kickPlayer(uuidPlayer, event.getReason());
 
-        if (player == null) {
-            return;
-        }
+        ProxiedPlayer namePlayer = ProxyServer.getInstance().getPlayer(event.getPlayerName());
+        // Only kick the named player when the uuid player is null or the players are not equal
+        if (namePlayer != null && (uuidPlayer == null || !uuidPlayer.equals(namePlayer)))
+            this.kickPlayer(namePlayer, event.getReason());
 
+    }
+
+    private void kickPlayer(ProxiedPlayer player, @Nullable String reason) {
         TextComponent kickMessage = new TextComponent(ChatColor.RED + "You got kicked!");
-        if (event.getReason() != null) {
-            kickMessage.addExtra(" Reason: '" + event.getReason() + "'.");
+        if (reason != null) {
+            kickMessage.addExtra(" Reason: '" + reason + "'.");
         }
 
         player.disconnect(kickMessage);

@@ -10,7 +10,7 @@ import net.md_5.bungee.api.event.AsyncEvent;
 import java.util.UUID;
 
 /**
- * Corresponds to {@link de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerLeaveNetwork}
+ * Corresponds to {@link de.derteufelqwe.commons.protobuf.RedisMessages.PlayerLeaveNetwork}
  */
 @Getter
 @ToString

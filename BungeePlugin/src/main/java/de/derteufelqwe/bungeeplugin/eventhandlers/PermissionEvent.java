@@ -22,8 +22,9 @@ import org.hibernate.Session;
  */
 public class PermissionEvent implements Listener {
 
-    private final SessionBuilder sessionBuilder = BungeePlugin.getSessionBuilder();
+    public static boolean allowAll = false;
 
+    private final SessionBuilder sessionBuilder = BungeePlugin.getSessionBuilder();
     private final PlayerPermissionStore permissionStore = new PlayerPermissionStore();
 
 
@@ -34,6 +35,11 @@ public class PermissionEvent implements Listener {
 
     @EventHandler
     public void onCheckPermission(PermissionCheckEvent event) {
+        if (allowAll) {
+            event.setHasPermission(true);
+            return;
+        }
+
         try {
             if (event.getSender() instanceof ConsoleCommandSender) {
                 event.setHasPermission(true);

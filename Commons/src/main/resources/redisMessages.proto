@@ -23,7 +23,7 @@ enum PackageType {
  * Basic data, which all BungeeCord packages need
  */
 message BungeeMessageBase {
-  string bungeeCordId   = 1;
+  string bungeeCordId   = 1;  // BungeeCordId which sent the message
 }
 
 

@@ -6,16 +6,15 @@ import de.derteufelqwe.bungeeplugin.events.BungeePlayerLeaveEvent;
 import de.derteufelqwe.bungeeplugin.events.BungeePlayerServerChangeEvent;
 import de.derteufelqwe.bungeeplugin.redis.PlayerData;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
-import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerJoinNetwork;
-import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerLeaveNetwork;
-import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerServerChange;
 import de.derteufelqwe.bungeeplugin.runnables.DefaultCallback;
 import de.derteufelqwe.bungeeplugin.runnables.PlayerSkinDownloadRunnable;
 import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.exceptions.NotFoundException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.*;
-import net.md_5.bungee.api.Callback;
+import de.derteufelqwe.commons.protobuf.RedisMessages;
+import lombok.Getter;
+import lombok.Setter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -50,6 +49,8 @@ public class EventsDispatcher implements Listener {
     private JedisPool jedisPool = BungeePlugin.getRedisPool().getJedisPool();
     private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
 
+    private RedisMessages.BungeeMessageBase messageBase;
+
     /*
      * Contains players, joined the network but didn't connect to a server yet. This is used to identify when to send the
      * BungeePlayerServerChangeEvent.
@@ -61,11 +62,13 @@ public class EventsDispatcher implements Listener {
     /*
      * If this map contains an entry for a player, this event will be sent when a player disconnects from a server.
      */
-    private Map<String, RedisPlayerServerChange> playerServerChangeEventMap = new HashMap<>();
+    private Map<String, PlayerTmpData> playerServerChangeEventMap = new HashMap<>();
 
 
     public EventsDispatcher() {
-
+        this.messageBase = RedisMessages.BungeeMessageBase.newBuilder()
+                .setBungeeCordId(BungeePlugin.BUNGEECORD_ID)
+                .build();
     }
 
     // --- Player Join ---
@@ -100,6 +103,7 @@ public class EventsDispatcher implements Listener {
 
     /**
      * Creates or updates the relevant redis entries for the joining player
+     *
      * @param event
      */
     private void prepareOnPlayerJoinNetworkRedis(LoginEvent event) {
@@ -120,6 +124,7 @@ public class EventsDispatcher implements Listener {
 
     /**
      * Creates or updates the relevant DB objects for the joining player
+     *
      * @param event
      */
     private void prepareOnPlayerJoinNetworkDB(LoginEvent event) {
@@ -174,6 +179,7 @@ public class EventsDispatcher implements Listener {
 
     /**
      * Checks if a player is banned and prevents him from connecting if he is banned
+     *
      * @param event
      * @return Banned or not
      */
@@ -223,6 +229,7 @@ public class EventsDispatcher implements Listener {
 
     /**
      * Checks if the users IP is banned
+     *
      * @param event
      * @return
      */
@@ -279,6 +286,7 @@ public class EventsDispatcher implements Listener {
 
     /**
      * Calls the custom {@link BungeePlayerJoinEvent}
+     *
      * @param event
      */
     private void callBungeePlayerJoinEvent(LoginEvent event) {
@@ -290,11 +298,14 @@ public class EventsDispatcher implements Listener {
         BungeePlayerJoinEvent bungeeEvent = new BungeePlayerJoinEvent(uuid, playerName, new DefaultCallback<>());
         bungeeEvent.callEvent();
 
+        RedisMessages.PlayerJoinNetwork playerJoinNetwork = RedisMessages.PlayerJoinNetwork.newBuilder()
+                .setBase(this.messageBase)
+                .setUuid(this.getUUID(uuid))
+                .setUsername(playerName)
+                .build();
+
         // Send redis message
-        try (Jedis jedis = this.jedisPool.getResource()) {
-            RedisPlayerJoinNetwork redisMessage = new RedisPlayerJoinNetwork(uuid, playerName);
-            jedis.publish("messages#" + redisMessage.getMessageType(), redisMessage.serialize());
-        }
+        redisDataManager.sendMessage(playerJoinNetwork);
     }
 
     // --- Player Leave ---
@@ -317,6 +328,7 @@ public class EventsDispatcher implements Listener {
 
     /**
      * Removes player information from redis
+     *
      * @param player
      */
     private void removePlayerFromRedis(ProxiedPlayer player) {
@@ -330,6 +342,7 @@ public class EventsDispatcher implements Listener {
 
     /**
      * Adds data gathered on disconnect
+     *
      * @param player
      */
     private void finishPlayersDBEntries(ProxiedPlayer player) {
@@ -373,9 +386,14 @@ public class EventsDispatcher implements Listener {
             BungeePlayerLeaveEvent bungeeEvent = new BungeePlayerLeaveEvent(player.getUniqueId(), player.getDisplayName(), new DefaultCallback<>());
             bungeeEvent.callEvent();
 
+            RedisMessages.PlayerLeaveNetwork playerLeaveNetwork = RedisMessages.PlayerLeaveNetwork.newBuilder()
+                    .setBase(this.messageBase)
+                    .setUuid(this.getUUID(player.getUniqueId()))
+                    .setUsername(player.getDisplayName())
+                    .build();
+
             // Send redis message
-            RedisPlayerLeaveNetwork redisMessage = new RedisPlayerLeaveNetwork(player.getUniqueId(), player.getDisplayName());
-            jedis.publish("messages#" + redisMessage.getMessageType(), redisMessage.serialize());
+            redisDataManager.sendMessage(playerLeaveNetwork);
         }
     }
 
@@ -385,11 +403,12 @@ public class EventsDispatcher implements Listener {
     public void onPlayerConnectToServer(ServerConnectedEvent event) {
         String serverName = event.getServer().getInfo().getName();
         String playerName = event.getPlayer().getDisplayName();
+        UUID playerId = event.getPlayer().getUniqueId();
 
         this.updateRedisPlayerJoin(event.getPlayer(), serverName);
 
         // Prepare for the event call
-        this.playerServerChangeEventMap.put(playerName, new RedisPlayerServerChange(playerName, serverName));
+        this.playerServerChangeEventMap.put(playerName, new PlayerTmpData(playerId, playerName, serverName));
 
         if (this.newlyJoinedPlayers.contains(playerName)) {
             this.newlyJoinedPlayers.remove(playerName);
@@ -399,6 +418,7 @@ public class EventsDispatcher implements Listener {
 
     /**
      * Updates the information in redis about a players server, when he connects to a new server
+     *
      * @param player
      * @param serverName
      */
@@ -436,6 +456,7 @@ public class EventsDispatcher implements Listener {
 
     /**
      * Updates the players playtime on a service
+     *
      * @param jedis
      * @param player
      * @param serverName
@@ -506,6 +527,7 @@ public class EventsDispatcher implements Listener {
 
     /**
      * Updates redis to remove values that aren't required anymore
+     *
      * @param jedis
      * @param player
      * @param serverName
@@ -521,24 +543,27 @@ public class EventsDispatcher implements Listener {
 
     /**
      * Calls the event on all proxies
+     *
      * @param username
      */
     private void callBungeePlayerServerChangeEvent(String username) {
-        RedisPlayerServerChange redisMessage = this.playerServerChangeEventMap.get(username);
+        PlayerTmpData playerTmpData = this.playerServerChangeEventMap.get(username);
 
-        BungeePlayerServerChangeEvent event = new BungeePlayerServerChangeEvent(redisMessage, new Callback<BungeePlayerServerChangeEvent>() {
-            @Override
-            public void done(BungeePlayerServerChangeEvent result, Throwable error) {
-
-            }
-        });
+        BungeePlayerServerChangeEvent event = new BungeePlayerServerChangeEvent(
+                playerTmpData.getUuid(), playerTmpData.username, playerTmpData.getOldServer(), playerTmpData.getNewServer(), new DefaultCallback<>()
+        );
         event.callEvent();
 
-        // Send the redis message
-        try (Jedis jedis = this.jedisPool.getResource()) {
-            jedis.publish("messages#" + redisMessage.getMessageType(), redisMessage.serialize());
-        }
+        RedisMessages.PlayerChangeServer changeServerBuilder = RedisMessages.PlayerChangeServer.newBuilder()
+                .setBase(this.messageBase)
+                .setUuid(this.getUUID(playerTmpData.getUuid()))
+                .setUsername(playerTmpData.getUsername())
+                .setNewServer(playerTmpData.getNewServer())
+                .setOldServer(playerTmpData.getOldServer())
+                .build();
 
+        // Send the redis message
+        redisDataManager.sendMessage(changeServerBuilder);
     }
 
 
@@ -546,6 +571,7 @@ public class EventsDispatcher implements Listener {
 
     /**
      * Tries to parse the join time for a user on a server from redis
+     *
      * @param jedis
      * @param playerName
      * @param serverName
@@ -567,4 +593,33 @@ public class EventsDispatcher implements Listener {
         }
     }
 
+    /**
+     * Converts a java UUID to Protobuf UUID
+     *
+     * @param uuid
+     * @return
+     */
+    private RedisMessages.UUID getUUID(UUID uuid) {
+        return RedisMessages.UUID.newBuilder()
+                .setData(uuid.toString())
+                .build();
+    }
+
+
+    @Getter
+    @Setter
+    private static class PlayerTmpData {
+
+        private UUID uuid;
+        private String username;
+        private String newServer = "";
+        private String oldServer = "";
+
+
+        public PlayerTmpData(UUID uuid, String username, String newServer) {
+            this.uuid = uuid;
+            this.username = username;
+            this.newServer = newServer;
+        }
+    }
 }

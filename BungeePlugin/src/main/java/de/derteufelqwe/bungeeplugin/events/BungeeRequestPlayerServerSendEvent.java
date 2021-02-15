@@ -1,40 +1,32 @@
 package de.derteufelqwe.bungeeplugin.events;
 
-import de.derteufelqwe.bungeeplugin.redis.messages.RedisPlayerServerChange;
-import de.derteufelqwe.bungeeplugin.redis.messages.RedisRequestPlayerServerSend;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import net.md_5.bungee.api.Callback;
 import net.md_5.bungee.api.event.AsyncEvent;
 
-import javax.annotation.Nullable;
+import java.util.UUID;
 
 /**
  * Requests that a user gets send to a new server
- * Corresponds to {@link de.derteufelqwe.bungeeplugin.redis.messages.RedisRequestPlayerServerSend}
+ * Corresponds to {@link de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerSend}
  */
 @Getter
 @ToString
 @EqualsAndHashCode
 public class BungeeRequestPlayerServerSendEvent extends AsyncEvent<BungeeRequestPlayerServerSendEvent> {
 
+    private UUID playerId;
     private String playerName;
     private String targetServer;
 
 
-    public BungeeRequestPlayerServerSendEvent(String playerName, String targetServer, Callback<BungeeRequestPlayerServerSendEvent> done) {
+    public BungeeRequestPlayerServerSendEvent(UUID playerId, String playerName, String targetServer, Callback<BungeeRequestPlayerServerSendEvent> done) {
         super(done);
+        this.playerId = playerId;
         this.playerName = playerName;
         this.targetServer = targetServer;
     }
-
-    public BungeeRequestPlayerServerSendEvent(RedisRequestPlayerServerSend redisEvent, Callback<BungeeRequestPlayerServerSendEvent> done) {
-        super(done);
-        this.playerName = redisEvent.getUsername();
-        this.targetServer = redisEvent.getTargetServer();
-    }
-
 
 }
