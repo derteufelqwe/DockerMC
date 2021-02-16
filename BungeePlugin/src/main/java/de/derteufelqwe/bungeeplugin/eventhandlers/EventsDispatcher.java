@@ -12,6 +12,7 @@ import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.exceptions.NotFoundException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.*;
+import de.derteufelqwe.commons.logger.DMCLogger;
 import de.derteufelqwe.commons.protobuf.RedisMessages;
 import lombok.Getter;
 import lombok.Setter;
@@ -48,6 +49,7 @@ public class EventsDispatcher implements Listener {
     private SessionBuilder sessionBuilder = BungeePlugin.getSessionBuilder();
     private JedisPool jedisPool = BungeePlugin.getRedisPool().getJedisPool();
     private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
+    private DMCLogger logger = BungeePlugin.getDmcLogger();
 
     private RedisMessages.BungeeMessageBase messageBase;
 
@@ -81,11 +83,19 @@ public class EventsDispatcher implements Listener {
             this.newlyJoinedPlayers.add(playerName);
 
             // ToDo: Maybe make these functions run in parallel
+            long start = System.currentTimeMillis();
             this.prepareOnPlayerJoinNetworkDB(event);
+            logger.info("prepareOnPlayerJoin took %s ms.", System.currentTimeMillis() - start);
+
+            start = System.currentTimeMillis();
             if (this.checkPlayerBan(event))
                 return;
+            logger.warning("checkPlayerBan took %s ms.", System.currentTimeMillis() - start);
+
+            start = System.currentTimeMillis();
             if (this.checkIPBan(event))
                 return;
+            logger.config("checkIPBan took %s ms.", System.currentTimeMillis() - start);
 
             this.prepareOnPlayerJoinNetworkRedis(event);
 
@@ -162,7 +172,6 @@ public class EventsDispatcher implements Listener {
                 tx.rollback();
                 throw e;
             }
-            tx.commit();
         }
 
 

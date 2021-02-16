@@ -17,14 +17,18 @@ import de.derteufelqwe.bungeeplugin.consul.ServiceCatalogListener;
 import de.derteufelqwe.bungeeplugin.eventhandlers.*;
 import de.derteufelqwe.bungeeplugin.health.HealthCheck;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
-import de.derteufelqwe.commons.redis.RedisPool;
 import de.derteufelqwe.bungeeplugin.redis.RedisPublishListener;
 import de.derteufelqwe.bungeeplugin.utils.DBCache;
 import de.derteufelqwe.bungeeplugin.utils.MetaData;
 import de.derteufelqwe.bungeeplugin.utils.ServerState;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.config.Config;
+import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
+import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
+import de.derteufelqwe.commons.logger.DMCLogger;
+import de.derteufelqwe.commons.redis.RedisPool;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
@@ -37,7 +41,7 @@ import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
 import java.util.logging.Handler;
-import java.util.logging.LogRecord;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class BungeePlugin extends Plugin {
@@ -60,11 +64,17 @@ public final class BungeePlugin extends Plugin {
     // --- Static ---
     public static Plugin PLUGIN;
     public static ServerState STATE = ServerState.STARTING;
-    @Getter private static RedisDataManager redisDataManager;   // Manage data from and to redis
+    @Getter
+    private static Config<ConfigFile> CONFIG = new Config<>(new DefaultYamlConverter(), new DefaultGsonProvider(), "plugins/BungeePlugin/config.yml", new ConfigFile());
+    @Getter
+    private static RedisDataManager redisDataManager;   // Manage data from and to redis
     public static final MetaData META_DATA = new MetaData();
     public static final String BUNGEECORD_ID = META_DATA.getTaskName(); // Identifies the current node
-    @Getter private static BungeeAPI bungeeApi;
+    @Getter
+    private static BungeeAPI bungeeApi;
     public final DBCache DB_CACHE = new DBCache();
+    @Getter
+    private static final DMCLogger dmcLogger = new DMCLogger("DMCLogger", Level.WARNING);
 
 
     private BungeeCommandManager commandManager = new BungeeCommandManager(this);
@@ -77,7 +87,8 @@ public final class BungeePlugin extends Plugin {
         // --- Setup --
         this.addSignalHandlers();
         BungeePlugin.PLUGIN = this;
-        commandManager.enableUnstableAPI("help");
+        CONFIG.load();
+        this.parseConfigFile(CONFIG.get());
 
         // --- Redis stuff ---
         BungeePlugin.redisPool = new RedisPool("redis");
@@ -167,6 +178,24 @@ public final class BungeePlugin extends Plugin {
         Signal.handle(new Signal("HUP"), signalHandler);
     }
 
+
+    /**
+     * Parses the values in the config file
+     */
+    private void parseConfigFile(ConfigFile config) {
+        Level level;
+        try {
+            level = Level.parse(config.getLogLevel());
+
+        } catch (IllegalArgumentException e) {
+            level = Level.WARNING;
+            dmcLogger.severe("Invalid logLevel " + config.getLogLevel() + ". Resetting to WARNING.");
+            config.setLogLevel("WARNING");
+            CONFIG.save();
+        }
+
+        dmcLogger.setLevel(level);
+    }
 
     /**
      * Creates the Console User in the database

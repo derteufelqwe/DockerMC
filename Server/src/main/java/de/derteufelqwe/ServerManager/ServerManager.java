@@ -12,11 +12,9 @@ import de.derteufelqwe.ServerManager.config.SystemConfig;
 import de.derteufelqwe.ServerManager.exceptions.InvalidConfigException;
 import de.derteufelqwe.ServerManager.setup.*;
 import de.derteufelqwe.ServerManager.setup.configUpdate.*;
-import de.derteufelqwe.ServerManager.setup.infrastructure.LogCollectorService;
-import de.derteufelqwe.ServerManager.setup.infrastructure.PostgresDBContainer;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import de.derteufelqwe.commons.Constants;
-import de.derteufelqwe.commons.config.Config;
+import de.derteufelqwe.commons.config.ConfigOld;
 import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
 import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
 import lombok.Getter;
@@ -68,7 +66,7 @@ import java.util.stream.Collectors;
 public class ServerManager {
 
     private static String DOCKER_IP = "ubuntu1";
-    public static Config CONFIG = new Config(new DefaultYamlConverter(), new DefaultGsonProvider(), Constants.CONFIG_PATH);
+    public static ConfigOld CONFIG = new ConfigOld(new DefaultYamlConverter(), new DefaultGsonProvider(), Constants.CONFIG_PATH);
 
     static {
         CONFIG.registerConfig(MainConfig.class, Constants.Configs.MAIN.filename());

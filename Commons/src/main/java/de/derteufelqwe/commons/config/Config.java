@@ -3,99 +3,59 @@ package de.derteufelqwe.commons.config;
 import com.google.gson.Gson;
 import de.derteufelqwe.commons.config.providers.GsonProvider;
 import de.derteufelqwe.commons.config.providers.YamlConverter;
+import lombok.SneakyThrows;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
-public class Config {
+public class Config<A> {
 
-    private Map<Class, ConfigContainer> configs = new HashMap<>();
     private YamlConverter converter;
     private Gson gson;
-    private String basePath;
+    private String fileName;
 
-    public Config(YamlConverter converter, GsonProvider gsonProvider, String basePath) {
+    private A instance;
+
+
+    public Config(YamlConverter converter, GsonProvider gsonProvider, String fileName, A instance) {
         this.converter = converter;
         this.gson = gsonProvider.getGson();
-        this.basePath = basePath;
-    }
-
-    public Config(YamlConverter converter, GsonProvider gsonProvider) {
-        this(converter, gsonProvider, ".");
+        this.fileName = fileName;
+        this.instance = instance;
     }
 
 
-    public void registerConfig(Class clazz, String path, String fileName) {
-        if (configs.containsKey(clazz))
-            throw new RuntimeException(String.format("Class %s is already registered.", clazz.getSimpleName()));
-
-        try {
-            configs.put(clazz, new ConfigContainer(
-                    clazz, path, fileName, clazz.newInstance()
-            ));
-
-        } catch (InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
-            System.err.println("Failed to instanciate class " + clazz.getName() + ".");
-        }
+    public A get() {
+        return this.instance;
     }
 
-    public void registerConfig(Class clazz, String filename) {
-        this.registerConfig(clazz, ".", filename);
-    }
-
-
-    public <T> T get(Class<T> clazz) {
-        return configs.get(clazz).getInstance();
-    }
-
-    public <T> void setInstance(Class<T> clazz, T instance) {
-        configs.get(clazz).setInstance(instance);
-    }
-
-    private File getFile(Class clazz) {
-        String filePath = configs.get(clazz).getFilePath();
-        String fileName = configs.get(clazz).getFileName();
-        File directory = new File(filePath);
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
-
-        File file = new File(this.basePath + "/" + filePath + "/" + fileName);
+    private File getFile() {
+        File file = new File(fileName);
+        if (file.getParentFile() != null)
+            file.getParentFile().mkdirs();
 
         return file;
     }
 
+    public void load() {
+        File file = getFile();
 
-    public void load(Class clazz) {
-        File file = getFile(clazz);
+        try {
+            if (!file.createNewFile()) {
+                this.instance = gson.fromJson(converter.loadJson(file), (Class<A>) this.instance.getClass());
 
-        if (file.exists()) {
-            try {
-                configs.get(clazz).setInstance(gson.fromJson(converter.loadJson(file), clazz));
-
-            } catch (IOException e) {
-                e.printStackTrace();
+            } else {
+                this.save();
             }
 
-        } else {
-            try {
-                file.createNewFile();
-                configs.get(clazz).setInstance(clazz.newInstance());
-
-            } catch (InstantiationException | IllegalAccessException | IOException e) {
-                e.printStackTrace();
-                System.err.println("Failed to instanciate class " + clazz.getName() + ".");
-            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
     }
 
-    public void save(Class clazz) {
-        File file = getFile(clazz);
-        Object instance = configs.get(clazz).getInstance();
+    public void save() {
+        File file = getFile();
 
         try {
             converter.dumpJson(instance, file);
@@ -105,18 +65,5 @@ public class Config {
         }
 
     }
-
-    public void saveAll() {
-        for (Class c : configs.keySet()) {
-            save(c);
-        }
-    }
-
-    public void loadAll() {
-        for (Class c : configs.keySet()) {
-            load(c);
-        }
-    }
-
 
 }

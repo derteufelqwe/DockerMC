@@ -1,10 +1,15 @@
 package de.derteufelqwe.bungeeplugin;
 
+import de.derteufelqwe.commons.config.Config;
+import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
+import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
 import de.derteufelqwe.commons.redis.RedisPool;
 import de.derteufelqwe.commons.protobuf.RedisMessages;
 import lombok.SneakyThrows;
+import org.checkerframework.checker.units.qual.C;
 import redis.clients.jedis.*;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -93,15 +98,11 @@ public class Test {
     public static void main(String[] args) {
 
 
-        Thread t1 = new Thread(Test::receive);
-        t1.start();
+        Config<ConfigFile> config = new Config<>(new DefaultYamlConverter(), new DefaultGsonProvider(), "test.yml", new ConfigFile());
+        config.load();
 
-        TimeUnit.MILLISECONDS.sleep(100);
 
-        send();
-
-        t1.stop();
-        System.out.println("Done");
+        config.save();
     }
 
 }

@@ -9,7 +9,7 @@ import com.orbitz.consul.model.agent.ImmutableRegCheck;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
 import com.orbitz.consul.model.agent.Registration;
 import de.derteufelqwe.commons.Constants;
-import de.derteufelqwe.commons.config.Config;
+import de.derteufelqwe.commons.config.ConfigOld;
 import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
 import de.derteufelqwe.commons.config.providers.MinecraftGsonProvider;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
@@ -39,7 +39,7 @@ import java.lang.reflect.Field;
 public final class MinecraftPlugin extends JavaPlugin {
 
     @Getter public static MinecraftPlugin INSTANCE;
-    public static Config CONFIG = new Config(new DefaultYamlConverter(), new MinecraftGsonProvider());
+    public static ConfigOld CONFIG = new ConfigOld(new DefaultYamlConverter(), new MinecraftGsonProvider());
     @Getter private static SessionBuilder sessionBuilder = new SessionBuilder("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT);
 
     private Consul consul = Consul.builder().withHostAndPort(HostAndPort.fromParts(Constants.CONSUL_HOST, Constants.CONSUL_PORT)).build();
