@@ -1,15 +1,26 @@
-package de.derteufelqwe.commons;
+package de.derteufelqwe.commons.misc;
 
+import com.google.common.collect.Iterables;
+import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.exceptions.ConfigException;
+import org.apache.commons.io.FileUtils;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -18,8 +29,15 @@ import java.util.stream.Collectors;
  */
 public class MetaDataBase {
 
+    private final Pattern RE_FIND_CONTAINER_ID = Pattern.compile("docker/(.+)");
+
+
+    protected String containerId = "";
+
+
     public MetaDataBase() {
     }
+
 
     /**
      * Gets a String from the env
@@ -109,6 +127,32 @@ public class MetaDataBase {
         }
 
         return resMap;
+    }
+
+    public String getContainerId() {
+        if (this.containerId == null || this.containerId.equals("")) {
+            File file = new File("/proc/self/cgroup");
+
+            try {
+                List<String> lines = FileUtils.readLines(file, StandardCharsets.UTF_8);
+                String line = Iterables.getLast(
+                        lines.stream()
+                            .filter(l -> l.contains("docker"))
+                            .collect(Collectors.toList())
+                );
+
+                Matcher m = RE_FIND_CONTAINER_ID.matcher(line);
+                if (m.find()) {
+                    this.containerId = m.group(1);
+                }
+
+
+            } catch (IOException e) {
+                return "";
+            }
+        }
+
+        return containerId;
     }
 
 }

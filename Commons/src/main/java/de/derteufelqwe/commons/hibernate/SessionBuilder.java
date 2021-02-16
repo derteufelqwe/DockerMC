@@ -71,6 +71,7 @@ public class SessionBuilder {
                 .addAnnotatedClass(Bank.class)
                 .addAnnotatedClass(PlayerToBank.class)
                 .addAnnotatedClass(BankTransaction.class)
+                .addAnnotatedClass(ContainerLog.class)
                 .buildSessionFactory();
     }
 

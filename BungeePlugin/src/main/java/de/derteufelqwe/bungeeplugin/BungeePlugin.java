@@ -8,6 +8,7 @@ import com.orbitz.consul.model.agent.Registration;
 import com.orbitz.google.common.net.HostAndPort;
 import de.derteufelqwe.bungeeplugin.api.BungeeAPI;
 import de.derteufelqwe.bungeeplugin.commands.DebugCmd;
+import de.derteufelqwe.bungeeplugin.commands.TestCmd;
 import de.derteufelqwe.bungeeplugin.commands.misc.*;
 import de.derteufelqwe.bungeeplugin.commands.permission.PermissionCommand;
 import de.derteufelqwe.bungeeplugin.commands.permission.PermissionGroupCommand;
@@ -130,6 +131,7 @@ public final class BungeePlugin extends Plugin {
         commandManager.registerCommand(new PermissionCommand());
         commandManager.registerCommand(new PermissionGroupCommand());
         commandManager.registerCommand(new DebugCmd());
+        commandManager.registerCommand(new TestCmd());
 
         // ---  Consul  ---
         this.healthCheck.start();

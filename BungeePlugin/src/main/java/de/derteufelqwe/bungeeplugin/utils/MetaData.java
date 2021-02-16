@@ -1,6 +1,6 @@
 package de.derteufelqwe.bungeeplugin.utils;
 
-import de.derteufelqwe.commons.MetaDataBase;
+import de.derteufelqwe.commons.misc.MetaDataBase;
 import lombok.Getter;
 
 /**

@@ -1,16 +1,15 @@
 package de.derteufelqwe.commons;
 
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
-import de.derteufelqwe.commons.hibernate.objects.DBService;
-import de.derteufelqwe.commons.hibernate.objects.Notification;
-import de.derteufelqwe.commons.hibernate.objects.permissions.Permission;
-import de.derteufelqwe.commons.misc.TimeoutMap;
 import lombok.SneakyThrows;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-
-import javax.persistence.EntityManager;
-import java.util.concurrent.TimeUnit;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.ConfigurationFactory;
+import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilder;
+import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 
 public class SessionTests {
 
@@ -19,20 +18,20 @@ public class SessionTests {
     @SneakyThrows
     public static void main(String[] args) {
 
-        long start = System.nanoTime();
+        ConfigurationBuilder<BuiltConfiguration> builder = ConfigurationFactory.newConfigurationBuilder();
+        builder.setStatusLevel(Level.INFO);
+        BuiltConfiguration config = builder.build();
 
+        config.addAppender(ConsoleAppender.createDefaultAppenderForLayout(PatternLayout.createDefaultLayout()));
 
-        for (int i = 0; i < 10000; i++) {
-//            try (Session session = sessionBuilder.openSession()) {
-////                DBService service = session.get(DBService.class, "nyhfm6fzpi6qgpka0lam26fjb");
-//                session.createNativeQuery("select * from services as s where s.name = 'LobbyServer'", DBService.class).getSingleResult();
-//            }
-        }
+        LoggerContext context = new LoggerContext("TestLogger");
+        context.start(config);
 
-        long end = System.nanoTime();
+        Logger logger = context.getLogger("TestLogger");
 
+        logger.fatal("Test");
+        logger.warn("Test");
 
-        System.out.println("Duration: " + (end - start) / 1000000);
     }
 
 }
