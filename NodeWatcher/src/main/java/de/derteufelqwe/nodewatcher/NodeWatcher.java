@@ -34,7 +34,6 @@ public class NodeWatcher {
 
     private final Pattern RE_MEM_TOTAL = Pattern.compile("MemTotal:\\s+(\\d+).+");
     private final String CONTAINER_FILTER = "Owner=DockerMC";
-    private final String EVENT_TYPE = "die";
 
     @Getter
     private static DockerClientFactory dockerClientFactory;

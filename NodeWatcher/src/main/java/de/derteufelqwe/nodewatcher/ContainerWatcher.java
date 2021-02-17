@@ -288,7 +288,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
     }
 
     /**
-     * Returns all docker containers, which are currently cunning
+     * Returns all docker containers, which are currently running Minecraft or BungeeCord
      *
      * @return
      */

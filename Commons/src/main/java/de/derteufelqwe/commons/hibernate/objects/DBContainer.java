@@ -5,7 +5,6 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -31,10 +30,7 @@ public class DBContainer {
     private String image;
 
     @Type(type = "text")
-    private String logText;
-
-    @OneToMany(mappedBy = "container")
-    private List<ContainerLog> logs = new ArrayList<>();
+    private String log;
 
     private Timestamp lastLogTimestamp;
 
@@ -69,11 +65,11 @@ public class DBContainer {
      * @param toAdd
      */
     public void appendToLog(String toAdd) {
-        if (this.logText == null) {
-            this.logText = toAdd;
+        if (this.log == null) {
+            this.log = toAdd;
 
         } else {
-            this.logText += toAdd;
+            this.log += toAdd;
         }
     }
 

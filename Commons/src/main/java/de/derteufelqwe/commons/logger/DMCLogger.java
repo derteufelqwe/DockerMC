@@ -1,33 +1,40 @@
 package de.derteufelqwe.commons.logger;
 
-import org.checkerframework.checker.units.qual.C;
-
-import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
+/**
+ * A wrapper for the default logger, which filters log messages and forwards the to the default logger if the shall be
+ * logged. This logger is used for DMC logs only.
+ */
 public class DMCLogger {
 
     private Logger logger;
+    private Level level;
 
 
-    public DMCLogger(String name, Level level) {
+    public DMCLogger(String name, Level level, Logger defaultLogger) {
+        this.level = level;
         this.logger = Logger.getLogger(name);
         this.logger.setUseParentHandlers(false);
 
-        Handler handler = new ConsoleHandler();
+        Handler handler = new ForwardHandler(defaultLogger);
         handler.setLevel(level);
-        handler.setFormatter(new DMCFormatter());
         this.logger.addHandler(handler);
     }
 
 
     public void setLevel(Level level) {
+        this.level = level;
         for (Handler handler : this.logger.getHandlers()) {
             handler.setLevel(level);
         }
+    }
+
+    public Level getLevel() {
+        return this.level;
     }
 
 

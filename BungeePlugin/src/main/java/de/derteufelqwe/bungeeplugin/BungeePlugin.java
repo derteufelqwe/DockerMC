@@ -29,6 +29,7 @@ import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
 import de.derteufelqwe.commons.logger.DMCLogger;
+import de.derteufelqwe.commons.logger.DatabaseAppender;
 import de.derteufelqwe.commons.redis.RedisPool;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
@@ -36,14 +37,15 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.async.AsyncLogger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
-import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public final class BungeePlugin extends Plugin {
 
@@ -75,7 +77,7 @@ public final class BungeePlugin extends Plugin {
     private static BungeeAPI bungeeApi;
     public final DBCache DB_CACHE = new DBCache();
     @Getter
-    private static final DMCLogger dmcLogger = new DMCLogger("DMCLogger", Level.WARNING);
+    private static DMCLogger dmcLogger;
 
 
     private BungeeCommandManager commandManager = new BungeeCommandManager(this);
@@ -87,6 +89,7 @@ public final class BungeePlugin extends Plugin {
     public void onEnable() {
         // --- Setup --
         this.addSignalHandlers();
+        dmcLogger = new DMCLogger("DMCLogger", Level.WARNING, getLogger());
         BungeePlugin.PLUGIN = this;
         CONFIG.load();
         this.parseConfigFile(CONFIG.get());
@@ -217,6 +220,22 @@ public final class BungeePlugin extends Plugin {
             tx.commit();
         }
 
+    }
+
+    /**
+     * Modifies the logger to use a database appender
+     */
+    @Deprecated
+    private void modifyLogger() {
+        AsyncLogger logger = (AsyncLogger) LogManager.getLogger("BungeeCord");
+
+        Appender appender = new DatabaseAppender(BungeePlugin.getSessionBuilder(), BungeePlugin.META_DATA.getContainerId(), "DatabaseAppender");
+        appender.start();
+
+        logger.addAppender(appender);
+
+//        System.setOut(new PrintStream(new LoggingOutputStream(this.getLogger(), Level.INFO), true));
+//        System.setErr(new PrintStream(new LoggingOutputStream(this.getLogger(), Level.SEVERE), true));
     }
 
 

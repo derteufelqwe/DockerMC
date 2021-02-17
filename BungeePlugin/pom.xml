@@ -132,6 +132,12 @@
             <systemPath>${project.basedir}/docker/waterfall.jar</systemPath>
         </dependency>
 
+<!--        <dependency>-->
+<!--            <groupId>io.github.waterfallmc</groupId>-->
+<!--            <artifactId>waterfall-log</artifactId>-->
+<!--            <version>1.16-R0.5-SNAPSHOT</version>-->
+<!--&lt;!&ndash;            <scope>provided</scope>&ndash;&gt;-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>com.github.docker-java</groupId>

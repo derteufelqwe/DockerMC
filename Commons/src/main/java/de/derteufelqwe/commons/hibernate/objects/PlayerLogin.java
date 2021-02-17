@@ -36,7 +36,7 @@ public class PlayerLogin {
     }
 
 
-    public long getOnlineDuration() {
+    public long getOnlineDuration() throws DatabaseException {
         if (this.leaveTime == null) {
             throw new DatabaseException("Player " + this.player.getUuid() + " hasn't left yet.");
         }

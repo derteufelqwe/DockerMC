@@ -85,17 +85,17 @@ public class EventsDispatcher implements Listener {
             // ToDo: Maybe make these functions run in parallel
             long start = System.currentTimeMillis();
             this.prepareOnPlayerJoinNetworkDB(event);
-            logger.info("prepareOnPlayerJoin took %s ms.", System.currentTimeMillis() - start);
+            logger.finer("prepareOnPlayerJoin took %s ms.", System.currentTimeMillis() - start);
 
             start = System.currentTimeMillis();
             if (this.checkPlayerBan(event))
                 return;
-            logger.warning("checkPlayerBan took %s ms.", System.currentTimeMillis() - start);
+            logger.finer("checkPlayerBan took %s ms.", System.currentTimeMillis() - start);
 
             start = System.currentTimeMillis();
             if (this.checkIPBan(event))
                 return;
-            logger.config("checkIPBan took %s ms.", System.currentTimeMillis() - start);
+            logger.finer("checkIPBan took %s ms.", System.currentTimeMillis() - start);
 
             this.prepareOnPlayerJoinNetworkRedis(event);
 
@@ -294,7 +294,7 @@ public class EventsDispatcher implements Listener {
     }
 
     /**
-     * Calls the custom {@link BungeePlayerJoinEvent}
+     * Calls the custom {@link BungeePlayerJoinEvent}. This calls the BungeeCord event locally and the redis message
      *
      * @param event
      */
@@ -587,7 +587,6 @@ public class EventsDispatcher implements Listener {
      * @return
      */
     private Long getOldJoinTime(Jedis jedis, String playerName, String serverName) throws NotFoundException {
-        Long oldJoinTime = null;
         String oldJoinTimeString = jedis.get("playerJoinTime#" + playerName + "#" + serverName);
 
         if (oldJoinTimeString == null) {

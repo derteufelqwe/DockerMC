@@ -144,7 +144,7 @@ public class DBPlayer {
     }
 
     /**
-     * Returns the active ban of a player
+     * Returns the active ban of a player or null if no active ban exists
      *
      * @return
      */
