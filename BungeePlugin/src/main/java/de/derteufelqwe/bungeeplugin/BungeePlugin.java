@@ -231,7 +231,7 @@ public final class BungeePlugin extends Plugin {
         Appender appender = new DatabaseAppender(BungeePlugin.getSessionBuilder(), BungeePlugin.META_DATA.getContainerId(), "DatabaseAppender");
         appender.start();
 
-        logger.addAppender(appender);
+//        logger.addAppender(appender);
 
 //        System.setOut(new PrintStream(new LoggingOutputStream(this.getLogger(), Level.INFO), true));
 //        System.setErr(new PrintStream(new LoggingOutputStream(this.getLogger(), Level.SEVERE), true));

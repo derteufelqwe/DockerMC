@@ -2,10 +2,7 @@ package de.derteufelqwe.bungeeplugin.redis;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
-import de.derteufelqwe.bungeeplugin.events.BungeePlayerJoinEvent;
-import de.derteufelqwe.bungeeplugin.events.BungeePlayerLeaveEvent;
-import de.derteufelqwe.bungeeplugin.events.BungeePlayerServerChangeEvent;
-import de.derteufelqwe.bungeeplugin.events.BungeeRequestPlayerServerSendEvent;
+import de.derteufelqwe.bungeeplugin.events.*;
 import de.derteufelqwe.bungeeplugin.runnables.DefaultCallback;
 import de.derteufelqwe.bungeeplugin.runnables.SessionRunnable;
 import de.derteufelqwe.commons.Constants;
@@ -19,6 +16,8 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import javax.annotation.CheckForNull;
+import java.net.Inet4Address;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.UUID;
@@ -176,6 +175,10 @@ public class RedisPublishListener extends BinaryJedisPubSub implements Runnable 
 
     // -----  Infrastructure Message handlers  -----
 
+    /**
+     *
+     * @param message
+     */
     private void onMCServerStarted(RedisMessages.MCServerStarted message) {
         String containerId = message.getContainerId();
 
@@ -183,10 +186,21 @@ public class RedisPublishListener extends BinaryJedisPubSub implements Runnable 
             @Override
             public void run(Session session) {
                 DBContainer container = session.get(DBContainer.class, containerId);
-
                 String serverName = container.getService().getName() + "-" + container.getTaskSlot();
 
+                try {
+                    BungeeAddServerEvent addServerEvent = new BungeeAddServerEvent(
+                            serverName,
+                            (Inet4Address) Inet4Address.getByName(container.getIp()),
+                            container.getId(),
+                            container.getService().getId(),
+                            new DefaultCallback<>()
+                    );
+                    addServerEvent.callEvent();
 
+                } catch (UnknownHostException e) {
+                    e.printStackTrace(System.err);
+                }
             }
         });
 
@@ -194,7 +208,7 @@ public class RedisPublishListener extends BinaryJedisPubSub implements Runnable 
     }
 
     private void onMCServerStopped(RedisMessages.MCServerStopped message) {
-        System.out.println("Added new server");
+        System.out.println("Stopped server server");
     }
 
 }

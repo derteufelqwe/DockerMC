@@ -13,7 +13,6 @@ import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
-import net.md_5.bungee.command.ConsoleCommandSender;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
@@ -56,15 +55,15 @@ public class UnbanCommand extends Command {
     }
 
 
-
     /**
      * Gets the user executing the command. Can be a player or the console user
+     *
      * @param session
      * @param sender
      * @return
      */
     private DBPlayer getExecutorUser(Session session, CommandSender sender) {
-        if (sender instanceof ConsoleCommandSender) {
+        if (!(sender instanceof ProxiedPlayer)) {
             return session.get(DBPlayer.class, Constants.CONSOLE_USER_UUID);
         }
 
@@ -107,7 +106,8 @@ public class UnbanCommand extends Command {
             try {
                 BungeePlugin.getBungeeApi().kickPlayer(targetPlayer, "You got banned!");
 
-            } catch (NotFoundException ignored) {}
+            } catch (NotFoundException ignored) {
+            }
         }
 
 

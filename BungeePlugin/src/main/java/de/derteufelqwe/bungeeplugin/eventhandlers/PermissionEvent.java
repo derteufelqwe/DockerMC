@@ -13,7 +13,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PermissionCheckEvent;
 import net.md_5.bungee.api.plugin.Listener;
-import net.md_5.bungee.command.ConsoleCommandSender;
 import net.md_5.bungee.event.EventHandler;
 import org.hibernate.Session;
 
@@ -41,7 +40,7 @@ public class PermissionEvent implements Listener {
         }
 
         try {
-            if (event.getSender() instanceof ConsoleCommandSender) {
+            if (!(event.getSender() instanceof ProxiedPlayer)) {
                 event.setHasPermission(true);
                 return;
             }

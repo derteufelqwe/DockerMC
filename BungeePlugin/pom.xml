@@ -116,21 +116,21 @@
             <version>1.0</version>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>io.github.waterfallmc</groupId>-->
-<!--            <artifactId>waterfall-api</artifactId>-->
-<!--            <version>1.16-R0.4-SNAPSHOT</version>-->
-<!--            <scope>provided</scope>-->
-<!--        </dependency>-->
-
         <dependency>
             <groupId>io.github.waterfallmc</groupId>
-            <artifactId>waterfall</artifactId>
-            <version>1.16-R0.4-SNAPSHOT</version>
-            <scope>system</scope>
-            <type>jar</type>
-            <systemPath>${project.basedir}/docker/waterfall.jar</systemPath>
+            <artifactId>waterfall-api</artifactId>
+            <version>1.16-R0.5-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>io.github.waterfallmc</groupId>-->
+<!--            <artifactId>waterfall</artifactId>-->
+<!--            <version>1.16-R0.4-SNAPSHOT</version>-->
+<!--            <scope>system</scope>-->
+<!--            <type>jar</type>-->
+<!--            <systemPath>${project.basedir}/docker/waterfall.jar</systemPath>-->
+<!--        </dependency>-->
 
 <!--        <dependency>-->
 <!--            <groupId>io.github.waterfallmc</groupId>-->

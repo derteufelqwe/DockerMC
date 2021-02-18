@@ -7,28 +7,26 @@ import de.derteufelqwe.bungeeplugin.events.BungeePlayerServerChangeEvent;
 import de.derteufelqwe.bungeeplugin.redis.PlayerData;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.bungeeplugin.runnables.DefaultCallback;
-import de.derteufelqwe.bungeeplugin.runnables.PlayerSkinDownloadRunnable;
 import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.exceptions.NotFoundException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.*;
 import de.derteufelqwe.commons.logger.DMCLogger;
 import de.derteufelqwe.commons.protobuf.RedisMessages;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.connection.Server;
-import net.md_5.bungee.api.event.LoginEvent;
-import net.md_5.bungee.api.event.PlayerDisconnectEvent;
-import net.md_5.bungee.api.event.ServerConnectedEvent;
-import net.md_5.bungee.api.event.ServerDisconnectEvent;
+import net.md_5.bungee.api.event.*;
 import net.md_5.bungee.api.plugin.Listener;
-import net.md_5.bungee.connection.InitialHandler;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
+import net.md_5.bungee.protocol.packet.LoginRequest;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import redis.clients.jedis.Jedis;
@@ -39,7 +37,7 @@ import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import java.sql.Timestamp;
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -47,12 +45,20 @@ import java.util.*;
  */
 public class EventsDispatcher implements Listener {
 
+    /*
+     * Event order:
+     * Connecting:    ServerConnectEvent -> ServerSwitchEvent
+     * Changing:      ServerConnectEvent -> ServerSwitchEvent -> ServerDisconnectEvent
+     * Disconnecting: ServerDisconnectEvent
+     */
+
     private SessionBuilder sessionBuilder = BungeePlugin.getSessionBuilder();
     private JedisPool jedisPool = BungeePlugin.getRedisPool().getJedisPool();
     private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
     private DMCLogger logger = BungeePlugin.getDmcLogger();
 
     private RedisMessages.BungeeMessageBase messageBase;
+    private final Method getLoginRequestMethod;
 
     /*
      * Contains players, joined the network but didn't connect to a server yet. This is used to identify when to send the
@@ -72,6 +78,14 @@ public class EventsDispatcher implements Listener {
         this.messageBase = RedisMessages.BungeeMessageBase.newBuilder()
                 .setBungeeCordId(BungeePlugin.BUNGEECORD_ID)
                 .build();
+
+        // Get the method from a user connection, that gives access to the username
+        try {
+            getLoginRequestMethod = Class.forName("net.md_5.bungee.connection.InitialHandler").getMethod("getLoginRequest");
+
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException("Couldn't find method 'getLoginRequest' on class 'InitialHandler'.", e);
+        }
     }
 
     // --- Player Join ---
@@ -79,8 +93,10 @@ public class EventsDispatcher implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerJoinNetwork(LoginEvent event) {
         try {
-            InitialHandler handler = (InitialHandler) event.getConnection();
-            String playerName = handler.getLoginRequest().getData();
+            String playerName = this.extractUsernameFromConnection(event.getConnection());
+            UUID playerId = event.getConnection().getUniqueId();
+            String connectionIp = event.getConnection().getSocketAddress().toString().substring(1).split(":")[0];
+
             this.newlyJoinedPlayers.add(playerName);
 
             // ToDo: Maybe make these functions run in parallel
@@ -89,20 +105,20 @@ public class EventsDispatcher implements Listener {
             logger.finer("prepareOnPlayerJoin took %s ms.", System.currentTimeMillis() - start);
 
             start = System.currentTimeMillis();
-            if (this.checkPlayerBan(event))
+            if (this.checkPlayerBan(event, playerId))
                 return;
             logger.finer("checkPlayerBan took %s ms.", System.currentTimeMillis() - start);
 
             start = System.currentTimeMillis();
-            if (this.checkIPBan(event))
+            if (this.checkIPBan(event, connectionIp))
                 return;
             logger.finer("checkIPBan took %s ms.", System.currentTimeMillis() - start);
 
-            this.prepareOnPlayerJoinNetworkRedis(event);
+            this.prepareOnPlayerJoinNetworkRedis(playerName, playerId, connectionIp);
 
             // --- Setup finished, call events ---
 
-            this.callBungeePlayerJoinEvent(event);
+            this.callBungeePlayerJoinEvent(playerName, playerId);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -114,21 +130,15 @@ public class EventsDispatcher implements Listener {
 
     /**
      * Creates or updates the relevant redis entries for the joining player
-     *
-     * @param event
      */
-    private void prepareOnPlayerJoinNetworkRedis(LoginEvent event) {
-        InitialHandler handler = (InitialHandler) event.getConnection();
-        String playerName = handler.getLoginRequest().getData();
-        String uuid = handler.getUniqueId().toString();
-        String userIp = handler.getAddress().toString().substring(1).split(":")[0];
-        PlayerData playerData = new PlayerData(playerName, uuid, userIp);
+    private void prepareOnPlayerJoinNetworkRedis(String username, UUID playerId, String connectionIp) {
+        PlayerData playerData = new PlayerData(username, playerId.toString(), connectionIp);
 
         // Add the relevant data to redis
         try (Jedis jedis = this.jedisPool.getResource()) {
             jedis.incr("playerCount");
             jedis.incr("bungee#playerCount#" + BungeePlugin.BUNGEECORD_ID);
-            jedis.sadd("bungee#players#" + BungeePlugin.BUNGEECORD_ID, playerName);
+            jedis.sadd("bungee#players#" + BungeePlugin.BUNGEECORD_ID, username);
             jedis.hset("players#" + playerData.getUsername(), playerData.toMap());
         }
     }
@@ -196,16 +206,13 @@ public class EventsDispatcher implements Listener {
      * @param event
      * @return Banned or not
      */
-    private boolean checkPlayerBan(LoginEvent event) {
-        InitialHandler handler = (InitialHandler) event.getConnection();
-        UUID uuid = handler.getUniqueId();
-
+    private boolean checkPlayerBan(LoginEvent event, UUID playerId) {
         try (Session session = sessionBuilder.openSession()) {
             Transaction tx = session.beginTransaction();
 
             try {
                 // Create player object when he joins
-                DBPlayer dbPlayer = session.get(DBPlayer.class, uuid);
+                DBPlayer dbPlayer = session.get(DBPlayer.class, playerId);
                 if (dbPlayer == null) {
                     return false;
                 }
@@ -246,10 +253,7 @@ public class EventsDispatcher implements Listener {
      * @param event
      * @return
      */
-    private boolean checkIPBan(LoginEvent event) {
-        InitialHandler handler = (InitialHandler) event.getConnection();
-        String userIp = handler.getAddress().toString().substring(1).split(":")[0];
-
+    private boolean checkIPBan(LoginEvent event, String userIp) {
         try (Session session = sessionBuilder.openSession()) {
             Transaction tx = session.beginTransaction();
 
@@ -299,22 +303,17 @@ public class EventsDispatcher implements Listener {
 
     /**
      * Calls the custom {@link BungeePlayerJoinEvent}. This calls the BungeeCord event locally and the redis message
-     *
-     * @param event
      */
-    private void callBungeePlayerJoinEvent(LoginEvent event) {
-        InitialHandler handler = (InitialHandler) event.getConnection();
-        String playerName = handler.getLoginRequest().getData();
-        UUID uuid = handler.getUniqueId();
+    private void callBungeePlayerJoinEvent(String username, UUID playerId) {
 
         // Call the event locally
-        BungeePlayerJoinEvent bungeeEvent = new BungeePlayerJoinEvent(uuid, playerName, new DefaultCallback<>());
+        BungeePlayerJoinEvent bungeeEvent = new BungeePlayerJoinEvent(playerId, username, new DefaultCallback<>());
         bungeeEvent.callEvent();
 
         RedisMessages.PlayerJoinNetwork playerJoinNetwork = RedisMessages.PlayerJoinNetwork.newBuilder()
                 .setBase(this.messageBase)
-                .setUuid(this.getUUID(uuid))
-                .setUsername(playerName)
+                .setUuid(this.getUUID(playerId))
+                .setUsername(username)
                 .build();
 
         // Send redis message
@@ -450,7 +449,7 @@ public class EventsDispatcher implements Listener {
     }
 
     private void createLoginDBEntry(ProxiedPlayer player, Server server) {
-        
+
     }
 
     // --- Player disconnect from server ---
@@ -586,6 +585,12 @@ public class EventsDispatcher implements Listener {
     }
 
 
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerChangeServer(ServerSwitchEvent event) {
+
+    }
+
+
     // -----  Utility methods  -----
 
     /**
@@ -623,6 +628,19 @@ public class EventsDispatcher implements Listener {
                 .build();
     }
 
+    private String extractUsernameFromConnection(PendingConnection connection) {
+        try {
+            return ((LoginRequest) getLoginRequestMethod.invoke(connection)).getData();
+
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace(System.err);
+        }
+//        String playerName = handler.getLoginRequest().getData();
+//        String uuid = handler.getUniqueId().toString();
+//        String userIp = handler.getAddress().toString().substring(1).split(":")[0];
+        return null;
+    }
+
 
     @Getter
     @Setter
@@ -640,4 +658,5 @@ public class EventsDispatcher implements Listener {
             this.newServer = newServer;
         }
     }
+
 }

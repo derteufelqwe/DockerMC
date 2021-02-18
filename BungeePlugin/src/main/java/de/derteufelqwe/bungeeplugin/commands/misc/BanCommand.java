@@ -13,17 +13,11 @@ import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
-import net.md_5.bungee.command.ConsoleCommandSender;
-import org.apache.commons.cli.*;
-import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
-import java.io.PrintWriter;
-import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Bans a player from the whole network
@@ -74,6 +68,7 @@ public class BanCommand extends Command {
     /**
      * Parses the duration for the format [days:hours:minutes] and returns the time in milliseconds.
      * -1 means permanent
+     *
      * @param duration
      * @return
      * @throws RuntimeException
@@ -91,9 +86,9 @@ public class BanCommand extends Command {
             long hours = Long.parseLong(splits[1]);
             long minutes = Long.parseLong(splits[2]);
 
-            assert  days >= 0;
-            assert  hours >= 0;
-            assert  minutes >= 0;
+            assert days >= 0;
+            assert hours >= 0;
+            assert minutes >= 0;
 
             return (days * 12 * 60 * 60 + hours * 60 * 60 + minutes * 60) * 1000;
 
@@ -105,12 +100,13 @@ public class BanCommand extends Command {
 
     /**
      * Gets the user executing the command. Can be a player or the console user
+     *
      * @param session
      * @param sender
      * @return
      */
     private DBPlayer getExecutorUser(Session session, CommandSender sender) {
-        if (sender instanceof ConsoleCommandSender) {
+        if (!(sender instanceof ProxiedPlayer)) {
             return session.get(DBPlayer.class, Constants.CONSOLE_USER_UUID);
         }
 
@@ -145,7 +141,8 @@ public class BanCommand extends Command {
             try {
                 BungeePlugin.getBungeeApi().kickPlayer(targetPlayer, "You got banned!");
 
-            } catch (NotFoundException ignored) {}
+            } catch (NotFoundException ignored) {
+            }
         }
     }
 

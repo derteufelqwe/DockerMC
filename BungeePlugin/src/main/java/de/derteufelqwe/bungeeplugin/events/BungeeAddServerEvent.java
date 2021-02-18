@@ -6,27 +6,29 @@ import lombok.ToString;
 import net.md_5.bungee.api.Callback;
 import net.md_5.bungee.api.event.AsyncEvent;
 
+import java.net.Inet4Address;
 import java.util.UUID;
 
 /**
- * Fired when a player joins the Network.
- * Corresponds to {@link de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetwork}
- *
- * When this event gets fired, you can be sure, that all required objects in the DB and redis are set
+ * Fired when a new Minecraft server is ready and wants to be registered to BungeeCord
  */
 @Getter
 @ToString
 @EqualsAndHashCode
 public class BungeeAddServerEvent extends AsyncEvent<BungeeAddServerEvent> {
 
-    private UUID playerId;
+    private String name;
+    private Inet4Address ip;
+    private String containerId;
+    private String serviceId;
 
-    private String playerName;
 
-    public BungeeAddServerEvent(UUID playerId, String playerName, Callback<BungeeAddServerEvent> done) {
+    public BungeeAddServerEvent(String name, Inet4Address ip, String containerId, String serviceId, Callback<BungeeAddServerEvent> done) {
         super(done);
-        this.playerId = playerId;
-        this.playerName = playerName;
+        this.name = name;
+        this.ip = ip;
+        this.containerId = containerId;
+        this.serviceId = serviceId;
     }
 
 }
