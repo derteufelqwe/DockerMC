@@ -165,7 +165,11 @@ public class ContainerTemplate extends DockerObjTemplate {
      * Returns a list of the environment variables
      */
     protected List<String> getEnvironmentVariables() {
-        return new ArrayList<>();
+        List<String> envs = new ArrayList<>();
+
+        envs.add("NODE_ID={{ .Node.ID }}");
+
+        return envs;
     }
 
     /**
@@ -185,9 +189,18 @@ public class ContainerTemplate extends DockerObjTemplate {
                 .withNanoCPUs(nanoCpu)
                 .withBinds(this.getBindMounts())
                 .withMounts(this.getMounts())
+                .withRestartPolicy(this.getRestartPolicy())
                 .withPortBindings(this.getPortBindings());
 
         return hostConfig;
+    }
+
+    /**
+     * Returns the restart policy for the container
+     * @return
+     */
+    protected RestartPolicy getRestartPolicy() {
+        return RestartPolicy.unlessStoppedRestart();
     }
 
     /**

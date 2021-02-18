@@ -10,13 +10,17 @@ message UUID {
 /**
  * Types of the available packages
  */
-enum PackageType {
-  PLAYER_JOIN_NETWORK   = 0;
-  PLAYER_LEAVE_NETWORK  = 1;
-  PLAYER_CHANGE_SERVER  = 2;
-  REQUEST_PLAYER_KICK   = 3;
-  REQUEST_PLAYER_SEND   = 4;
-}
+//enum PackageType {
+//  // BungeeCord messages
+//  PLAYER_JOIN_NETWORK   = 0;
+//  PLAYER_LEAVE_NETWORK  = 1;
+//  PLAYER_CHANGE_SERVER  = 2;
+//  REQUEST_PLAYER_KICK   = 3;
+//  REQUEST_PLAYER_SEND   = 4;
+//  // Server discovery messages
+//  MC_SERVER_STARTED     = 5;
+//  MC_SERVER_STOPPED     = 6;
+//}
 
 
 /**
@@ -71,6 +75,22 @@ message RequestPlayerKick {
 
 
 /**
+ * Informs all receivers that a new MC server started and is available by now.
+ */
+message MCServerStarted {
+  string containerId  = 1;
+}
+
+
+/**
+ * Informs all receivers that a MC server stopped and is unabailable by now.
+ */
+message MCServerStopped {
+  string containerId  = 1;
+}
+
+
+/**
  * Requests the proxy to send the player to a different server
  */
 message RequestPlayerSend {
@@ -85,10 +105,11 @@ message RequestPlayerSend {
  * The redis pub sub messages
  */
 message RedisMessage {
-  PackageType type                      = 1;
-  PlayerJoinNetwork playerJoinNetwork   = 2;
-  PlayerLeaveNetwork playerLeaveNetwork = 3;
-  PlayerChangeServer playerChangeServer = 4;
-  RequestPlayerKick requestPlayerKick   = 5;
-  RequestPlayerSend requestPlayerSend   = 6;
+  PlayerJoinNetwork playerJoinNetwork   = 1;
+  PlayerLeaveNetwork playerLeaveNetwork = 2;
+  PlayerChangeServer playerChangeServer = 3;
+  RequestPlayerKick requestPlayerKick   = 4;
+  RequestPlayerSend requestPlayerSend   = 5;
+  MCServerStarted mcServerStarted       = 6;
+  MCServerStopped mcServerStopped       = 7;
 }

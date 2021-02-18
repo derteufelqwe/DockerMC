@@ -69,7 +69,7 @@ public class ContainerLogFetcher extends Thread implements INewContainerObserver
 
 
     public void init() {
-        this.runningContainers = NWUtils.findLocalRunningContainers(sessionBuilder);
+        this.runningContainers = NWUtils.getLocallyRunningContainersFromDB(sessionBuilder);
         System.out.println("[ContainerLogFetcher] Initialized with " + runningContainers.size() + " containers.");
     }
 

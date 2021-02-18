@@ -1,8 +1,10 @@
 package de.derteufelqwe.commons.hibernate;
 
+import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.objects.*;
 import de.derteufelqwe.commons.hibernate.objects.economy.*;
 import de.derteufelqwe.commons.hibernate.objects.permissions.*;
+import lombok.Getter;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
@@ -28,6 +30,12 @@ public class SessionBuilder {
 
         this.sessionFactory = this.buildSessionFactory();
     }
+
+
+    public SessionBuilder() {
+        this("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT);
+    }
+
     
     protected Properties getProperties() {
         Properties properties = new Properties();

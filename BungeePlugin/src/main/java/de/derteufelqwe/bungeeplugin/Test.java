@@ -1,5 +1,6 @@
 package de.derteufelqwe.bungeeplugin;
 
+import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
 import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
@@ -30,7 +31,7 @@ public class Test {
                     RedisMessages.RedisMessage msg = RedisMessages.RedisMessage.parseFrom(message);
                     System.out.println("got message");
                 }
-            }, "messages".getBytes(StandardCharsets.UTF_8));
+            }, Constants.REDIS_MESSAGES_CHANNEL);
         }
     }
 
@@ -39,13 +40,12 @@ public class Test {
         try (Jedis jedis = pool.getResource()) {
             System.out.println("Start send");
             RedisMessages.RedisMessage msg = RedisMessages.RedisMessage.newBuilder()
-                    .setType(RedisMessages.PackageType.PLAYER_JOIN_NETWORK)
                     .setPlayerChangeServer(RedisMessages.PlayerChangeServer.newBuilder()
                             .setOldServer("sdf")
                             .build())
                     .build();
 
-            jedis.publish("messages".getBytes(StandardCharsets.UTF_8), msg.toByteArray());
+            jedis.publish(Constants.REDIS_MESSAGES_CHANNEL, msg.toByteArray());
         }
 
     }

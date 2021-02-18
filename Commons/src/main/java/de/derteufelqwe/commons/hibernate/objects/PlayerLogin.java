@@ -26,6 +26,9 @@ public class PlayerLogin {
     @ManyToOne
     private DBPlayer player;
 
+    @ManyToOne
+    private DBService service;
+
     private Timestamp joinTime = new Timestamp(System.currentTimeMillis());
 
     private Timestamp leaveTime;

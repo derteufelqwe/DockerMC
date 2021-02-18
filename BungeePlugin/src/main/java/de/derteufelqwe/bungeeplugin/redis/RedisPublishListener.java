@@ -7,8 +7,13 @@ import de.derteufelqwe.bungeeplugin.events.BungeePlayerLeaveEvent;
 import de.derteufelqwe.bungeeplugin.events.BungeePlayerServerChangeEvent;
 import de.derteufelqwe.bungeeplugin.events.BungeeRequestPlayerServerSendEvent;
 import de.derteufelqwe.bungeeplugin.runnables.DefaultCallback;
+import de.derteufelqwe.bungeeplugin.runnables.SessionRunnable;
+import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.hibernate.SessionBuilder;
+import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.protobuf.RedisMessages;
 import net.md_5.bungee.api.ProxyServer;
+import org.hibernate.Session;
 import redis.clients.jedis.BinaryJedisPubSub;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -26,6 +31,7 @@ public class RedisPublishListener extends BinaryJedisPubSub implements Runnable 
 
     private JedisPool jedisPool = BungeePlugin.getRedisPool().getJedisPool();
     private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
+    private SessionBuilder sessionBuilder = BungeePlugin.getSessionBuilder();
 
 
     public RedisPublishListener() {
@@ -36,7 +42,7 @@ public class RedisPublishListener extends BinaryJedisPubSub implements Runnable 
     @Override
     public void run() {
         try (Jedis jedis = this.jedisPool.getResource()) {
-            jedis.subscribe(this, "messages".getBytes(StandardCharsets.UTF_8));
+            jedis.subscribe(this, Constants.REDIS_MESSAGES_CHANNEL);
         }
     }
 
@@ -46,30 +52,35 @@ public class RedisPublishListener extends BinaryJedisPubSub implements Runnable 
         try {
             RedisMessages.RedisMessage msg = RedisMessages.RedisMessage.parseFrom(message);
 
-            switch (msg.getType()) {
-                case PLAYER_JOIN_NETWORK:
-                    this.onPlayerJoinMessage(msg.getPlayerJoinNetwork());
-                    break;
 
-                case PLAYER_LEAVE_NETWORK:
-                    this.onPlayerLeaveMessage(msg.getPlayerLeaveNetwork());
-                    break;
-
-                case PLAYER_CHANGE_SERVER:
-                    this.onPlayerServerChangeMessage(msg.getPlayerChangeServer());
-                    break;
-
-                case REQUEST_PLAYER_KICK:
-                    this.onKickPlayerMessage(msg.getRequestPlayerKick());
-                    break;
-
-                case REQUEST_PLAYER_SEND:
-                    this.onSendPlayerMessage(msg.getRequestPlayerSend());
-                    break;
-
-                default:
-                    System.err.println("Found invalid packet type " + msg.getType());
+            if (msg.hasPlayerJoinNetwork()) {
+                this.onPlayerJoinMessage(msg.getPlayerJoinNetwork());
             }
+
+            if (msg.hasPlayerLeaveNetwork()) {
+                this.onPlayerLeaveMessage(msg.getPlayerLeaveNetwork());
+            }
+
+            if (msg.hasPlayerChangeServer()) {
+                this.onPlayerServerChangeMessage(msg.getPlayerChangeServer());
+            }
+
+            if (msg.hasRequestPlayerKick()) {
+                this.onKickPlayerMessage(msg.getRequestPlayerKick());
+            }
+
+            if (msg.hasRequestPlayerSend()) {
+                this.onSendPlayerMessage(msg.getRequestPlayerSend());
+            }
+
+            if (msg.hasMcServerStarted()) {
+                this.onMCServerStarted(msg.getMcServerStarted());
+            }
+
+            if (msg.hasMcServerStopped()) {
+                this.onMCServerStopped(msg.getMcServerStopped());
+            }
+
 
         } catch (InvalidProtocolBufferException e) {
             System.err.println("Failed to decode redis message: " + Arrays.toString(message));
@@ -91,12 +102,12 @@ public class RedisPublishListener extends BinaryJedisPubSub implements Runnable 
             return UUID.fromString(uuid);
 
         } catch (IllegalArgumentException e) {
-            System.err.println("Got invalid uuid " + uuid);
+            System.err.printf("Got invalid uuid '%s'.\n", uuid);
             return null;
         }
     }
 
-    // -----  Message handlers  -----
+    // -----  BungeeCord Message handlers  -----
 
     private void onPlayerJoinMessage(RedisMessages.PlayerJoinNetwork message) {
         if (checkEventNotFromHere(message.getBase()))
@@ -163,6 +174,27 @@ public class RedisPublishListener extends BinaryJedisPubSub implements Runnable 
         BungeePlugin.getBungeeApi().kickPlayer(message.getUsername(), message.getReason());
     }
 
+    // -----  Infrastructure Message handlers  -----
+
+    private void onMCServerStarted(RedisMessages.MCServerStarted message) {
+        String containerId = message.getContainerId();
+
+        ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, new SessionRunnable() {
+            @Override
+            public void run(Session session) {
+                DBContainer container = session.get(DBContainer.class, containerId);
+
+                String serverName = container.getService().getName() + "-" + container.getTaskSlot();
+
+
+            }
+        });
+
+        System.out.println("Added new server");
+    }
+
+    private void onMCServerStopped(RedisMessages.MCServerStopped message) {
+        System.out.println("Added new server");
+    }
+
 }
-
-

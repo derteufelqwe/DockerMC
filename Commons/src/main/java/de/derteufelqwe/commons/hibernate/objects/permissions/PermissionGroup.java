@@ -32,16 +32,13 @@ public class PermissionGroup {
     @ManyToOne
     private PermissionGroup parent;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "group_id")
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Permission> permissions;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "group_id")
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
     private List<ServicePermission> servicePermissions;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "group_id")
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
     private List<TimedPermission> timedPermissions;
 
 

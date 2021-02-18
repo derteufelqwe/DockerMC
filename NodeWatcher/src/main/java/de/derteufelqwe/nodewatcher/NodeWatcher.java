@@ -14,6 +14,7 @@ import de.derteufelqwe.nodewatcher.stats.ContainerResourceWatcher;
 import de.derteufelqwe.nodewatcher.stats.HostResourceWatcher;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import org.checkerframework.checker.units.qual.C;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
@@ -145,6 +146,10 @@ public class NodeWatcher {
                 session.save(node);
                 System.out.println("[NodeWatcher] Added new node " + node);
 
+            } catch (Exception e) {
+                tx.rollback();
+                throw e;
+
             } finally {
                 tx.commit();
             }
@@ -157,14 +162,16 @@ public class NodeWatcher {
      * Starts the watcher for container starts / deaths
      */
     private void startContainerWatcher() {
-        this.containerWatcher = dockerClient.eventsCmd()
-                .withLabelFilter(CONTAINER_FILTER)
-                .withEventFilter("start", "die")
-                .exec(new ContainerWatcher());
+        this.containerWatcher = new ContainerWatcher();
         this.containerWatcher.addNewContainerObserver(this.logFetcher);
         this.containerWatcher.addNewContainerObserver(this.containerResourceWatcher);
 
-        this.containerWatcher.init();
+//        containerWatcher.onStart(null);
+
+        dockerClient.eventsCmd()
+                .withLabelFilter(CONTAINER_FILTER)
+                .withEventFilter("start", "die")
+                .exec(this.containerWatcher);
     }
 
     /**

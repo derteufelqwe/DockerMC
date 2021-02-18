@@ -158,7 +158,9 @@ public class ServiceTemplate extends DockerObjTemplate {
      * @return
      */
     protected Map<String, String> getContainerLabels() {
-        return new HashMap<>();
+        Map<String, String> labels = new HashMap<>();
+
+        return labels;
     }
 
     /**
@@ -168,6 +170,11 @@ public class ServiceTemplate extends DockerObjTemplate {
      */
     protected List<String> getEnvs() {
         List<String> envs = new ArrayList<>();
+
+        envs.add("SERVICE_ID={{ .Service.ID }}");
+        envs.add("NODE_ID={{ .Node.ID }}");
+        envs.add("TASK_NAME={{ .Task.Name }}");
+//        envs.add("TASK_SLOT={{ .Task.Slot }}");
 
         return envs;
     }

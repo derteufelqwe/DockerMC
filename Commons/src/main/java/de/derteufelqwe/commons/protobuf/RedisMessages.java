@@ -14,146 +14,6 @@ public final class RedisMessages {
     registerAllExtensions(
         (com.google.protobuf.ExtensionRegistryLite) registry);
   }
-  /**
-   * <pre>
-   **
-   * Types of the available packages
-   * </pre>
-   *
-   * Protobuf enum {@code de.derteufelqwe.commons.protobuf.PackageType}
-   */
-  public enum PackageType
-      implements com.google.protobuf.ProtocolMessageEnum {
-    /**
-     * <code>PLAYER_JOIN_NETWORK = 0;</code>
-     */
-    PLAYER_JOIN_NETWORK(0),
-    /**
-     * <code>PLAYER_LEAVE_NETWORK = 1;</code>
-     */
-    PLAYER_LEAVE_NETWORK(1),
-    /**
-     * <code>PLAYER_CHANGE_SERVER = 2;</code>
-     */
-    PLAYER_CHANGE_SERVER(2),
-    /**
-     * <code>REQUEST_PLAYER_KICK = 3;</code>
-     */
-    REQUEST_PLAYER_KICK(3),
-    /**
-     * <code>REQUEST_PLAYER_SEND = 4;</code>
-     */
-    REQUEST_PLAYER_SEND(4),
-    UNRECOGNIZED(-1),
-    ;
-
-    /**
-     * <code>PLAYER_JOIN_NETWORK = 0;</code>
-     */
-    public static final int PLAYER_JOIN_NETWORK_VALUE = 0;
-    /**
-     * <code>PLAYER_LEAVE_NETWORK = 1;</code>
-     */
-    public static final int PLAYER_LEAVE_NETWORK_VALUE = 1;
-    /**
-     * <code>PLAYER_CHANGE_SERVER = 2;</code>
-     */
-    public static final int PLAYER_CHANGE_SERVER_VALUE = 2;
-    /**
-     * <code>REQUEST_PLAYER_KICK = 3;</code>
-     */
-    public static final int REQUEST_PLAYER_KICK_VALUE = 3;
-    /**
-     * <code>REQUEST_PLAYER_SEND = 4;</code>
-     */
-    public static final int REQUEST_PLAYER_SEND_VALUE = 4;
-
-
-    public final int getNumber() {
-      if (this == UNRECOGNIZED) {
-        throw new java.lang.IllegalArgumentException(
-            "Can't get the number of an unknown enum value.");
-      }
-      return value;
-    }
-
-    /**
-     * @param value The numeric wire value of the corresponding enum entry.
-     * @return The enum associated with the given numeric wire value.
-     * @deprecated Use {@link #forNumber(int)} instead.
-     */
-    @java.lang.Deprecated
-    public static PackageType valueOf(int value) {
-      return forNumber(value);
-    }
-
-    /**
-     * @param value The numeric wire value of the corresponding enum entry.
-     * @return The enum associated with the given numeric wire value.
-     */
-    public static PackageType forNumber(int value) {
-      switch (value) {
-        case 0: return PLAYER_JOIN_NETWORK;
-        case 1: return PLAYER_LEAVE_NETWORK;
-        case 2: return PLAYER_CHANGE_SERVER;
-        case 3: return REQUEST_PLAYER_KICK;
-        case 4: return REQUEST_PLAYER_SEND;
-        default: return null;
-      }
-    }
-
-    public static com.google.protobuf.Internal.EnumLiteMap<PackageType>
-        internalGetValueMap() {
-      return internalValueMap;
-    }
-    private static final com.google.protobuf.Internal.EnumLiteMap<
-        PackageType> internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<PackageType>() {
-            public PackageType findValueByNumber(int number) {
-              return PackageType.forNumber(number);
-            }
-          };
-
-    public final com.google.protobuf.Descriptors.EnumValueDescriptor
-        getValueDescriptor() {
-      if (this == UNRECOGNIZED) {
-        throw new java.lang.IllegalStateException(
-            "Can't get the descriptor of an unrecognized enum value.");
-      }
-      return getDescriptor().getValues().get(ordinal());
-    }
-    public final com.google.protobuf.Descriptors.EnumDescriptor
-        getDescriptorForType() {
-      return getDescriptor();
-    }
-    public static final com.google.protobuf.Descriptors.EnumDescriptor
-        getDescriptor() {
-      return de.derteufelqwe.commons.protobuf.RedisMessages.getDescriptor().getEnumTypes().get(0);
-    }
-
-    private static final PackageType[] VALUES = values();
-
-    public static PackageType valueOf(
-        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
-      if (desc.getType() != getDescriptor()) {
-        throw new java.lang.IllegalArgumentException(
-          "EnumValueDescriptor is not for this type.");
-      }
-      if (desc.getIndex() == -1) {
-        return UNRECOGNIZED;
-      }
-      return VALUES[desc.getIndex()];
-    }
-
-    private final int value;
-
-    private PackageType(int value) {
-      this.value = value;
-    }
-
-    // @@protoc_insertion_point(enum_scope:de.derteufelqwe.commons.protobuf.PackageType)
-  }
-
   public interface UUIDOrBuilder extends
       // @@protoc_insertion_point(interface_extends:de.derteufelqwe.commons.protobuf.UUID)
       com.google.protobuf.MessageOrBuilder {
@@ -727,11 +587,19 @@ public final class RedisMessages {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * BungeeCordId which sent the message
+     * </pre>
+     *
      * <code>string bungeeCordId = 1;</code>
      * @return The bungeeCordId.
      */
     java.lang.String getBungeeCordId();
     /**
+     * <pre>
+     * BungeeCordId which sent the message
+     * </pre>
+     *
      * <code>string bungeeCordId = 1;</code>
      * @return The bytes for bungeeCordId.
      */
@@ -830,6 +698,10 @@ public final class RedisMessages {
     public static final int BUNGEECORDID_FIELD_NUMBER = 1;
     private volatile java.lang.Object bungeeCordId_;
     /**
+     * <pre>
+     * BungeeCordId which sent the message
+     * </pre>
+     *
      * <code>string bungeeCordId = 1;</code>
      * @return The bungeeCordId.
      */
@@ -847,6 +719,10 @@ public final class RedisMessages {
       }
     }
     /**
+     * <pre>
+     * BungeeCordId which sent the message
+     * </pre>
+     *
      * <code>string bungeeCordId = 1;</code>
      * @return The bytes for bungeeCordId.
      */
@@ -1174,6 +1050,10 @@ public final class RedisMessages {
 
       private java.lang.Object bungeeCordId_ = "";
       /**
+       * <pre>
+       * BungeeCordId which sent the message
+       * </pre>
+       *
        * <code>string bungeeCordId = 1;</code>
        * @return The bungeeCordId.
        */
@@ -1190,6 +1070,10 @@ public final class RedisMessages {
         }
       }
       /**
+       * <pre>
+       * BungeeCordId which sent the message
+       * </pre>
+       *
        * <code>string bungeeCordId = 1;</code>
        * @return The bytes for bungeeCordId.
        */
@@ -1207,6 +1091,10 @@ public final class RedisMessages {
         }
       }
       /**
+       * <pre>
+       * BungeeCordId which sent the message
+       * </pre>
+       *
        * <code>string bungeeCordId = 1;</code>
        * @param value The bungeeCordId to set.
        * @return This builder for chaining.
@@ -1222,6 +1110,10 @@ public final class RedisMessages {
         return this;
       }
       /**
+       * <pre>
+       * BungeeCordId which sent the message
+       * </pre>
+       *
        * <code>string bungeeCordId = 1;</code>
        * @return This builder for chaining.
        */
@@ -1232,6 +1124,10 @@ public final class RedisMessages {
         return this;
       }
       /**
+       * <pre>
+       * BungeeCordId which sent the message
+       * </pre>
+       *
        * <code>string bungeeCordId = 1;</code>
        * @param value The bytes for bungeeCordId to set.
        * @return This builder for chaining.
@@ -5686,6 +5582,1162 @@ public final class RedisMessages {
 
   }
 
+  public interface MCServerStartedOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:de.derteufelqwe.commons.protobuf.MCServerStarted)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string containerId = 1;</code>
+     * @return The containerId.
+     */
+    java.lang.String getContainerId();
+    /**
+     * <code>string containerId = 1;</code>
+     * @return The bytes for containerId.
+     */
+    com.google.protobuf.ByteString
+        getContainerIdBytes();
+  }
+  /**
+   * <pre>
+   **
+   * Informs all receivers that a new MC server started and is available by now.
+   * </pre>
+   *
+   * Protobuf type {@code de.derteufelqwe.commons.protobuf.MCServerStarted}
+   */
+  public static final class MCServerStarted extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:de.derteufelqwe.commons.protobuf.MCServerStarted)
+      MCServerStartedOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use MCServerStarted.newBuilder() to construct.
+    private MCServerStarted(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private MCServerStarted() {
+      containerId_ = "";
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new MCServerStarted();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private MCServerStarted(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            case 10: {
+              java.lang.String s = input.readStringRequireUtf8();
+
+              containerId_ = s;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return de.derteufelqwe.commons.protobuf.RedisMessages.internal_static_de_derteufelqwe_commons_protobuf_MCServerStarted_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return de.derteufelqwe.commons.protobuf.RedisMessages.internal_static_de_derteufelqwe_commons_protobuf_MCServerStarted_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted.class, de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted.Builder.class);
+    }
+
+    public static final int CONTAINERID_FIELD_NUMBER = 1;
+    private volatile java.lang.Object containerId_;
+    /**
+     * <code>string containerId = 1;</code>
+     * @return The containerId.
+     */
+    @java.lang.Override
+    public java.lang.String getContainerId() {
+      java.lang.Object ref = containerId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        containerId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string containerId = 1;</code>
+     * @return The bytes for containerId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getContainerIdBytes() {
+      java.lang.Object ref = containerId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        containerId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!getContainerIdBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, containerId_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!getContainerIdBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, containerId_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted)) {
+        return super.equals(obj);
+      }
+      de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted other = (de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted) obj;
+
+      if (!getContainerId()
+          .equals(other.getContainerId())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + CONTAINERID_FIELD_NUMBER;
+      hash = (53 * hash) + getContainerId().hashCode();
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     **
+     * Informs all receivers that a new MC server started and is available by now.
+     * </pre>
+     *
+     * Protobuf type {@code de.derteufelqwe.commons.protobuf.MCServerStarted}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:de.derteufelqwe.commons.protobuf.MCServerStarted)
+        de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStartedOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return de.derteufelqwe.commons.protobuf.RedisMessages.internal_static_de_derteufelqwe_commons_protobuf_MCServerStarted_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return de.derteufelqwe.commons.protobuf.RedisMessages.internal_static_de_derteufelqwe_commons_protobuf_MCServerStarted_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted.class, de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted.Builder.class);
+      }
+
+      // Construct using de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        containerId_ = "";
+
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return de.derteufelqwe.commons.protobuf.RedisMessages.internal_static_de_derteufelqwe_commons_protobuf_MCServerStarted_descriptor;
+      }
+
+      @java.lang.Override
+      public de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted getDefaultInstanceForType() {
+        return de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted build() {
+        de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted buildPartial() {
+        de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted result = new de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted(this);
+        result.containerId_ = containerId_;
+        onBuilt();
+        return result;
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted) {
+          return mergeFrom((de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted other) {
+        if (other == de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted.getDefaultInstance()) return this;
+        if (!other.getContainerId().isEmpty()) {
+          containerId_ = other.containerId_;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private java.lang.Object containerId_ = "";
+      /**
+       * <code>string containerId = 1;</code>
+       * @return The containerId.
+       */
+      public java.lang.String getContainerId() {
+        java.lang.Object ref = containerId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          containerId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string containerId = 1;</code>
+       * @return The bytes for containerId.
+       */
+      public com.google.protobuf.ByteString
+          getContainerIdBytes() {
+        java.lang.Object ref = containerId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          containerId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string containerId = 1;</code>
+       * @param value The containerId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setContainerId(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        containerId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string containerId = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearContainerId() {
+        
+        containerId_ = getDefaultInstance().getContainerId();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string containerId = 1;</code>
+       * @param value The bytes for containerId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setContainerIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        
+        containerId_ = value;
+        onChanged();
+        return this;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:de.derteufelqwe.commons.protobuf.MCServerStarted)
+    }
+
+    // @@protoc_insertion_point(class_scope:de.derteufelqwe.commons.protobuf.MCServerStarted)
+    private static final de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted();
+    }
+
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<MCServerStarted>
+        PARSER = new com.google.protobuf.AbstractParser<MCServerStarted>() {
+      @java.lang.Override
+      public MCServerStarted parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new MCServerStarted(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<MCServerStarted> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<MCServerStarted> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface MCServerStoppedOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:de.derteufelqwe.commons.protobuf.MCServerStopped)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string containerId = 1;</code>
+     * @return The containerId.
+     */
+    java.lang.String getContainerId();
+    /**
+     * <code>string containerId = 1;</code>
+     * @return The bytes for containerId.
+     */
+    com.google.protobuf.ByteString
+        getContainerIdBytes();
+  }
+  /**
+   * <pre>
+   **
+   * Informs all receivers that a MC server stopped and is unabailable by now.
+   * </pre>
+   *
+   * Protobuf type {@code de.derteufelqwe.commons.protobuf.MCServerStopped}
+   */
+  public static final class MCServerStopped extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:de.derteufelqwe.commons.protobuf.MCServerStopped)
+      MCServerStoppedOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use MCServerStopped.newBuilder() to construct.
+    private MCServerStopped(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private MCServerStopped() {
+      containerId_ = "";
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new MCServerStopped();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private MCServerStopped(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            case 10: {
+              java.lang.String s = input.readStringRequireUtf8();
+
+              containerId_ = s;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return de.derteufelqwe.commons.protobuf.RedisMessages.internal_static_de_derteufelqwe_commons_protobuf_MCServerStopped_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return de.derteufelqwe.commons.protobuf.RedisMessages.internal_static_de_derteufelqwe_commons_protobuf_MCServerStopped_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped.class, de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped.Builder.class);
+    }
+
+    public static final int CONTAINERID_FIELD_NUMBER = 1;
+    private volatile java.lang.Object containerId_;
+    /**
+     * <code>string containerId = 1;</code>
+     * @return The containerId.
+     */
+    @java.lang.Override
+    public java.lang.String getContainerId() {
+      java.lang.Object ref = containerId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        containerId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string containerId = 1;</code>
+     * @return The bytes for containerId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getContainerIdBytes() {
+      java.lang.Object ref = containerId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        containerId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!getContainerIdBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, containerId_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!getContainerIdBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, containerId_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped)) {
+        return super.equals(obj);
+      }
+      de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped other = (de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped) obj;
+
+      if (!getContainerId()
+          .equals(other.getContainerId())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + CONTAINERID_FIELD_NUMBER;
+      hash = (53 * hash) + getContainerId().hashCode();
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     **
+     * Informs all receivers that a MC server stopped and is unabailable by now.
+     * </pre>
+     *
+     * Protobuf type {@code de.derteufelqwe.commons.protobuf.MCServerStopped}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:de.derteufelqwe.commons.protobuf.MCServerStopped)
+        de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStoppedOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return de.derteufelqwe.commons.protobuf.RedisMessages.internal_static_de_derteufelqwe_commons_protobuf_MCServerStopped_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return de.derteufelqwe.commons.protobuf.RedisMessages.internal_static_de_derteufelqwe_commons_protobuf_MCServerStopped_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped.class, de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped.Builder.class);
+      }
+
+      // Construct using de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        containerId_ = "";
+
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return de.derteufelqwe.commons.protobuf.RedisMessages.internal_static_de_derteufelqwe_commons_protobuf_MCServerStopped_descriptor;
+      }
+
+      @java.lang.Override
+      public de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped getDefaultInstanceForType() {
+        return de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped build() {
+        de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped buildPartial() {
+        de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped result = new de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped(this);
+        result.containerId_ = containerId_;
+        onBuilt();
+        return result;
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped) {
+          return mergeFrom((de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped other) {
+        if (other == de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped.getDefaultInstance()) return this;
+        if (!other.getContainerId().isEmpty()) {
+          containerId_ = other.containerId_;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private java.lang.Object containerId_ = "";
+      /**
+       * <code>string containerId = 1;</code>
+       * @return The containerId.
+       */
+      public java.lang.String getContainerId() {
+        java.lang.Object ref = containerId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          containerId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string containerId = 1;</code>
+       * @return The bytes for containerId.
+       */
+      public com.google.protobuf.ByteString
+          getContainerIdBytes() {
+        java.lang.Object ref = containerId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          containerId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string containerId = 1;</code>
+       * @param value The containerId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setContainerId(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        containerId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string containerId = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearContainerId() {
+        
+        containerId_ = getDefaultInstance().getContainerId();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string containerId = 1;</code>
+       * @param value The bytes for containerId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setContainerIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        
+        containerId_ = value;
+        onChanged();
+        return this;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:de.derteufelqwe.commons.protobuf.MCServerStopped)
+    }
+
+    // @@protoc_insertion_point(class_scope:de.derteufelqwe.commons.protobuf.MCServerStopped)
+    private static final de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped();
+    }
+
+    public static de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<MCServerStopped>
+        PARSER = new com.google.protobuf.AbstractParser<MCServerStopped>() {
+      @java.lang.Override
+      public MCServerStopped parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new MCServerStopped(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<MCServerStopped> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<MCServerStopped> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface RequestPlayerSendOrBuilder extends
       // @@protoc_insertion_point(interface_extends:de.derteufelqwe.commons.protobuf.RequestPlayerSend)
       com.google.protobuf.MessageOrBuilder {
@@ -6825,90 +7877,109 @@ public final class RedisMessages {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.PackageType type = 1;</code>
-     * @return The enum numeric value on the wire for type.
-     */
-    int getTypeValue();
-    /**
-     * <code>.de.derteufelqwe.commons.protobuf.PackageType type = 1;</code>
-     * @return The type.
-     */
-    de.derteufelqwe.commons.protobuf.RedisMessages.PackageType getType();
-
-    /**
-     * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 2;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 1;</code>
      * @return Whether the playerJoinNetwork field is set.
      */
     boolean hasPlayerJoinNetwork();
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 2;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 1;</code>
      * @return The playerJoinNetwork.
      */
     de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetwork getPlayerJoinNetwork();
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 2;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 1;</code>
      */
     de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetworkOrBuilder getPlayerJoinNetworkOrBuilder();
 
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 3;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 2;</code>
      * @return Whether the playerLeaveNetwork field is set.
      */
     boolean hasPlayerLeaveNetwork();
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 3;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 2;</code>
      * @return The playerLeaveNetwork.
      */
     de.derteufelqwe.commons.protobuf.RedisMessages.PlayerLeaveNetwork getPlayerLeaveNetwork();
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 3;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 2;</code>
      */
     de.derteufelqwe.commons.protobuf.RedisMessages.PlayerLeaveNetworkOrBuilder getPlayerLeaveNetworkOrBuilder();
 
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 4;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 3;</code>
      * @return Whether the playerChangeServer field is set.
      */
     boolean hasPlayerChangeServer();
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 4;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 3;</code>
      * @return The playerChangeServer.
      */
     de.derteufelqwe.commons.protobuf.RedisMessages.PlayerChangeServer getPlayerChangeServer();
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 4;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 3;</code>
      */
     de.derteufelqwe.commons.protobuf.RedisMessages.PlayerChangeServerOrBuilder getPlayerChangeServerOrBuilder();
 
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 5;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 4;</code>
      * @return Whether the requestPlayerKick field is set.
      */
     boolean hasRequestPlayerKick();
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 5;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 4;</code>
      * @return The requestPlayerKick.
      */
     de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerKick getRequestPlayerKick();
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 5;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 4;</code>
      */
     de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerKickOrBuilder getRequestPlayerKickOrBuilder();
 
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 6;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 5;</code>
      * @return Whether the requestPlayerSend field is set.
      */
     boolean hasRequestPlayerSend();
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 6;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 5;</code>
      * @return The requestPlayerSend.
      */
     de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerSend getRequestPlayerSend();
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 6;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 5;</code>
      */
     de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerSendOrBuilder getRequestPlayerSendOrBuilder();
+
+    /**
+     * <code>.de.derteufelqwe.commons.protobuf.MCServerStarted mcServerStarted = 6;</code>
+     * @return Whether the mcServerStarted field is set.
+     */
+    boolean hasMcServerStarted();
+    /**
+     * <code>.de.derteufelqwe.commons.protobuf.MCServerStarted mcServerStarted = 6;</code>
+     * @return The mcServerStarted.
+     */
+    de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted getMcServerStarted();
+    /**
+     * <code>.de.derteufelqwe.commons.protobuf.MCServerStarted mcServerStarted = 6;</code>
+     */
+    de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStartedOrBuilder getMcServerStartedOrBuilder();
+
+    /**
+     * <code>.de.derteufelqwe.commons.protobuf.MCServerStopped mcServerStopped = 7;</code>
+     * @return Whether the mcServerStopped field is set.
+     */
+    boolean hasMcServerStopped();
+    /**
+     * <code>.de.derteufelqwe.commons.protobuf.MCServerStopped mcServerStopped = 7;</code>
+     * @return The mcServerStopped.
+     */
+    de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped getMcServerStopped();
+    /**
+     * <code>.de.derteufelqwe.commons.protobuf.MCServerStopped mcServerStopped = 7;</code>
+     */
+    de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStoppedOrBuilder getMcServerStoppedOrBuilder();
   }
   /**
    * <pre>
@@ -6928,7 +7999,6 @@ public final class RedisMessages {
       super(builder);
     }
     private RedisMessage() {
-      type_ = 0;
     }
 
     @java.lang.Override
@@ -6961,13 +8031,7 @@ public final class RedisMessages {
             case 0:
               done = true;
               break;
-            case 8: {
-              int rawValue = input.readEnum();
-
-              type_ = rawValue;
-              break;
-            }
-            case 18: {
+            case 10: {
               de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetwork.Builder subBuilder = null;
               if (playerJoinNetwork_ != null) {
                 subBuilder = playerJoinNetwork_.toBuilder();
@@ -6980,7 +8044,7 @@ public final class RedisMessages {
 
               break;
             }
-            case 26: {
+            case 18: {
               de.derteufelqwe.commons.protobuf.RedisMessages.PlayerLeaveNetwork.Builder subBuilder = null;
               if (playerLeaveNetwork_ != null) {
                 subBuilder = playerLeaveNetwork_.toBuilder();
@@ -6993,7 +8057,7 @@ public final class RedisMessages {
 
               break;
             }
-            case 34: {
+            case 26: {
               de.derteufelqwe.commons.protobuf.RedisMessages.PlayerChangeServer.Builder subBuilder = null;
               if (playerChangeServer_ != null) {
                 subBuilder = playerChangeServer_.toBuilder();
@@ -7006,7 +8070,7 @@ public final class RedisMessages {
 
               break;
             }
-            case 42: {
+            case 34: {
               de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerKick.Builder subBuilder = null;
               if (requestPlayerKick_ != null) {
                 subBuilder = requestPlayerKick_.toBuilder();
@@ -7019,7 +8083,7 @@ public final class RedisMessages {
 
               break;
             }
-            case 50: {
+            case 42: {
               de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerSend.Builder subBuilder = null;
               if (requestPlayerSend_ != null) {
                 subBuilder = requestPlayerSend_.toBuilder();
@@ -7028,6 +8092,32 @@ public final class RedisMessages {
               if (subBuilder != null) {
                 subBuilder.mergeFrom(requestPlayerSend_);
                 requestPlayerSend_ = subBuilder.buildPartial();
+              }
+
+              break;
+            }
+            case 50: {
+              de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted.Builder subBuilder = null;
+              if (mcServerStarted_ != null) {
+                subBuilder = mcServerStarted_.toBuilder();
+              }
+              mcServerStarted_ = input.readMessage(de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(mcServerStarted_);
+                mcServerStarted_ = subBuilder.buildPartial();
+              }
+
+              break;
+            }
+            case 58: {
+              de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped.Builder subBuilder = null;
+              if (mcServerStopped_ != null) {
+                subBuilder = mcServerStopped_.toBuilder();
+              }
+              mcServerStopped_ = input.readMessage(de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(mcServerStopped_);
+                mcServerStopped_ = subBuilder.buildPartial();
               }
 
               break;
@@ -7064,29 +8154,10 @@ public final class RedisMessages {
               de.derteufelqwe.commons.protobuf.RedisMessages.RedisMessage.class, de.derteufelqwe.commons.protobuf.RedisMessages.RedisMessage.Builder.class);
     }
 
-    public static final int TYPE_FIELD_NUMBER = 1;
-    private int type_;
-    /**
-     * <code>.de.derteufelqwe.commons.protobuf.PackageType type = 1;</code>
-     * @return The enum numeric value on the wire for type.
-     */
-    @java.lang.Override public int getTypeValue() {
-      return type_;
-    }
-    /**
-     * <code>.de.derteufelqwe.commons.protobuf.PackageType type = 1;</code>
-     * @return The type.
-     */
-    @java.lang.Override public de.derteufelqwe.commons.protobuf.RedisMessages.PackageType getType() {
-      @SuppressWarnings("deprecation")
-      de.derteufelqwe.commons.protobuf.RedisMessages.PackageType result = de.derteufelqwe.commons.protobuf.RedisMessages.PackageType.valueOf(type_);
-      return result == null ? de.derteufelqwe.commons.protobuf.RedisMessages.PackageType.UNRECOGNIZED : result;
-    }
-
-    public static final int PLAYERJOINNETWORK_FIELD_NUMBER = 2;
+    public static final int PLAYERJOINNETWORK_FIELD_NUMBER = 1;
     private de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetwork playerJoinNetwork_;
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 2;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 1;</code>
      * @return Whether the playerJoinNetwork field is set.
      */
     @java.lang.Override
@@ -7094,7 +8165,7 @@ public final class RedisMessages {
       return playerJoinNetwork_ != null;
     }
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 2;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 1;</code>
      * @return The playerJoinNetwork.
      */
     @java.lang.Override
@@ -7102,17 +8173,17 @@ public final class RedisMessages {
       return playerJoinNetwork_ == null ? de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetwork.getDefaultInstance() : playerJoinNetwork_;
     }
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 2;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 1;</code>
      */
     @java.lang.Override
     public de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetworkOrBuilder getPlayerJoinNetworkOrBuilder() {
       return getPlayerJoinNetwork();
     }
 
-    public static final int PLAYERLEAVENETWORK_FIELD_NUMBER = 3;
+    public static final int PLAYERLEAVENETWORK_FIELD_NUMBER = 2;
     private de.derteufelqwe.commons.protobuf.RedisMessages.PlayerLeaveNetwork playerLeaveNetwork_;
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 3;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 2;</code>
      * @return Whether the playerLeaveNetwork field is set.
      */
     @java.lang.Override
@@ -7120,7 +8191,7 @@ public final class RedisMessages {
       return playerLeaveNetwork_ != null;
     }
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 3;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 2;</code>
      * @return The playerLeaveNetwork.
      */
     @java.lang.Override
@@ -7128,17 +8199,17 @@ public final class RedisMessages {
       return playerLeaveNetwork_ == null ? de.derteufelqwe.commons.protobuf.RedisMessages.PlayerLeaveNetwork.getDefaultInstance() : playerLeaveNetwork_;
     }
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 3;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 2;</code>
      */
     @java.lang.Override
     public de.derteufelqwe.commons.protobuf.RedisMessages.PlayerLeaveNetworkOrBuilder getPlayerLeaveNetworkOrBuilder() {
       return getPlayerLeaveNetwork();
     }
 
-    public static final int PLAYERCHANGESERVER_FIELD_NUMBER = 4;
+    public static final int PLAYERCHANGESERVER_FIELD_NUMBER = 3;
     private de.derteufelqwe.commons.protobuf.RedisMessages.PlayerChangeServer playerChangeServer_;
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 4;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 3;</code>
      * @return Whether the playerChangeServer field is set.
      */
     @java.lang.Override
@@ -7146,7 +8217,7 @@ public final class RedisMessages {
       return playerChangeServer_ != null;
     }
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 4;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 3;</code>
      * @return The playerChangeServer.
      */
     @java.lang.Override
@@ -7154,17 +8225,17 @@ public final class RedisMessages {
       return playerChangeServer_ == null ? de.derteufelqwe.commons.protobuf.RedisMessages.PlayerChangeServer.getDefaultInstance() : playerChangeServer_;
     }
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 4;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 3;</code>
      */
     @java.lang.Override
     public de.derteufelqwe.commons.protobuf.RedisMessages.PlayerChangeServerOrBuilder getPlayerChangeServerOrBuilder() {
       return getPlayerChangeServer();
     }
 
-    public static final int REQUESTPLAYERKICK_FIELD_NUMBER = 5;
+    public static final int REQUESTPLAYERKICK_FIELD_NUMBER = 4;
     private de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerKick requestPlayerKick_;
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 5;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 4;</code>
      * @return Whether the requestPlayerKick field is set.
      */
     @java.lang.Override
@@ -7172,7 +8243,7 @@ public final class RedisMessages {
       return requestPlayerKick_ != null;
     }
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 5;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 4;</code>
      * @return The requestPlayerKick.
      */
     @java.lang.Override
@@ -7180,17 +8251,17 @@ public final class RedisMessages {
       return requestPlayerKick_ == null ? de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerKick.getDefaultInstance() : requestPlayerKick_;
     }
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 5;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 4;</code>
      */
     @java.lang.Override
     public de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerKickOrBuilder getRequestPlayerKickOrBuilder() {
       return getRequestPlayerKick();
     }
 
-    public static final int REQUESTPLAYERSEND_FIELD_NUMBER = 6;
+    public static final int REQUESTPLAYERSEND_FIELD_NUMBER = 5;
     private de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerSend requestPlayerSend_;
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 6;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 5;</code>
      * @return Whether the requestPlayerSend field is set.
      */
     @java.lang.Override
@@ -7198,7 +8269,7 @@ public final class RedisMessages {
       return requestPlayerSend_ != null;
     }
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 6;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 5;</code>
      * @return The requestPlayerSend.
      */
     @java.lang.Override
@@ -7206,11 +8277,63 @@ public final class RedisMessages {
       return requestPlayerSend_ == null ? de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerSend.getDefaultInstance() : requestPlayerSend_;
     }
     /**
-     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 6;</code>
+     * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 5;</code>
      */
     @java.lang.Override
     public de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerSendOrBuilder getRequestPlayerSendOrBuilder() {
       return getRequestPlayerSend();
+    }
+
+    public static final int MCSERVERSTARTED_FIELD_NUMBER = 6;
+    private de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted mcServerStarted_;
+    /**
+     * <code>.de.derteufelqwe.commons.protobuf.MCServerStarted mcServerStarted = 6;</code>
+     * @return Whether the mcServerStarted field is set.
+     */
+    @java.lang.Override
+    public boolean hasMcServerStarted() {
+      return mcServerStarted_ != null;
+    }
+    /**
+     * <code>.de.derteufelqwe.commons.protobuf.MCServerStarted mcServerStarted = 6;</code>
+     * @return The mcServerStarted.
+     */
+    @java.lang.Override
+    public de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted getMcServerStarted() {
+      return mcServerStarted_ == null ? de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted.getDefaultInstance() : mcServerStarted_;
+    }
+    /**
+     * <code>.de.derteufelqwe.commons.protobuf.MCServerStarted mcServerStarted = 6;</code>
+     */
+    @java.lang.Override
+    public de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStartedOrBuilder getMcServerStartedOrBuilder() {
+      return getMcServerStarted();
+    }
+
+    public static final int MCSERVERSTOPPED_FIELD_NUMBER = 7;
+    private de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped mcServerStopped_;
+    /**
+     * <code>.de.derteufelqwe.commons.protobuf.MCServerStopped mcServerStopped = 7;</code>
+     * @return Whether the mcServerStopped field is set.
+     */
+    @java.lang.Override
+    public boolean hasMcServerStopped() {
+      return mcServerStopped_ != null;
+    }
+    /**
+     * <code>.de.derteufelqwe.commons.protobuf.MCServerStopped mcServerStopped = 7;</code>
+     * @return The mcServerStopped.
+     */
+    @java.lang.Override
+    public de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped getMcServerStopped() {
+      return mcServerStopped_ == null ? de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped.getDefaultInstance() : mcServerStopped_;
+    }
+    /**
+     * <code>.de.derteufelqwe.commons.protobuf.MCServerStopped mcServerStopped = 7;</code>
+     */
+    @java.lang.Override
+    public de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStoppedOrBuilder getMcServerStoppedOrBuilder() {
+      return getMcServerStopped();
     }
 
     private byte memoizedIsInitialized = -1;
@@ -7227,23 +8350,26 @@ public final class RedisMessages {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (type_ != de.derteufelqwe.commons.protobuf.RedisMessages.PackageType.PLAYER_JOIN_NETWORK.getNumber()) {
-        output.writeEnum(1, type_);
-      }
       if (playerJoinNetwork_ != null) {
-        output.writeMessage(2, getPlayerJoinNetwork());
+        output.writeMessage(1, getPlayerJoinNetwork());
       }
       if (playerLeaveNetwork_ != null) {
-        output.writeMessage(3, getPlayerLeaveNetwork());
+        output.writeMessage(2, getPlayerLeaveNetwork());
       }
       if (playerChangeServer_ != null) {
-        output.writeMessage(4, getPlayerChangeServer());
+        output.writeMessage(3, getPlayerChangeServer());
       }
       if (requestPlayerKick_ != null) {
-        output.writeMessage(5, getRequestPlayerKick());
+        output.writeMessage(4, getRequestPlayerKick());
       }
       if (requestPlayerSend_ != null) {
-        output.writeMessage(6, getRequestPlayerSend());
+        output.writeMessage(5, getRequestPlayerSend());
+      }
+      if (mcServerStarted_ != null) {
+        output.writeMessage(6, getMcServerStarted());
+      }
+      if (mcServerStopped_ != null) {
+        output.writeMessage(7, getMcServerStopped());
       }
       unknownFields.writeTo(output);
     }
@@ -7254,29 +8380,33 @@ public final class RedisMessages {
       if (size != -1) return size;
 
       size = 0;
-      if (type_ != de.derteufelqwe.commons.protobuf.RedisMessages.PackageType.PLAYER_JOIN_NETWORK.getNumber()) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(1, type_);
-      }
       if (playerJoinNetwork_ != null) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, getPlayerJoinNetwork());
+          .computeMessageSize(1, getPlayerJoinNetwork());
       }
       if (playerLeaveNetwork_ != null) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(3, getPlayerLeaveNetwork());
+          .computeMessageSize(2, getPlayerLeaveNetwork());
       }
       if (playerChangeServer_ != null) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(4, getPlayerChangeServer());
+          .computeMessageSize(3, getPlayerChangeServer());
       }
       if (requestPlayerKick_ != null) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(5, getRequestPlayerKick());
+          .computeMessageSize(4, getRequestPlayerKick());
       }
       if (requestPlayerSend_ != null) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(6, getRequestPlayerSend());
+          .computeMessageSize(5, getRequestPlayerSend());
+      }
+      if (mcServerStarted_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(6, getMcServerStarted());
+      }
+      if (mcServerStopped_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(7, getMcServerStopped());
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -7293,7 +8423,6 @@ public final class RedisMessages {
       }
       de.derteufelqwe.commons.protobuf.RedisMessages.RedisMessage other = (de.derteufelqwe.commons.protobuf.RedisMessages.RedisMessage) obj;
 
-      if (type_ != other.type_) return false;
       if (hasPlayerJoinNetwork() != other.hasPlayerJoinNetwork()) return false;
       if (hasPlayerJoinNetwork()) {
         if (!getPlayerJoinNetwork()
@@ -7319,6 +8448,16 @@ public final class RedisMessages {
         if (!getRequestPlayerSend()
             .equals(other.getRequestPlayerSend())) return false;
       }
+      if (hasMcServerStarted() != other.hasMcServerStarted()) return false;
+      if (hasMcServerStarted()) {
+        if (!getMcServerStarted()
+            .equals(other.getMcServerStarted())) return false;
+      }
+      if (hasMcServerStopped() != other.hasMcServerStopped()) return false;
+      if (hasMcServerStopped()) {
+        if (!getMcServerStopped()
+            .equals(other.getMcServerStopped())) return false;
+      }
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -7330,8 +8469,6 @@ public final class RedisMessages {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + TYPE_FIELD_NUMBER;
-      hash = (53 * hash) + type_;
       if (hasPlayerJoinNetwork()) {
         hash = (37 * hash) + PLAYERJOINNETWORK_FIELD_NUMBER;
         hash = (53 * hash) + getPlayerJoinNetwork().hashCode();
@@ -7351,6 +8488,14 @@ public final class RedisMessages {
       if (hasRequestPlayerSend()) {
         hash = (37 * hash) + REQUESTPLAYERSEND_FIELD_NUMBER;
         hash = (53 * hash) + getRequestPlayerSend().hashCode();
+      }
+      if (hasMcServerStarted()) {
+        hash = (37 * hash) + MCSERVERSTARTED_FIELD_NUMBER;
+        hash = (53 * hash) + getMcServerStarted().hashCode();
+      }
+      if (hasMcServerStopped()) {
+        hash = (37 * hash) + MCSERVERSTOPPED_FIELD_NUMBER;
+        hash = (53 * hash) + getMcServerStopped().hashCode();
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -7490,8 +8635,6 @@ public final class RedisMessages {
       @java.lang.Override
       public Builder clear() {
         super.clear();
-        type_ = 0;
-
         if (playerJoinNetworkBuilder_ == null) {
           playerJoinNetwork_ = null;
         } else {
@@ -7522,6 +8665,18 @@ public final class RedisMessages {
           requestPlayerSend_ = null;
           requestPlayerSendBuilder_ = null;
         }
+        if (mcServerStartedBuilder_ == null) {
+          mcServerStarted_ = null;
+        } else {
+          mcServerStarted_ = null;
+          mcServerStartedBuilder_ = null;
+        }
+        if (mcServerStoppedBuilder_ == null) {
+          mcServerStopped_ = null;
+        } else {
+          mcServerStopped_ = null;
+          mcServerStoppedBuilder_ = null;
+        }
         return this;
       }
 
@@ -7548,7 +8703,6 @@ public final class RedisMessages {
       @java.lang.Override
       public de.derteufelqwe.commons.protobuf.RedisMessages.RedisMessage buildPartial() {
         de.derteufelqwe.commons.protobuf.RedisMessages.RedisMessage result = new de.derteufelqwe.commons.protobuf.RedisMessages.RedisMessage(this);
-        result.type_ = type_;
         if (playerJoinNetworkBuilder_ == null) {
           result.playerJoinNetwork_ = playerJoinNetwork_;
         } else {
@@ -7573,6 +8727,16 @@ public final class RedisMessages {
           result.requestPlayerSend_ = requestPlayerSend_;
         } else {
           result.requestPlayerSend_ = requestPlayerSendBuilder_.build();
+        }
+        if (mcServerStartedBuilder_ == null) {
+          result.mcServerStarted_ = mcServerStarted_;
+        } else {
+          result.mcServerStarted_ = mcServerStartedBuilder_.build();
+        }
+        if (mcServerStoppedBuilder_ == null) {
+          result.mcServerStopped_ = mcServerStopped_;
+        } else {
+          result.mcServerStopped_ = mcServerStoppedBuilder_.build();
         }
         onBuilt();
         return result;
@@ -7622,9 +8786,6 @@ public final class RedisMessages {
 
       public Builder mergeFrom(de.derteufelqwe.commons.protobuf.RedisMessages.RedisMessage other) {
         if (other == de.derteufelqwe.commons.protobuf.RedisMessages.RedisMessage.getDefaultInstance()) return this;
-        if (other.type_ != 0) {
-          setTypeValue(other.getTypeValue());
-        }
         if (other.hasPlayerJoinNetwork()) {
           mergePlayerJoinNetwork(other.getPlayerJoinNetwork());
         }
@@ -7639,6 +8800,12 @@ public final class RedisMessages {
         }
         if (other.hasRequestPlayerSend()) {
           mergeRequestPlayerSend(other.getRequestPlayerSend());
+        }
+        if (other.hasMcServerStarted()) {
+          mergeMcServerStarted(other.getMcServerStarted());
+        }
+        if (other.hasMcServerStopped()) {
+          mergeMcServerStopped(other.getMcServerStopped());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -7669,72 +8836,18 @@ public final class RedisMessages {
         return this;
       }
 
-      private int type_ = 0;
-      /**
-       * <code>.de.derteufelqwe.commons.protobuf.PackageType type = 1;</code>
-       * @return The enum numeric value on the wire for type.
-       */
-      @java.lang.Override public int getTypeValue() {
-        return type_;
-      }
-      /**
-       * <code>.de.derteufelqwe.commons.protobuf.PackageType type = 1;</code>
-       * @param value The enum numeric value on the wire for type to set.
-       * @return This builder for chaining.
-       */
-      public Builder setTypeValue(int value) {
-        
-        type_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.de.derteufelqwe.commons.protobuf.PackageType type = 1;</code>
-       * @return The type.
-       */
-      @java.lang.Override
-      public de.derteufelqwe.commons.protobuf.RedisMessages.PackageType getType() {
-        @SuppressWarnings("deprecation")
-        de.derteufelqwe.commons.protobuf.RedisMessages.PackageType result = de.derteufelqwe.commons.protobuf.RedisMessages.PackageType.valueOf(type_);
-        return result == null ? de.derteufelqwe.commons.protobuf.RedisMessages.PackageType.UNRECOGNIZED : result;
-      }
-      /**
-       * <code>.de.derteufelqwe.commons.protobuf.PackageType type = 1;</code>
-       * @param value The type to set.
-       * @return This builder for chaining.
-       */
-      public Builder setType(de.derteufelqwe.commons.protobuf.RedisMessages.PackageType value) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        
-        type_ = value.getNumber();
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.de.derteufelqwe.commons.protobuf.PackageType type = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearType() {
-        
-        type_ = 0;
-        onChanged();
-        return this;
-      }
-
       private de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetwork playerJoinNetwork_;
       private com.google.protobuf.SingleFieldBuilderV3<
           de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetwork, de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetwork.Builder, de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetworkOrBuilder> playerJoinNetworkBuilder_;
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 2;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 1;</code>
        * @return Whether the playerJoinNetwork field is set.
        */
       public boolean hasPlayerJoinNetwork() {
         return playerJoinNetworkBuilder_ != null || playerJoinNetwork_ != null;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 2;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 1;</code>
        * @return The playerJoinNetwork.
        */
       public de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetwork getPlayerJoinNetwork() {
@@ -7745,7 +8858,7 @@ public final class RedisMessages {
         }
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 2;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 1;</code>
        */
       public Builder setPlayerJoinNetwork(de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetwork value) {
         if (playerJoinNetworkBuilder_ == null) {
@@ -7761,7 +8874,7 @@ public final class RedisMessages {
         return this;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 2;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 1;</code>
        */
       public Builder setPlayerJoinNetwork(
           de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetwork.Builder builderForValue) {
@@ -7775,7 +8888,7 @@ public final class RedisMessages {
         return this;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 2;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 1;</code>
        */
       public Builder mergePlayerJoinNetwork(de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetwork value) {
         if (playerJoinNetworkBuilder_ == null) {
@@ -7793,7 +8906,7 @@ public final class RedisMessages {
         return this;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 2;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 1;</code>
        */
       public Builder clearPlayerJoinNetwork() {
         if (playerJoinNetworkBuilder_ == null) {
@@ -7807,7 +8920,7 @@ public final class RedisMessages {
         return this;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 2;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 1;</code>
        */
       public de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetwork.Builder getPlayerJoinNetworkBuilder() {
         
@@ -7815,7 +8928,7 @@ public final class RedisMessages {
         return getPlayerJoinNetworkFieldBuilder().getBuilder();
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 2;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 1;</code>
        */
       public de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetworkOrBuilder getPlayerJoinNetworkOrBuilder() {
         if (playerJoinNetworkBuilder_ != null) {
@@ -7826,7 +8939,7 @@ public final class RedisMessages {
         }
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 2;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerJoinNetwork playerJoinNetwork = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetwork, de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetwork.Builder, de.derteufelqwe.commons.protobuf.RedisMessages.PlayerJoinNetworkOrBuilder> 
@@ -7846,14 +8959,14 @@ public final class RedisMessages {
       private com.google.protobuf.SingleFieldBuilderV3<
           de.derteufelqwe.commons.protobuf.RedisMessages.PlayerLeaveNetwork, de.derteufelqwe.commons.protobuf.RedisMessages.PlayerLeaveNetwork.Builder, de.derteufelqwe.commons.protobuf.RedisMessages.PlayerLeaveNetworkOrBuilder> playerLeaveNetworkBuilder_;
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 3;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 2;</code>
        * @return Whether the playerLeaveNetwork field is set.
        */
       public boolean hasPlayerLeaveNetwork() {
         return playerLeaveNetworkBuilder_ != null || playerLeaveNetwork_ != null;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 3;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 2;</code>
        * @return The playerLeaveNetwork.
        */
       public de.derteufelqwe.commons.protobuf.RedisMessages.PlayerLeaveNetwork getPlayerLeaveNetwork() {
@@ -7864,7 +8977,7 @@ public final class RedisMessages {
         }
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 3;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 2;</code>
        */
       public Builder setPlayerLeaveNetwork(de.derteufelqwe.commons.protobuf.RedisMessages.PlayerLeaveNetwork value) {
         if (playerLeaveNetworkBuilder_ == null) {
@@ -7880,7 +8993,7 @@ public final class RedisMessages {
         return this;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 3;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 2;</code>
        */
       public Builder setPlayerLeaveNetwork(
           de.derteufelqwe.commons.protobuf.RedisMessages.PlayerLeaveNetwork.Builder builderForValue) {
@@ -7894,7 +9007,7 @@ public final class RedisMessages {
         return this;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 3;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 2;</code>
        */
       public Builder mergePlayerLeaveNetwork(de.derteufelqwe.commons.protobuf.RedisMessages.PlayerLeaveNetwork value) {
         if (playerLeaveNetworkBuilder_ == null) {
@@ -7912,7 +9025,7 @@ public final class RedisMessages {
         return this;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 3;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 2;</code>
        */
       public Builder clearPlayerLeaveNetwork() {
         if (playerLeaveNetworkBuilder_ == null) {
@@ -7926,7 +9039,7 @@ public final class RedisMessages {
         return this;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 3;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 2;</code>
        */
       public de.derteufelqwe.commons.protobuf.RedisMessages.PlayerLeaveNetwork.Builder getPlayerLeaveNetworkBuilder() {
         
@@ -7934,7 +9047,7 @@ public final class RedisMessages {
         return getPlayerLeaveNetworkFieldBuilder().getBuilder();
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 3;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 2;</code>
        */
       public de.derteufelqwe.commons.protobuf.RedisMessages.PlayerLeaveNetworkOrBuilder getPlayerLeaveNetworkOrBuilder() {
         if (playerLeaveNetworkBuilder_ != null) {
@@ -7945,7 +9058,7 @@ public final class RedisMessages {
         }
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 3;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerLeaveNetwork playerLeaveNetwork = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           de.derteufelqwe.commons.protobuf.RedisMessages.PlayerLeaveNetwork, de.derteufelqwe.commons.protobuf.RedisMessages.PlayerLeaveNetwork.Builder, de.derteufelqwe.commons.protobuf.RedisMessages.PlayerLeaveNetworkOrBuilder> 
@@ -7965,14 +9078,14 @@ public final class RedisMessages {
       private com.google.protobuf.SingleFieldBuilderV3<
           de.derteufelqwe.commons.protobuf.RedisMessages.PlayerChangeServer, de.derteufelqwe.commons.protobuf.RedisMessages.PlayerChangeServer.Builder, de.derteufelqwe.commons.protobuf.RedisMessages.PlayerChangeServerOrBuilder> playerChangeServerBuilder_;
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 4;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 3;</code>
        * @return Whether the playerChangeServer field is set.
        */
       public boolean hasPlayerChangeServer() {
         return playerChangeServerBuilder_ != null || playerChangeServer_ != null;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 4;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 3;</code>
        * @return The playerChangeServer.
        */
       public de.derteufelqwe.commons.protobuf.RedisMessages.PlayerChangeServer getPlayerChangeServer() {
@@ -7983,7 +9096,7 @@ public final class RedisMessages {
         }
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 4;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 3;</code>
        */
       public Builder setPlayerChangeServer(de.derteufelqwe.commons.protobuf.RedisMessages.PlayerChangeServer value) {
         if (playerChangeServerBuilder_ == null) {
@@ -7999,7 +9112,7 @@ public final class RedisMessages {
         return this;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 4;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 3;</code>
        */
       public Builder setPlayerChangeServer(
           de.derteufelqwe.commons.protobuf.RedisMessages.PlayerChangeServer.Builder builderForValue) {
@@ -8013,7 +9126,7 @@ public final class RedisMessages {
         return this;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 4;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 3;</code>
        */
       public Builder mergePlayerChangeServer(de.derteufelqwe.commons.protobuf.RedisMessages.PlayerChangeServer value) {
         if (playerChangeServerBuilder_ == null) {
@@ -8031,7 +9144,7 @@ public final class RedisMessages {
         return this;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 4;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 3;</code>
        */
       public Builder clearPlayerChangeServer() {
         if (playerChangeServerBuilder_ == null) {
@@ -8045,7 +9158,7 @@ public final class RedisMessages {
         return this;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 4;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 3;</code>
        */
       public de.derteufelqwe.commons.protobuf.RedisMessages.PlayerChangeServer.Builder getPlayerChangeServerBuilder() {
         
@@ -8053,7 +9166,7 @@ public final class RedisMessages {
         return getPlayerChangeServerFieldBuilder().getBuilder();
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 4;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 3;</code>
        */
       public de.derteufelqwe.commons.protobuf.RedisMessages.PlayerChangeServerOrBuilder getPlayerChangeServerOrBuilder() {
         if (playerChangeServerBuilder_ != null) {
@@ -8064,7 +9177,7 @@ public final class RedisMessages {
         }
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 4;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.PlayerChangeServer playerChangeServer = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           de.derteufelqwe.commons.protobuf.RedisMessages.PlayerChangeServer, de.derteufelqwe.commons.protobuf.RedisMessages.PlayerChangeServer.Builder, de.derteufelqwe.commons.protobuf.RedisMessages.PlayerChangeServerOrBuilder> 
@@ -8084,14 +9197,14 @@ public final class RedisMessages {
       private com.google.protobuf.SingleFieldBuilderV3<
           de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerKick, de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerKick.Builder, de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerKickOrBuilder> requestPlayerKickBuilder_;
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 5;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 4;</code>
        * @return Whether the requestPlayerKick field is set.
        */
       public boolean hasRequestPlayerKick() {
         return requestPlayerKickBuilder_ != null || requestPlayerKick_ != null;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 5;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 4;</code>
        * @return The requestPlayerKick.
        */
       public de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerKick getRequestPlayerKick() {
@@ -8102,7 +9215,7 @@ public final class RedisMessages {
         }
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 5;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 4;</code>
        */
       public Builder setRequestPlayerKick(de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerKick value) {
         if (requestPlayerKickBuilder_ == null) {
@@ -8118,7 +9231,7 @@ public final class RedisMessages {
         return this;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 5;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 4;</code>
        */
       public Builder setRequestPlayerKick(
           de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerKick.Builder builderForValue) {
@@ -8132,7 +9245,7 @@ public final class RedisMessages {
         return this;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 5;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 4;</code>
        */
       public Builder mergeRequestPlayerKick(de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerKick value) {
         if (requestPlayerKickBuilder_ == null) {
@@ -8150,7 +9263,7 @@ public final class RedisMessages {
         return this;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 5;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 4;</code>
        */
       public Builder clearRequestPlayerKick() {
         if (requestPlayerKickBuilder_ == null) {
@@ -8164,7 +9277,7 @@ public final class RedisMessages {
         return this;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 5;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 4;</code>
        */
       public de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerKick.Builder getRequestPlayerKickBuilder() {
         
@@ -8172,7 +9285,7 @@ public final class RedisMessages {
         return getRequestPlayerKickFieldBuilder().getBuilder();
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 5;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 4;</code>
        */
       public de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerKickOrBuilder getRequestPlayerKickOrBuilder() {
         if (requestPlayerKickBuilder_ != null) {
@@ -8183,7 +9296,7 @@ public final class RedisMessages {
         }
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 5;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerKick requestPlayerKick = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerKick, de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerKick.Builder, de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerKickOrBuilder> 
@@ -8203,14 +9316,14 @@ public final class RedisMessages {
       private com.google.protobuf.SingleFieldBuilderV3<
           de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerSend, de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerSend.Builder, de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerSendOrBuilder> requestPlayerSendBuilder_;
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 6;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 5;</code>
        * @return Whether the requestPlayerSend field is set.
        */
       public boolean hasRequestPlayerSend() {
         return requestPlayerSendBuilder_ != null || requestPlayerSend_ != null;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 6;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 5;</code>
        * @return The requestPlayerSend.
        */
       public de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerSend getRequestPlayerSend() {
@@ -8221,7 +9334,7 @@ public final class RedisMessages {
         }
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 6;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 5;</code>
        */
       public Builder setRequestPlayerSend(de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerSend value) {
         if (requestPlayerSendBuilder_ == null) {
@@ -8237,7 +9350,7 @@ public final class RedisMessages {
         return this;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 6;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 5;</code>
        */
       public Builder setRequestPlayerSend(
           de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerSend.Builder builderForValue) {
@@ -8251,7 +9364,7 @@ public final class RedisMessages {
         return this;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 6;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 5;</code>
        */
       public Builder mergeRequestPlayerSend(de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerSend value) {
         if (requestPlayerSendBuilder_ == null) {
@@ -8269,7 +9382,7 @@ public final class RedisMessages {
         return this;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 6;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 5;</code>
        */
       public Builder clearRequestPlayerSend() {
         if (requestPlayerSendBuilder_ == null) {
@@ -8283,7 +9396,7 @@ public final class RedisMessages {
         return this;
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 6;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 5;</code>
        */
       public de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerSend.Builder getRequestPlayerSendBuilder() {
         
@@ -8291,7 +9404,7 @@ public final class RedisMessages {
         return getRequestPlayerSendFieldBuilder().getBuilder();
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 6;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 5;</code>
        */
       public de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerSendOrBuilder getRequestPlayerSendOrBuilder() {
         if (requestPlayerSendBuilder_ != null) {
@@ -8302,7 +9415,7 @@ public final class RedisMessages {
         }
       }
       /**
-       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 6;</code>
+       * <code>.de.derteufelqwe.commons.protobuf.RequestPlayerSend requestPlayerSend = 5;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerSend, de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerSend.Builder, de.derteufelqwe.commons.protobuf.RedisMessages.RequestPlayerSendOrBuilder> 
@@ -8316,6 +9429,244 @@ public final class RedisMessages {
           requestPlayerSend_ = null;
         }
         return requestPlayerSendBuilder_;
+      }
+
+      private de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted mcServerStarted_;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted, de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted.Builder, de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStartedOrBuilder> mcServerStartedBuilder_;
+      /**
+       * <code>.de.derteufelqwe.commons.protobuf.MCServerStarted mcServerStarted = 6;</code>
+       * @return Whether the mcServerStarted field is set.
+       */
+      public boolean hasMcServerStarted() {
+        return mcServerStartedBuilder_ != null || mcServerStarted_ != null;
+      }
+      /**
+       * <code>.de.derteufelqwe.commons.protobuf.MCServerStarted mcServerStarted = 6;</code>
+       * @return The mcServerStarted.
+       */
+      public de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted getMcServerStarted() {
+        if (mcServerStartedBuilder_ == null) {
+          return mcServerStarted_ == null ? de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted.getDefaultInstance() : mcServerStarted_;
+        } else {
+          return mcServerStartedBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.de.derteufelqwe.commons.protobuf.MCServerStarted mcServerStarted = 6;</code>
+       */
+      public Builder setMcServerStarted(de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted value) {
+        if (mcServerStartedBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          mcServerStarted_ = value;
+          onChanged();
+        } else {
+          mcServerStartedBuilder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>.de.derteufelqwe.commons.protobuf.MCServerStarted mcServerStarted = 6;</code>
+       */
+      public Builder setMcServerStarted(
+          de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted.Builder builderForValue) {
+        if (mcServerStartedBuilder_ == null) {
+          mcServerStarted_ = builderForValue.build();
+          onChanged();
+        } else {
+          mcServerStartedBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <code>.de.derteufelqwe.commons.protobuf.MCServerStarted mcServerStarted = 6;</code>
+       */
+      public Builder mergeMcServerStarted(de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted value) {
+        if (mcServerStartedBuilder_ == null) {
+          if (mcServerStarted_ != null) {
+            mcServerStarted_ =
+              de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted.newBuilder(mcServerStarted_).mergeFrom(value).buildPartial();
+          } else {
+            mcServerStarted_ = value;
+          }
+          onChanged();
+        } else {
+          mcServerStartedBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>.de.derteufelqwe.commons.protobuf.MCServerStarted mcServerStarted = 6;</code>
+       */
+      public Builder clearMcServerStarted() {
+        if (mcServerStartedBuilder_ == null) {
+          mcServerStarted_ = null;
+          onChanged();
+        } else {
+          mcServerStarted_ = null;
+          mcServerStartedBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <code>.de.derteufelqwe.commons.protobuf.MCServerStarted mcServerStarted = 6;</code>
+       */
+      public de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted.Builder getMcServerStartedBuilder() {
+        
+        onChanged();
+        return getMcServerStartedFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.de.derteufelqwe.commons.protobuf.MCServerStarted mcServerStarted = 6;</code>
+       */
+      public de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStartedOrBuilder getMcServerStartedOrBuilder() {
+        if (mcServerStartedBuilder_ != null) {
+          return mcServerStartedBuilder_.getMessageOrBuilder();
+        } else {
+          return mcServerStarted_ == null ?
+              de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted.getDefaultInstance() : mcServerStarted_;
+        }
+      }
+      /**
+       * <code>.de.derteufelqwe.commons.protobuf.MCServerStarted mcServerStarted = 6;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted, de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted.Builder, de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStartedOrBuilder> 
+          getMcServerStartedFieldBuilder() {
+        if (mcServerStartedBuilder_ == null) {
+          mcServerStartedBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted, de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStarted.Builder, de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStartedOrBuilder>(
+                  getMcServerStarted(),
+                  getParentForChildren(),
+                  isClean());
+          mcServerStarted_ = null;
+        }
+        return mcServerStartedBuilder_;
+      }
+
+      private de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped mcServerStopped_;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped, de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped.Builder, de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStoppedOrBuilder> mcServerStoppedBuilder_;
+      /**
+       * <code>.de.derteufelqwe.commons.protobuf.MCServerStopped mcServerStopped = 7;</code>
+       * @return Whether the mcServerStopped field is set.
+       */
+      public boolean hasMcServerStopped() {
+        return mcServerStoppedBuilder_ != null || mcServerStopped_ != null;
+      }
+      /**
+       * <code>.de.derteufelqwe.commons.protobuf.MCServerStopped mcServerStopped = 7;</code>
+       * @return The mcServerStopped.
+       */
+      public de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped getMcServerStopped() {
+        if (mcServerStoppedBuilder_ == null) {
+          return mcServerStopped_ == null ? de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped.getDefaultInstance() : mcServerStopped_;
+        } else {
+          return mcServerStoppedBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.de.derteufelqwe.commons.protobuf.MCServerStopped mcServerStopped = 7;</code>
+       */
+      public Builder setMcServerStopped(de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped value) {
+        if (mcServerStoppedBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          mcServerStopped_ = value;
+          onChanged();
+        } else {
+          mcServerStoppedBuilder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>.de.derteufelqwe.commons.protobuf.MCServerStopped mcServerStopped = 7;</code>
+       */
+      public Builder setMcServerStopped(
+          de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped.Builder builderForValue) {
+        if (mcServerStoppedBuilder_ == null) {
+          mcServerStopped_ = builderForValue.build();
+          onChanged();
+        } else {
+          mcServerStoppedBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <code>.de.derteufelqwe.commons.protobuf.MCServerStopped mcServerStopped = 7;</code>
+       */
+      public Builder mergeMcServerStopped(de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped value) {
+        if (mcServerStoppedBuilder_ == null) {
+          if (mcServerStopped_ != null) {
+            mcServerStopped_ =
+              de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped.newBuilder(mcServerStopped_).mergeFrom(value).buildPartial();
+          } else {
+            mcServerStopped_ = value;
+          }
+          onChanged();
+        } else {
+          mcServerStoppedBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>.de.derteufelqwe.commons.protobuf.MCServerStopped mcServerStopped = 7;</code>
+       */
+      public Builder clearMcServerStopped() {
+        if (mcServerStoppedBuilder_ == null) {
+          mcServerStopped_ = null;
+          onChanged();
+        } else {
+          mcServerStopped_ = null;
+          mcServerStoppedBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <code>.de.derteufelqwe.commons.protobuf.MCServerStopped mcServerStopped = 7;</code>
+       */
+      public de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped.Builder getMcServerStoppedBuilder() {
+        
+        onChanged();
+        return getMcServerStoppedFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.de.derteufelqwe.commons.protobuf.MCServerStopped mcServerStopped = 7;</code>
+       */
+      public de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStoppedOrBuilder getMcServerStoppedOrBuilder() {
+        if (mcServerStoppedBuilder_ != null) {
+          return mcServerStoppedBuilder_.getMessageOrBuilder();
+        } else {
+          return mcServerStopped_ == null ?
+              de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped.getDefaultInstance() : mcServerStopped_;
+        }
+      }
+      /**
+       * <code>.de.derteufelqwe.commons.protobuf.MCServerStopped mcServerStopped = 7;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped, de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped.Builder, de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStoppedOrBuilder> 
+          getMcServerStoppedFieldBuilder() {
+        if (mcServerStoppedBuilder_ == null) {
+          mcServerStoppedBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped, de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStopped.Builder, de.derteufelqwe.commons.protobuf.RedisMessages.MCServerStoppedOrBuilder>(
+                  getMcServerStopped(),
+                  getParentForChildren(),
+                  isClean());
+          mcServerStopped_ = null;
+        }
+        return mcServerStoppedBuilder_;
       }
       @java.lang.Override
       public final Builder setUnknownFields(
@@ -8401,6 +9752,16 @@ public final class RedisMessages {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_de_derteufelqwe_commons_protobuf_RequestPlayerKick_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_de_derteufelqwe_commons_protobuf_MCServerStarted_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_de_derteufelqwe_commons_protobuf_MCServerStarted_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_de_derteufelqwe_commons_protobuf_MCServerStopped_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_de_derteufelqwe_commons_protobuf_MCServerStopped_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_de_derteufelqwe_commons_protobuf_RequestPlayerSend_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -8439,27 +9800,28 @@ public final class RedisMessages {
       "3.de.derteufelqwe.commons.protobuf.Bunge" +
       "eMessageBase\0224\n\004uuid\030\002 \001(\0132&.de.derteufe" +
       "lqwe.commons.protobuf.UUID\022\020\n\010username\030\003" +
-      " \001(\t\022\016\n\006reason\030\004 \001(\t\"\264\001\n\021RequestPlayerSe" +
+      " \001(\t\022\016\n\006reason\030\004 \001(\t\"&\n\017MCServerStarted\022" +
+      "\023\n\013containerId\030\001 \001(\t\"&\n\017MCServerStopped\022" +
+      "\023\n\013containerId\030\001 \001(\t\"\264\001\n\021RequestPlayerSe" +
       "nd\022A\n\004base\030\001 \001(\01323.de.derteufelqwe.commo" +
       "ns.protobuf.BungeeMessageBase\0224\n\004uuid\030\002 " +
       "\001(\0132&.de.derteufelqwe.commons.protobuf.U" +
       "UID\022\020\n\010username\030\003 \001(\t\022\024\n\014targetServer\030\004 " +
-      "\001(\t\"\337\003\n\014RedisMessage\022;\n\004type\030\001 \001(\0162-.de." +
-      "derteufelqwe.commons.protobuf.PackageTyp" +
-      "e\022N\n\021playerJoinNetwork\030\002 \001(\01323.de.derteu" +
-      "felqwe.commons.protobuf.PlayerJoinNetwor" +
-      "k\022P\n\022playerLeaveNetwork\030\003 \001(\01324.de.derte" +
-      "ufelqwe.commons.protobuf.PlayerLeaveNetw" +
-      "ork\022P\n\022playerChangeServer\030\004 \001(\01324.de.der" +
-      "teufelqwe.commons.protobuf.PlayerChangeS" +
-      "erver\022N\n\021requestPlayerKick\030\005 \001(\01323.de.de" +
-      "rteufelqwe.commons.protobuf.RequestPlaye" +
-      "rKick\022N\n\021requestPlayerSend\030\006 \001(\01323.de.de" +
-      "rteufelqwe.commons.protobuf.RequestPlaye" +
-      "rSend*\214\001\n\013PackageType\022\027\n\023PLAYER_JOIN_NET" +
-      "WORK\020\000\022\030\n\024PLAYER_LEAVE_NETWORK\020\001\022\030\n\024PLAY" +
-      "ER_CHANGE_SERVER\020\002\022\027\n\023REQUEST_PLAYER_KIC" +
-      "K\020\003\022\027\n\023REQUEST_PLAYER_SEND\020\004b\006proto3"
+      "\001(\t\"\272\004\n\014RedisMessage\022N\n\021playerJoinNetwor" +
+      "k\030\001 \001(\01323.de.derteufelqwe.commons.protob" +
+      "uf.PlayerJoinNetwork\022P\n\022playerLeaveNetwo" +
+      "rk\030\002 \001(\01324.de.derteufelqwe.commons.proto" +
+      "buf.PlayerLeaveNetwork\022P\n\022playerChangeSe" +
+      "rver\030\003 \001(\01324.de.derteufelqwe.commons.pro" +
+      "tobuf.PlayerChangeServer\022N\n\021requestPlaye" +
+      "rKick\030\004 \001(\01323.de.derteufelqwe.commons.pr" +
+      "otobuf.RequestPlayerKick\022N\n\021requestPlaye" +
+      "rSend\030\005 \001(\01323.de.derteufelqwe.commons.pr" +
+      "otobuf.RequestPlayerSend\022J\n\017mcServerStar" +
+      "ted\030\006 \001(\01321.de.derteufelqwe.commons.prot" +
+      "obuf.MCServerStarted\022J\n\017mcServerStopped\030" +
+      "\007 \001(\01321.de.derteufelqwe.commons.protobuf" +
+      ".MCServerStoppedb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -8501,18 +9863,30 @@ public final class RedisMessages {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_de_derteufelqwe_commons_protobuf_RequestPlayerKick_descriptor,
         new java.lang.String[] { "Base", "Uuid", "Username", "Reason", });
-    internal_static_de_derteufelqwe_commons_protobuf_RequestPlayerSend_descriptor =
+    internal_static_de_derteufelqwe_commons_protobuf_MCServerStarted_descriptor =
       getDescriptor().getMessageTypes().get(6);
+    internal_static_de_derteufelqwe_commons_protobuf_MCServerStarted_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_de_derteufelqwe_commons_protobuf_MCServerStarted_descriptor,
+        new java.lang.String[] { "ContainerId", });
+    internal_static_de_derteufelqwe_commons_protobuf_MCServerStopped_descriptor =
+      getDescriptor().getMessageTypes().get(7);
+    internal_static_de_derteufelqwe_commons_protobuf_MCServerStopped_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_de_derteufelqwe_commons_protobuf_MCServerStopped_descriptor,
+        new java.lang.String[] { "ContainerId", });
+    internal_static_de_derteufelqwe_commons_protobuf_RequestPlayerSend_descriptor =
+      getDescriptor().getMessageTypes().get(8);
     internal_static_de_derteufelqwe_commons_protobuf_RequestPlayerSend_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_de_derteufelqwe_commons_protobuf_RequestPlayerSend_descriptor,
         new java.lang.String[] { "Base", "Uuid", "Username", "TargetServer", });
     internal_static_de_derteufelqwe_commons_protobuf_RedisMessage_descriptor =
-      getDescriptor().getMessageTypes().get(7);
+      getDescriptor().getMessageTypes().get(9);
     internal_static_de_derteufelqwe_commons_protobuf_RedisMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_de_derteufelqwe_commons_protobuf_RedisMessage_descriptor,
-        new java.lang.String[] { "Type", "PlayerJoinNetwork", "PlayerLeaveNetwork", "PlayerChangeServer", "RequestPlayerKick", "RequestPlayerSend", });
+        new java.lang.String[] { "PlayerJoinNetwork", "PlayerLeaveNetwork", "PlayerChangeServer", "RequestPlayerKick", "RequestPlayerSend", "McServerStarted", "McServerStopped", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

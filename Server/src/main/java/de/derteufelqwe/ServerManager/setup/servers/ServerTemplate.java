@@ -18,6 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
+@Deprecated
 public class ServerTemplate extends ServiceTemplate {
 
 

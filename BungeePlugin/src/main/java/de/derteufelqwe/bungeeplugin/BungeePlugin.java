@@ -60,7 +60,7 @@ public final class BungeePlugin extends Plugin {
     // --- Infrastructure ---
     private final HealthCheck healthCheck = new HealthCheck();
     @Getter
-    public static RedisPool redisPool;
+    public static RedisPool redisPool = new RedisPool("redis");
     @Getter
     public static SessionBuilder sessionBuilder = new SessionBuilder("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT);
 
@@ -95,7 +95,6 @@ public final class BungeePlugin extends Plugin {
         this.parseConfigFile(CONFIG.get());
 
         // --- Redis stuff ---
-        BungeePlugin.redisPool = new RedisPool("redis");
         BungeePlugin.redisDataManager = new RedisDataManager();
         BungeePlugin.redisDataManager.init();
         this.connectionEvents = new ConnectionEvents();

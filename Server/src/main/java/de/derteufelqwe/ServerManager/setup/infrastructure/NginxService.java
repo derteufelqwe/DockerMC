@@ -21,6 +21,7 @@ import java.util.Map;
 @NoArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
+@Deprecated
 public class NginxService extends ExposableServiceTemplate {
 
     private final int NGINX_INTERNAL_PORT = 25577;

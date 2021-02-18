@@ -6,9 +6,7 @@ import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.nodewatcher.misc.INewContainerObserver;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.misc.NWUtils;
-import lombok.SneakyThrows;
 
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -39,7 +37,7 @@ public class ContainerResourceWatcher implements INewContainerObserver {
      * Start the stats collection for all running containers
      */
     public void init() {
-        Set<String> runningContainers = NWUtils.findLocalRunningContainers(sessionBuilder);
+        Set<String> runningContainers = NWUtils.getLocallyRunningContainersFromDB(sessionBuilder);
         for (String id : runningContainers) {
             this.startContainerStat(id);
         }

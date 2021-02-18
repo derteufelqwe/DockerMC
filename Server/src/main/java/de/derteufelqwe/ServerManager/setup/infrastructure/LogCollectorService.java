@@ -34,7 +34,7 @@ public class LogCollectorService extends ServiceTemplate {
     protected Map<String, String> getServiceLabels() {
         Map<String, String> labels = super.getServiceLabels();
 
-        labels.putAll(de.derteufelqwe.commons.Utils.quickLabel(Constants.ContainerType.LOGCOLLECTOR_POOL));
+        labels.putAll(Utils.quickLabel(Constants.ContainerType.LOGCOLLECTOR_POOL));
 
         return labels;
     }

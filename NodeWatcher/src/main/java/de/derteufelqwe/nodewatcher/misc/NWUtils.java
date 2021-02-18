@@ -9,6 +9,7 @@ import org.hibernate.Transaction;
 
 import javax.annotation.CheckForNull;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -22,10 +23,12 @@ import java.util.*;
 public class NWUtils {
 
     /**
-     * Returns a synchronized Set containing the ids of all containers, which are running on the local docker swarm node
+     * Returns a synchronized Set containing the ids of all containers, which are marked as running on the local
+     * docker swarm node in the database
      * @return
      */
-    public static Set<String> findLocalRunningContainers(SessionBuilder sessionBuilder) {
+    @SuppressWarnings("unchecked")
+    public static Set<String> getLocallyRunningContainersFromDB(SessionBuilder sessionBuilder) {
         Set<String> resSet = Collections.synchronizedSet(new HashSet<>());
 
         try (Session session = sessionBuilder.openSession()) {
@@ -38,19 +41,13 @@ public class NWUtils {
                     throw new InvalidSystemStateException("Failed to find node object for %s!", NodeWatcher.getSwarmNodeId());
                 }
 
-                CriteriaBuilder cb = session.getCriteriaBuilder();
-                CriteriaQuery<DBContainer> cq = cb.createQuery(DBContainer.class);
-                Root<DBContainer> root = cq.from(DBContainer.class);
+                List<String> res = (List<String>) session.createNativeQuery(
+                        "SELECT id FROM containers WHERE stoptime IS NULL and node_id = :nodeid")
+                        .setParameter("nodeid", node.getId())
+                        .getResultList();
 
-                cq.select(root).where(cb.isNull(root.get("stopTime")), cb.equal(root.get("node"), node));
 
-                // --- Execute the query ---
-                Query queryRes = session.createQuery(cq);
-                List<DBContainer> res = (List<DBContainer>) queryRes.getResultList();
-
-                for (DBContainer container : res) {
-                    resSet.add(container.getId());
-                }
+                resSet.addAll(res);
 
                 return resSet;
 

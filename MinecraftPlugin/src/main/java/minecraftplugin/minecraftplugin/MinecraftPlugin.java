@@ -13,6 +13,8 @@ import de.derteufelqwe.commons.config.ConfigOld;
 import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
 import de.derteufelqwe.commons.config.providers.MinecraftGsonProvider;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
+import de.derteufelqwe.commons.protobuf.RedisMessages;
+import de.derteufelqwe.commons.redis.RedisPool;
 import lombok.Getter;
 import minecraftplugin.minecraftplugin.commands.economy.*;
 import minecraftplugin.minecraftplugin.config.SignConfig;
@@ -31,16 +33,19 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
+import redis.clients.jedis.Jedis;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 
 public final class MinecraftPlugin extends JavaPlugin {
 
     @Getter public static MinecraftPlugin INSTANCE;
     public static ConfigOld CONFIG = new ConfigOld(new DefaultYamlConverter(), new MinecraftGsonProvider());
     @Getter private static SessionBuilder sessionBuilder = new SessionBuilder("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT);
+    @Getter private static RedisPool redisPool = new RedisPool("redis");
 
     private Consul consul = Consul.builder().withHostAndPort(HostAndPort.fromParts(Constants.CONSUL_HOST, Constants.CONSUL_PORT)).build();
     private AgentClient agentClient = consul.agentClient();
@@ -175,7 +180,7 @@ public final class MinecraftPlugin extends JavaPlugin {
     /**
      * Register this container to Consul
      */
-    private void registerContainer() {
+    private void registerContainerOld() {
         String taskName = this.metaData.getTaskName();
         String containerIp = this.metaData.getContainerIp();
         String serverName = this.metaData.getServerName();
@@ -207,6 +212,22 @@ public final class MinecraftPlugin extends JavaPlugin {
 
         kvClient.putValue("mcservers/" + serverName + "/softPlayerLimit", Integer.toString(this.metaData.getSoftPlayerLimit()));
     }
+
+
+    private void registerContainer() {
+        RedisMessages.MCServerStarted mcStarted = RedisMessages.MCServerStarted.newBuilder()
+                .setContainerId(metaData.getContainerId())
+                .build();
+
+        RedisMessages.RedisMessage message = RedisMessages.RedisMessage.newBuilder()
+                .setMcServerStarted(mcStarted)
+                .build();
+
+        try (Jedis jedis = redisPool.getJedisPool().getResource()) {
+            jedis.publish(Constants.REDIS_MESSAGES_CHANNEL, message.toByteArray());
+        }
+    }
+
 
     /**
      * Remove this container from Consul

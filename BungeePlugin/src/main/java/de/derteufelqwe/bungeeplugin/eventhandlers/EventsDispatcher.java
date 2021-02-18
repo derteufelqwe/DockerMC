@@ -20,6 +20,7 @@ import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.connection.Server;
 import net.md_5.bungee.api.event.LoginEvent;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerConnectedEvent;
@@ -137,53 +138,56 @@ public class EventsDispatcher implements Listener {
      *
      * @param event
      */
+    @Deprecated
     private void prepareOnPlayerJoinNetworkDB(LoginEvent event) {
-        InitialHandler handler = (InitialHandler) event.getConnection();
-        String playerName = handler.getLoginRequest().getData();
-        UUID uuid = handler.getUniqueId();
-        DBPlayer dbPlayer;
-
-        try (Session session = sessionBuilder.openSession()) {
-            Transaction tx = session.beginTransaction();
-
-            try {
-                // Create player object when he joins
-                dbPlayer = session.get(DBPlayer.class, uuid);
-                if (dbPlayer == null) {
-                    dbPlayer = new DBPlayer(uuid, playerName);
-                    session.save(dbPlayer);
-                }
-
-                // Update players name if it changed
-                if (!dbPlayer.getName().equals(playerName)) {
-                    dbPlayer.setName(playerName);
-                }
-
-                // Create a login object for the player
-                PlayerLogin playerLogin = new PlayerLogin(dbPlayer);
-                session.save(playerLogin);
-
-                session.saveOrUpdate(dbPlayer);
-                tx.commit();
-
-                // ToDo: Tidy this up. This is probably not the best Hibernate way
-
-            } catch (Exception e) {
-                tx.rollback();
-                throw e;
-            }
-        }
-
-
-        if (dbPlayer != null) {
-            // Update the players skin.
-            // This is done asynchronously to prevent login times from up to 15 seconds.
-            if (dbPlayer.getLastSkinUpdate() == null ||
-                    (System.currentTimeMillis() - dbPlayer.getLastSkinUpdate().getTime()) >= 10 * 60 * 1000) { // 10 Minutes
-                ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, new PlayerSkinDownloadRunnable(uuid));
-
-            }
-        }
+//        InitialHandler handler = (InitialHandler) event.getConnection();
+//        String playerName = handler.getLoginRequest().getData();
+//        UUID uuid = handler.getUniqueId();
+//        DBPlayer dbPlayer;
+//
+//        try (Session session = sessionBuilder.openSession()) {
+//            Transaction tx = session.beginTransaction();
+//
+//            try {
+//                // Create player object when he joins
+//                dbPlayer = session.get(DBPlayer.class, uuid);
+//                if (dbPlayer == null) {
+//                    dbPlayer = new DBPlayer(uuid, playerName);
+//                    session.save(dbPlayer);
+//                }
+//
+//                // ToDo: change other players name to support name changes
+//
+//                // Update players name if it changed
+//                if (!dbPlayer.getName().equals(playerName)) {
+//                    dbPlayer.setName(playerName);
+//                }
+//
+//                // Create a login object for the player
+//                PlayerLogin playerLogin = new PlayerLogin(dbPlayer);
+//                session.save(playerLogin);
+//
+//                session.saveOrUpdate(dbPlayer);
+//                tx.commit();
+//
+//                // ToDo: Tidy this up. This is probably not the best Hibernate way
+//
+//            } catch (Exception e) {
+//                tx.rollback();
+//                throw e;
+//            }
+//        }
+//
+//
+//        if (dbPlayer != null) {
+//            // Update the players skin.
+//            // This is done asynchronously to prevent login times from up to 15 seconds.
+//            if (dbPlayer.getLastSkinUpdate() == null ||
+//                    (System.currentTimeMillis() - dbPlayer.getLastSkinUpdate().getTime()) >= 10 * 60 * 1000) { // 10 Minutes
+//                ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, new PlayerSkinDownloadRunnable(uuid));
+//
+//            }
+//        }
     }
 
     /**
@@ -354,38 +358,39 @@ public class EventsDispatcher implements Listener {
      *
      * @param player
      */
+    @Deprecated
     private void finishPlayersDBEntries(ProxiedPlayer player) {
-        try (Session session = sessionBuilder.openSession()) {
-            Transaction tx = session.beginTransaction();
-
-            try {
-                // Create player object when he joins
-                DBPlayer dbPlayer = session.get(DBPlayer.class, player.getUniqueId());
-
-                dbPlayer.setLastOnline(new Timestamp(System.currentTimeMillis()));
-
-                // Update the login object
-                CriteriaBuilder cb = session.getCriteriaBuilder();
-                CriteriaQuery<PlayerLogin> cq = cb.createQuery(PlayerLogin.class);
-                Root<PlayerLogin> root = cq.from(PlayerLogin.class);
-
-                cq.select(root)
-                        .where(cb.equal(root.get("player"), dbPlayer))
-                        .orderBy(cb.desc(root.get("joinTime")));
-
-                Query query = session.createQuery(cq);
-                query.setMaxResults(1);
-                PlayerLogin playerLogin = (PlayerLogin) query.getSingleResult();
-
-                playerLogin.setLeaveTime(new Timestamp(System.currentTimeMillis()));
-                session.update(playerLogin);
-
-                session.update(dbPlayer);
-
-            } finally {
-                tx.commit();
-            }
-        }
+//        try (Session session = sessionBuilder.openSession()) {
+//            Transaction tx = session.beginTransaction();
+//
+//            try {
+//                // Create player object when he joins
+//                DBPlayer dbPlayer = session.get(DBPlayer.class, player.getUniqueId());
+//
+//                dbPlayer.setLastOnline(new Timestamp(System.currentTimeMillis()));
+//
+//                // Update the login object
+//                CriteriaBuilder cb = session.getCriteriaBuilder();
+//                CriteriaQuery<PlayerLogin> cq = cb.createQuery(PlayerLogin.class);
+//                Root<PlayerLogin> root = cq.from(PlayerLogin.class);
+//
+//                cq.select(root)
+//                        .where(cb.equal(root.get("player"), dbPlayer))
+//                        .orderBy(cb.desc(root.get("joinTime")));
+//
+//                Query query = session.createQuery(cq);
+//                query.setMaxResults(1);
+//                PlayerLogin playerLogin = (PlayerLogin) query.getSingleResult();
+//
+//                playerLogin.setLeaveTime(new Timestamp(System.currentTimeMillis()));
+//                session.update(playerLogin);
+//
+//                session.update(dbPlayer);
+//
+//            } finally {
+//                tx.commit();
+//            }
+//        }
     }
 
     private void callBungeePlayerLeaveEvent(ProxiedPlayer player) {
@@ -415,6 +420,7 @@ public class EventsDispatcher implements Listener {
         UUID playerId = event.getPlayer().getUniqueId();
 
         this.updateRedisPlayerJoin(event.getPlayer(), serverName);
+        this.createLoginDBEntry(event.getPlayer(), event.getServer());
 
         // Prepare for the event call
         this.playerServerChangeEventMap.put(playerName, new PlayerTmpData(playerId, playerName, serverName));
@@ -441,6 +447,10 @@ public class EventsDispatcher implements Listener {
             jedis.set("playerJoinTime#" + playerName + "#" + serverName, Long.toString(System.currentTimeMillis() / 1000L));
         }
 
+    }
+
+    private void createLoginDBEntry(ProxiedPlayer player, Server server) {
+        
     }
 
     // --- Player disconnect from server ---

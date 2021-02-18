@@ -1,12 +1,13 @@
 package de.derteufelqwe.commons;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.UUID;
 
 public class Constants {
 
 
-    public static String LOGO =
+    public static final String LOGO =
             " _____                         ___  ___                                  \n" +
             "/  ___|                        |  \\/  |                                  \n" +
             "\\ `--.  ___ _ ____   _____ _ __| .  . | __ _ _ __   __ _  __ _  ___ _ __ \n" +
@@ -16,62 +17,65 @@ public class Constants {
             "                                                          __/ |          \n" +
             "                                                         |___/           ";
 
-    public static String AUTHOR = "derteufelqwe";
-    public static String WORKDIR_WND = "C:/Users/Arne/Desktop/ServerManager/Server/";
-    public static String WORKDIR = "/home/arne/ServerManager/Server/";
+    public static final String AUTHOR = "derteufelqwe";
+    public static final String WORKDIR_WND = "C:/Users/Arne/Desktop/ServerManager/Server/";
+    public static final String WORKDIR = "/home/arne/ServerManager/Server/";
 
-    public static String CONFIG_PATH = WORKDIR_WND + "server/configs/";
+    public static final String CONFIG_PATH = WORKDIR_WND + "server/configs/";
 
     // Networking
-    public static String NETW_OVERNET_NAME = "overnet";
-    public static String SUBNET_OVERNET = "11.0.0.0/8";
+    public static final String NETW_OVERNET_NAME = "overnet";
+    public static final String SUBNET_OVERNET = "11.0.0.0/8";
 
     // Docker image building
-    public static String IMAGE_PATH = WORKDIR + "server/images/";
-    public static String DOCKERFILES_PATH = WORKDIR + "server/internal/dockerfiles/";
+    public static final String IMAGE_PATH = WORKDIR + "server/images/";
+    public static final String DOCKERFILES_PATH = WORKDIR + "server/internal/dockerfiles/";
 
     // -----  Registry  -----
     // Path to the Registry Certificate and key
-    private static String registryCertPath = "server/internal/security/registry-certs/";
+    private static final String registryCertPath = "server/internal/security/registry-certs/";
 
     /**
      * @param windows If true, returns the path required for the windows host, if false for docker
      */
-    public static String REGISTRY_CERT_PATH(boolean windows) { return windows ? WORKDIR_WND + registryCertPath : WORKDIR + registryCertPath; }
-    public static String REGISTRY_CERT_NAME  = "ca.crt";
-    public static String REGISTRY_KEY_NAME  = "ca.key";
-    public static String REGISTRY_HTPASSWD_NAME = "htpasswd";
-    public static String REGISTRY_URL = "registry.swarm";
+    public static final String REGISTRY_CERT_PATH(boolean windows) { return windows ? WORKDIR_WND + registryCertPath : WORKDIR + registryCertPath; }
+    public static final String REGISTRY_CERT_NAME  = "ca.crt";
+    public static final String REGISTRY_KEY_NAME  = "ca.key";
+    public static final String REGISTRY_HTPASSWD_NAME = "htpasswd";
+    public static final String REGISTRY_URL = "registry.swarm";
 
     // -----  Tags  -----
     // Identifies a container, which belongs the DockerMC
-    public static String DOCKER_IDENTIFIER_KEY = "Owner";
-    public static String DOCKER_IDENTIFIER_VALUE = "DockerMC";
+    public static final String DOCKER_IDENTIFIER_KEY = "Owner";
+    public static final String DOCKER_IDENTIFIER_VALUE = "DockerMC";
     // Name, which the container should have in Minecraft
-    public static String SERVER_NAME_KEY = "ServerName";
+    public static final String SERVER_NAME_KEY = "ServerName";
     // Tag Key to identify types of Containers
-    public static String CONTAINER_IDENTIFIER_KEY = "Type";
+    public static final String CONTAINER_IDENTIFIER_KEY = "Type";
 
     // -----  Timings  -----
     // Time in seconds which containers have to get up and running
-    public static int CONTAINER_STARTUP_TIME = 10;
-    public static int SERVICE_STARTUP_TIME = 20;
-    public static int LOG_FETCH_TIME = 20;
+    public static final int CONTAINER_STARTUP_TIME = 10;
+    public static final int SERVICE_STARTUP_TIME = 20;
+    public static final int LOG_FETCH_TIME = 20;
 
-    // -----  Databases  -----
-    public static String POSTGRESDB_CONTAINER_NAME = "Postgres";
-    public static int POSTGRESDB_PORT = 5432;
-    public static String REDIS_CONTAINER_NAME = "Redis";
-    public static int REDIS_PORT = 6379;
-    public static UUID CONSOLE_USER_UUID = new UUID(Long.MAX_VALUE, Long.MAX_VALUE);
-    public static String CONSOLE_USER_NAME = "Console-Website-User";
+    // -----  Postgres  -----
+    public static final String POSTGRESDB_CONTAINER_NAME = "Postgres";
+    public static final int POSTGRESDB_PORT = 5432;
+    public static final UUID CONSOLE_USER_UUID = new UUID(Long.MAX_VALUE, Long.MAX_VALUE);
+    public static final String CONSOLE_USER_NAME = "Console-Website-User";
 
+    // -----  Redis  -----
+    public static final String REDIS_CONTAINER_NAME = "Redis";
+    public static final int REDIS_PORT = 6379;
+    public static final byte[] REDIS_MESSAGES_CHANNEL = "messages".getBytes(StandardCharsets.UTF_8);
+    
     // -----  Consul  -----
-    public static String CONSUL_HOST = "Consul";
-    public static int CONSUL_PORT = 8500;
+    public static final String CONSUL_HOST = "Consul";
+    public static final int CONSUL_PORT = 8500;
 
     // BungeeCord
-    public static Timestamp BAN_PERMANENT_TIMESTAMP = new Timestamp(4102444800000L);
+    public static final Timestamp BAN_PERMANENT_TIMESTAMP = new Timestamp(4102444800000L);
 
     // Values for the Tag CONTAINER_IDENTIFIER_KEY
     public enum ContainerType {

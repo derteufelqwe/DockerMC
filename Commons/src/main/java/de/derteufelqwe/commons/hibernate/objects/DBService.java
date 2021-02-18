@@ -1,6 +1,8 @@
 package de.derteufelqwe.commons.hibernate.objects;
 
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -26,20 +28,28 @@ public class DBService {
 
     private Float maxCpu;
 
+    @Type(type = "text")
+    private String type;
+
     /*
-     * Indicates that the service was removed
+     * Indicates that the service was removed. false = removed
      */
     private boolean active = true;
 
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<DBContainer> containers;
 
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<PlayerOnlineDurations> onlineDurations;
 
-    public DBService(String id, String name) {
+    public DBService(String id, String name, int maxRam, float maxCpu, String type) {
         this.id = id;
         this.name = name;
+        this.maxRam = maxRam;
+        this.maxCpu = maxCpu;
+        this.type = type;
     }
 
 }

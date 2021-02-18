@@ -2,6 +2,7 @@ package de.derteufelqwe.bungeeplugin.redis;
 
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.exceptions.RedisCacheException;
+import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.exceptions.InvalidStateError;
 import de.derteufelqwe.commons.protobuf.RedisMessages;
 import redis.clients.jedis.Jedis;
@@ -246,41 +247,36 @@ public class RedisDataManager {
      */
     public void sendMessage(RedisMessages.RedisMessage message) {
         try (Jedis jedis = this.jedisPool.getResource()) {
-            jedis.publish("messages".getBytes(StandardCharsets.UTF_8), message.toByteArray());
+            jedis.publish(Constants.REDIS_MESSAGES_CHANNEL, message.toByteArray());
         }
     }
 
     public void sendMessage(RedisMessages.PlayerJoinNetwork message) {
         this.sendMessage(RedisMessages.RedisMessage.newBuilder()
-                .setType(RedisMessages.PackageType.PLAYER_JOIN_NETWORK)
                 .setPlayerJoinNetwork(message)
                 .build());
     }
 
     public void sendMessage(RedisMessages.PlayerLeaveNetwork message) {
         this.sendMessage(RedisMessages.RedisMessage.newBuilder()
-                .setType(RedisMessages.PackageType.PLAYER_LEAVE_NETWORK)
                 .setPlayerLeaveNetwork(message)
                 .build());
     }
 
     public void sendMessage(RedisMessages.PlayerChangeServer message) {
         this.sendMessage(RedisMessages.RedisMessage.newBuilder()
-                .setType(RedisMessages.PackageType.PLAYER_CHANGE_SERVER)
                 .setPlayerChangeServer(message)
                 .build());
     }
 
     public void sendMessage(RedisMessages.RequestPlayerKick message) {
         this.sendMessage(RedisMessages.RedisMessage.newBuilder()
-                .setType(RedisMessages.PackageType.REQUEST_PLAYER_KICK)
                 .setRequestPlayerKick(message)
                 .build());
     }
 
     public void sendMessage(RedisMessages.RequestPlayerSend message) {
         this.sendMessage(RedisMessages.RedisMessage.newBuilder()
-                .setType(RedisMessages.PackageType.REQUEST_PLAYER_SEND)
                 .setRequestPlayerSend(message)
                 .build());
     }

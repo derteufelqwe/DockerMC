@@ -1,6 +1,8 @@
 package de.derteufelqwe.commons.hibernate.objects;
 
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -26,8 +28,12 @@ public class DBContainer {
     @Type(type = "text")
     private String name;
 
+    private short taskSlot;
+
     @Type(type = "text")
     private String image;
+
+    private String ip;
 
     @Type(type = "text")
     private String log;
@@ -47,6 +53,7 @@ public class DBContainer {
     private Short exitcode;
 
     @OneToMany(mappedBy = "container", cascade = CascadeType.ALL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<ContainerStats> containerStats;
 
 
@@ -54,10 +61,17 @@ public class DBContainer {
         this.id = id;
     }
 
-    public DBContainer(String id, String image, Timestamp startTime) {
+    public DBContainer(String id, String image, Timestamp startTime, String name, String taskId, String ip, short taskSlot,
+                       Node node, DBService service) {
         this.id = id;
         this.image = image;
         this.startTime = startTime;
+        this.name = name;
+        this.taskId = taskId;
+        this.ip = ip;
+        this.taskSlot = taskSlot;
+        this.node = node;
+        this.service = service;
     }
 
     /**

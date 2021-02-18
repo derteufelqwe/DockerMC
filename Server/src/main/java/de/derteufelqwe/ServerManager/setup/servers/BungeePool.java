@@ -32,7 +32,9 @@ public class BungeePool extends ExposableServiceTemplate {
 
     @Override
     protected Map<String, String> getContainerLabels() {
-        Map<String, String> containerLabels = de.derteufelqwe.commons.Utils.quickLabel(Constants.ContainerType.BUNGEE);
+        Map<String, String> containerLabels = super.getContainerLabels();
+
+        containerLabels.putAll(Utils.quickLabel(Constants.ContainerType.BUNGEE));
         containerLabels.put(Constants.SERVER_NAME_KEY, this.name);
 
         return containerLabels;
@@ -40,7 +42,9 @@ public class BungeePool extends ExposableServiceTemplate {
 
     @Override
     protected Map<String, String> getServiceLabels() {
-        Map<String, String> serviceLabels = Utils.quickLabel(Constants.ContainerType.BUNGEE_POOL);
+        Map<String, String> serviceLabels = super.getServiceLabels();
+
+        serviceLabels.putAll(Utils.quickLabel(Constants.ContainerType.BUNGEE_POOL));
         serviceLabels.put(Constants.SERVER_NAME_KEY, this.name);
 
         return serviceLabels;
@@ -49,8 +53,6 @@ public class BungeePool extends ExposableServiceTemplate {
     @Override
     protected List<String> getEnvs() {
         List<String> envs = super.getEnvs();
-
-        envs.add("TASK_NAME={{ .Task.Name }}");
 
         return envs;
     }

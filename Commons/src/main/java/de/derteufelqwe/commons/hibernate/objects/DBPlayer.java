@@ -5,6 +5,8 @@ import de.derteufelqwe.commons.hibernate.objects.economy.Bank;
 import de.derteufelqwe.commons.hibernate.objects.economy.PlayerToBank;
 import de.derteufelqwe.commons.hibernate.objects.permissions.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
 
 import javax.annotation.CheckForNull;
@@ -50,8 +52,8 @@ public class DBPlayer {
 
     // ----- Stats -----
 
-    @OneToMany(mappedBy = "player", cascade = CascadeType.ALL)
-    private List<PlayerOnlineDurations> onlineStats;
+//    @OneToMany(mappedBy = "player", cascade = CascadeType.ALL)
+//    private List<PlayerOnlineDurations> onlineStats;
 
     private Timestamp lastOnline;
 
@@ -64,36 +66,42 @@ public class DBPlayer {
     private PermissionGroup mainPermGroup;
 
     @OneToMany(mappedBy = "player")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<PlayerToPermissionGroup> additionPermGroups;
 
-    @OneToMany
-    @JoinColumn(name = "player_uuid")
+    @OneToMany(mappedBy = "player")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Permission> permissions;
 
-    @OneToMany
-    @JoinColumn(name = "player_uuid")
+    @OneToMany(mappedBy = "player")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<TimedPermission> timedPermissions;
 
-    @OneToMany
-    @JoinColumn(name = "player_uuid")
+    @OneToMany(mappedBy = "player")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<ServicePermission> servicePermissions;
 
 
     // ----- Ban information -----
 
     @OneToMany(mappedBy = "bannedPlayer", cascade = CascadeType.ALL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<PlayerBan> gottenBans;
 
     @OneToMany(mappedBy = "bannedBy", cascade = CascadeType.ALL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<PlayerBan> executedBans;
 
     @OneToMany(mappedBy = "bannedBy", cascade = CascadeType.ALL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<IPBan> executedIpBans;
 
     @OneToMany(mappedBy = "unbannedBy", cascade = CascadeType.ALL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<PlayerBan> liftedBans;
 
     @OneToMany(mappedBy = "unbannedBy", cascade = CascadeType.ALL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<PlayerBan> liftedIpBans;
 
     // -----  Economy  -----
@@ -101,9 +109,11 @@ public class DBPlayer {
     private double moneyBalance = 0;
 
     @OneToMany(mappedBy = "owner")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Bank> ownedBanks = new ArrayList<>();
 
     @OneToMany(mappedBy = "player")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<PlayerToBank> banks = new ArrayList<>();
 
 
@@ -172,10 +182,12 @@ public class DBPlayer {
      * @return
      */
     public long getPlaytime() {
-        return this.onlineStats.stream()
-                .map(PlayerOnlineDurations::getDuration)
-                .reduce(0, Integer::sum)
-                .longValue();
+//        return this.onlineStats.stream()
+//                .map(PlayerOnlineDurations::getDuration)
+//                .reduce(0, Integer::sum)
+//                .longValue();
+
+        return -1;
     }
 
 

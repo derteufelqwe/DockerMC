@@ -35,7 +35,9 @@ public class ServerPool extends ServiceTemplate {
 
     @Override
     protected Map<String, String> getContainerLabels() {
-        Map<String, String> containerLabels = de.derteufelqwe.commons.Utils.quickLabel(Constants.ContainerType.MINECRAFT);
+        Map<String, String> containerLabels = super.getContainerLabels();
+
+        containerLabels.putAll(Utils.quickLabel(Constants.ContainerType.MINECRAFT));
         containerLabels.put(Constants.SERVER_NAME_KEY, this.name);
 
         return containerLabels;
@@ -43,17 +45,19 @@ public class ServerPool extends ServiceTemplate {
 
     @Override
     protected Map<String, String> getServiceLabels() {
-        Map<String, String> serviceLabels = Utils.quickLabel(Constants.ContainerType.MINECRAFT_POOL);
-        serviceLabels.put(Constants.SERVER_NAME_KEY, this.name);
+        Map<String, String> labels = super.getServiceLabels();
 
-        return serviceLabels;
+        labels.putAll(Utils.quickLabel(Constants.ContainerType.MINECRAFT_POOL));
+        labels.put(Constants.SERVER_NAME_KEY, this.name);
+        labels.put("SOFT_PLAYER_LIMIT", String.valueOf(this.softPlayerLimit));
+
+        return labels;
     }
 
     @Override
     protected List<String> getEnvs() {
         List<String> envs = super.getEnvs();
 
-        envs.add("TASK_NAME={{ .Task.Name }}");
         envs.add("SERVER_NAME=" + this.name);
         envs.add("SOFT_PLAYER_LIMIT=" + this.softPlayerLimit);
 

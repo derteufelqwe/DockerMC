@@ -45,30 +45,47 @@ public class ContainerWatcher implements ResultCallback<Event> {
     }
 
 
+    /**
+     * Initializes the ContainerWatcher and makes sure that all running containers are stored in the database
+     * and containers the stopped while this ContainerWatcher was offline, are updated accordingly
+     */
     @Override
     public void onStart(Closeable closeable) {
+        try {
+            List<Container> containers = this.getRunningBungeeMinecraftContainers();
+            this.gatherStartedContainers(containers);
+            this.completeStoppedContainers(containers);
 
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
     }
 
     @Override
     public void onNext(Event object) {
-        switch (object.getStatus()) {
-            case "start":
-                this.onContainerStart(object);
-                break;
+        try {
+            switch (object.getStatus()) {
+                case "start":
+                    this.onContainerStart(object);
+                    break;
 
-            case "die":
-                this.onContainerDie(object);
-                break;
+                case "die":
+                    this.onContainerDie(object);
+                    break;
 
-            default:
-                System.err.println("Got invalid event type " + object);
+                default:
+                    System.err.println("Got invalid event type " + object);
+            }
+
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
         }
     }
 
     @Override
     public void onError(Throwable throwable) {
-
+        System.err.println("Exception occured in the containerwatcher");
+        System.err.println(throwable);
     }
 
     @Override
@@ -84,34 +101,12 @@ public class ContainerWatcher implements ResultCallback<Event> {
     // -----  Custom methods  -----
 
     /**
-     * Initializes the ContainerWatcher and makes sure that all running containers are stored in the database
-     * and containers the stopped while this ContainerWatcher was offline, are updated accordingly
+     * Finds all stopped containers, that stopped while the NodeWatcher was offline, and marks them as stopped in the database
+     * @param relevantContainers Minecraft / BungeeCord containers running on this node
      */
-    public void init() {
-        List<Container> containers = this.getRunningBungeeMinecraftContainers();
-        List<String> containerIds = containers.stream().map(Container::getId).collect(Collectors.toList());
-
-        // Create new container entries if they are not yet present in the database.
-        try (Session session = sessionBuilder.openSession()) {
-            for (Container container : containers) {
-                Transaction tx = session.beginTransaction();
-
-                try {
-                    DBContainer dbContainer = session.get(DBContainer.class, container.getId());
-                    if (dbContainer != null) {
-                        continue;
-                    }
-
-                    this.addContainerEntry(container.getId());
-
-                } finally {
-                    tx.commit();
-                }
-            }
-        }
-
-        // Finish the database entries for stopped containers
-        Set<String> existingDbContainerIds = NWUtils.findLocalRunningContainers(sessionBuilder);
+    private void completeStoppedContainers(List<Container> relevantContainers) {
+        Set<String> existingDbContainerIds = NWUtils.getLocallyRunningContainersFromDB(sessionBuilder);
+        List<String> containerIds = relevantContainers.stream().map(Container::getId).collect(Collectors.toList());
 
         try (Session session = sessionBuilder.openSession()) {
             for (String containerId : existingDbContainerIds) {
@@ -137,6 +132,31 @@ public class ContainerWatcher implements ResultCallback<Event> {
             }
         }
 
+
+    }
+
+    /**
+     * Adds all newly started containers, while the NodeWatcher was offline, to the database
+     * @param relevantContainers Minecraft / BungeeCord containers running on this node
+     */
+    private void gatherStartedContainers(List<Container> relevantContainers) {
+        try (Session session = sessionBuilder.openSession()) {
+            for (Container container : relevantContainers) {
+                Transaction tx = session.beginTransaction();
+
+                try {
+                    DBContainer dbContainer = session.get(DBContainer.class, container.getId());
+                    if (dbContainer != null) {
+                        continue;
+                    }
+
+                    this.addContainerEntry(container.getId());
+
+                } finally {
+                    tx.commit();
+                }
+            }
+        }
 
     }
 
@@ -166,6 +186,8 @@ public class ContainerWatcher implements ResultCallback<Event> {
         String nodeId = this.getNodeId(cont);
         String serviceId = this.getContainerServiceId(cont);
         String taskId = this.getContainerTaskId(cont);
+        String ipString = cont.getNetworkSettings().getNetworks().get(Constants.NETW_OVERNET_NAME).getIpAddress();
+        short taskSlot = this.getTaskSlot(cont);
 
         if (serviceId == null) {
             throw new InvalidSystemStateException("Container %s has no information about its service.", id);
@@ -173,9 +195,9 @@ public class ContainerWatcher implements ResultCallback<Event> {
         if (taskId == null) {
             throw new InvalidSystemStateException("Container %s has no information about its task id.", id);
         }
-
-        DBContainer container = new DBContainer(id, cont.getConfig().getImage(), NWUtils.parseDockerTimestamp(cont.getCreated()));
-        container.setName(cont.getName().substring(1));
+        if (taskSlot < 0) {
+            throw new InvalidSystemStateException("Container %s has not information about its task slot.", id);
+        }
 
         DBService dbService = this.getOrCreateService(serviceId);
 
@@ -188,9 +210,21 @@ public class ContainerWatcher implements ResultCallback<Event> {
                 }
 
                 Node node = session.get(Node.class, nodeId);
-                container.setNode(node);
-                container.setService(dbService);
-                container.setTaskId(taskId);
+                if (node == null) {
+                    throw new InvalidSystemStateException("Node %s not found.", nodeId);
+                }
+
+                DBContainer container = new DBContainer(
+                        id,
+                        cont.getConfig().getImage(),
+                        NWUtils.parseDockerTimestamp(cont.getCreated()),
+                        cont.getName().substring(1),
+                        taskId,
+                        ipString,
+                        taskSlot,
+                        node,
+                        dbService
+                );
 
                 session.persist(container);
                 System.out.println("[ContainerWatcher] Created container entry " + id + ".");
@@ -288,13 +322,30 @@ public class ContainerWatcher implements ResultCallback<Event> {
     }
 
     /**
+     * Tries to get the task slot from the container object.
+     * @return Return value > 0 = Task slot, < 0 = Error code.
+     */
+    private short getTaskSlot(InspectContainerResponse containerResponse) {
+        String[] nameSplits = containerResponse.getName().split("\\.");
+        if (nameSplits.length != 3) {
+            return -1;
+        }
+
+        try {
+            return Short.parseShort(nameSplits[1]);
+
+        } catch (NumberFormatException e) {
+            return -2;
+        }
+    }
+
+    /**
      * Returns all docker containers, which are currently running Minecraft or BungeeCord
      *
      * @return
      */
     private List<Container> getRunningBungeeMinecraftContainers() {
-        List<Container> bungeeContainers = dockerClient.listContainersCmd().withLabelFilter(Utils.quickLabel(Constants.ContainerType.BUNGEE)).exec();
-
+        List<Container> bungeeContainers =    dockerClient.listContainersCmd().withLabelFilter(Utils.quickLabel(Constants.ContainerType.BUNGEE)).exec();
         List<Container> minecraftContainers = dockerClient.listContainersCmd().withLabelFilter(Utils.quickLabel(Constants.ContainerType.MINECRAFT)).exec();
 
         bungeeContainers.addAll(minecraftContainers);
@@ -336,9 +387,13 @@ public class ContainerWatcher implements ResultCallback<Event> {
 
                 Service service = dockerClient.inspectServiceCmd(serviceId).exec();
 
-                dbService = new DBService(service.getId(), service.getSpec().getName());
-                dbService.setMaxRam(new Long(service.getSpec().getTaskTemplate().getResources().getLimits().getMemoryBytes() / 1024 / 1024).intValue());
-                dbService.setMaxCpu((float) (service.getSpec().getTaskTemplate().getResources().getLimits().getNanoCPUs() / 1000000000.0));
+                dbService = new DBService(
+                        service.getId(),
+                        service.getSpec().getName(),
+                        new Long(service.getSpec().getTaskTemplate().getResources().getLimits().getMemoryBytes() / 1024 / 1024).intValue(),
+                        (float) (service.getSpec().getTaskTemplate().getResources().getLimits().getNanoCPUs() / 1000000000.0),
+                        service.getSpec().getLabels().get("Type")
+                );
 
                 session.persist(dbService);
 
