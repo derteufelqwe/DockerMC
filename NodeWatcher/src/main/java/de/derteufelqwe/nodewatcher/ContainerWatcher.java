@@ -226,7 +226,8 @@ public class ContainerWatcher implements ResultCallback<Event> {
                         dbService
                 );
 
-                session.persist(container);
+                // SaveOrUpdate is required when restarting a stopped container. Otherwise a unique constraint violation would be thrown
+                session.saveOrUpdate(container);
                 System.out.println("[ContainerWatcher] Created container entry " + id + ".");
 
             } finally {

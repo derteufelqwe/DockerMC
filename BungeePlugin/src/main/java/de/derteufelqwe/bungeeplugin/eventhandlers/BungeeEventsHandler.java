@@ -42,7 +42,7 @@ public class BungeeEventsHandler implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerServerChange(BungeePlayerServerChangeEvent event) {
-        System.out.printf("Player %s changed server %s -> %s.\n", event.getPlayerName(), event.getOldServer(), event.getNewServer());
+        System.out.printf("Player %s changed server from %s -> %s.\n", event.getPlayerName(), event.getOldServer(), event.getNewServer());
         this.redisDataManager.updatePlayersServer(event.getPlayerName(), event.getNewServer());
     }
 
@@ -103,7 +103,17 @@ public class BungeeEventsHandler implements Listener {
                 "Motd", false
         ));
         serverInfoStorage.set(event.getServername(), new ServerInfoStorage.Infos(event.getContainerId(), event.getServiceId()));
+
         System.out.printf("Added Server '%s' (%s).\n", event.getServername(), event.getContainerId());
+    }
+
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onRemoveServer(DMCServerRemoveEvent event) {
+        ProxyServer.getInstance().getConfig().removeServerNamed(event.getServername());
+        serverInfoStorage.remove(event.getServername());
+
+        System.out.printf("Removed Server '%s' (%s).\n", event.getServername(), event.getContainerId());
     }
 
 }

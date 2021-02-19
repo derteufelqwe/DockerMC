@@ -25,70 +25,16 @@ import java.util.stream.Collectors;
  * Reihenfolge: Join -> Connect
  */
 
-public class ConnectionEvents implements Listener, ICacheChangeListener<String, Value> {
+public class ConnectionEvents implements Listener {
 
     private final Pattern RE_PLAYERLIMIT = Pattern.compile("^mcservers\\/(.+)\\/softPlayerLimit$");
 
-    private  String lobbyServerName = "";
-    // ToDo: SoftPlayerLimit == -1 -> unlimited
-    private Map<String, Integer> softPlayerLimits = new HashMap<>();
+    private  String lobbyServerName = "LobbyServer";
     private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
 
 
     public ConnectionEvents() {
 
-    }
-
-
-    // -----  KV Listener  -----
-    @Override
-    public void onAddEntry(String key, Value value) {
-        System.out.println("Add " + key + " -> " + value);
-        this.setValue(key, value);
-    }
-
-    @Override
-    public void onModifyEntry(String key, Value value) {
-        System.out.println("Modify " + key + " -> " + value);
-        this.setValue(key, value);
-    }
-
-    @Override
-    public void onRemoveEntry(String key, Value value) {
-        System.out.println("Remove " + key + " -> " + value);
-        this.unsetValue(key, value);
-    }
-
-
-    private void setValue(String key, Value value) {
-        Matcher m = RE_PLAYERLIMIT.matcher(key);
-
-        if (m.matches()) {
-            String serverName = m.group(1);
-            int limit = Integer.parseInt(value.getValueAsString().get());
-            this.softPlayerLimits.put(serverName, limit);
-            System.out.println("Setting softPlayerLimit of server " + serverName + " to " + limit);
-
-        }
-
-        if (key.equals("system/lobbyServerName")) {
-            String name = value.getValueAsString().get();
-            this.lobbyServerName = name;
-            System.out.println("Setting lobbyServerName to " + name);
-        }
-    }
-
-    private void unsetValue(String key, Value value) {
-        Matcher m = RE_PLAYERLIMIT.matcher(key);
-
-        if (m.matches() && m.find()) {
-            String serverName = RE_PLAYERLIMIT.matcher(key).group(1);
-            this.softPlayerLimits.remove(serverName);
-            System.out.println("Unsetting ");
-
-        } else if (key.equals("system/lobbyServerName")) {
-            this.lobbyServerName = null;
-        }
     }
 
 
@@ -145,7 +91,7 @@ public class ConnectionEvents implements Listener, ICacheChangeListener<String, 
                 .sorted(Comparator.comparing(ServerInfo::getName))  // Sort by Name
                 .collect(Collectors.toList());
 
-        Integer playerLimit = this.softPlayerLimits.get(this.lobbyServerName);
+        Integer playerLimit = 10;
         if (playerLimit != null && playerLimit == -1) {
             playerLimit = Integer.MAX_VALUE;
         }

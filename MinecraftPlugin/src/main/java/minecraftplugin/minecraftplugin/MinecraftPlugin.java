@@ -47,10 +47,6 @@ public final class MinecraftPlugin extends JavaPlugin {
     @Getter private static SessionBuilder sessionBuilder = new SessionBuilder("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT);
     @Getter private static RedisPool redisPool = new RedisPool("redis");
 
-    private Consul consul = Consul.builder().withHostAndPort(HostAndPort.fromParts(Constants.CONSUL_HOST, Constants.CONSUL_PORT)).build();
-    private AgentClient agentClient = consul.agentClient();
-    private KeyValueClient kvClient = consul.keyValueClient();
-    private CatalogClient catalogClient = consul.catalogClient();
     private PaperCommandManager commandManager;
 
     @Getter private static ContainerMetaData metaData = new ContainerMetaData();
@@ -102,6 +98,8 @@ public final class MinecraftPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        this.deregisterContainer();
+
         // This try-catch contraption enables to use Plugin messages in onDisable
         try {
             Field field = JavaPlugin.class.getDeclaredField("isEnabled");
@@ -121,8 +119,6 @@ public final class MinecraftPlugin extends JavaPlugin {
 
         CONFIG.saveAll();
         System.out.println("Removing Server " + this.metaData.getTaskName());
-
-        this.deregisterContainer();
 
         healthCheck.stop();
     }
@@ -177,43 +173,10 @@ public final class MinecraftPlugin extends JavaPlugin {
         return -1;
     }
 
+
     /**
-     * Register this container to Consul
+     * Notifies the BungeeCord proxies in the network that this Minecraft server is online and ready to connect to.
      */
-    private void registerContainerOld() {
-        String taskName = this.metaData.getTaskName();
-        String containerIp = this.metaData.getContainerIp();
-        String serverName = this.metaData.getServerName();
-
-        Registration newService = ImmutableRegistration.builder()
-                .name("minecraft")
-                .id(taskName)
-                .addTags("defaultmc")
-                .addTags(serverName)
-                .address(containerIp)
-                .port(25565)
-                .addChecks(ImmutableRegCheck.builder()
-                        .http("http://" + containerIp + ":8001/health")
-                        .interval("10s")
-                        .timeout("5s")
-                        .build())
-                .addChecks(ImmutableRegCheck.builder()
-                        .tcp(containerIp + ":25565")
-                        .interval("10s")
-                        .timeout("5s")
-                        .build())
-                .putMeta("ip", containerIp)
-                .putMeta("serverName", serverName)
-                .putMeta("instanceNumber", this.getInstanceNumber(taskName).toString())
-                .build();
-
-        System.out.println("Adding Server " + serverName + "-" + taskName);
-        agentClient.register(newService);
-
-        kvClient.putValue("mcservers/" + serverName + "/softPlayerLimit", Integer.toString(this.metaData.getSoftPlayerLimit()));
-    }
-
-
     private void registerContainer() {
         RedisMessages.MCServerStarted mcStarted = RedisMessages.MCServerStarted.newBuilder()
                 .setContainerId(metaData.getContainerId())
@@ -230,18 +193,21 @@ public final class MinecraftPlugin extends JavaPlugin {
 
 
     /**
-     * Remove this container from Consul
+     * Notifies the BungeeCord proxies in the network that this Minecraft server is going offline and
+     * won't accept any new connections.
      */
     private void deregisterContainer() {
-        try {
-            agentClient.deregister(this.metaData.getTaskName());
+        RedisMessages.MCServerStopped mcStopped = RedisMessages.MCServerStopped.newBuilder()
+                .setContainerId(metaData.getContainerId())
+                .build();
 
-        } catch (ConsulException e) {
-            System.err.println(e.getMessage());
-            System.out.println("This is most likely due to no TASK_NAME beeing set!");
+        RedisMessages.RedisMessage message = RedisMessages.RedisMessage.newBuilder()
+                .setMcServerStopped(mcStopped)
+                .build();
+
+        try (Jedis jedis = redisPool.getJedisPool().getResource()) {
+            jedis.publish(Constants.REDIS_MESSAGES_CHANNEL, message.toByteArray());
         }
-
-        kvClient.deleteKey("mcservers/" + this.metaData.getServerName());
     }
 
 }

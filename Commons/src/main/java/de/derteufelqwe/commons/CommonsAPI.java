@@ -26,6 +26,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -127,6 +128,48 @@ public class CommonsAPI {
             throw new DmcAPIException("Found %s containers with the name '%s'.", res.size(), name);
         }
     }
+
+    /**
+     * Returns all containers from the DB, which represent a running Minecraft server
+     * @return A list that might be empty
+     */
+    @NotNull
+    public List<DBContainer> getRunningMinecraftContainersFromDB(Session session) {
+        String sql = "SELECT * FROM containers AS c " +
+                "LEFT JOIN services AS s on c.service_id = s.id " +
+                "WHERE c.stoptime IS NULL AND s.type = :stype";
+
+        List<DBContainer> containers = session.createNativeQuery(sql, DBContainer.class)
+                .setParameter("stype", Constants.ContainerType.MINECRAFT_POOL.name())
+                .getResultList();
+
+        if (containers == null)
+            return new ArrayList<>();
+
+        return containers;
+    }
+
+
+    /**
+     * Returns all containers from the DB, which represent a running BungeeCord proxy
+     * @return A list that might be empty
+     */
+    @NotNull
+    public List<DBContainer> getRunningBungeeContainersFromDB(Session session) {
+        String sql = "SELECT * FROM containers AS c " +
+                "LEFT JOIN services AS s on c.service_id = s.id " +
+                "WHERE c.stoptime IS NULL AND s.type = :stype";
+
+        List<DBContainer> containers = session.createNativeQuery(sql, DBContainer.class)
+                .setParameter("stype", Constants.ContainerType.BUNGEE_POOL.name())
+                .getResultList();
+
+        if (containers == null)
+            return new ArrayList<>();
+
+        return containers;
+    }
+
 
     // -----  Permissions  -----
 

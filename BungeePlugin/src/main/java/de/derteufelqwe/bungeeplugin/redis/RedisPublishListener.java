@@ -175,10 +175,6 @@ public class RedisPublishListener extends BinaryJedisPubSub implements Runnable 
 
     // -----  Infrastructure Message handlers  -----
 
-    /**
-     *
-     * @param message
-     */
     private void onMCServerStarted(RedisMessages.MCServerStarted message) {
         String containerId = message.getContainerId();
 
@@ -186,11 +182,10 @@ public class RedisPublishListener extends BinaryJedisPubSub implements Runnable 
             @Override
             public void run(Session session) {
                 DBContainer container = session.get(DBContainer.class, containerId);
-                String serverName = container.getService().getName() + "-" + container.getTaskSlot();
 
                 try {
                     BungeeAddServerEvent addServerEvent = new BungeeAddServerEvent(
-                            serverName,
+                            container.getMinecraftServerName(),
                             (Inet4Address) Inet4Address.getByName(container.getIp()),
                             container.getId(),
                             container.getService().getId(),
@@ -203,12 +198,31 @@ public class RedisPublishListener extends BinaryJedisPubSub implements Runnable 
                 }
             }
         });
-
-        System.out.println("Added new server");
     }
 
     private void onMCServerStopped(RedisMessages.MCServerStopped message) {
-        System.out.println("Stopped server server");
+        String containerId = message.getContainerId();
+
+        ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, new SessionRunnable() {
+            @Override
+            public void run(Session session) {
+                DBContainer container = session.get(DBContainer.class, containerId);
+
+                try {
+                    DMCServerRemoveEvent removeServerEvent = new DMCServerRemoveEvent(
+                            container.getMinecraftServerName(),
+                            (Inet4Address) Inet4Address.getByName(container.getIp()),
+                            container.getId(),
+                            container.getService().getId(),
+                            new DefaultCallback<>()
+                    );
+                    removeServerEvent.callEvent();
+
+                } catch (UnknownHostException e) {
+                    e.printStackTrace(System.err);
+                }
+            }
+        });
     }
 
 }

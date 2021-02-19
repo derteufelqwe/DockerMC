@@ -8,6 +8,8 @@ import de.derteufelqwe.bungeeplugin.events.BungeePlayerServerChangeEvent;
 import de.derteufelqwe.bungeeplugin.redis.PlayerData;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.bungeeplugin.runnables.DefaultCallback;
+import de.derteufelqwe.bungeeplugin.runnables.PlayerSkinDownloadRunnable;
+import de.derteufelqwe.bungeeplugin.utils.ServerInfoStorage;
 import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.exceptions.InvalidStateError;
 import de.derteufelqwe.commons.exceptions.NotFoundException;
@@ -59,6 +61,7 @@ public class EventsDispatcher implements Listener {
     private JedisPool jedisPool = BungeePlugin.getRedisPool().getJedisPool();
     private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
     private DMCLogger logger = BungeePlugin.getDmcLogger();
+    private ServerInfoStorage serverInfoStorage = BungeePlugin.getServerInfoStorage();
 
     private RedisMessages.BungeeMessageBase messageBase;
     private final Method getLoginRequestMethod;
@@ -109,7 +112,7 @@ public class EventsDispatcher implements Listener {
 
             // ToDo: Maybe make these functions run in parallel
             long start = System.currentTimeMillis();
-            this.addPlayerToDB(event);
+            this.addPlayerToDB(playerId, playerName);
             logger.finer("prepareOnPlayerJoin took %s ms.", System.currentTimeMillis() - start);
 
             start = System.currentTimeMillis();
@@ -153,58 +156,49 @@ public class EventsDispatcher implements Listener {
 
     /**
      * Creates or updates the relevant DB objects for the joining player and downloads their skin.
-     *
-     * @param event
      */
-    private void addPlayerToDB(LoginEvent event) {
-//        InitialHandler handler = (InitialHandler) event.getConnection();
-//        String playerName = handler.getLoginRequest().getData();
-//        UUID uuid = handler.getUniqueId();
-//        DBPlayer dbPlayer;
-//
-//        try (Session session = sessionBuilder.openSession()) {
-//            Transaction tx = session.beginTransaction();
-//
-//            try {
-//                // Create player object when he joins
-//                dbPlayer = session.get(DBPlayer.class, uuid);
-//                if (dbPlayer == null) {
-//                    dbPlayer = new DBPlayer(uuid, playerName);
-//                    session.save(dbPlayer);
-//                }
-//
-//                // ToDo: change other players name to support name changes
-//
-//                // Update players name if it changed
-//                if (!dbPlayer.getName().equals(playerName)) {
-//                    dbPlayer.setName(playerName);
-//                }
-//
-//                // Create a login object for the player
-//                PlayerLogin playerLogin = new PlayerLogin(dbPlayer);
-//                session.save(playerLogin);
-//
-//                session.saveOrUpdate(dbPlayer);
-//                tx.commit();
-//
-//                // ToDo: Tidy this up. This is probably not the best Hibernate way
-//
-//            } catch (Exception e) {
-//                tx.rollback();
-//                throw e;
-//            }
-//        }
-//
-//
-//        if (dbPlayer != null) {
-//            // Update the players skin.
-//            // This is done asynchronously to prevent login times from up to 15 seconds.
-//            if (dbPlayer.getLastSkinUpdate() == null ||
-//                    (System.currentTimeMillis() - dbPlayer.getLastSkinUpdate().getTime()) >= 10 * 60 * 1000) { // 10 Minutes
-//                ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, new PlayerSkinDownloadRunnable(uuid));
-//
-//            }
-//        }
+    private void addPlayerToDB(UUID playerId, String username) {
+        DBPlayer dbPlayer;
+
+        try (Session session = sessionBuilder.openSession()) {
+            Transaction tx = session.beginTransaction();
+
+            try {
+                // Create player object when he joins
+                dbPlayer = session.get(DBPlayer.class, playerId);
+                if (dbPlayer == null) {
+                    dbPlayer = new DBPlayer(playerId, username);
+                    session.save(dbPlayer);
+                }
+
+                // ToDo: change other players name to support name changes
+
+                // Update players name if it changed
+                if (!dbPlayer.getName().equals(username)) {
+                    dbPlayer.setName(username);
+                }
+
+                session.saveOrUpdate(dbPlayer);
+                tx.commit();
+
+                // ToDo: Tidy this up. This is probably not the best Hibernate way
+
+            } catch (Exception e) {
+                tx.rollback();
+                throw e;
+            }
+        }
+
+
+        if (dbPlayer != null) {
+            // Update the players skin.
+            // This is done asynchronously to prevent login times from up to 15 seconds.
+            if (dbPlayer.getLastSkinUpdate() == null ||
+                    (System.currentTimeMillis() - dbPlayer.getLastSkinUpdate().getTime()) >= 10 * 60 * 1000) { // 10 Minutes
+                ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, new PlayerSkinDownloadRunnable(playerId));
+
+            }
+        }
     }
 
     /**
@@ -338,6 +332,8 @@ public class EventsDispatcher implements Listener {
     public void onPlayerLeaveNetwork(PlayerDisconnectEvent event) {
         this.removePlayerFromRedis(event.getPlayer());
 
+        this.finishLoginDBEntries(event.getPlayer());
+
         // Setup finished - call events
         this.callBungeePlayerLeaveEvent(event.getPlayer());
     }
@@ -386,6 +382,7 @@ public class EventsDispatcher implements Listener {
         String serverName = event.getServer().getInfo().getName();
 
         this.updateRedisPlayerJoin(event.getPlayer(), serverName);
+        this.finishLoginDBEntries(event.getPlayer());
         this.createLoginDBEntry(event.getPlayer(), event.getServer().getInfo());
     }
 
@@ -439,10 +436,9 @@ public class EventsDispatcher implements Listener {
 
             try {
                 DBPlayer dbPlayer = session.get(DBPlayer.class, player.getUniqueId());
-                // ToDo: Add service
-//                DBService service = session
+                DBService dbService = session.getReference(DBService.class, this.serverInfoStorage.get(server.getName()).getServiceId());
 
-                PlayerLogin newLogin = new PlayerLogin(dbPlayer, null);
+                PlayerLogin newLogin = new PlayerLogin(dbPlayer, dbService);
                 session.persist(newLogin);
 
             } catch (Exception e) {

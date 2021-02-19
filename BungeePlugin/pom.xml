@@ -152,13 +152,6 @@
             <version>1.25</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.orbitz.consul/consul-client -->
-        <dependency>
-            <groupId>com.orbitz.consul</groupId>
-            <artifactId>consul-client</artifactId>
-            <version>1.4.2-shaded</version>
-        </dependency>
-
         <!-- https://mvnrepository.com/artifact/commons-cli/commons-cli -->
         <dependency>
             <groupId>commons-cli</groupId>
