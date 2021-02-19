@@ -399,7 +399,6 @@ public class EventsDispatcher implements Listener {
             jedis.incr("minecraft#playerCount#" + serverName);
             jedis.sadd("minecraft#players#" + serverName, playerName);
             jedis.hset("players#" + playerName, "server", serverName);
-            jedis.set("playerJoinTime#" + playerName + "#" + serverName, Long.toString(System.currentTimeMillis() / 1000L));
         }
 
     }
@@ -478,8 +477,6 @@ public class EventsDispatcher implements Listener {
 
         jedis.decr("minecraft#playerCount#" + serverName);
         jedis.srem("minecraft#players#" + serverName, playerName);
-        jedis.del("playerJoinTime#" + playerName + "#" + serverName);
-
     }
 
     /**
@@ -523,29 +520,6 @@ public class EventsDispatcher implements Listener {
 
 
     // -----  Utility methods  -----
-
-    /**
-     * Tries to parse the join time for a user on a server from redis
-     *
-     * @param jedis
-     * @param playerName
-     * @param serverName
-     * @return
-     */
-    private Long getOldJoinTime(Jedis jedis, String playerName, String serverName) throws NotFoundException {
-        String oldJoinTimeString = jedis.get("playerJoinTime#" + playerName + "#" + serverName);
-
-        if (oldJoinTimeString == null) {
-            throw new NotFoundException("Jointime for player %s on server %s not found.", playerName, serverName);
-        }
-
-        try {
-            return Long.parseLong(oldJoinTimeString);
-
-        } catch (NumberFormatException e) {
-            throw new NotFoundException("Jointime for player %s on server %s is %s and invalid.\n", playerName, serverName, oldJoinTimeString);
-        }
-    }
 
     /**
      * Converts a java UUID to Protobuf UUID

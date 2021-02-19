@@ -14,7 +14,7 @@ import java.net.Inet4Address;
 @Getter
 @ToString
 @EqualsAndHashCode
-public class BungeeAddServerEvent extends AsyncEvent<BungeeAddServerEvent> {
+public class DMCServerAddEvent extends AsyncEvent<DMCServerAddEvent> {
 
     private String servername;
     private Inet4Address ip;
@@ -22,7 +22,7 @@ public class BungeeAddServerEvent extends AsyncEvent<BungeeAddServerEvent> {
     private String serviceId;
 
 
-    public BungeeAddServerEvent(String serverName, Inet4Address ip, String containerId, String serviceId, Callback<BungeeAddServerEvent> done) {
+    public DMCServerAddEvent(String serverName, Inet4Address ip, String containerId, String serviceId, Callback<DMCServerAddEvent> done) {
         super(done);
         this.servername = serverName;
         this.ip = ip;

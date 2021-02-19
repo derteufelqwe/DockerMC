@@ -8,7 +8,7 @@ import de.derteufelqwe.bungeeplugin.commands.misc.*;
 import de.derteufelqwe.bungeeplugin.commands.permission.PermissionCommand;
 import de.derteufelqwe.bungeeplugin.commands.permission.PermissionGroupCommand;
 import de.derteufelqwe.bungeeplugin.eventhandlers.*;
-import de.derteufelqwe.bungeeplugin.events.BungeeAddServerEvent;
+import de.derteufelqwe.bungeeplugin.events.DMCServerAddEvent;
 import de.derteufelqwe.bungeeplugin.health.HealthCheck;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.bungeeplugin.redis.RedisPublishListener;
@@ -50,27 +50,26 @@ public final class BungeePlugin extends Plugin {
     public static RedisPool redisPool = new RedisPool("redis");
     @Getter
     public static SessionBuilder sessionBuilder = new SessionBuilder("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT);
+    @Getter
+    private static RedisDataManager redisDataManager;   // Manage data from and to redis
+    private final RedisPublishListener redisPublishListener = new RedisPublishListener();
 
     // --- Static ---
     public static Plugin PLUGIN;
     public static ServerState STATE = ServerState.STARTING;
     @Getter
     private static Config<ConfigFile> CONFIG = new Config<>(new DefaultYamlConverter(), new DefaultGsonProvider(), "plugins/BungeePlugin/config.yml", new ConfigFile());
-    @Getter
-    private static RedisDataManager redisDataManager;   // Manage data from and to redis
+
     public static final MetaData META_DATA = new MetaData();
     public static final String BUNGEECORD_ID = META_DATA.getTaskName(); // Identifies the current node
     @Getter
-    private static BungeeAPI bungeeApi = new BungeeAPI();
+    private static final BungeeAPI bungeeApi = new BungeeAPI();
     @Getter
     private static DMCLogger dmcLogger;
     @Getter
-    private static ServerInfoStorage serverInfoStorage = new ServerInfoStorage();
+    private static final ServerInfoStorage serverInfoStorage = new ServerInfoStorage();
 
-
-    private BungeeCommandManager commandManager = new BungeeCommandManager(this);
-    private ConnectionEvents connectionEvents;
-    private RedisPublishListener redisPublishListener;
+    private final BungeeCommandManager commandManager = new BungeeCommandManager(this);
 
 
     @Override
@@ -85,14 +84,12 @@ public final class BungeePlugin extends Plugin {
         // --- Redis stuff ---
         BungeePlugin.redisDataManager = new RedisDataManager();
         BungeePlugin.redisDataManager.init();
-        this.connectionEvents = new ConnectionEvents();
-        this.redisPublishListener = new RedisPublishListener();
 
         System.out.println("Starting redis listener thread");
         ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, this.redisPublishListener);
 
         // ---  Events  ---
-        getProxy().getPluginManager().registerListener(this, connectionEvents);
+        getProxy().getPluginManager().registerListener(this, new ConnectionEvents());
         getProxy().getPluginManager().registerListener(this, new GeneralEvents());
         getProxy().getPluginManager().registerListener(this, new EventsDispatcher());
         getProxy().getPluginManager().registerListener(this, new BungeeEventsHandler());
@@ -200,7 +197,7 @@ public final class BungeePlugin extends Plugin {
     }
 
     /**
-     * Loads all running servers from the database
+     * Loads all running servers from the database and issues a DMCServerAddEvent for them
      */
     private void loadRunningServersFromDatabase() {
         try (Session session = sessionBuilder.openSession()) {
@@ -208,7 +205,7 @@ public final class BungeePlugin extends Plugin {
 
             for (DBContainer container : containers) {
                 try {
-                    BungeeAddServerEvent addServerEvent = new BungeeAddServerEvent(
+                    DMCServerAddEvent addServerEvent = new DMCServerAddEvent(
                             container.getMinecraftServerName(), (Inet4Address) Inet4Address.getByName(container.getIp()),
                             container.getId(), container.getService().getId(), new DefaultCallback<>()
                     );

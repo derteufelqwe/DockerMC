@@ -1,5 +1,8 @@
 package de.derteufelqwe.bungeeplugin;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
@@ -12,6 +15,7 @@ import redis.clients.jedis.*;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -97,12 +101,30 @@ public class Test {
     @SneakyThrows
     public static void main(String[] args) {
 
+        LoadingCache<String, String> cache = CacheBuilder.newBuilder()
+                .expireAfterWrite(Duration.ofMillis(1))
+                .build(new CacheLoader<String, String>() {
+            @Override
+            public String load(String key) throws Exception {
+                try (Jedis jedis = pool.getResource()) {
+                    System.out.println("Cache get");
+                    return jedis.get("playerCount");
+                }
+            }
+        });
 
-        Config<ConfigFile> config = new Config<>(new DefaultYamlConverter(), new DefaultGsonProvider(), "test.yml", new ConfigFile());
-        config.load();
+        long start = System.currentTimeMillis();
 
+        for (int i = 0; i < 10000; i++) {
+            try (Jedis jedis = pool.getResource()) {
+                String value = jedis.get("playerCount");
+            }
+//            String value = cache.get("");
+        }
 
-        config.save();
+        long end = System.currentTimeMillis();
+
+        System.out.println("Duration: " + (end - start) + "ms.");
     }
 
 }

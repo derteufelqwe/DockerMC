@@ -18,7 +18,6 @@ import redis.clients.jedis.JedisPool;
 import javax.annotation.CheckForNull;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -29,8 +28,6 @@ import java.util.UUID;
 public class RedisPublishListener extends BinaryJedisPubSub implements Runnable {
 
     private JedisPool jedisPool = BungeePlugin.getRedisPool().getJedisPool();
-    private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
-    private SessionBuilder sessionBuilder = BungeePlugin.getSessionBuilder();
 
 
     public RedisPublishListener() {
@@ -184,7 +181,7 @@ public class RedisPublishListener extends BinaryJedisPubSub implements Runnable 
                 DBContainer container = session.get(DBContainer.class, containerId);
 
                 try {
-                    BungeeAddServerEvent addServerEvent = new BungeeAddServerEvent(
+                    DMCServerAddEvent addServerEvent = new DMCServerAddEvent(
                             container.getMinecraftServerName(),
                             (Inet4Address) Inet4Address.getByName(container.getIp()),
                             container.getId(),

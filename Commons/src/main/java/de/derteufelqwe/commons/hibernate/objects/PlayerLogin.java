@@ -7,6 +7,9 @@ import org.hibernate.annotations.Type;
 import javax.persistence.*;
 import java.sql.Timestamp;
 
+/**
+ * Stores when players connect / leave servers
+ */
 @Getter
 @Setter
 @ToString

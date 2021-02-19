@@ -1,10 +1,14 @@
 package de.derteufelqwe.bungeeplugin.redis;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.exceptions.RedisCacheException;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.exceptions.InvalidStateError;
 import de.derteufelqwe.commons.protobuf.RedisMessages;
+import org.checkerframework.checker.units.qual.C;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Transaction;
@@ -12,11 +16,13 @@ import redis.clients.jedis.Transaction;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 /**
@@ -26,7 +32,15 @@ public class RedisDataManager {
 
     private final JedisPool jedisPool = BungeePlugin.getRedisPool().getJedisPool();
 
+    /*
+     * Maps player names to their player information
+     */
     private Map<String, PlayerData> playersMap = new ConcurrentHashMap<>();
+
+    /*
+     * A redis cache, that is currently only used to cache the player count for 100 ms.
+     */
+    private LoadingCache<Integer, String> cache = createCache();
 
 
     public RedisDataManager() {
@@ -67,6 +81,31 @@ public class RedisDataManager {
             }
         }
 
+    }
+
+    /**
+     * Creates the cache that is responsible for retrieving the player count from redis
+     */
+    private LoadingCache<Integer, String> createCache() {
+        return CacheBuilder.newBuilder()
+                .expireAfterWrite(Duration.ofMillis(100L))
+                .build(new CacheLoader<Integer, String>() {
+                    @Override
+                    public String load(Integer key) throws Exception {
+                        switch (key) {
+                            case 1:
+                                try (Jedis jedis = jedisPool.getResource()) {
+                                    String value = jedis.get("playerCount");
+                                    if (value == null)
+                                        return "0";
+                                    return value;
+                                }
+
+                            default:
+                                throw new RuntimeException("Cache got invalid key " + key);
+                        }
+                    }
+                });
     }
 
     // -----  Player methods  -----
@@ -151,23 +190,26 @@ public class RedisDataManager {
     // -----  Server methods  -----
 
     /**
-     * Returns the number of players on the whole network.
+     * Returns the number of players on the whole network. The result is cached, so many concurrent pings don't stress
+     * redis too much
      *
      * @return The overall player count
      * @throws RedisCacheException When the redis value is an invalid integer
      */
     public int getOverallPlayerCount() throws RedisCacheException {
-        try (Jedis jedis = this.jedisPool.getResource()) {
-            String value = jedis.get("playerCount");
-            try {
-                return Integer.parseInt(value);
+        try {
+            String value = cache.get(1);
+            return Integer.parseInt(value);
 
-            } catch (NullPointerException e1) {
-                return 0;
+        } catch (ExecutionException e) {
+            e.printStackTrace(System.err);
+            return 0;
 
-            } catch (NumberFormatException e2) {
-                throw new RedisCacheException("Redis playerCount contains non integer value '%s'.", value);
-            }
+        } catch (CacheLoader.InvalidCacheLoadException | NullPointerException e) {
+            return 0;
+
+        } catch (NumberFormatException e2) {
+            throw new RedisCacheException("Redis playerCount contains non integer value.");
         }
     }
 

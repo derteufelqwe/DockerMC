@@ -77,8 +77,14 @@
                             </excludes>
                         </filter>
                     </filters>
-<!--                        ACF-->
                     <relocations>
+                        <relocation>
+                            <pattern>com.google.common</pattern>
+                            <shadedPattern>shaded.com.google.common</shadedPattern>
+                            <includes>
+                                <include>com.google.common.**</include>
+                            </includes>
+                        </relocation>
 <!--                        <relocation>-->
 <!--                            <pattern>co.aikar.commands</pattern>-->
 <!--                            <shadedPattern>de.derteufelqwe.bungeeplugin.acf</shadedPattern>-->

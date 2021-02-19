@@ -8,7 +8,6 @@ import redis.clients.jedis.JedisPoolConfig;
  * Manages the redis pool
  * Namespaces:
  *  - Playerinformation: players#[username]
- *  - PlayerJoinTime: playerJoinTime#[username]#[serverName]
  *  - Overall player count: playerCount
  *  - Bungee player count: bungee#playerCount#[serverName]
  *  - Minecraft player count: minecraft#playerCount#[serverName]

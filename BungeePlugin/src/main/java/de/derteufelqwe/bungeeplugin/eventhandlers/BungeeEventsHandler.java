@@ -17,7 +17,6 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
 
-import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 
 public class BungeeEventsHandler implements Listener {
@@ -97,7 +96,7 @@ public class BungeeEventsHandler implements Listener {
 
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onAddServer(BungeeAddServerEvent event) {
+    public void onAddServer(DMCServerAddEvent event) {
         ProxyServer.getInstance().getConfig().addServer(ProxyServer.getInstance().constructServerInfo(
                 event.getServername(), new InetSocketAddress(event.getIp(), 25565),
                 "Motd", false
