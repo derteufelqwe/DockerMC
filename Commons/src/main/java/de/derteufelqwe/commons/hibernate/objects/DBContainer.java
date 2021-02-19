@@ -87,4 +87,11 @@ public class DBContainer {
         }
     }
 
+    /**
+     * Returns the name how this server would be registered in BungeeCord
+     */
+    public String getMinecraftServerName() {
+        return this.getService().getName() + "-" + this.getTaskSlot();
+    }
+
 }

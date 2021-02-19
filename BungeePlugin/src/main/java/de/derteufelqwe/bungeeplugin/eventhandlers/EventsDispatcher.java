@@ -1,5 +1,6 @@
 package de.derteufelqwe.bungeeplugin.eventhandlers;
 
+import com.sun.istack.Nullable;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.events.BungeePlayerJoinEvent;
 import de.derteufelqwe.bungeeplugin.events.BungeePlayerLeaveEvent;
@@ -8,17 +9,18 @@ import de.derteufelqwe.bungeeplugin.redis.PlayerData;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.bungeeplugin.runnables.DefaultCallback;
 import de.derteufelqwe.commons.Utils;
+import de.derteufelqwe.commons.exceptions.InvalidStateError;
 import de.derteufelqwe.commons.exceptions.NotFoundException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.*;
 import de.derteufelqwe.commons.logger.DMCLogger;
 import de.derteufelqwe.commons.protobuf.RedisMessages;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.connection.Server;
@@ -38,6 +40,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import java.lang.reflect.Method;
+import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -67,11 +70,11 @@ public class EventsDispatcher implements Listener {
      * If its name is not in here the event will be sent in the ServerDisconnectEvent handler, because the player is
      * changing the server instead of newly connecting to one.
      */
-    private Set<String> newlyJoinedPlayers = new HashSet<>();
+//    private Set<String> newlyJoinedPlayers = new HashSet<>();
     /*
      * If this map contains an entry for a player, this event will be sent when a player disconnects from a server.
      */
-    private Map<String, PlayerTmpData> playerServerChangeEventMap = new HashMap<>();
+//    private Map<String, PlayerTmpData> playerServerChangeEventMap = new HashMap<>();
 
 
     public EventsDispatcher() {
@@ -90,6 +93,13 @@ public class EventsDispatcher implements Listener {
 
     // --- Player Join ---
 
+    /**
+     * Handles a player joining the network. This involves the following steps:
+     *  1. Create / update the DB entry for the player
+     *  2. Check if the player or his ip is banned
+     *  3. Add the joined player to redis
+     *  4. Call the BungeePlayerJoinEvent
+     */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerJoinNetwork(LoginEvent event) {
         try {
@@ -97,11 +107,9 @@ public class EventsDispatcher implements Listener {
             UUID playerId = event.getConnection().getUniqueId();
             String connectionIp = event.getConnection().getSocketAddress().toString().substring(1).split(":")[0];
 
-            this.newlyJoinedPlayers.add(playerName);
-
             // ToDo: Maybe make these functions run in parallel
             long start = System.currentTimeMillis();
-            this.prepareOnPlayerJoinNetworkDB(event);
+            this.addPlayerToDB(event);
             logger.finer("prepareOnPlayerJoin took %s ms.", System.currentTimeMillis() - start);
 
             start = System.currentTimeMillis();
@@ -114,7 +122,7 @@ public class EventsDispatcher implements Listener {
                 return;
             logger.finer("checkIPBan took %s ms.", System.currentTimeMillis() - start);
 
-            this.prepareOnPlayerJoinNetworkRedis(playerName, playerId, connectionIp);
+            this.addJoinedPlayerToRedis(playerName, playerId, connectionIp);
 
             // --- Setup finished, call events ---
 
@@ -131,7 +139,7 @@ public class EventsDispatcher implements Listener {
     /**
      * Creates or updates the relevant redis entries for the joining player
      */
-    private void prepareOnPlayerJoinNetworkRedis(String username, UUID playerId, String connectionIp) {
+    private void addJoinedPlayerToRedis(String username, UUID playerId, String connectionIp) {
         PlayerData playerData = new PlayerData(username, playerId.toString(), connectionIp);
 
         // Add the relevant data to redis
@@ -144,12 +152,11 @@ public class EventsDispatcher implements Listener {
     }
 
     /**
-     * Creates or updates the relevant DB objects for the joining player
+     * Creates or updates the relevant DB objects for the joining player and downloads their skin.
      *
      * @param event
      */
-    @Deprecated
-    private void prepareOnPlayerJoinNetworkDB(LoginEvent event) {
+    private void addPlayerToDB(LoginEvent event) {
 //        InitialHandler handler = (InitialHandler) event.getConnection();
 //        String playerName = handler.getLoginRequest().getData();
 //        UUID uuid = handler.getUniqueId();
@@ -322,19 +329,16 @@ public class EventsDispatcher implements Listener {
 
     // --- Player Leave ---
 
+    /**
+     * Handles players leaving the network. This involves the following steps:
+     *  1. Remove the player from redis
+     *  2. Call the BungeePlayerLeaveEvent
+     */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerLeaveNetwork(PlayerDisconnectEvent event) {
-        String playerName = event.getPlayer().getDisplayName();
-
-        // Remove the player if he had no chance to connect to a server
-        this.newlyJoinedPlayers.remove(playerName);
-        this.playerServerChangeEventMap.remove(playerName);
-
         this.removePlayerFromRedis(event.getPlayer());
-        this.finishPlayersDBEntries(event.getPlayer());
 
         // Setup finished - call events
-
         this.callBungeePlayerLeaveEvent(event.getPlayer());
     }
 
@@ -350,46 +354,6 @@ public class EventsDispatcher implements Listener {
             jedis.srem("bungee#players#" + BungeePlugin.BUNGEECORD_ID, player.getDisplayName());
             jedis.hdel("players#" + player.getDisplayName(), PlayerData.getFields());
         }
-    }
-
-    /**
-     * Adds data gathered on disconnect
-     *
-     * @param player
-     */
-    @Deprecated
-    private void finishPlayersDBEntries(ProxiedPlayer player) {
-//        try (Session session = sessionBuilder.openSession()) {
-//            Transaction tx = session.beginTransaction();
-//
-//            try {
-//                // Create player object when he joins
-//                DBPlayer dbPlayer = session.get(DBPlayer.class, player.getUniqueId());
-//
-//                dbPlayer.setLastOnline(new Timestamp(System.currentTimeMillis()));
-//
-//                // Update the login object
-//                CriteriaBuilder cb = session.getCriteriaBuilder();
-//                CriteriaQuery<PlayerLogin> cq = cb.createQuery(PlayerLogin.class);
-//                Root<PlayerLogin> root = cq.from(PlayerLogin.class);
-//
-//                cq.select(root)
-//                        .where(cb.equal(root.get("player"), dbPlayer))
-//                        .orderBy(cb.desc(root.get("joinTime")));
-//
-//                Query query = session.createQuery(cq);
-//                query.setMaxResults(1);
-//                PlayerLogin playerLogin = (PlayerLogin) query.getSingleResult();
-//
-//                playerLogin.setLeaveTime(new Timestamp(System.currentTimeMillis()));
-//                session.update(playerLogin);
-//
-//                session.update(dbPlayer);
-//
-//            } finally {
-//                tx.commit();
-//            }
-//        }
     }
 
     private void callBungeePlayerLeaveEvent(ProxiedPlayer player) {
@@ -412,22 +376,17 @@ public class EventsDispatcher implements Listener {
 
     // --- Player connect to server ---
 
+    /**
+     * Handles a player connecting to a Minecraft server. This involves the following steps:
+     *  1. Update the server entries / players server in redis
+     *  2. Create the PlayerLogin entry in the DB and finish the old entry
+     */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerConnectToServer(ServerConnectedEvent event) {
         String serverName = event.getServer().getInfo().getName();
-        String playerName = event.getPlayer().getDisplayName();
-        UUID playerId = event.getPlayer().getUniqueId();
 
         this.updateRedisPlayerJoin(event.getPlayer(), serverName);
-        this.createLoginDBEntry(event.getPlayer(), event.getServer());
-
-        // Prepare for the event call
-        this.playerServerChangeEventMap.put(playerName, new PlayerTmpData(playerId, playerName, serverName));
-
-        if (this.newlyJoinedPlayers.contains(playerName)) {
-            this.newlyJoinedPlayers.remove(playerName);
-            this.callBungeePlayerServerChangeEvent(playerName);
-        }
+        this.createLoginDBEntry(event.getPlayer(), event.getServer().getInfo());
     }
 
     /**
@@ -448,98 +407,66 @@ public class EventsDispatcher implements Listener {
 
     }
 
-    private void createLoginDBEntry(ProxiedPlayer player, Server server) {
+    private void finishLoginDBEntries(ProxiedPlayer player) {
+        try (Session session = sessionBuilder.openSession()) {
+            Transaction tx = session.beginTransaction();
 
+            try {
+                List<PlayerLogin> logins = session.createNativeQuery(
+                        "SELECT * FROM player_logins AS pl WHERE pl.player_uuid = :playerid AND pl.leavetime IS NULL",
+                        PlayerLogin.class)
+                        .setParameter("playerid", player.getUniqueId())
+                        .getResultList();
+
+                for (PlayerLogin login : logins) {
+                    login.setLeaveTime(new Timestamp(System.currentTimeMillis()));
+                    session.persist(login);
+                }
+
+            } catch (Exception e) {
+                tx.rollback();
+                throw e;
+
+            } finally {
+                tx.commit();
+            }
+        }
     }
 
-    // --- Player disconnect from server ---
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerDisconnectFromServer(ServerDisconnectEvent event) {
-        String serverName = event.getTarget().getName();
-        String playerName = event.getPlayer().getDisplayName();
-
-        try (Jedis jedis = this.jedisPool.getResource()) {
-            this.updateDBPlayerOnlineDuration(jedis, event.getPlayer(), serverName);
-            this.updateRedisPlayerLeave(jedis, event.getPlayer(), serverName);
-        }
-
-        // This is only relevant when a player changes the server and not disconnects
-        if (this.playerServerChangeEventMap.containsKey(playerName)) {
-            this.playerServerChangeEventMap.get(playerName).setOldServer(serverName);
-            this.callBungeePlayerServerChangeEvent(playerName);
-        }
-
-    }
-
-    /**
-     * Updates the players playtime on a service
-     *
-     * @param jedis
-     * @param player
-     * @param serverName
-     */
-    private void updateDBPlayerOnlineDuration(Jedis jedis, ProxiedPlayer player, String serverName) {
-        String rawServerName = serverName.split("-")[0];
-        Long oldJoinTime = this.getOldJoinTime(jedis, player.getDisplayName(), serverName);
-
+    private void createLoginDBEntry(ProxiedPlayer player, ServerInfo server) {
         try (Session session = sessionBuilder.openSession()) {
             Transaction tx = session.beginTransaction();
 
             try {
                 DBPlayer dbPlayer = session.get(DBPlayer.class, player.getUniqueId());
-                DBService dbService = null;
-                PlayerOnlineDurations playerOnlineDurations;
-                CriteriaBuilder cb = session.getCriteriaBuilder();
+                // ToDo: Add service
+//                DBService service = session
 
-                // Try to get the DBService
-                {
-                    CriteriaQuery<DBService> cq = cb.createQuery(DBService.class);
-                    Root<DBService> serviceRoot = cq.from(DBService.class);
+                PlayerLogin newLogin = new PlayerLogin(dbPlayer, null);
+                session.persist(newLogin);
 
-                    cq.select(serviceRoot)
-                            .where(cb.equal(serviceRoot.get("name"), rawServerName))
-                            .orderBy(cb.desc(serviceRoot.get("id")))
-                    ;
-
-                    Query queryRes = session.createQuery(cq);
-                    queryRes.setMaxResults(1);
-
-                    dbService = (DBService) queryRes.getSingleResult();
-                }
-
-
-                // Try to get PlayerOnlineDurations object
-                {
-                    CriteriaQuery<PlayerOnlineDurations> cq = cb.createQuery(PlayerOnlineDurations.class);
-                    Root<PlayerOnlineDurations> onlineRoot = cq.from(PlayerOnlineDurations.class);
-
-                    cq.select(onlineRoot)
-                            .where(cb.equal(onlineRoot.get("player"), dbPlayer), cb.equal(onlineRoot.get("service"), dbService))
-                    ;
-
-                    Query queryres = session.createQuery(cq);
-                    queryres.setMaxResults(1);
-
-                    try {
-                        playerOnlineDurations = (PlayerOnlineDurations) queryres.getSingleResult();
-
-                    } catch (NoResultException e) {
-                        playerOnlineDurations = new PlayerOnlineDurations(dbPlayer, dbService);
-                        session.persist(playerOnlineDurations);
-                    }
-                }
-
-
-                int onlineTime = (int) ((System.currentTimeMillis() / 1000L) - oldJoinTime);
-                playerOnlineDurations.setDuration(playerOnlineDurations.getDuration() + onlineTime);
-
-                session.update(playerOnlineDurations);
+            } catch (Exception e) {
+                tx.rollback();
+                throw e;
 
             } finally {
                 tx.commit();
             }
+        }
+    }
 
+    // --- Player disconnect from server ---
+
+    /**
+     * Handles a player disconnecting from a Minecraft server. This involves the following steps:
+     *  1. Update the server entries / players server in redis
+     */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerDisconnectFromServer(ServerDisconnectEvent event) {
+        String serverName = event.getTarget().getName();
+
+        try (Jedis jedis = this.jedisPool.getResource()) {
+            this.updateRedisPlayerLeave(jedis, event.getPlayer(), serverName);
         }
     }
 
@@ -560,34 +487,42 @@ public class EventsDispatcher implements Listener {
     }
 
     /**
-     * Calls the event on all proxies
-     *
-     * @param username
+     * Informs all BungeeCord instances that a player changed a server
      */
-    private void callBungeePlayerServerChangeEvent(String username) {
-        PlayerTmpData playerTmpData = this.playerServerChangeEventMap.get(username);
+    private void callBungeePlayerServerChangeEvent(ProxiedPlayer player, @Nullable ServerInfo from, ServerInfo to) {
+        String oldServerName = from == null ? null : from.getName();
 
         BungeePlayerServerChangeEvent event = new BungeePlayerServerChangeEvent(
-                playerTmpData.getUuid(), playerTmpData.username, playerTmpData.getOldServer(), playerTmpData.getNewServer(), new DefaultCallback<>()
+                player.getUniqueId(), player.getName(), oldServerName, to.getName(), new DefaultCallback<>()
         );
         event.callEvent();
 
+        String oldServerNameNotNull = oldServerName == null ? "" : oldServerName;
+
         RedisMessages.PlayerChangeServer changeServerBuilder = RedisMessages.PlayerChangeServer.newBuilder()
                 .setBase(this.messageBase)
-                .setUuid(this.getUUID(playerTmpData.getUuid()))
-                .setUsername(playerTmpData.getUsername())
-                .setNewServer(playerTmpData.getNewServer())
-                .setOldServer(playerTmpData.getOldServer())
+                .setUuid(this.getUUID(player.getUniqueId()))
+                .setUsername(player.getName())
+                .setNewServer(oldServerNameNotNull)
+                .setOldServer(to.getName())
                 .build();
 
         // Send the redis message
         redisDataManager.sendMessage(changeServerBuilder);
     }
 
+    // --- Player change server ---
 
+    /**
+     * Handles a player changing a Minecraft server. This involves the following steps:
+     *  1. Call the BungeePlayerServerChangeEvent
+     */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerChangeServer(ServerSwitchEvent event) {
+        ServerInfo oldServer = event.getFrom();
+        ServerInfo newServer = event.getPlayer().getServer().getInfo();
 
+        this.callBungeePlayerServerChangeEvent(event.getPlayer(), oldServer, newServer);
     }
 
 
@@ -634,28 +569,7 @@ public class EventsDispatcher implements Listener {
 
         } catch (ReflectiveOperationException e) {
             e.printStackTrace(System.err);
-        }
-//        String playerName = handler.getLoginRequest().getData();
-//        String uuid = handler.getUniqueId().toString();
-//        String userIp = handler.getAddress().toString().substring(1).split(":")[0];
-        return null;
-    }
-
-
-    @Getter
-    @Setter
-    private static class PlayerTmpData {
-
-        private UUID uuid;
-        private String username;
-        private String newServer = "";
-        private String oldServer = "";
-
-
-        public PlayerTmpData(UUID uuid, String username, String newServer) {
-            this.uuid = uuid;
-            this.username = username;
-            this.newServer = newServer;
+            throw new InvalidStateError("Couldn't extract username from connection.");
         }
     }
 

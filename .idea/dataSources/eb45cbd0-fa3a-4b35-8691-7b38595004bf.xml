@@ -1418,7 +1418,7 @@ false posixrules
       <ObjectId>13395</ObjectId>
       <Comment>default administrative connection database</Comment>
       <Owner>admin</Owner>
-      <IntrospectionStateNumber>3526628</IntrospectionStateNumber>
+      <IntrospectionStateNumber>3702788</IntrospectionStateNumber>
       <Current>1</Current>
       <Relations>sequence|table|49680|49682|1
 sequence|table|49691|49693|1
@@ -1507,7 +1507,7 @@ UC/10
 </Acl>
       <StateNumber>287</StateNumber>
       <Owner>admin</Owner>
-      <IntrospectionStateNumber>3526629</IntrospectionStateNumber>
+      <IntrospectionStateNumber>3702789</IntrospectionStateNumber>
       <Current>1</Current>
     </schema>
     <extension id="18" parent="3" name="plpgsql">

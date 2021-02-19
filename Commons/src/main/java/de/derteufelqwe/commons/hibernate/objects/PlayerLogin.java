@@ -34,8 +34,9 @@ public class PlayerLogin {
     private Timestamp leaveTime;
 
 
-    public PlayerLogin(DBPlayer player) {
+    public PlayerLogin(DBPlayer player, DBService service) {
         this.player = player;
+        this.service = service;
     }
 
 

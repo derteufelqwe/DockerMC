@@ -5,6 +5,7 @@ import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.events.*;
 import de.derteufelqwe.bungeeplugin.redis.PlayerData;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
+import de.derteufelqwe.bungeeplugin.utils.ServerInfoStorage;
 import de.derteufelqwe.bungeeplugin.utils.Utils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
@@ -16,9 +17,13 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
 
+import java.net.Inet4Address;
+import java.net.InetSocketAddress;
+
 public class BungeeEventsHandler implements Listener {
 
     private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
+    private ServerInfoStorage serverInfoStorage = BungeePlugin.getServerInfoStorage();
 
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -88,6 +93,17 @@ public class BungeeEventsHandler implements Listener {
         }
 
         player.disconnect(kickMessage);
+    }
+
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onAddServer(BungeeAddServerEvent event) {
+        ProxyServer.getInstance().getConfig().addServer(ProxyServer.getInstance().constructServerInfo(
+                event.getServername(), new InetSocketAddress(event.getIp(), 25565),
+                "Motd", false
+        ));
+        serverInfoStorage.set(event.getServername(), new ServerInfoStorage.Infos(event.getContainerId(), event.getServiceId()));
+        System.out.printf("Added Server '%s' (%s).\n", event.getServername(), event.getContainerId());
     }
 
 }

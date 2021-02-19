@@ -16,17 +16,21 @@ import de.derteufelqwe.bungeeplugin.consul.KVCacheListener;
 import de.derteufelqwe.bungeeplugin.consul.ServerRegistrator;
 import de.derteufelqwe.bungeeplugin.consul.ServiceCatalogListener;
 import de.derteufelqwe.bungeeplugin.eventhandlers.*;
+import de.derteufelqwe.bungeeplugin.events.BungeeAddServerEvent;
 import de.derteufelqwe.bungeeplugin.health.HealthCheck;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.bungeeplugin.redis.RedisPublishListener;
+import de.derteufelqwe.bungeeplugin.runnables.DefaultCallback;
 import de.derteufelqwe.bungeeplugin.utils.DBCache;
 import de.derteufelqwe.bungeeplugin.utils.MetaData;
+import de.derteufelqwe.bungeeplugin.utils.ServerInfoStorage;
 import de.derteufelqwe.bungeeplugin.utils.ServerState;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
 import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
+import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
 import de.derteufelqwe.commons.logger.DMCLogger;
 import de.derteufelqwe.commons.logger.DatabaseAppender;
@@ -45,6 +49,10 @@ import org.hibernate.Transaction;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
+import java.net.Inet4Address;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+import java.util.List;
 import java.util.logging.Level;
 
 public final class BungeePlugin extends Plugin {
@@ -75,9 +83,10 @@ public final class BungeePlugin extends Plugin {
     public static final String BUNGEECORD_ID = META_DATA.getTaskName(); // Identifies the current node
     @Getter
     private static BungeeAPI bungeeApi;
-    public final DBCache DB_CACHE = new DBCache();
     @Getter
     private static DMCLogger dmcLogger;
+    @Getter
+    private static ServerInfoStorage serverInfoStorage = new ServerInfoStorage();
 
 
     private BungeeCommandManager commandManager = new BungeeCommandManager(this);
@@ -93,6 +102,7 @@ public final class BungeePlugin extends Plugin {
         BungeePlugin.PLUGIN = this;
         CONFIG.load();
         this.parseConfigFile(CONFIG.get());
+        this.loadRunningServersFromDatabase();
 
         // --- Redis stuff ---
         BungeePlugin.redisDataManager = new RedisDataManager();
@@ -222,21 +232,30 @@ public final class BungeePlugin extends Plugin {
     }
 
     /**
-     * Modifies the logger to use a database appender
+     * Loads all running servers from the database
      */
-    @Deprecated
-    private void modifyLogger() {
-        AsyncLogger logger = (AsyncLogger) LogManager.getLogger("BungeeCord");
+    private void loadRunningServersFromDatabase() {
+        try (Session session = sessionBuilder.openSession()) {
 
-        Appender appender = new DatabaseAppender(BungeePlugin.getSessionBuilder(), BungeePlugin.META_DATA.getContainerId(), "DatabaseAppender");
-        appender.start();
+            List<DBContainer> containers = session.createNativeQuery(
+                    "SELECT * FROM containers as c WHERE c.stoptime IS NULL",
+                    DBContainer.class)
+                    .getResultList();
 
-//        logger.addAppender(appender);
+            for (DBContainer container : containers) {
+                try {
+                    BungeeAddServerEvent addServerEvent = new BungeeAddServerEvent(
+                            container.getMinecraftServerName(), (Inet4Address) Inet4Address.getByName(container.getIp()),
+                            container.getId(), container.getService().getId(), new DefaultCallback<>()
+                    );
+                    addServerEvent.callEvent();
 
-//        System.setOut(new PrintStream(new LoggingOutputStream(this.getLogger(), Level.INFO), true));
-//        System.setErr(new PrintStream(new LoggingOutputStream(this.getLogger(), Level.SEVERE), true));
+                } catch (UnknownHostException e) {
+                    System.err.printf("Failed to add server '%s' with invalid ip '%s'.\n", container.getId(), container.getIp());
+                }
+            }
+        }
     }
-
 
     /**
      * Register this container to Consul
