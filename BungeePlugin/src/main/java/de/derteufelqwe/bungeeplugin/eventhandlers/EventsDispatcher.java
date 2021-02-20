@@ -9,25 +9,24 @@ import de.derteufelqwe.bungeeplugin.redis.PlayerData;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.bungeeplugin.runnables.DefaultCallback;
 import de.derteufelqwe.bungeeplugin.runnables.PlayerSkinDownloadRunnable;
+import de.derteufelqwe.bungeeplugin.runnables.WaitRunnable;
 import de.derteufelqwe.bungeeplugin.utils.ServerInfoStorage;
 import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.exceptions.InvalidStateError;
-import de.derteufelqwe.commons.exceptions.NotFoundException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.*;
 import de.derteufelqwe.commons.logger.DMCLogger;
 import de.derteufelqwe.commons.protobuf.RedisMessages;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.SneakyThrows;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.connection.Server;
 import net.md_5.bungee.api.event.*;
 import net.md_5.bungee.api.plugin.Listener;
+import net.md_5.bungee.api.scheduler.TaskScheduler;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
 import net.md_5.bungee.protocol.packet.LoginRequest;
@@ -36,7 +35,6 @@ import org.hibernate.Transaction;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
-import javax.persistence.NoResultException;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -44,6 +42,7 @@ import javax.persistence.criteria.Root;
 import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Dispatches BungeeCords default events to make sure all relevant DB entries exist and can be used by other connections
@@ -62,23 +61,20 @@ public class EventsDispatcher implements Listener {
     private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
     private DMCLogger logger = BungeePlugin.getDmcLogger();
     private ServerInfoStorage serverInfoStorage = BungeePlugin.getServerInfoStorage();
+    private TaskScheduler scheduler = ProxyServer.getInstance().getScheduler();
+
+    private TextComponent errorMessage = new TextComponent(ChatColor.RED + "Internal server error. Failed to login. " +
+            "Please notify the staff! Retry in a few seconds.");
 
     private RedisMessages.BungeeMessageBase messageBase;
     private final Method getLoginRequestMethod;
 
     /*
-     * Contains players, joined the network but didn't connect to a server yet. This is used to identify when to send the
-     * BungeePlayerServerChangeEvent.
-     * If a players name is in here, the BungeePlayerServerChangeEvent gets sent in the ServerConnectEvent handler.
-     * If its name is not in here the event will be sent in the ServerDisconnectEvent handler, because the player is
-     * changing the server instead of newly connecting to one.
+     * Timings 1:
+     * 15, 16, 31, 20, 25, 28, 20, 13, 13, 34
+     * 10, 18, 10, 14, 16, 56, 16, 46, 60, 21
+     * Timings 2:
      */
-//    private Set<String> newlyJoinedPlayers = new HashSet<>();
-    /*
-     * If this map contains an entry for a player, this event will be sent when a player disconnects from a server.
-     */
-//    private Map<String, PlayerTmpData> playerServerChangeEventMap = new HashMap<>();
-
 
     public EventsDispatcher() {
         this.messageBase = RedisMessages.BungeeMessageBase.newBuilder()
@@ -103,27 +99,66 @@ public class EventsDispatcher implements Listener {
      *  3. Add the joined player to redis
      *  4. Call the BungeePlayerJoinEvent
      */
+    @SuppressWarnings("unchecked")
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerJoinNetwork(LoginEvent event) {
         try {
-            String playerName = this.extractUsernameFromConnection(event.getConnection());
-            UUID playerId = event.getConnection().getUniqueId();
-            String connectionIp = event.getConnection().getSocketAddress().toString().substring(1).split(":")[0];
+            final String playerName = this.extractUsernameFromConnection(event.getConnection());
+            final UUID playerId = event.getConnection().getUniqueId();
+            final String connectionIp = event.getConnection().getSocketAddress().toString().substring(1).split(":")[0];
 
-            // ToDo: Maybe make these functions run in parallel
-            long start = System.currentTimeMillis();
-            this.addPlayerToDB(playerId, playerName);
-            logger.finer("prepareOnPlayerJoin took %s ms.", System.currentTimeMillis() - start);
+            long allStart = System.currentTimeMillis();
 
-            start = System.currentTimeMillis();
-            if (this.checkPlayerBan(event, playerId))
+            WaitRunnable<Void> task1 = (WaitRunnable<Void>) scheduler.runAsync(BungeePlugin.PLUGIN, new WaitRunnable<Void>() {
+                @Override
+                public Void exec() {
+                    long start = System.currentTimeMillis();
+                    addPlayerToDB(playerId, playerName);
+                    logger.finer("prepareOnPlayerJoin took %s ms.", System.currentTimeMillis() - start);
+                    return null;
+                }
+            }).getTask();
+
+            WaitRunnable<Boolean> task2 = (WaitRunnable<Boolean>) scheduler.runAsync(BungeePlugin.PLUGIN, new WaitRunnable<Boolean>() {
+                @Override
+                public Boolean exec() {
+                    long start = System.currentTimeMillis();
+                    boolean isBanned = checkPlayerBan(event, playerId);
+                    logger.finer("checkPlayerBan took %s ms.", System.currentTimeMillis() - start);
+                    return isBanned;
+                }
+            }).getTask();
+
+            WaitRunnable<Boolean> task3 = (WaitRunnable<Boolean>) scheduler.runAsync(BungeePlugin.PLUGIN, new WaitRunnable<Boolean>() {
+                @Override
+                public Boolean exec() {
+                    long start = System.currentTimeMillis();
+                    boolean isBanned = checkIPBan(event, connectionIp);
+                    logger.finer("checkPlayerBan took %s ms.", System.currentTimeMillis() - start);
+                    return isBanned;
+                }
+            }).getTask();
+
+            boolean finished1 = task1.awaitCompletion(2000);
+            boolean finished2 = task2.awaitCompletion(2000);
+            boolean finished3 = task3.awaitCompletion(2000);
+
+            logger.finer("Overall login duration: " + (System.currentTimeMillis() - allStart) + " ms.");
+
+            // Don't allow a login when not all of the tasks finished.
+            if (!finished1 || !finished2 || !finished3) {
+                logger.warning("Player %s failed to login. An async task took too long.", playerName);
+                event.setCancelled(true);
+                event.setCancelReason(errorMessage);
                 return;
-            logger.finer("checkPlayerBan took %s ms.", System.currentTimeMillis() - start);
+            }
 
-            start = System.currentTimeMillis();
-            if (this.checkIPBan(event, connectionIp))
+            // Don't allow banned players to join.
+            if (task2.getResult() != null && task2.getResult().equals(true)) {
                 return;
-            logger.finer("checkIPBan took %s ms.", System.currentTimeMillis() - start);
+            } else if (task3.getResult() != null && task3.getResult().equals(true)) {
+                return;
+            }
 
             this.addJoinedPlayerToRedis(playerName, playerId, connectionIp);
 
@@ -134,8 +169,7 @@ public class EventsDispatcher implements Listener {
         } catch (Exception e) {
             e.printStackTrace();
             event.setCancelled(true);
-            event.setCancelReason(new TextComponent(ChatColor.RED + "Internal server error. Failed to login. Please notify the staff " +
-                    "with the following timestamp: " + (System.currentTimeMillis() / 1000L)));
+            event.setCancelReason(errorMessage);
         }
     }
 
@@ -203,9 +237,7 @@ public class EventsDispatcher implements Listener {
 
     /**
      * Checks if a player is banned and prevents him from connecting if he is banned
-     *
-     * @param event
-     * @return Banned or not
+     * @return true = banned
      */
     private boolean checkPlayerBan(LoginEvent event, UUID playerId) {
         try (Session session = sessionBuilder.openSession()) {
@@ -250,9 +282,7 @@ public class EventsDispatcher implements Listener {
 
     /**
      * Checks if the users IP is banned
-     *
-     * @param event
-     * @return
+     * @return true = banned
      */
     private boolean checkIPBan(LoginEvent event, String userIp) {
         try (Session session = sessionBuilder.openSession()) {

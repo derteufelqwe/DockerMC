@@ -4,14 +4,14 @@ import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.Default;
 import co.aikar.commands.annotation.Subcommand;
+import de.derteufelqwe.bungeeplugin.BungeePlugin;
+import de.derteufelqwe.commons.logger.DMCLogger;
 import net.md_5.bungee.api.CommandSender;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.async.AsyncLogger;
 
 @CommandAlias("test")
 public class TestCmd extends BaseCommand {
 
-    private AsyncLogger logger = (AsyncLogger) LogManager.getLogger("BungeeCord");
+    private DMCLogger logger = BungeePlugin.getDmcLogger();
 
     @Default
     public void test(CommandSender sender) {
@@ -20,11 +20,7 @@ public class TestCmd extends BaseCommand {
 
     @Subcommand("a")
     public void testA(CommandSender sender) {
-//        logger.error("Hallo Welt");
-//        logger.info("Ich bin eine Info");
-//        logger.warn("Ich bin eine Warnung");
-        System.out.println("Ich bin ein Printwe");
-        System.err.println("Ich bin ein error Print");
+
     }
 
 }

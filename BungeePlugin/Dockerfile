@@ -14,7 +14,8 @@ RUN wget -O DCEVM_latest.jar $(curl -s https://api.github.com/repos/dcevm/dcevm/
             )
 
 # Download hotswap-agent.jar
-RUN wget -O hotswap-agent_latest.jar "https://github.com/HotswapProjects/HotswapAgent/releases/download/RELEASE-1.4.1/hotswap-agent-1.4.1.jar"
+#RUN wget -O hotswap-agent_latest.jar "https://github.com/HotswapProjects/HotswapAgent/releases/download/RELEASE-1.4.1/hotswap-agent-1.4.1.jar"
+RUN wget -O hotswap-agent_latest.jar "https://github.com/HotswapProjects/HotswapAgent/releases/download/1.4.2-SNAPSHOT/hotswap-agent-1.4.2-SNAPSHOT.jar"
 
 RUN unzip DCEVM_latest.jar "linux_amd64_compiler2/product/libjvm.so"
 
