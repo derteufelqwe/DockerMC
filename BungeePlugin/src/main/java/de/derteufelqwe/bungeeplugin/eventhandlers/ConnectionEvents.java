@@ -1,24 +1,28 @@
 package de.derteufelqwe.bungeeplugin.eventhandlers;
 
-import com.orbitz.consul.model.kv.Value;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.sun.istack.NotNull;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.bungeeplugin.utils.Utils;
-import de.derteufelqwe.commons.consul.ICacheChangeListener;
+import de.derteufelqwe.commons.Constants;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.event.*;
+import net.md_5.bungee.api.event.PlayerDisconnectEvent;
+import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
+import java.time.Duration;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 /**
@@ -27,10 +31,10 @@ import java.util.stream.Collectors;
 
 public class ConnectionEvents implements Listener {
 
-    private final Pattern RE_PLAYERLIMIT = Pattern.compile("^mcservers\\/(.+)\\/softPlayerLimit$");
-
-    private  String lobbyServerName = "LobbyServer";
     private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
+    private JedisPool jedisPool = BungeePlugin.getRedisPool().getJedisPool();
+
+    private LoadingCache<Integer, String> cache = createCache();
 
 
     public ConnectionEvents() {
@@ -38,8 +42,31 @@ public class ConnectionEvents implements Listener {
     }
 
 
+    private LoadingCache<Integer, String> createCache() {
+        return CacheBuilder.newBuilder()
+                .expireAfterWrite(Duration.ofMillis(100L))
+                .build(new CacheLoader<Integer, String>() {
+                    @Override
+                    public String load(Integer key) throws Exception {
+                        switch (key) {
+                            case 1:
+                                try (Jedis jedis = jedisPool.getResource()) {
+                                    String value = jedis.get(Constants.REDIS_KEY_LOBBYSERVER);
+                                    if (value == null)
+                                        return "";
+                                    return value;
+                                }
+
+                            default:
+                                throw new RuntimeException("Cache got invalid key " + key);
+                        }
+                    }
+                });
+    }
+
+
     /**
-     * Executed when a player connects to a server.
+     * Redirects the player to a fitting lobby server if required and possible.
      */
     @EventHandler
     public void playerConnect(ServerConnectEvent event) {
@@ -77,17 +104,29 @@ public class ConnectionEvents implements Listener {
     }
 
     /**
-     *  This will send the player to the first available server.
+     * Removes information about a players last connected to server so.
+     */
+    @EventHandler
+    public void onQuit(PlayerDisconnectEvent event) {
+        event.getPlayer().setReconnectServer(null);
+    }
+
+    // -----  Utility methods  -----
+
+    /**
+     * This will send the player to the first available server.
      */
     private void connectPlayerToLobby(ServerConnectEvent event) {
-        if (this.lobbyServerName == null || this.lobbyServerName.equals("")) {
+        String lobbyServerName = this.getLobbyServerName();
+
+        if (lobbyServerName.equals("")) {
             System.err.println("[System][Critical] No lobby server found.");
             event.getPlayer().disconnect(new TextComponent(ChatColor.RED + "Can't identify name of lobby server."));
             return;
         }
 
         List<ServerInfo> servers = Utils.getServers().values().stream()
-                .filter(s -> s.getName().startsWith(this.lobbyServerName))
+                .filter(s -> s.getName().startsWith(lobbyServerName))
                 .sorted(Comparator.comparing(ServerInfo::getName))  // Sort by Name
                 .collect(Collectors.toList());
 
@@ -102,7 +141,7 @@ public class ConnectionEvents implements Listener {
         if (servers.size() > 0) {
             for (ServerInfo serverInfo : servers) {
                 if (playerLimit == null) {
-                    player.disconnect(new TextComponent(ChatColor.RED + "[Error] Lobby server has no player limit configured (" + this.lobbyServerName + ")."));
+                    player.disconnect(new TextComponent(ChatColor.RED + "[Error] Lobby server has no player limit configured (" + lobbyServerName + ")."));
                     return;
                 }
 
@@ -118,10 +157,21 @@ public class ConnectionEvents implements Listener {
         event.getPlayer().disconnect(new TextComponent(ChatColor.RED + "[Error] No lobby servers found."));
     }
 
+    /**
+     * Tries to get the lobby server name from redis
+     *
+     * @return The name or "" if an error occurred.
+     */
+    @NotNull
+    private String getLobbyServerName() {
+        try {
+            return cache.get(1);
 
-    @EventHandler
-    public void onQuit(PlayerDisconnectEvent event) {
-        event.getPlayer().setReconnectServer(null);
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+            return "";
+        }
     }
+
 
 }

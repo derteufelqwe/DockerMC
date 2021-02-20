@@ -69,7 +69,11 @@ public class Constants {
     public static final String REDIS_CONTAINER_NAME = "Redis";
     public static final int REDIS_PORT = 6379;
     public static final byte[] REDIS_MESSAGES_CHANNEL = "messages".getBytes(StandardCharsets.UTF_8);
-    
+
+    // -----  Redis keys  -----
+    public static final String REDIS_KEY_PLAYERCOUNT = "playerCount";
+    public static final String REDIS_KEY_LOBBYSERVER = "system#lobbyServerName";
+
     // -----  Consul  -----
     public static final String CONSUL_HOST = "Consul";
     public static final int CONSUL_PORT = 8500;

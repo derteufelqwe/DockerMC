@@ -54,6 +54,12 @@ public class EventsDispatcher implements Listener {
      * Disconnecting: ServerDisconnectEvent
      */
 
+    /*
+     * Maybe improve login scheduler performance:
+     *     Depending on your use case, you can group your work into 1 async task per player,
+     *     and you can use a thread pool with a different thread management policy
+     */
+
     private SessionBuilder sessionBuilder = BungeePlugin.getSessionBuilder();
     private JedisPool jedisPool = BungeePlugin.getRedisPool().getJedisPool();
     private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();

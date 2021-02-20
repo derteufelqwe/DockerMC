@@ -1,4 +1,4 @@
-package minecraftplugin.minecraftplugin.teleportsigns;
+package minecraftplugin.minecraftplugin.commands.teleportsign;
 
 import de.derteufelqwe.commons.exceptions.InvalidServerName;
 import minecraftplugin.minecraftplugin.MinecraftPlugin;
@@ -7,15 +7,12 @@ import minecraftplugin.minecraftplugin.config.TPSign;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.LightningStrike;
 import org.bukkit.entity.Player;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -25,20 +22,20 @@ public class TeleportSignCommand implements CommandExecutor {
 
     /**
      * The sign is filled with the following data:
-     *      [Teleport] (Can be anything)
-     *      Servername (Can be anything but should represent the server you will connect to. Must be unique)
-     *      World-name (Can be anything, but should represent the world nam)
-     *      Player status (auto generated)
+     * [Teleport] (Can be anything)
+     * Servername (Can be anything but should represent the server you will connect to. Must be unique)
+     * World-name (Can be anything, but should represent the world name)
+     * Player status (auto generated)
      */
 
     private final ChatColor COLOR = ChatColor.BLUE;
     private final ChatColor COLOR_CMD = ChatColor.YELLOW;
     private final String NAME = COLOR + "[DockerMC] " + ChatColor.RESET;
 
-    private SignConfig signConfig;
+    private SignConfig signConfig = MinecraftPlugin.getSIGN_CONFIG().get();
 
-    public TeleportSignCommand(SignConfig signConfig) {
-        this.signConfig = signConfig;
+    public TeleportSignCommand() {
+
     }
 
     @Override
@@ -115,7 +112,7 @@ public class TeleportSignCommand implements CommandExecutor {
 
         player.sendMessage(String.format(NAME + COLOR_CMD + "Created TPSign %s to %s.", displayName, serverName));
 
-        MinecraftPlugin.CONFIG.save(SignConfig.class);
+        MinecraftPlugin.getSIGN_CONFIG().save();
     }
 
     private void infoCmd(Player player, List<String> args) {

@@ -1,4 +1,4 @@
-package minecraftplugin.minecraftplugin.teleportsigns;
+package minecraftplugin.minecraftplugin.eventhandlers;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
@@ -28,10 +28,10 @@ public class TeleportSignEvents implements Listener {
     private final ChatColor COLOR_CMD = ChatColor.YELLOW;
     private final String NAME = COLOR + "[DockerMC] " + ChatColor.RESET;
 
-    private SignConfig signConfig;
+    private SignConfig signConfig = MinecraftPlugin.getSIGN_CONFIG().get();
 
     public TeleportSignEvents() {
-        this.signConfig = MinecraftPlugin.CONFIG.get(SignConfig.class);
+
     }
 
 
@@ -81,8 +81,7 @@ public class TeleportSignEvents implements Listener {
         }
 
         // A sign will get destroyed when destroying the block
-        Block b;
-        b = block.getRelative(BlockFace.UP);
+        Block b = block.getRelative(BlockFace.UP);
         if (b.getType().equals(Material.SIGN_POST)) {
             this.removeSign(player, b);
         }
@@ -115,13 +114,9 @@ public class TeleportSignEvents implements Listener {
 
         if (tpSign != null) {
             player.sendMessage(String.format(NAME + ChatColor.YELLOW + "Removing tpsign %s to %s.", tpSign.getName(), tpSign.getDestination().fullName()));
-            MinecraftPlugin.CONFIG.get(SignConfig.class).removeSign(tpSign);
-            MinecraftPlugin.CONFIG.save(SignConfig.class);
+            signConfig.removeSign(tpSign);
+            MinecraftPlugin.getSIGN_CONFIG().save();
         }
-    }
-
-    public void mweweas() {
-
     }
 
 }

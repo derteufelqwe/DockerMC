@@ -29,6 +29,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "players")
+@Table(name = "players", indexes = {
+        @Index(name = "NAME_INDEX", columnList = "name")
+})
 public class DBPlayer {
 
     // ----- General Information -----
@@ -58,6 +61,7 @@ public class DBPlayer {
     private Timestamp lastOnline;
 
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<PlayerLogin> logins;
 
     // ----- Permissions -----
