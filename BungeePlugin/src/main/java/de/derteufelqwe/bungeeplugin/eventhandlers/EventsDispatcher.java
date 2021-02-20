@@ -17,7 +17,6 @@ import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.*;
 import de.derteufelqwe.commons.logger.DMCLogger;
 import de.derteufelqwe.commons.protobuf.RedisMessages;
-import lombok.SneakyThrows;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -42,7 +41,6 @@ import javax.persistence.criteria.Root;
 import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Dispatches BungeeCords default events to make sure all relevant DB entries exist and can be used by other connections
@@ -63,18 +61,12 @@ public class EventsDispatcher implements Listener {
     private ServerInfoStorage serverInfoStorage = BungeePlugin.getServerInfoStorage();
     private TaskScheduler scheduler = ProxyServer.getInstance().getScheduler();
 
-    private TextComponent errorMessage = new TextComponent(ChatColor.RED + "Internal server error. Failed to login. " +
-            "Please notify the staff! Retry in a few seconds.");
+    private TextComponent errorMessage = new TextComponent(ChatColor.RED + String.format("Internal server error. Failed to login. " +
+            "Please notify the staff with id '%s'! Retry in a few seconds.", BungeePlugin.META_DATA.getContainerID()));
 
     private RedisMessages.BungeeMessageBase messageBase;
     private final Method getLoginRequestMethod;
 
-    /*
-     * Timings 1:
-     * 15, 16, 31, 20, 25, 28, 20, 13, 13, 34
-     * 10, 18, 10, 14, 16, 56, 16, 46, 60, 21
-     * Timings 2:
-     */
 
     public EventsDispatcher() {
         this.messageBase = RedisMessages.BungeeMessageBase.newBuilder()

@@ -3,11 +3,6 @@ package minecraftplugin.minecraftplugin;
 import co.aikar.commands.PaperCommandManager;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import com.google.common.net.HostAndPort;
-import com.orbitz.consul.*;
-import com.orbitz.consul.model.agent.ImmutableRegCheck;
-import com.orbitz.consul.model.agent.ImmutableRegistration;
-import com.orbitz.consul.model.agent.Registration;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.ConfigOld;
 import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
@@ -38,7 +33,6 @@ import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
 import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
 
 public final class MinecraftPlugin extends JavaPlugin {
 
@@ -179,7 +173,7 @@ public final class MinecraftPlugin extends JavaPlugin {
      */
     private void registerContainer() {
         RedisMessages.MCServerStarted mcStarted = RedisMessages.MCServerStarted.newBuilder()
-                .setContainerId(metaData.getContainerId())
+                .setContainerId(metaData.getContainerID())
                 .build();
 
         RedisMessages.RedisMessage message = RedisMessages.RedisMessage.newBuilder()
@@ -198,7 +192,7 @@ public final class MinecraftPlugin extends JavaPlugin {
      */
     private void deregisterContainer() {
         RedisMessages.MCServerStopped mcStopped = RedisMessages.MCServerStopped.newBuilder()
-                .setContainerId(metaData.getContainerId())
+                .setContainerId(metaData.getContainerID())
                 .build();
 
         RedisMessages.RedisMessage message = RedisMessages.RedisMessage.newBuilder()

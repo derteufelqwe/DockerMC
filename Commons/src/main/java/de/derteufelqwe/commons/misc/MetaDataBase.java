@@ -129,7 +129,7 @@ public class MetaDataBase {
         return resMap;
     }
 
-    public String getContainerId() {
+    public String getContainerID() {
         if (this.containerId == null || this.containerId.equals("")) {
             File file = new File("/proc/self/cgroup");
 

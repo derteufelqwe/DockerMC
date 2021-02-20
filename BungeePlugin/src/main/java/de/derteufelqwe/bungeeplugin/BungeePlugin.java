@@ -2,6 +2,7 @@ package de.derteufelqwe.bungeeplugin;
 
 import co.aikar.commands.BungeeCommandManager;
 import de.derteufelqwe.bungeeplugin.api.BungeeAPI;
+import de.derteufelqwe.bungeeplugin.commands.DMCInfo;
 import de.derteufelqwe.bungeeplugin.commands.DebugCmd;
 import de.derteufelqwe.bungeeplugin.commands.TestCmd;
 import de.derteufelqwe.bungeeplugin.commands.misc.*;
@@ -85,7 +86,7 @@ public final class BungeePlugin extends Plugin {
         BungeePlugin.redisDataManager = new RedisDataManager();
         BungeePlugin.redisDataManager.init();
 
-        System.out.println("Starting redis listener thread");
+        dmcLogger.info("Starting redis listener thread...");
         ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, this.redisPublishListener);
 
         // ---  Events  ---
@@ -109,19 +110,19 @@ public final class BungeePlugin extends Plugin {
         commandManager.registerCommand(new PermissionGroupCommand());
         commandManager.registerCommand(new DebugCmd());
         commandManager.registerCommand(new TestCmd());
+        commandManager.registerCommand(new DMCInfo());
 
-        // ---  Consul  ---
-        this.healthCheck.start();
-        this.registerContainer();
 
         // --- Misc ---
         this.setupConsoleUserInDatabase();
+        this.healthCheck.start();
 
         // --- Requires previous initializations ---
         this.loadRunningServersFromDatabase();
+        this.registerContainer();
 
         BungeePlugin.STATE = ServerState.RUNNING;
-        System.out.printf("[System] Server %s started successfully.\n", META_DATA.getTaskName());
+        dmcLogger.info("[System] Server %s (%s) started successfully.\n", META_DATA.getTaskName(), META_DATA.getContainerID());
     }
 
     @Override
