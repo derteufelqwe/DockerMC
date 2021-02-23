@@ -2,11 +2,15 @@ package de.derteufelqwe.nodewatcher;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.Info;
+import com.github.dockerjava.api.model.SwarmInfo;
 import com.github.dockerjava.api.model.SwarmNode;
 import com.github.dockerjava.api.model.SwarmNodeSpec;
+import com.google.common.cache.CacheLoader;
 import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.Node;
+import de.derteufelqwe.nodewatcher.executors.ContainerWatcher;
+import de.derteufelqwe.nodewatcher.executors.TimedPermissionWatcher;
 import de.derteufelqwe.nodewatcher.logs.ContainerLogFetcher;
 import de.derteufelqwe.nodewatcher.misc.DockerClientFactory;
 import de.derteufelqwe.nodewatcher.misc.InvalidSystemStateException;
@@ -14,7 +18,9 @@ import de.derteufelqwe.nodewatcher.stats.ContainerResourceWatcher;
 import de.derteufelqwe.nodewatcher.stats.HostResourceWatcher;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import org.checkerframework.checker.units.qual.C;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
@@ -22,7 +28,6 @@ import javax.annotation.CheckForNull;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,7 +39,9 @@ public class NodeWatcher {
     // ToDo: solve the docker client / thread problems
 
     private final Pattern RE_MEM_TOTAL = Pattern.compile("MemTotal:\\s+(\\d+).+");
-    private final String CONTAINER_FILTER = "Owner=DockerMC";
+
+    @Getter
+    private static Logger logger = LogManager.getLogger(NodeWatcher.class.getName() + "MyLogger");
 
     @Getter
     private static DockerClientFactory dockerClientFactory;
@@ -62,59 +69,6 @@ public class NodeWatcher {
 
 
     /**
-     * Tries to get the name of a swarm node from its labels
-     * @param swarmNode
-     * @return
-     */
-    @CheckForNull
-    private String getSwarmName(SwarmNode swarmNode) {
-        java.lang.String name = null;
-
-        SwarmNodeSpec swarmNodeSpec = swarmNode.getSpec();
-        if (swarmNodeSpec != null) {
-            Map<String, String> labels = swarmNodeSpec.getLabels();
-
-            if (labels != null) {
-                name = labels.get("name");
-            }
-        }
-
-        return name;
-    }
-
-    /**
-     * Returns the hosts max amount of available RAM
-     * @return
-     */
-    private Integer getMaxHostMemory() {
-        String output = Utils.executeCommandOnHost(new String[]{"cat", "/proc/meminfo"});
-        Matcher m = RE_MEM_TOTAL.matcher(output);
-
-        if (m.find()) {
-            try {
-                return Integer.parseInt(m.group(1));
-
-            } catch (NumberFormatException e) {
-                System.err.println("Read invalid meminfo " + m.group(1) + ".");
-                return -2;
-            }
-        }
-
-        return -1;
-    }
-
-    /**
-     * Returns the id of the docker swarm node, where this application runs on
-     * @return
-     */
-    private String getLocalSwarmNodeId() {
-        Info info = dockerClient.infoCmd().exec();
-
-        return info.getSwarm().getNodeID();
-    }
-
-
-    /**
      * Saves the docker swarm nodes in the database
      */
     private void saveSwarmNode() {
@@ -135,7 +89,7 @@ public class NodeWatcher {
 
                 // Node already known
                 if (node != null) {
-                    System.out.println("[NodeWatcher] Local node already known.");
+                    logger.info("[NodeWatcher] Local node already known.");
                     return;
                 }
 
@@ -144,7 +98,7 @@ public class NodeWatcher {
                 node.setMaxRam(this.getMaxHostMemory());
 
                 session.save(node);
-                System.out.println("[NodeWatcher] Added new node " + node);
+                logger.info("[NodeWatcher] Added new node " + node);
 
             } catch (Exception e) {
                 tx.rollback();
@@ -166,10 +120,8 @@ public class NodeWatcher {
         this.containerWatcher.addNewContainerObserver(this.logFetcher);
         this.containerWatcher.addNewContainerObserver(this.containerResourceWatcher);
 
-//        containerWatcher.onStart(null);
-
         dockerClient.eventsCmd()
-                .withLabelFilter(CONTAINER_FILTER)
+                .withLabelFilter("Owner=DockerMC")
                 .withEventFilter("start", "die")
                 .exec(this.containerWatcher);
     }
@@ -219,7 +171,7 @@ public class NodeWatcher {
         this.startContainerWatcher();   // Start last, since most watchers need its event
         this.startTimedPermissionWatcher();
 
-        System.out.println("[NodeWatcher] Started successfully.");
+        logger.info("[NodeWatcher] Started successfully.");
     }
 
     @SneakyThrows
@@ -239,6 +191,65 @@ public class NodeWatcher {
 
         dockerClient.close();
         sessionBuilder.close();
+    }
+
+
+    // -----  Utility methods  -----
+
+
+    /**
+     * Tries to get the name of a swarm node from its labels
+     * @param swarmNode
+     * @return
+     */
+    @CheckForNull
+    private String getSwarmName(SwarmNode swarmNode) {
+        String name = null;
+
+        SwarmNodeSpec swarmNodeSpec = swarmNode.getSpec();
+        if (swarmNodeSpec != null) {
+            Map<String, String> labels = swarmNodeSpec.getLabels();
+
+            if (labels != null) {
+                name = labels.get("name");
+            }
+        }
+
+        return name;
+    }
+
+    /**
+     * Returns the hosts max amount of available RAM
+     * @return
+     */
+    private Integer getMaxHostMemory() throws InvalidSystemStateException {
+        String output = Utils.executeCommandOnHost(new String[]{"cat", "/proc/meminfo"});
+        Matcher m = RE_MEM_TOTAL.matcher(output);
+
+        if (m.find()) {
+            try {
+                return Integer.parseInt(m.group(1));
+
+            } catch (NumberFormatException e) {
+                throw new InvalidSystemStateException("Read invalid meminfo " + m.group(1) + " for local node.");
+            }
+        }
+
+        throw new InvalidSystemStateException("Failed to find any information about available host RAM.");
+    }
+
+    /**
+     * Returns the id of the docker swarm node, where this application runs on
+     * @return
+     */
+    private String getLocalSwarmNodeId() throws InvalidSystemStateException {
+        Info info = dockerClient.infoCmd().exec();
+        SwarmInfo swarmInfo = info.getSwarm();
+
+        if (swarmInfo == null)
+            throw new InvalidSystemStateException("SwarmInfo not found. Make sure this node is part of a working docker swarm.");
+
+        return swarmInfo.getNodeID();
     }
 
 }

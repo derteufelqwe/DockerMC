@@ -46,6 +46,8 @@ public class NWUtils {
                         .setParameter("nodeid", node.getId())
                         .getResultList();
 
+                if (res == null)
+                    return resSet;
 
                 resSet.addAll(res);
 
@@ -75,7 +77,6 @@ public class NWUtils {
             return new Timestamp(format.parse(rightLength).getTime());
 
         } catch (ParseException e) {
-            System.err.println("Failed to parse timestamp '" + timeString + "'.");
             return null;
         }
     }

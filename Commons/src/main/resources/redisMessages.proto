@@ -8,22 +8,6 @@ message UUID {
 
 
 /**
- * Types of the available packages
- */
-//enum PackageType {
-//  // BungeeCord messages
-//  PLAYER_JOIN_NETWORK   = 0;
-//  PLAYER_LEAVE_NETWORK  = 1;
-//  PLAYER_CHANGE_SERVER  = 2;
-//  REQUEST_PLAYER_KICK   = 3;
-//  REQUEST_PLAYER_SEND   = 4;
-//  // Server discovery messages
-//  MC_SERVER_STARTED     = 5;
-//  MC_SERVER_STOPPED     = 6;
-//}
-
-
-/**
  * Basic data, which all BungeeCord packages need
  */
 message BungeeMessageBase {

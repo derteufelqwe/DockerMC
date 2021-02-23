@@ -11,7 +11,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString(exclude = {"containerStats"})
+@ToString(exclude = {"log", "containerStats"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity

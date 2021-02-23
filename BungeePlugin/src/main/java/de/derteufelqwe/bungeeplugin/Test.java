@@ -1,23 +1,15 @@
 package de.derteufelqwe.bungeeplugin;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import de.derteufelqwe.commons.Constants;
-import de.derteufelqwe.commons.config.Config;
-import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
-import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
-import de.derteufelqwe.commons.redis.RedisPool;
 import de.derteufelqwe.commons.protobuf.RedisMessages;
+import de.derteufelqwe.commons.redis.RedisPool;
 import lombok.SneakyThrows;
-import org.checkerframework.checker.units.qual.C;
-import redis.clients.jedis.*;
+import redis.clients.jedis.BinaryJedisPubSub;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.Transaction;
 
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class Test {
 
@@ -31,7 +23,7 @@ public class Test {
             jedis.subscribe(new BinaryJedisPubSub() {
                 @SneakyThrows
                 @Override
-                public void onMessage(byte[] channel, byte[] message){
+                public void onMessage(byte[] channel, byte[] message) {
                     RedisMessages.RedisMessage msg = RedisMessages.RedisMessage.parseFrom(message);
                     System.out.println("got message");
                 }
@@ -63,7 +55,7 @@ public class Test {
 
                 List<Object> res = tx.exec();
                 System.out.println("Read");
-            } catch (Exception e){
+            } catch (Exception e) {
                 tx.clear();
                 tx.close();
                 throw e;
@@ -81,50 +73,14 @@ public class Test {
         }
     }
 
-//    public static void readDb() {
-//        DBPlayer dbPlayer = null;
-//
-//        try (Session session = sessionBuilder.openSession()) {
-//            UUID uuid = UUID.fromString("81875c3d-f697-3ff2-806c-cb0b547af83e");
-//
-////            dbPlayer = session.get(DBPlayer.class, uuid);
-//
-//            dbPlayer = (DBPlayer) session.createCriteria(DBPlayer.class)
-////                    .setFetchMode("gottenBans", FetchMode.JOIN)
-//                    .add(Restrictions.idEq(uuid))
-//                    .uniqueResult();
-//        }
-//
-//        System.out.println(dbPlayer.getGottenBans());
-//    }
 
     @SneakyThrows
     public static void main(String[] args) {
 
-        LoadingCache<String, String> cache = CacheBuilder.newBuilder()
-                .expireAfterWrite(Duration.ofMillis(1))
-                .build(new CacheLoader<String, String>() {
-            @Override
-            public String load(String key) throws Exception {
-                try (Jedis jedis = pool.getResource()) {
-                    System.out.println("Cache get");
-                    return jedis.get("playerCount");
-                }
-            }
-        });
+        String RED = "\u001B[31m";
 
-        long start = System.currentTimeMillis();
+        System.out.println(RED + "Hallo");
 
-        for (int i = 0; i < 10000; i++) {
-            try (Jedis jedis = pool.getResource()) {
-                String value = jedis.get("playerCount");
-            }
-//            String value = cache.get("");
-        }
-
-        long end = System.currentTimeMillis();
-
-        System.out.println("Duration: " + (end - start) + "ms.");
     }
 
 }

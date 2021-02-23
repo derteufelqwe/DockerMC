@@ -3,7 +3,6 @@ package de.derteufelqwe.commons.config;
 import com.google.gson.Gson;
 import de.derteufelqwe.commons.config.providers.GsonProvider;
 import de.derteufelqwe.commons.config.providers.YamlConverter;
-import lombok.SneakyThrows;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +29,7 @@ public class Config<A> {
     }
 
     private File getFile() {
-        File file = new File(fileName);
+        File file = new File("plugins/" + fileName);
         if (file.getParentFile() != null)
             file.getParentFile().mkdirs();
 

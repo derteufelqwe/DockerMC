@@ -6,17 +6,18 @@ import com.google.common.io.ByteStreams;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
+import de.derteufelqwe.commons.config.providers.DefaultYamlProvider;
 import de.derteufelqwe.commons.config.providers.MinecraftGsonProvider;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.protobuf.RedisMessages;
 import de.derteufelqwe.commons.redis.RedisPool;
 import lombok.Getter;
+import minecraftplugin.minecraftplugin.commands.TestCmd;
 import minecraftplugin.minecraftplugin.commands.dockermc.DockerMCCommands;
 import minecraftplugin.minecraftplugin.commands.economy.*;
 import minecraftplugin.minecraftplugin.commands.teleportsign.TeleportSignCommand;
 import minecraftplugin.minecraftplugin.config.ConfigFile;
 import minecraftplugin.minecraftplugin.config.SignConfig;
-import minecraftplugin.minecraftplugin.config.TPSign;
 import minecraftplugin.minecraftplugin.economy.DMCEconomy;
 import minecraftplugin.minecraftplugin.economy.DMCEconomyImpl;
 import minecraftplugin.minecraftplugin.eventhandlers.MiscEventHandler;
@@ -28,7 +29,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.checkerframework.checker.units.qual.C;
 import redis.clients.jedis.Jedis;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
@@ -46,13 +46,14 @@ public final class MinecraftPlugin extends JavaPlugin {
     @Getter
     private static RedisPool redisPool = new RedisPool("redis");
     @Getter
-    private static Config<ConfigFile> CONFIG = new Config<>(new DefaultYamlConverter(), new MinecraftGsonProvider(), "MinecraftPlugin/config/config.yml", new ConfigFile());
+    private static Config<ConfigFile> CONFIG = new Config<>(new DefaultYamlConverter(), new MinecraftGsonProvider(), "MinecraftPlugin/Config.yml", new ConfigFile());
     @Getter
-    private static Config<SignConfig> SIGN_CONFIG = new Config<>(new DefaultYamlConverter(), new MinecraftGsonProvider(), "MinecraftPlugin/config/tpsigns.yml", new SignConfig());
+    private static Config<SignConfig> SIGN_CONFIG = new Config<>(new DefaultYamlConverter(new DefaultYamlProvider(), new MinecraftGsonProvider()), new MinecraftGsonProvider(), "MinecraftPlugin/SignConfig.yml", new SignConfig());
 
 
     private PaperCommandManager commandManager;
-    @Getter private static ContainerMetaData metaData = new ContainerMetaData();
+    @Getter
+    private static ContainerMetaData metaData = new ContainerMetaData();
     private HealthCheck healthCheck = new HealthCheck();
 
     @Getter
@@ -81,6 +82,7 @@ public final class MinecraftPlugin extends JavaPlugin {
         commandManager.registerCommand(new ServiceBalance());
         commandManager.registerCommand(new ServicePay());
         commandManager.registerCommand(new BankCmd());
+        commandManager.registerCommand(new TestCmd());
 
         // -----  Events  -----
         getServer().getPluginManager().registerEvents(new MiscEventHandler(), this);

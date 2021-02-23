@@ -6,6 +6,7 @@ import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.nodewatcher.misc.INewContainerObserver;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.misc.NWUtils;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Set;
 
@@ -14,6 +15,7 @@ import java.util.Set;
  */
 public class ContainerResourceWatcher implements INewContainerObserver {
 
+    private Logger logger = NodeWatcher.getLogger();
     private final DockerClient dockerClient = NodeWatcher.getDockerClientFactory().forceNewDockerClient();
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
 
@@ -23,11 +25,19 @@ public class ContainerResourceWatcher implements INewContainerObserver {
     }
 
 
+    /**
+     * Gets notified when a new container starts
+     * @param containerId
+     */
     @Override
     public void onNewContainer(String containerId) {
         this.startContainerStat(containerId);
     }
 
+    /**
+     * Starts a
+     * @param containerId
+     */
     private void startContainerStat(String containerId) {
         dockerClient.statsCmd(containerId).exec(new ContainerStatsCallback(containerId));
     }
@@ -42,7 +52,7 @@ public class ContainerResourceWatcher implements INewContainerObserver {
             this.startContainerStat(id);
         }
 
-        System.out.println("[ContainerResourceWatcher] Initialized with " + runningContainers.size() + " containers.");
+        logger.info("[ContainerResourceWatcher] Initialized with " + runningContainers.size() + " containers.");
     }
 
 

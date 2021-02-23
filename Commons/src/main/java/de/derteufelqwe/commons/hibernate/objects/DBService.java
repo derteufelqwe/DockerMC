@@ -10,7 +10,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString(exclude = {"containers", "onlineDurations"})
+@ToString(exclude = {"containers", "logins"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -42,7 +42,7 @@ public class DBService {
 
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private List<PlayerOnlineDurations> onlineDurations;
+    private List<PlayerLogin> logins;
 
     public DBService(String id, String name, int maxRam, float maxCpu, String type) {
         this.id = id;

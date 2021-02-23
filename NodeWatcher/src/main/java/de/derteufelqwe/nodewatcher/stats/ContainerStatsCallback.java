@@ -9,6 +9,8 @@ import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.misc.ContainerNoLongerExistsException;
 import de.derteufelqwe.nodewatcher.misc.InvalidSystemStateException;
 import de.derteufelqwe.nodewatcher.misc.NWUtils;
+import org.apache.logging.log4j.Logger;
+import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
@@ -17,8 +19,12 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Date;
 
+/**
+ * Callback method for the docker stats command. For every stat (1 per second) a DB entry gets created.
+ */
 public class ContainerStatsCallback implements ResultCallback<Statistics> {
 
+    private Logger logger = NodeWatcher.getLogger();
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
     private String containerId;
     private DBContainer containerObj; // To map the stats to it
@@ -38,8 +44,11 @@ public class ContainerStatsCallback implements ResultCallback<Statistics> {
             Transaction tx = session.beginTransaction();
 
             try {
-                DBContainer container = session.get(DBContainer.class, this.containerId);
-                if (container == null) {
+                DBContainer container;
+                try {
+                    container = session.getReference(DBContainer.class, this.containerId);
+
+                } catch (ObjectNotFoundException e) {
                     throw new InvalidSystemStateException("Failed to find container %s for the ContainerStatsCallback!", this.containerId);
                 }
                 this.containerObj = container;
@@ -49,7 +58,7 @@ public class ContainerStatsCallback implements ResultCallback<Statistics> {
             }
         }
 
-        System.out.println("[ContainerStats] Added container " + this.containerId + ".");
+        logger.info("[ContainerStats] Added container " + this.containerId + ".");
     }
 
     @Override
@@ -95,7 +104,7 @@ public class ContainerStatsCallback implements ResultCallback<Statistics> {
 //            e.printStackTrace();
             noResultCounter++;
 
-            if (noResultCounter >= 6) {
+            if (noResultCounter >= 5) {
                 throw new ContainerNoLongerExistsException("Container %s no longer available.", this.containerId);
             }
         }
@@ -104,12 +113,12 @@ public class ContainerStatsCallback implements ResultCallback<Statistics> {
 
     @Override
     public void onError(Throwable throwable) {
-        System.err.println(throwable);
+        logger.error(throwable.getMessage());
     }
 
     @Override
     public void onComplete() {
-        System.out.println("[ContainerStats] Removed container " + this.containerId + ".");
+        logger.info("[ContainerStats] Removed container " + this.containerId + ".");
     }
 
     @Override

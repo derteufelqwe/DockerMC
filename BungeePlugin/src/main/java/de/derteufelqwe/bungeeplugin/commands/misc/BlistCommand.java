@@ -1,6 +1,5 @@
 package de.derteufelqwe.bungeeplugin.commands.misc;
 
-import com.orbitz.consul.CatalogClient;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.commons.CommonsAPI;
@@ -28,7 +27,7 @@ public class BlistCommand extends Command {
     private RedisDataManager redisDataManager = BungeePlugin.getRedisDataManager();
 
 
-    public BlistCommand(CatalogClient catalogClient) {
+    public BlistCommand() {
         super("blist", "bungeecord.command.blist");
     }
 

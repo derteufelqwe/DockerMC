@@ -17,7 +17,7 @@ public class NodeStats {
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private long id;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     private Node node;
 
     private Timestamp timestamp;

@@ -18,20 +18,6 @@ public class Main {
      */
 
 
-    public static void test() {
-        SessionBuilder sessionBuilder = new SessionBuilder("admin", "password", "ubuntu1", 5432);
-        Session session = sessionBuilder.openSession();
-        Transaction tx = session.beginTransaction();
-
-//        Player player = new Player(new UUID(16, 16), "test");
-//        session.persist(player);
-
-        tx.commit();
-
-        session.close();
-
-    }
-
     @SneakyThrows
     public static void main(String[] args) {
         Logger.getLogger("org.hibernate").setLevel(Level.WARNING);
@@ -39,9 +25,8 @@ public class Main {
         NodeWatcher nodeWatcher = new NodeWatcher("tcp://ubuntu1:2375", new SessionBuilder("admin", "password", "ubuntu1", 5432));
 //        NodeWatcher nodeWatcher = new NodeWatcher("unix:///var/run/docker.sock", new SessionBuilder("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT));
 
-        nodeWatcher.start();
 
-        System.out.println("Starting to listen for container deaths...");
+        nodeWatcher.start();
 
         while (true) {
             TimeUnit.SECONDS.sleep(10);

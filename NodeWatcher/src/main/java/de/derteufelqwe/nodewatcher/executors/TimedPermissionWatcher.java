@@ -1,10 +1,12 @@
-package de.derteufelqwe.nodewatcher;
+package de.derteufelqwe.nodewatcher.executors;
 
 import de.derteufelqwe.commons.exceptions.DmcAPIException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
 import de.derteufelqwe.commons.hibernate.objects.permissions.TimedPermission;
+import de.derteufelqwe.nodewatcher.NodeWatcher;
 import lombok.SneakyThrows;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
@@ -24,6 +26,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class TimedPermissionWatcher extends Thread {
 
+    private Logger logger = NodeWatcher.getLogger();
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
 
     private boolean doRun = true;
@@ -78,7 +81,7 @@ public class TimedPermissionWatcher extends Thread {
 
                 tx.commit();
 
-                System.out.println("Deleted " + res.size() + " timed out permissions.");
+                logger.debug("Deleted " + res.size() + " timed out permissions.");
 
             } catch (Exception e) {
                 tx.rollback();

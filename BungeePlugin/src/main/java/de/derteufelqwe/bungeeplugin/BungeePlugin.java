@@ -101,7 +101,7 @@ public final class BungeePlugin extends Plugin {
         getProxy().getPluginManager().registerCommand(this, new FindCommand());
         getProxy().getPluginManager().registerCommand(this, new GlistCommand());
         getProxy().getPluginManager().registerCommand(this, new SendCommand());
-        getProxy().getPluginManager().registerCommand(this, new BlistCommand(null));
+        getProxy().getPluginManager().registerCommand(this, new BlistCommand());
         getProxy().getPluginManager().registerCommand(this, new KickCommand());
         getProxy().getPluginManager().registerCommand(this, new BanCommand());
         getProxy().getPluginManager().registerCommand(this, new UnbanCommand());

@@ -3,16 +3,19 @@ package de.derteufelqwe.nodewatcher.logs;
 import com.github.dockerjava.api.DockerClient;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
-import de.derteufelqwe.nodewatcher.ContainerWatcher;
+import de.derteufelqwe.nodewatcher.executors.ContainerWatcher;
 import de.derteufelqwe.nodewatcher.misc.INewContainerObserver;
 import de.derteufelqwe.nodewatcher.misc.IRemoveContainerObserver;
 import de.derteufelqwe.nodewatcher.misc.NWUtils;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import lombok.SneakyThrows;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import java.sql.Timestamp;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -25,11 +28,12 @@ public class ContainerLogFetcher extends Thread implements INewContainerObserver
 
     private final int FETCH_INTERVAL = 10;  // in seconds
 
+    private Logger logger = NodeWatcher.getLogger();
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
     private final DockerClient dockerClient = NodeWatcher.getDockerClientFactory().forceNewDockerClient();
 
     private boolean doRun = true;
-    private Set<String> runningContainers;
+    private final Set<String> runningContainers = Collections.synchronizedSet(new HashSet<>());
 
 
     public ContainerLogFetcher() {
@@ -51,7 +55,6 @@ public class ContainerLogFetcher extends Thread implements INewContainerObserver
         }
     }
 
-    @SuppressWarnings("SynchronizeOnNonFinalField") // Just dont change the field runningContainers
     @SneakyThrows
     @Override
     public void run() {
@@ -64,13 +67,13 @@ public class ContainerLogFetcher extends Thread implements INewContainerObserver
 
             this.interruptableSleep(FETCH_INTERVAL);
         }
-
     }
 
 
     public void init() {
-        this.runningContainers = NWUtils.getLocallyRunningContainersFromDB(sessionBuilder);
-        System.out.println("[ContainerLogFetcher] Initialized with " + runningContainers.size() + " containers.");
+        this.runningContainers.clear();
+        this.runningContainers.addAll(NWUtils.getLocallyRunningContainersFromDB(sessionBuilder));
+        logger.info("[ContainerLogFetcher] Initialized with " + runningContainers.size() + " containers.");
     }
 
 
@@ -98,10 +101,11 @@ public class ContainerLogFetcher extends Thread implements INewContainerObserver
     private int getLastLogTimestampForDocker(String containerId) {
         try (Session session = sessionBuilder.openSession()) {
             Transaction tx = session.beginTransaction();
+
             try {
                 DBContainer container = session.get(DBContainer.class, containerId);
                 if (container == null) {
-                    System.err.println("Failed to get container for " + containerId + "!");
+                    logger.error("Failed to get container for {} !", containerId);
                     return 0;
                 }
 

@@ -1,4 +1,4 @@
-package de.derteufelqwe.nodewatcher;
+package de.derteufelqwe.nodewatcher.executors;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
@@ -13,9 +13,11 @@ import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.DBService;
 import de.derteufelqwe.commons.hibernate.objects.Node;
+import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.misc.INewContainerObserver;
 import de.derteufelqwe.nodewatcher.misc.InvalidSystemStateException;
 import de.derteufelqwe.nodewatcher.misc.NWUtils;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
@@ -35,6 +37,7 @@ import java.util.stream.Collectors;
  */
 public class ContainerWatcher implements ResultCallback<Event> {
 
+    private Logger logger = NodeWatcher.getLogger();
     private DockerClient dockerClient = NodeWatcher.getDockerClientFactory().forceNewDockerClient();
     private SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
 
@@ -228,7 +231,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
 
                 // SaveOrUpdate is required when restarting a stopped container. Otherwise a unique constraint violation would be thrown
                 session.saveOrUpdate(container);
-                System.out.println("[ContainerWatcher] Created container entry " + id + ".");
+                logger.info("[ContainerWatcher] Created container entry " + id + ".");
 
             } finally {
                 tx.commit();
@@ -276,7 +279,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
                 container.setExitcode(exitCode);
 
                 session.update(container);
-                System.out.println("[ContainerWatcher] Updated container entry " + id + ".");
+                logger.info("[ContainerWatcher] Updated container entry " + id + ".");
 
             } finally {
                 tx.commit();
@@ -398,7 +401,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
 
                 session.persist(dbService);
 
-                System.out.println("[ContainerWatcher] Added new Service " + dbService.getId() + ".");
+                logger.info("[ContainerWatcher] Added new Service " + dbService.getId() + ".");
                 return dbService;
 
             } finally {
