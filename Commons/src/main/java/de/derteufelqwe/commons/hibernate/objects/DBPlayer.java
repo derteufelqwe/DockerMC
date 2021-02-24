@@ -77,14 +77,6 @@ public class DBPlayer {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Permission> permissions;
 
-    @OneToMany(mappedBy = "player")
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private List<TimedPermission> timedPermissions;
-
-    @OneToMany(mappedBy = "player")
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private List<ServicePermission> servicePermissions;
-
 
     // ----- Ban information -----
 
@@ -211,10 +203,10 @@ public class DBPlayer {
      * Checks if the player has a certain service permission
      */
     public boolean hasServicePermission(String permission, DBService service) {
-        for (ServicePermission perm : this.servicePermissions) {
-            if (perm.getPermissionText().equals(permission) && perm.getService().getId().equals(service.getId()))
-                return true;
-        }
+//        for (ServicePermission perm : this.servicePermissions) {
+//            if (perm.getPermissionText().equals(permission) && perm.getService().getId().equals(service.getId()))
+//                return true;
+//        }
 
         return false;
     }
@@ -224,11 +216,11 @@ public class DBPlayer {
      * The timeout is irrelevant
      */
     public boolean hasTimedPermission(String permission) {
-        for (TimedPermission perm : this.timedPermissions) {
-            if (perm.getPermissionText().equals(permission)) {
-                return true;
-            }
-        }
+//        for (TimedPermission perm : this.timedPermissions) {
+//            if (perm.getPermissionText().equals(permission)) {
+//                return true;
+//            }
+//        }
 
         return false;
     }
@@ -253,11 +245,11 @@ public class DBPlayer {
      */
     @CheckForNull
     public ServicePermission findServicePermission(DBService service, String permission) {
-        for (ServicePermission perm : this.servicePermissions) {
-            if (perm.getPermissionText().equals(permission) && perm.getService().getId().equals(service.getId())) {
-                return perm;
-            }
-        }
+//        for (ServicePermission perm : this.servicePermissions) {
+//            if (perm.getPermissionText().equals(permission) && perm.getService().getId().equals(service.getId())) {
+//                return perm;
+//            }
+//        }
 
         return null;
     }
@@ -267,11 +259,11 @@ public class DBPlayer {
      */
     @CheckForNull
     public TimedPermission findTimedPermission(String permission) {
-        for (TimedPermission perm : this.timedPermissions) {
-            if (perm.getPermissionText().equals(permission)) {
-                return perm;
-            }
-        }
+//        for (TimedPermission perm : this.timedPermissions) {
+//            if (perm.getPermissionText().equals(permission)) {
+//                return perm;
+//            }
+//        }
 
         return null;
     }

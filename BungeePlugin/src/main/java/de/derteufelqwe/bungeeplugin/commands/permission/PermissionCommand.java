@@ -75,8 +75,8 @@ public class PermissionCommand extends BaseCommand {
                 sender.sendMessage(HEADING);
                 // Permissions
                 sender.sendMessage(new TextComponent(ChatColor.YELLOW + "Permissions: " + ChatColor.RESET + player.getPermissions().size()));
-                sender.sendMessage(new TextComponent(ChatColor.YELLOW + "Service Permissions: " + ChatColor.RESET + player.getServicePermissions().size()));
-                sender.sendMessage(new TextComponent(ChatColor.YELLOW + "Timed Permissions: " + ChatColor.RESET + player.getTimedPermissions().size()));
+//                sender.sendMessage(new TextComponent(ChatColor.YELLOW + "Service Permissions: " + ChatColor.RESET + player.getServicePermissions().size()));
+//                sender.sendMessage(new TextComponent(ChatColor.YELLOW + "Timed Permissions: " + ChatColor.RESET + player.getTimedPermissions().size()));
                 // Group
                 String mainGroup = "";
                 if (player.getMainPermGroup() != null)
@@ -139,17 +139,17 @@ public class PermissionCommand extends BaseCommand {
                     end = pageNumber * permsPerPage;
                 }
 
-                if (end >= player.getServicePermissions().size()) {
-                    end = player.getServicePermissions().size();
-                    start = end / permsPerPage;
-                }
+//                if (end >= player.getServicePermissions().size()) {
+//                    end = player.getServicePermissions().size();
+//                    start = end / permsPerPage;
+//                }
 
                 sender.sendMessage(new TextComponent(PREFIX + "---- Service Permissions ----"));
-                for (ServicePermission perm : player.getServicePermissions().subList(start, end)) {
-                    sender.sendMessage(new TextComponent(
-                            ChatColor.YELLOW + "(" + perm.getService().getName() + ") " + ChatColor.RESET + perm.getPermissionText()
-                    ));
-                }
+//                for (ServicePermission perm : player.getServicePermissions().subList(start, end)) {
+//                    sender.sendMessage(new TextComponent(
+//                            ChatColor.YELLOW + "(" + perm.getService().getName() + ") " + ChatColor.RESET + perm.getPermissionText()
+//                    ));
+//                }
 
             }
         }
@@ -171,16 +171,16 @@ public class PermissionCommand extends BaseCommand {
                     end = pageNumber * permsPerPage;
                 }
 
-                if (end >= player.getTimedPermissions().size()) {
-                    end = player.getTimedPermissions().size();
-                    start = end / permsPerPage;
-                }
+//                if (end >= player.getTimedPermissions().size()) {
+//                    end = player.getTimedPermissions().size();
+//                    start = end / permsPerPage;
+//                }
                 sender.sendMessage(new TextComponent(PREFIX + "---- Timed Permissions ----"));
-                for (TimedPermission perm : player.getTimedPermissions().subList(start, end)) {
-                    sender.sendMessage(new TextComponent(
-                            ChatColor.YELLOW + "[" + Utils.formatTimestamp(perm.getTimeout()) + "] " + ChatColor.RESET + perm.getPermissionText()
-                    ));
-                }
+//                for (TimedPermission perm : player.getTimedPermissions().subList(start, end)) {
+//                    sender.sendMessage(new TextComponent(
+//                            ChatColor.YELLOW + "[" + Utils.formatTimestamp(perm.getTimeout()) + "] " + ChatColor.RESET + perm.getPermissionText()
+//                    ));
+//                }
 
             }
         }
@@ -265,7 +265,7 @@ public class PermissionCommand extends BaseCommand {
                     newPerm.setService(service);
                     session.persist(newPerm);
 
-                    player.getServicePermissions().add(newPerm);
+//                    player.getServicePermissions().add(newPerm);
                     session.update(player);
                     tx.commit();
 
@@ -307,7 +307,7 @@ public class PermissionCommand extends BaseCommand {
                         newPerm = new TimedPermission(permission, endTimestamp);
                         session.persist(newPerm);
 
-                        player.getTimedPermissions().add(newPerm);
+//                        player.getTimedPermissions().add(newPerm);
                         session.update(player);
 
                         sender.sendMessage(new TextComponent(PREFIX + "Added '" + permission + "' expiring at " + endTime + " to player " + playerName + "."));

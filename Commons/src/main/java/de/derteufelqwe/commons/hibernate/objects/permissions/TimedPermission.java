@@ -15,6 +15,7 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "timed_permissions")
+@Deprecated
 public class TimedPermission extends PermissionBase {
 
     @Nullable

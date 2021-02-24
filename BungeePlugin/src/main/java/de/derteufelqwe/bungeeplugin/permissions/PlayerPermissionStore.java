@@ -20,7 +20,7 @@ public class PlayerPermissionStore {
 
     private final SessionBuilder sessionBuilder = BungeePlugin.getSessionBuilder();
 
-    private PermissionGroupStore permissionGroupStore = new PermissionGroupStore();
+    private PermissionGroupStore permissionGroupStore = new PermissionGroupStore(sessionBuilder);
 
 
     // Data: <PlayerId, <Permission> >
@@ -67,29 +67,29 @@ public class PlayerPermissionStore {
                 );
 
             // Normal permissions
-            if (player.getPermissions() != null)
-                this.normalPermissions.put(playerId, player.getPermissions().stream()
-                        .map(PermissionBase::getPermissionText)
-                        .collect(Collectors.toSet())
-                );
+//            if (player.getPermissions() != null)
+//                this.normalPermissions.put(playerId, player.getPermissions().stream()
+////                        .map(PermissionBase::getPermissionText)
+//                        .collect(Collectors.toSet())
+//                );
 
-            // Service permissions
-            this.servicePermissions.put(playerId, new HashMap<>());
-            if (player.getServicePermissions() != null) {
-                for (ServicePermission p : player.getServicePermissions()) {
-                    String serviceId = p.getService().getId();
-                    servicePermissions.get(playerId).computeIfAbsent(serviceId, k -> new HashSet<>()); // Add set if not existing
-
-                    servicePermissions.get(playerId).get(serviceId).add(p.getPermissionText());
-                }
-            }
-
-            // Timed permissions
-            if (player.getTimedPermissions() != null) {
-                for (TimedPermission perm : player.getTimedPermissions()) {
-                    this.timedPermissions.add(player.getUuid(), perm.getPermissionText(), perm.getTimeout());
-                }
-            }
+//             Service permissions
+//            this.servicePermissions.put(playerId, new HashMap<>());
+//            if (player.getServicePermissions() != null) {
+//                for (ServicePermission p : player.getServicePermissions()) {
+//                    String serviceId = p.getService().getId();
+//                    servicePermissions.get(playerId).computeIfAbsent(serviceId, k -> new HashSet<>()); // Add set if not existing
+//
+//                    servicePermissions.get(playerId).get(serviceId).add(p.getPermissionText());
+//                }
+//            }
+//
+//            // Timed permissions
+//            if (player.getTimedPermissions() != null) {
+//                for (TimedPermission perm : player.getTimedPermissions()) {
+//                    this.timedPermissions.add(player.getUuid(), perm.getPermissionText(), perm.getTimeout());
+//                }
+//            }
 
         }
     }

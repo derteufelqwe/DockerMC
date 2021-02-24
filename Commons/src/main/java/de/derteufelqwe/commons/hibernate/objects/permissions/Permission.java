@@ -1,6 +1,8 @@
 package de.derteufelqwe.commons.hibernate.objects.permissions;
 
+import com.sun.istack.NotNull;
 import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
+import de.derteufelqwe.commons.hibernate.objects.DBService;
 import jakarta.validation.Constraint;
 import lombok.*;
 import org.hibernate.annotations.DiscriminatorOptions;
@@ -14,23 +16,50 @@ import java.util.List;
 @Getter
 @Setter
 @Entity(name = "permissions")
-public class Permission extends PermissionBase {
+public class Permission {
+
+    @Id
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    private long id;
+
+    @NotNull
+    @Type(type = "text")
+    @Column(name = "permission_text", nullable = false)
+    private String permissionText;
 
     @Nullable
-    @ManyToOne
+    @ManyToOne(optional = true)
     private DBPlayer player;
 
     @Nullable
-    @ManyToOne
+    @ManyToOne(optional = true)
     private PermissionGroup group;
+
+    // -----  Filter parameters  -----
+
+    @ManyToOne(optional = true)
+    private DBService service;
+
+    @Column(nullable = true)
+    private Timestamp timeout;
 
 
     public Permission() {
-        super();
+
     }
 
     public Permission(String permission) {
-        super(permission);
+        this.permissionText = permission;
+    }
+
+    public Permission(String permission, Timestamp timeout) {
+        this(permission);
+        this.timeout = timeout;
+    }
+
+    public Permission(String permission, Timestamp timeout, DBService dbService) {
+        this(permission, timeout);
+        this.service = dbService;
     }
 
 }

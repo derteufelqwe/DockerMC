@@ -17,6 +17,7 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "service_permissions")
+@Deprecated
 public class ServicePermission extends PermissionBase {
 
     @Nullable

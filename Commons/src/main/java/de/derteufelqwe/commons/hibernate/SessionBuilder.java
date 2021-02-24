@@ -69,8 +69,6 @@ public class SessionBuilder {
                 .addAnnotatedClass(PermissionGroup.class)
                 .addAnnotatedClass(PlayerToPermissionGroup.class)
                 .addAnnotatedClass(Permission.class)
-                .addAnnotatedClass(TimedPermission.class)
-                .addAnnotatedClass(ServicePermission.class)
                 .addAnnotatedClass(Notification.class)
                 .addAnnotatedClass(ServiceBalance.class)
                 .addAnnotatedClass(PlayerTransaction.class)

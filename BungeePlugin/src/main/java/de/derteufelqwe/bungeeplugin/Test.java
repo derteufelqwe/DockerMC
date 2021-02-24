@@ -4,12 +4,21 @@ import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.protobuf.RedisMessages;
 import de.derteufelqwe.commons.redis.RedisPool;
 import lombok.SneakyThrows;
+import org.cache2k.Cache;
+import org.cache2k.Cache2kBuilder;
+import org.cache2k.CacheEntry;
+import org.cache2k.annotation.Nullable;
+import org.cache2k.expiry.ExpiryPolicy;
+import org.cache2k.io.AsyncCacheLoader;
+import org.cache2k.io.CacheLoader;
 import redis.clients.jedis.BinaryJedisPubSub;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Transaction;
 
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public class Test {
 
@@ -77,9 +86,36 @@ public class Test {
     @SneakyThrows
     public static void main(String[] args) {
 
-        String RED = "\u001B[31m";
+        Cache<String, String> cache = new Cache2kBuilder<String, String>() {}
+                .name("testCache")
+                .eternal(false)
+//                .loader(new CacheLoader<String, String>() {
+//                    @Override
+//                    public String load(String key) throws Exception {
+////                        System.out.println("Load: " + key);
+//                        return key + "-" + new Random().nextInt(100);
+//                    }
+//                })
+                .expiryPolicy(new ExpiryPolicy<String, String>() {
+                    @Override
+                    public long calculateExpiryTime(String key, String value, long loadTime, @Nullable CacheEntry<String, String> currentEntry) {
+//                        System.out.println("Expire: " + key);
+                        return System.currentTimeMillis() + 1;
+                    }
+                })
+                .build();
 
-        System.out.println(RED + "Hallo");
+        cache.put("Name", "Arne");
+
+        System.out.println(cache.get("Name"));
+        System.out.println(cache.get("Alter"));
+        System.out.println(cache.containsKey("Name"));
+
+        TimeUnit.SECONDS.sleep(2);
+
+        System.out.println(cache.get("Name"));
+        System.out.println(cache.get("Alter"));
+        System.out.println(cache.containsKey("Name"));
 
     }
 

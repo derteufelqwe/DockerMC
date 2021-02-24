@@ -175,13 +175,14 @@ public class CommonsAPI {
 
     @NotNull
     public List<PermissionGroup> getAllPermissionGroups(Session session) {
-        CriteriaBuilder cb = session.getCriteriaBuilder();
-        CriteriaQuery<PermissionGroup> cq = cb.createQuery(PermissionGroup.class);
-        Root<PermissionGroup> rootEntry = cq.from(PermissionGroup.class);
-        CriteriaQuery<PermissionGroup> all = cq.select(rootEntry);
+        List<PermissionGroup> groups = session.createNativeQuery(
+                "SELECT * FROM permission_groups", PermissionGroup.class)
+                .getResultList();
 
-        TypedQuery<PermissionGroup> allQuery = session.createQuery(all);
-        return allQuery.getResultList();
+        if (groups != null)
+            return groups;
+
+        return new ArrayList<>();
     }
 
     @CheckForNull

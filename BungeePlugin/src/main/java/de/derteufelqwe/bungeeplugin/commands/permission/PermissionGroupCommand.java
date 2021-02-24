@@ -91,8 +91,8 @@ public class PermissionGroupCommand extends BaseCommand {
                 // Permissions
                 send(sender, "%sPrefix: %s%s", ChatColor.YELLOW, ChatColor.RESET, group.getPrefix());
                 send(sender, "%sPermissions: %s%s", ChatColor.YELLOW, ChatColor.GRAY, group.getPermissions().size());
-                send(sender, "%sService Permissions: %s%s", ChatColor.YELLOW, ChatColor.GRAY, group.getServicePermissions().size());
-                send(sender, "%sTimed Permissions: %s%s", ChatColor.YELLOW, ChatColor.GRAY, group.getTimedPermissions().size());
+//                send(sender, "%sService Permissions: %s%s", ChatColor.YELLOW, ChatColor.GRAY, group.getServicePermissions().size());
+//                send(sender, "%sTimed Permissions: %s%s", ChatColor.YELLOW, ChatColor.GRAY, group.getTimedPermissions().size());
 
                 // Players
                 long playersSet = CommonsAPI.getInstance().getPermissionGroupPlayerCount(session, groupName);
@@ -152,15 +152,15 @@ public class PermissionGroupCommand extends BaseCommand {
                     end = pageNumber * permsPerPage;
                 }
 
-                if (end >= group.getServicePermissions().size()) {
-                    end = group.getServicePermissions().size();
-                    start = (end / permsPerPage) * permsPerPage;
-                }
+//                if (end >= group.getServicePermissions().size()) {
+//                    end = group.getServicePermissions().size();
+//                    start = (end / permsPerPage) * permsPerPage;
+//                }
 
                 send(sender, PREFIX + "%s--- Group Service Permissions ---", ChatColor.GOLD);
-                for (ServicePermission perm : group.getServicePermissions().subList(start, end)) {
-                    send(sender, "%s (%s) %s%s", ChatColor.YELLOW, perm.getService().getName(), ChatColor.RESET, perm.getPermissionText());
-                }
+//                for (ServicePermission perm : group.getServicePermissions().subList(start, end)) {
+//                    send(sender, "%s (%s) %s%s", ChatColor.YELLOW, perm.getService().getName(), ChatColor.RESET, perm.getPermissionText());
+//                }
 
             }
         }
@@ -184,15 +184,15 @@ public class PermissionGroupCommand extends BaseCommand {
                     end = pageNumber * permsPerPage;
                 }
 
-                if (end >= group.getTimedPermissions().size()) {
-                    end = group.getTimedPermissions().size();
-                    start = (end / permsPerPage) * permsPerPage;
-                }
+//                if (end >= group.getTimedPermissions().size()) {
+//                    end = group.getTimedPermissions().size();
+//                    start = (end / permsPerPage) * permsPerPage;
+//                }
 
                 send(sender, PREFIX + "%s--- Group Timed Permissions ---", ChatColor.GOLD);
-                for (TimedPermission perm : group.getTimedPermissions().subList(start, end)) {
-                    send(sender, "%s [%s] %s%s", ChatColor.YELLOW, Utils.formatTimestamp(perm.getTimeout()), ChatColor.RESET, perm.getPermissionText());
-                }
+//                for (TimedPermission perm : group.getTimedPermissions().subList(start, end)) {
+//                    send(sender, "%s [%s] %s%s", ChatColor.YELLOW, Utils.formatTimestamp(perm.getTimeout()), ChatColor.RESET, perm.getPermissionText());
+//                }
 
             }
         }
