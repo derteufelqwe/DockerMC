@@ -2,6 +2,8 @@ package de.derteufelqwe.commons.hibernate.objects;
 
 import de.derteufelqwe.commons.exceptions.DatabaseException;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -27,9 +29,11 @@ public class PlayerLogin {
     // ----- Login information -----
 
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private DBPlayer player;
 
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private DBService service;
 
     private Timestamp joinTime = new Timestamp(System.currentTimeMillis());

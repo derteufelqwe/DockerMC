@@ -92,7 +92,7 @@ public class DatabaseDebugEntries {
         DatabaseDebugEntries entries = new DatabaseDebugEntries();
 
 //        entries.addDebugService();
-        entries.addTestPermissions();
+//        entries.addTestPermissions();
     }
 
 }

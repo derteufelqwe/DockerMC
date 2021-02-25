@@ -55,8 +55,6 @@ public class DBPlayer {
 
     // ----- Stats -----
 
-//    @OneToMany(mappedBy = "player", cascade = CascadeType.ALL)
-//    private List<PlayerOnlineDurations> onlineStats;
 
     private Timestamp lastOnline;
 
@@ -66,12 +64,9 @@ public class DBPlayer {
 
     // ----- Permissions -----
 
-    @ManyToOne
-    private PermissionGroup mainPermGroup;
-
     @OneToMany(mappedBy = "player")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private List<PlayerToPermissionGroup> additionPermGroups;
+    private List<PlayerToPermissionGroup> permissionGroups;
 
     @OneToMany(mappedBy = "player")
     @OnDelete(action = OnDeleteAction.CASCADE)

@@ -1,6 +1,8 @@
 package de.derteufelqwe.commons.hibernate.objects;
 
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -28,6 +30,7 @@ public class IPBan {
     private String bannedIp;
 
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private DBPlayer bannedBy;
 
     /*
@@ -41,6 +44,7 @@ public class IPBan {
     private String banMessage;
 
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private DBPlayer unbannedBy;
 
     private Timestamp unbanTime;

@@ -1,6 +1,6 @@
 package de.derteufelqwe.commons.hibernate.objects;
 
-import de.derteufelqwe.commons.hibernate.SessionBuilder;
+import de.derteufelqwe.commons.hibernate.TestSessionBuilder;
 import org.hibernate.Session;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

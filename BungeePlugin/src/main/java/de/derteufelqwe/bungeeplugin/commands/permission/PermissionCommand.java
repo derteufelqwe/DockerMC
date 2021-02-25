@@ -78,16 +78,16 @@ public class PermissionCommand extends BaseCommand {
 //                sender.sendMessage(new TextComponent(ChatColor.YELLOW + "Service Permissions: " + ChatColor.RESET + player.getServicePermissions().size()));
 //                sender.sendMessage(new TextComponent(ChatColor.YELLOW + "Timed Permissions: " + ChatColor.RESET + player.getTimedPermissions().size()));
                 // Group
-                String mainGroup = "";
-                if (player.getMainPermGroup() != null)
-                    mainGroup = player.getMainPermGroup().getName();
-                sender.sendMessage(new TextComponent(ChatColor.YELLOW + "Permission Group: " + ChatColor.RESET + mainGroup));
-                sender.sendMessage(new TextComponent(ChatColor.YELLOW + "Additional Groups: " + ChatColor.RESET));
-                if (player.getAdditionPermGroups() != null) {
-                    for (PlayerToPermissionGroup group : player.getAdditionPermGroups()) {
-                        sender.sendMessage(new TextComponent("    " + group.getPermissionGroup().getName()));
-                    }
-                }
+//                String mainGroup = "";
+//                if (player.getMainPermGroup() != null)
+//                    mainGroup = player.getMainPermGroup().getName();
+//                sender.sendMessage(new TextComponent(ChatColor.YELLOW + "Permission Group: " + ChatColor.RESET + mainGroup));
+//                sender.sendMessage(new TextComponent(ChatColor.YELLOW + "Additional Groups: " + ChatColor.RESET));
+//                if (player.getAdditionPermGroups() != null) {
+//                    for (PlayerToPermissionGroup group : player.getAdditionPermGroups()) {
+//                        sender.sendMessage(new TextComponent("    " + group.getPermissionGroup().getName()));
+//                    }
+//                }
 
             }
         }

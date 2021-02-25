@@ -24,7 +24,7 @@ public class PermissionEvent implements Listener {
     public static boolean allowAll = false;
 
     private final SessionBuilder sessionBuilder = BungeePlugin.getSessionBuilder();
-    private final PlayerPermissionStore permissionStore = new PlayerPermissionStore();
+    private final PlayerPermissionStore permissionStore = new PlayerPermissionStore(sessionBuilder);
 
     /*
      * Guava cache for already resolved permissions

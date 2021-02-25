@@ -2,6 +2,8 @@ package de.derteufelqwe.commons.hibernate.objects.economy;
 
 import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -22,9 +24,11 @@ public class PlayerTransaction {
     private long id;
 
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private DBPlayer from;
 
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private DBPlayer to;
 
     private Timestamp timestamp;

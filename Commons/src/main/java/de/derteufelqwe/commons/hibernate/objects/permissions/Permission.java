@@ -6,6 +6,8 @@ import de.derteufelqwe.commons.hibernate.objects.DBService;
 import jakarta.validation.Constraint;
 import lombok.*;
 import org.hibernate.annotations.DiscriminatorOptions;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
 
 import javax.annotation.Nullable;
@@ -29,15 +31,18 @@ public class Permission {
 
     @Nullable
     @ManyToOne(optional = true)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private DBPlayer player;
 
     @Nullable
     @ManyToOne(optional = true)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private PermissionGroup group;
 
     // -----  Filter parameters  -----
 
     @ManyToOne(optional = true)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private DBService service;
 
     @Column(nullable = true)

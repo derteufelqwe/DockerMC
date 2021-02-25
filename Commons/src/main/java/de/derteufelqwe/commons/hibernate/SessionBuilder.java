@@ -10,30 +10,41 @@ import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 public class SessionBuilder {
 
-    private String user;
-    private String password;
-    private String host;
-    private int port;
+    protected String user;
+    protected String password;
+    protected String host;
+    protected int port;
 
-    private SessionFactory sessionFactory;
+    protected SessionFactory sessionFactory;
 
 
-    public SessionBuilder(String user, String password, String host, int port) {
+    public SessionBuilder(String user, String password, String host, int port, boolean init) {
         this.user = user;
         this.password = password;
         this.host = host;
         this.port = port;
 
-        this.sessionFactory = this.buildSessionFactory();
+        if (init)
+            this.sessionFactory = this.buildSessionFactory();
     }
 
+    public SessionBuilder(String user, String password, String host, int port) {
+        this(user, password, host, port, true);
+    }
 
     public SessionBuilder() {
         this("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT);
+    }
+
+
+    public void init() {
+        this.sessionFactory = this.buildSessionFactory();
     }
 
     
@@ -54,29 +65,41 @@ public class SessionBuilder {
         return properties;
     }
 
+    protected Set<Class<?>> getAnnotatedClasses() {
+        Set<Class<?>> annotatedClasses = new HashSet<>();
+
+        annotatedClasses.add(DBContainer.class);
+        annotatedClasses.add(Node.class);
+        annotatedClasses.add(ContainerStats.class);
+        annotatedClasses.add(NodeStats.class);
+        annotatedClasses.add(DBService.class);
+        annotatedClasses.add(DBPlayer.class);
+        annotatedClasses.add(PlayerBan.class);
+        annotatedClasses.add(IPBan.class);
+        annotatedClasses.add(PlayerLogin.class);
+        annotatedClasses.add(PermissionGroup.class);
+        annotatedClasses.add(PlayerToPermissionGroup.class);
+        annotatedClasses.add(Permission.class);
+        annotatedClasses.add(Notification.class);
+        annotatedClasses.add(ServiceBalance.class);
+        annotatedClasses.add(PlayerTransaction.class);
+        annotatedClasses.add(ServiceTransaction.class);
+        annotatedClasses.add(Bank.class);
+        annotatedClasses.add(PlayerToBank.class);
+        annotatedClasses.add(BankTransaction.class);
+
+        return annotatedClasses;
+    }
+
     protected SessionFactory buildSessionFactory() {
-        return new Configuration()
-                .setProperties(this.getProperties())
-                .addAnnotatedClass(DBContainer.class)
-                .addAnnotatedClass(Node.class)
-                .addAnnotatedClass(ContainerStats.class)
-                .addAnnotatedClass(NodeStats.class)
-                .addAnnotatedClass(DBService.class)
-                .addAnnotatedClass(DBPlayer.class)
-                .addAnnotatedClass(PlayerBan.class)
-                .addAnnotatedClass(PlayerLogin.class)
-                .addAnnotatedClass(IPBan.class)
-                .addAnnotatedClass(PermissionGroup.class)
-                .addAnnotatedClass(PlayerToPermissionGroup.class)
-                .addAnnotatedClass(Permission.class)
-                .addAnnotatedClass(Notification.class)
-                .addAnnotatedClass(ServiceBalance.class)
-                .addAnnotatedClass(PlayerTransaction.class)
-                .addAnnotatedClass(ServiceTransaction.class)
-                .addAnnotatedClass(Bank.class)
-                .addAnnotatedClass(PlayerToBank.class)
-                .addAnnotatedClass(BankTransaction.class)
-                .buildSessionFactory();
+        Configuration config = new Configuration()
+                .setProperties(this.getProperties());
+
+        for (Class<?> clazz : this.getAnnotatedClasses()) {
+            config.addAnnotatedClass(clazz);
+        }
+
+        return config.buildSessionFactory();
     }
 
     public Session openSession() {

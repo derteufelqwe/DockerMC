@@ -3,40 +3,35 @@ package de.derteufelqwe.bungeeplugin.permissions;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
-import de.derteufelqwe.commons.hibernate.objects.permissions.PermissionBase;
-import de.derteufelqwe.commons.hibernate.objects.permissions.PlayerToPermissionGroup;
-import de.derteufelqwe.commons.hibernate.objects.permissions.ServicePermission;
-import de.derteufelqwe.commons.hibernate.objects.permissions.TimedPermission;
-import de.derteufelqwe.commons.misc.TimeoutPermissionStore;
+import de.derteufelqwe.commons.hibernate.objects.permissions.*;
+import org.cache2k.Cache;
+import org.cache2k.Cache2kBuilder;
+import org.cache2k.CacheEntry;
+import org.cache2k.annotation.Nullable;
+import org.cache2k.expiry.ExpiryPolicy;
 import org.hibernate.Session;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Stores permission data for a player
  */
 public class PlayerPermissionStore {
 
-    private final SessionBuilder sessionBuilder = BungeePlugin.getSessionBuilder();
+    private final SessionBuilder sessionBuilder;
 
-    private PermissionGroupStore permissionGroupStore = new PermissionGroupStore(sessionBuilder);
-
+    private final PermissionGroupStore permissionGroupStore;
 
     // Data: <PlayerId, <Permission> >
-    private Map<UUID, Set<String>> normalPermissions = new HashMap<>();
-
-    // Data: <PlayerId, <ServiceId, <Permissions> > >
-    private Map<UUID, Map<String, Set<String>>> servicePermissions = new HashMap<>();
+    private Map<UUID, Cache<PermissionCacheKey, PermissionData>> permissions = new HashMap<>();
 
     // Data: <PlayerId, <GroupId> >
-    private Map<UUID, Set<Long>> groups = new HashMap<>();
-
-    private TimeoutPermissionStore<UUID> timedPermissions = new TimeoutPermissionStore<>(60000);
+    private Map<UUID, Map<GroupCacheKey, TimeoutList<GroupData>>> groups = new HashMap<>();
 
 
-    public PlayerPermissionStore() {
-        this.timedPermissions.start();
+    public PlayerPermissionStore(SessionBuilder sessionBuilder) {
+        this.sessionBuilder = sessionBuilder;
+        this.permissionGroupStore = new PermissionGroupStore(sessionBuilder);
     }
 
 
@@ -45,6 +40,25 @@ public class PlayerPermissionStore {
      */
     public void init() {
         this.permissionGroupStore.init();
+    }
+
+    /**
+     * Creates the permission cache for a single user, which stores their permissions
+     */
+    private Cache<PermissionCacheKey, PermissionData> createPermissionCache(UUID playerId) {
+        return new Cache2kBuilder<PermissionCacheKey, PermissionData>() {}
+                .name("perms-player-" + playerId.toString())
+                .eternal(false)
+                .expiryPolicy(new ExpiryPolicy<PermissionCacheKey, PermissionData>() {
+                    @Override
+                    public long calculateExpiryTime(PermissionCacheKey key, PermissionData value, long loadTime, @Nullable CacheEntry<PermissionCacheKey, PermissionData> currentEntry) {
+                        if (value.getTimeout() != null)
+                            return value.getTimeout().getTime();
+
+                        return ETERNAL;
+                    }
+                })
+                .build();
     }
 
 
@@ -56,41 +70,38 @@ public class PlayerPermissionStore {
         try (Session session = sessionBuilder.openSession()) {
             DBPlayer player = session.get(DBPlayer.class, playerId);
 
-            // Group
-            this.groups.put(playerId, new HashSet<>());
-            if (player.getMainPermGroup() != null)
-                this.groups.get(playerId).add(player.getMainPermGroup().getId());
-            if (player.getAdditionPermGroups() != null)
-                this.groups.get(playerId).addAll(player.getAdditionPermGroups().stream()
-                        .map(PlayerToPermissionGroup::getId)
-                        .collect(Collectors.toSet())
+            Map<GroupCacheKey, TimeoutList<GroupData>> groupDataCache = new HashMap<>();
+            Cache<PermissionCacheKey, PermissionData> permissionDataCache = this.createPermissionCache(playerId);
+
+            // Save the groups
+            for (PlayerToPermissionGroup group : player.getPermissionGroups()) {
+                String serviceID = group.getService() == null ? null : group.getService().getId();
+                GroupCacheKey key = new GroupCacheKey(serviceID);
+
+                groupDataCache.putIfAbsent(key, new TimeoutList<>());
+                TimeoutList<GroupData> list = groupDataCache.get(key);
+
+                GroupData data = new GroupData(
+                        group.getPermissionGroup().getId(), serviceID, group.getTimeout()
                 );
 
-            // Normal permissions
-//            if (player.getPermissions() != null)
-//                this.normalPermissions.put(playerId, player.getPermissions().stream()
-////                        .map(PermissionBase::getPermissionText)
-//                        .collect(Collectors.toSet())
-//                );
+                long timeout = group.getTimeout() == null ? -1 : group.getTimeout().getTime();
+                list.add(data, timeout);
+            }
 
-//             Service permissions
-//            this.servicePermissions.put(playerId, new HashMap<>());
-//            if (player.getServicePermissions() != null) {
-//                for (ServicePermission p : player.getServicePermissions()) {
-//                    String serviceId = p.getService().getId();
-//                    servicePermissions.get(playerId).computeIfAbsent(serviceId, k -> new HashSet<>()); // Add set if not existing
-//
-//                    servicePermissions.get(playerId).get(serviceId).add(p.getPermissionText());
-//                }
-//            }
-//
-//            // Timed permissions
-//            if (player.getTimedPermissions() != null) {
-//                for (TimedPermission perm : player.getTimedPermissions()) {
-//                    this.timedPermissions.add(player.getUuid(), perm.getPermissionText(), perm.getTimeout());
-//                }
-//            }
+            // Save the permissions
+            for (Permission perm : player.getPermissions()) {
+                String serviceID = perm.getService() == null ? null : perm.getService().getId();
+                PermissionCacheKey key = new PermissionCacheKey(perm.getPermissionText(), serviceID);
+                PermissionData data = new PermissionData(
+                        perm.getPermissionText(), serviceID, perm.getTimeout()
+                );
 
+                permissionDataCache.put(key, data);
+            }
+
+            this.groups.put(playerId, groupDataCache);
+            this.permissions.put(playerId, permissionDataCache);
         }
     }
 
@@ -98,42 +109,46 @@ public class PlayerPermissionStore {
      * Removes players permissions from the cache
      */
     public void removePlayer(UUID playerId) {
+        this.permissions.remove(playerId);
         this.groups.remove(playerId);
-        this.normalPermissions.remove(playerId);
-        this.servicePermissions.remove(playerId);
-        this.timedPermissions.remove(playerId);
     }
 
     /**
      * Checks if a player has a permission. This includes permission group checks
      */
     public boolean hasPermission(UUID playerId, String permission) {
-        if (this.normalPermissions.get(playerId).contains(permission))
-            return true;
-        else if (this.timedPermissions.contains(playerId, permission))
-            return true;
-
-        for (Long groupId : this.groups.get(playerId)) {
-            if (this.permissionGroupStore.hasPermission(groupId, permission))
-                return true;
-        }
-
-        return false;
+        return hasPermission(playerId, permission, null);
     }
 
     /**
      * Additionally checks if a service bound permission exists
      */
-    public boolean hasPermission(UUID playerId, String permission, String serviceId) {
-        if (this.hasPermission(playerId, permission))
+    public boolean hasPermission(UUID playerId, String permission, @Nullable String serviceId) {
+        TimeoutList<GroupData> groups = this.groups.get(playerId).get(new GroupCacheKey(serviceId));
+        if (groups != null) {
+            for (GroupData data : groups) {
+                if (this.permissionGroupStore.hasPermission(data.getGroupID(), permission))
+                    return true;
+            }
+        }
+
+        // Permission is found as is
+        if (this.permissions.get(playerId).containsKey(new PermissionCacheKey(permission, serviceId)))
             return true;
 
-        Set<String> servicePerms = this.servicePermissions.get(playerId).get(serviceId);
-        if (servicePerms != null && servicePerms.contains(permission))
-            return true;
+        // Check for star permission
+        String[] splits = permission.split("\\.");
+        if (splits.length == 1)
+            return false;
 
-        for (Long groupId : this.groups.get(playerId)) {
-            if (this.permissionGroupStore.hasPermission(groupId, permission, serviceId))
+        for (int i = 0; i < splits.length; i++) {
+            String perm = String.join(".", Arrays.copyOfRange(splits, 0, i));
+            if (perm.equals(""))
+                perm += "*";
+            else
+                perm += ".*";
+
+            if (this.permissions.get(playerId).containsKey(new PermissionCacheKey(perm, serviceId)))
                 return true;
         }
 
