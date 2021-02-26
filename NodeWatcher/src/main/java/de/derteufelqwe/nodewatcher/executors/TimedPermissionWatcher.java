@@ -66,22 +66,17 @@ public class TimedPermissionWatcher extends Thread {
             Transaction tx = session.beginTransaction();
 
             try {
-                CriteriaBuilder cb = session.getCriteriaBuilder();
-                CriteriaQuery<TimedPermission> cq = cb.createQuery(TimedPermission.class);
-                Root<TimedPermission> root = cq.from(TimedPermission.class);
+                int permRows = session.createNativeQuery(
+                        "DELETE FROM permissions AS p WHERE p.timeout <= now()"
+                ).executeUpdate();
 
-                cq.select(root).where(cb.lessThan(root.get("timeout"), new Timestamp(System.currentTimeMillis())));
-
-                TypedQuery<TimedPermission> queryRes = session.createQuery(cq);
-                List<TimedPermission> res = queryRes.getResultList();
-
-                for (TimedPermission perm : res) {
-                    session.delete(perm);
-                }
+                int permGroupRows = session.createNativeQuery(
+                        ""
+                ).executeUpdate();
 
                 tx.commit();
 
-                logger.debug("Deleted " + res.size() + " timed out permissions.");
+                logger.debug("Deleted {} timed out permission and {} permission group assignments.", permRows, permGroupRows);
 
             } catch (Exception e) {
                 tx.rollback();

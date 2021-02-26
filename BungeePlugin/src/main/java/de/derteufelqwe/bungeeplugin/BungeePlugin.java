@@ -106,10 +106,10 @@ public final class BungeePlugin extends Plugin {
         getProxy().getPluginManager().registerCommand(this, new BanCommand());
         getProxy().getPluginManager().registerCommand(this, new UnbanCommand());
         getProxy().getPluginManager().registerCommand(this, new PlayerStatsCommand());
+        getProxy().getPluginManager().registerCommand(this, new TestCmd());
         commandManager.registerCommand(new PermissionCommand());
         commandManager.registerCommand(new PermissionGroupCommand());
         commandManager.registerCommand(new DebugCmd());
-        commandManager.registerCommand(new TestCmd());
         commandManager.registerCommand(new DMCInfo());
 
 

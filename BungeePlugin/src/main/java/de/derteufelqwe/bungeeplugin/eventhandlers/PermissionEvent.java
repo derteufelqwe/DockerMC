@@ -14,6 +14,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PermissionCheckEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
+import org.cache2k.spi.Cache2kCoreProvider;
 import org.hibernate.Session;
 
 /**
@@ -27,7 +28,7 @@ public class PermissionEvent implements Listener {
     private final PlayerPermissionStore permissionStore = new PlayerPermissionStore(sessionBuilder);
 
     /*
-     * Guava cache for already resolved permissions
+     * Idea: Guava cache for already resolved permissions
      */
 
     public PermissionEvent() {
@@ -78,8 +79,10 @@ public class PermissionEvent implements Listener {
 
     @EventHandler
     public void onPlayerJoinNetwork(BungeePlayerLeaveEvent event) {
-        this.permissionStore.removePlayer(event.getPlayerId());
-        System.out.println("Removed perms for " + event.getPlayerName());
+        ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, () -> {
+            this.permissionStore.removePlayer(event.getPlayerId());
+            System.out.println("Removed perms for " + event.getPlayerName());
+        });
     }
 
 }

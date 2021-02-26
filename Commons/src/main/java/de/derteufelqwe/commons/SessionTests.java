@@ -1,6 +1,7 @@
 package de.derteufelqwe.commons;
 
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
+import de.derteufelqwe.commons.hibernate.objects.permissions.Permission;
 import lombok.SneakyThrows;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
@@ -10,6 +11,10 @@ import org.apache.logging.log4j.core.config.ConfigurationFactory;
 import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilder;
 import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration;
 import org.apache.logging.log4j.core.layout.PatternLayout;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+
+import java.util.List;
 
 public class SessionTests {
 
@@ -18,19 +23,16 @@ public class SessionTests {
     @SneakyThrows
     public static void main(String[] args) {
 
-        ConfigurationBuilder<BuiltConfiguration> builder = ConfigurationFactory.newConfigurationBuilder();
-        builder.setStatusLevel(Level.INFO);
-        BuiltConfiguration config = builder.build();
+        try (Session session = sessionBuilder.openSession()) {
+            Transaction tx = session.beginTransaction();
 
-        config.addAppender(ConsoleAppender.createDefaultAppenderForLayout(PatternLayout.createDefaultLayout()));
+            int rows = session.createNativeQuery(
+                    "DELETE FROM permissions AS p WHERE p.timeout <= now()").executeUpdate();
 
-        LoggerContext context = new LoggerContext("TestLogger");
-        context.start(config);
+            System.out.println(rows);
 
-        Logger logger = context.getLogger("TestLogger");
-
-        logger.fatal("Test");
-        logger.warn("Test");
+            tx.commit();
+        }
 
     }
 

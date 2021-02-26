@@ -1766,6 +1766,7 @@ UC/10
     </table>
     <table id="59" parent="17" name="players">
       <ObjectId>53433</ObjectId>
+      <Outdated>1</Outdated>
       <Owner>admin</Owner>
       <StateNumber>5273967</StateNumber>
     </table>

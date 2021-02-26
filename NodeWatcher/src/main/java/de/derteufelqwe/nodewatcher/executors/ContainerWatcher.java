@@ -54,14 +54,9 @@ public class ContainerWatcher implements ResultCallback<Event> {
      */
     @Override
     public void onStart(Closeable closeable) {
-        try {
-            List<Container> containers = this.getRunningBungeeMinecraftContainers();
-            this.gatherStartedContainers(containers);
-            this.completeStoppedContainers(containers);
-
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-        }
+        List<Container> containers = this.getRunningBungeeMinecraftContainers();
+        this.gatherStartedContainers(containers);
+        this.completeStoppedContainers(containers);
     }
 
     @Override
@@ -87,8 +82,8 @@ public class ContainerWatcher implements ResultCallback<Event> {
 
     @Override
     public void onError(Throwable throwable) {
-        System.err.println("Exception occured in the containerwatcher");
-        System.err.println(throwable);
+        logger.error("Exception occured in the containerwatcher");
+        logger.error(throwable.getMessage());
     }
 
     @Override

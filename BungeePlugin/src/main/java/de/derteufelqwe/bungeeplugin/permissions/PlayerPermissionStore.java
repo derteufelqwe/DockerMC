@@ -1,20 +1,23 @@
 package de.derteufelqwe.bungeeplugin.permissions;
 
-import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
-import de.derteufelqwe.commons.hibernate.objects.permissions.*;
+import de.derteufelqwe.commons.hibernate.objects.permissions.Permission;
+import de.derteufelqwe.commons.hibernate.objects.permissions.PlayerToPermissionGroup;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.cache2k.CacheEntry;
-import org.cache2k.annotation.Nullable;
 import org.cache2k.expiry.ExpiryPolicy;
 import org.hibernate.Session;
 
-import java.util.*;
+import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
- * Stores permission data for a player
+ * Stores all permissions a player has as well as their permission groups
  */
 public class PlayerPermissionStore {
 
@@ -51,7 +54,7 @@ public class PlayerPermissionStore {
                 .eternal(false)
                 .expiryPolicy(new ExpiryPolicy<PermissionCacheKey, PermissionData>() {
                     @Override
-                    public long calculateExpiryTime(PermissionCacheKey key, PermissionData value, long loadTime, @Nullable CacheEntry<PermissionCacheKey, PermissionData> currentEntry) {
+                    public long calculateExpiryTime(PermissionCacheKey key, PermissionData value, long loadTime, CacheEntry<PermissionCacheKey, PermissionData> currentEntry) {
                         if (value.getTimeout() != null)
                             return value.getTimeout().getTime();
 
@@ -64,6 +67,7 @@ public class PlayerPermissionStore {
 
     /**
      * Loads players permission information into the cache
+     *
      * @param playerId
      */
     public void loadPlayer(UUID playerId) {
@@ -109,6 +113,10 @@ public class PlayerPermissionStore {
      * Removes players permissions from the cache
      */
     public void removePlayer(UUID playerId) {
+        Cache<PermissionCacheKey, PermissionData> playerCache = this.permissions.get(playerId);
+        if (playerCache != null)
+            playerCache.clearAndClose();
+
         this.permissions.remove(playerId);
         this.groups.remove(playerId);
     }
@@ -121,19 +129,23 @@ public class PlayerPermissionStore {
     }
 
     /**
-     * Additionally checks if a service bound permission exists
+     * Checks if a player has a service bound permission.
+     *
+     * @param groupServiceId Service id for searching for service bound groups
+     * @param permServiceId  Service if for searching for service bound permissions in groups
      */
-    public boolean hasPermission(UUID playerId, String permission, @Nullable String serviceId) {
-        TimeoutList<GroupData> groups = this.groups.get(playerId).get(new GroupCacheKey(serviceId));
+    private boolean hasPermission(UUID playerId, String permission, @Nullable String groupServiceId, @Nullable String permServiceId) {
+        // Check normal permissions
+        TimeoutList<GroupData> groups = this.groups.get(playerId).get(new GroupCacheKey(groupServiceId));
         if (groups != null) {
             for (GroupData data : groups) {
-                if (this.permissionGroupStore.hasPermission(data.getGroupID(), permission))
+                if (this.permissionGroupStore.hasPermission(data.getGroupID(), permission, permServiceId))
                     return true;
             }
         }
 
         // Permission is found as is
-        if (this.permissions.get(playerId).containsKey(new PermissionCacheKey(permission, serviceId)))
+        if (this.permissions.get(playerId).containsKey(new PermissionCacheKey(permission, permServiceId)))
             return true;
 
         // Check for star permission
@@ -148,12 +160,36 @@ public class PlayerPermissionStore {
             else
                 perm += ".*";
 
-            if (this.permissions.get(playerId).containsKey(new PermissionCacheKey(perm, serviceId)))
+            if (this.permissions.get(playerId).containsKey(new PermissionCacheKey(perm, permServiceId)))
                 return true;
         }
 
         return false;
     }
 
+    /**
+     * Checks if a player has a permission on a special service.
+     * This includes checking if the player has
+     * - a service bound group with a service bound permission
+     * - a service bound group with a normal permission
+     * - a normal group with a service bound permission
+     * - a normal group with a normal permission
+     */
+    public boolean hasPermission(UUID playerId, String permission, @Nullable String servideId) {
+        if (servideId != null) {
+            // Normal group, Service bound permission
+            if (hasPermission(playerId, permission, null, servideId))
+                return true;
+            // Service bound group, Normal permission
+            if (hasPermission(playerId, permission, servideId, null))
+                return true;
+            // Service bound group, Service bound permission
+            if (hasPermission(playerId, permission, servideId, servideId))
+                return true;
+        }
+
+        // Normal group, Normal permission
+        return hasPermission(playerId, permission, null, null);
+    }
 
 }

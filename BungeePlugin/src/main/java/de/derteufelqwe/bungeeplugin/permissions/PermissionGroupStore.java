@@ -7,11 +7,12 @@ import de.derteufelqwe.commons.hibernate.objects.permissions.PermissionGroup;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.cache2k.CacheEntry;
-import org.cache2k.annotation.Nullable;
 import org.cache2k.expiry.ExpiryPolicy;
 import org.hibernate.Session;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Stores the permissions a permission group has
@@ -20,7 +21,7 @@ public class PermissionGroupStore {
 
     private final SessionBuilder sessionBuilder;
 
-    // Data: PermissionGroup ID, Permission information, Permission information
+    // Data: PermissionGroup ID, Permission access infos, Detailed Permission information
     private Map<Long, Cache<PermissionCacheKey, PermissionData>> cache = new HashMap<>();
 
     public PermissionGroupStore(SessionBuilder sessionBuilder) {
@@ -30,6 +31,7 @@ public class PermissionGroupStore {
 
     /**
      * Creates a cache for a single permission group, which support permission timeouts
+     *
      * @return
      */
     private Cache<PermissionCacheKey, PermissionData> createSubCache(long groupId) {
@@ -38,7 +40,7 @@ public class PermissionGroupStore {
                 .eternal(false)     // Entries can expire
                 .expiryPolicy(new ExpiryPolicy<PermissionCacheKey, PermissionData>() {
                     @Override
-                    public long calculateExpiryTime(PermissionCacheKey key, PermissionData value, long loadTime, @Nullable CacheEntry<PermissionCacheKey, PermissionData> currentEntry) {
+                    public long calculateExpiryTime(PermissionCacheKey key, PermissionData value, long loadTime, CacheEntry<PermissionCacheKey, PermissionData> currentEntry) {
                         if (value.getTimeout() != null)
                             return value.getTimeout().getTime();
 
@@ -52,7 +54,7 @@ public class PermissionGroupStore {
      * Initializes the permission groups.
      */
     public void init() {
-        cache.clear();
+        this.reset();
 
         try (Session session = sessionBuilder.openSession()) {
             for (PermissionGroup group : CommonsAPI.getInstance().getAllPermissionGroups(session)) {
@@ -78,6 +80,18 @@ public class PermissionGroupStore {
         }
     }
 
+    /**
+     * Resets the whole cache
+     */
+    public void reset() {
+        for (Map.Entry<Long, Cache<PermissionCacheKey, PermissionData>> entry : cache.entrySet()) {
+            if (entry.getValue() != null) {
+                entry.getValue().clearAndClose();
+            }
+        }
+
+        cache.clear();
+    }
 
 
     /**

@@ -91,7 +91,7 @@ public class DatabaseDebugEntries {
     public static void main(String[] args) {
         DatabaseDebugEntries entries = new DatabaseDebugEntries();
 
-//        entries.addDebugService();
+        entries.addDebugService();
 //        entries.addTestPermissions();
     }
 
