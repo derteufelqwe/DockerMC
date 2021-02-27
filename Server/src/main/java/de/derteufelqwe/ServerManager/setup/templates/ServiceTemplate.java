@@ -4,7 +4,7 @@ import com.github.dockerjava.api.command.CreateServiceResponse;
 import com.github.dockerjava.api.model.*;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
-import de.derteufelqwe.ServerManager.Utils;
+import de.derteufelqwe.ServerManager.utils.Utils;
 import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.exceptions.InvalidConfigException;

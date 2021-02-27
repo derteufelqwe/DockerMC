@@ -2,7 +2,6 @@ package de.derteufelqwe.bungeeplugin.permissions;
 
 import com.sun.istack.NotNull;
 import com.sun.istack.Nullable;
-import jakarta.validation.constraints.Null;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 
@@ -13,11 +12,13 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode
 class PermissionCacheKey {
 
-    @NotNull private String permission;
+    @NotNull
+    private String permission;
     /*
      * null = not service bound
      */
-    @Nullable private String serviceID = null;
+    @Nullable
+    private String serviceID = null;
 
     public PermissionCacheKey(String permission) {
         this.permission = permission;

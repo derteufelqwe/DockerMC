@@ -1,15 +1,11 @@
 package de.derteufelqwe.ServerManager.setup.templates;
 
 import de.derteufelqwe.ServerManager.Docker;
-import de.derteufelqwe.ServerManager.Utils;
+import de.derteufelqwe.ServerManager.utils.Utils;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.exceptions.InvalidConfigException;
 import de.derteufelqwe.commons.config.annotations.Exclude;
 import lombok.*;
-import org.apache.commons.lang.StringUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**

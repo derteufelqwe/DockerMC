@@ -68,7 +68,6 @@ public class PermissionEvent implements Listener {
 
     }
 
-
     @EventHandler
     public void onPlayerJoinNetwork(BungeePlayerJoinEvent event) {
         ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, () -> {

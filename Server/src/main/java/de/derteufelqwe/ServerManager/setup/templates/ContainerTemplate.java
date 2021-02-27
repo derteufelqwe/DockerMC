@@ -4,9 +4,8 @@ import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.WaitContainerResultCallback;
 import com.github.dockerjava.api.model.*;
-import de.derteufelqwe.ServerManager.Utils;
+import de.derteufelqwe.ServerManager.utils.Utils;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
-import de.derteufelqwe.commons.Constants;
 import lombok.*;
 
 import java.util.ArrayList;

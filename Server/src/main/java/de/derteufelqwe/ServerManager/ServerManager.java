@@ -4,15 +4,20 @@ import com.github.dockerjava.api.model.Service;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
 import com.orbitz.google.common.net.HostAndPort;
-import de.derteufelqwe.ServerManager.commands.*;
 import de.derteufelqwe.ServerManager.config.ConfigChecker;
 import de.derteufelqwe.ServerManager.config.InfrastructureConfig;
 import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.config.SystemConfig;
 import de.derteufelqwe.ServerManager.exceptions.InvalidConfigException;
-import de.derteufelqwe.ServerManager.setup.*;
-import de.derteufelqwe.ServerManager.setup.configUpdate.*;
+import de.derteufelqwe.ServerManager.setup.InfrastructureSetup;
+import de.derteufelqwe.ServerManager.setup.LostServiceFinder;
+import de.derteufelqwe.ServerManager.setup.ServiceCreateResponse;
+import de.derteufelqwe.ServerManager.setup.ServiceUpdateResponse;
+import de.derteufelqwe.ServerManager.setup.configUpdate.BungeePoolUpdater;
+import de.derteufelqwe.ServerManager.setup.configUpdate.LobbyPoolUpdater;
+import de.derteufelqwe.ServerManager.setup.configUpdate.MinecraftPoolUpdater;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
+import de.derteufelqwe.ServerManager.utils.Utils;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.ConfigOld;
 import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
@@ -20,10 +25,8 @@ import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.NotImplementedException;
-import picocli.CommandLine;
 
 import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -33,6 +36,12 @@ import java.util.stream.Collectors;
  * - Create required infrastructure
  * - Validate config
  * - Create servers based on config
+ * <p>
+ * Problems:
+ * + BungeeCord servers are not synced
+ * <p>
+ * Problems:
+ * + BungeeCord servers are not synced
  */
 
 /**
@@ -53,7 +62,7 @@ import java.util.stream.Collectors;
  *   - Block Players from entering a certain server, to update it
  * + Update services when their config changes
  * + Make config aware of changes
- * - API for BungeeCord
+ * + API for BungeeCord
  * + Config checker
  * - (Copy certificates to the other servers via SSH)
  * + System to handle server logs
@@ -61,6 +70,7 @@ import java.util.stream.Collectors;
  * - Better unhealthy state detection
  * - Clean database layout
  * (- Unify mounts in container / service template)
+ * - Move from consul to redis
  */
 
 public class ServerManager {
@@ -132,11 +142,14 @@ public class ServerManager {
         ServiceCreateResponse response0 = setup.createOvernetNetwork();
         switch (response0.getResult()) {
             case OK:
-                System.out.println("Created overnet network successfully."); break;
+                System.out.println("Created overnet network successfully.");
+                break;
             case RUNNING:
-                System.out.println("Overnet network already existing."); break;
+                System.out.println("Overnet network already existing.");
+                break;
             case FAILED_GENERIC:
-                System.err.println("Failed to create the Overnet network!"); break;
+                System.err.println("Failed to create the Overnet network!");
+                break;
 
             default:
                 throw new NotImplementedException("Result " + response0.getResult() + " not implemented.");
@@ -146,12 +159,15 @@ public class ServerManager {
         ServiceCreateResponse response1 = setup.createRegistryCerts();
         switch (response1.getResult()) {
             case OK:
-                System.out.println("Created registry certificates successfully."); break;
+                System.out.println("Created registry certificates successfully.");
+                break;
             case RUNNING:
-                System.out.println("Registry certificates already existing."); break;
+                System.out.println("Registry certificates already existing.");
+                break;
             case FAILED_GENERIC:
                 System.err.printf("Failed to create the registry certificates! Message: %s.",
-                        response1.getAdditionalInfos()); break;
+                        response1.getAdditionalInfos());
+                break;
 
             default:
                 throw new NotImplementedException("Result " + response1.getResult() + " not implemented.");
@@ -161,12 +177,15 @@ public class ServerManager {
         ServiceCreateResponse response2 = setup.createRegistryContainer();
         switch (response2.getResult()) {
             case OK:
-                System.out.println("Created registry container successfully."); break;
+                System.out.println("Created registry container successfully.");
+                break;
             case RUNNING:
-                System.out.println("Registry container already running."); break;
+                System.out.println("Registry container already running.");
+                break;
             case FAILED_GENERIC:
                 System.err.printf("Failed to create the registry container! ID: %s, Message: %s.%n",
-                        response2.getServiceId(), response2.getAdditionalInfos()); break;
+                        response2.getServiceId(), response2.getAdditionalInfos());
+                break;
 
             default:
                 throw new NotImplementedException("Result " + response2.getResult() + " not implemented.");
@@ -176,12 +195,15 @@ public class ServerManager {
         ServiceCreateResponse response3 = setup.createConsulContainer();
         switch (response3.getResult()) {
             case OK:
-                System.out.println("Created Consul service successfully."); break;
+                System.out.println("Created Consul service successfully.");
+                break;
             case RUNNING:
-                System.out.println("Consul service already running."); break;
+                System.out.println("Consul service already running.");
+                break;
             case FAILED_GENERIC:
                 System.err.printf("Failed to create the Consul service! ID: %s, Message: %s.%n",
-                        response3.getServiceId(), response3.getAdditionalInfos()); break;
+                        response3.getServiceId(), response3.getAdditionalInfos());
+                break;
 
             default:
                 throw new NotImplementedException("Result " + response3.getResult() + " not implemented.");
@@ -195,10 +217,12 @@ public class ServerManager {
                 Utils.sleep(TimeUnit.SECONDS, 5);
                 break;
             case RUNNING:
-                System.out.println("Postgres DB container already running."); break;
+                System.out.println("Postgres DB container already running.");
+                break;
             case FAILED_GENERIC:
                 System.err.printf("Failed to create the Postgres DB container! ID: %s, Message: %s.%n",
-                        response4.getServiceId(), response4.getAdditionalInfos()); break;
+                        response4.getServiceId(), response4.getAdditionalInfos());
+                break;
 
             default:
                 throw new NotImplementedException("Result " + response4.getResult() + " not implemented.");
@@ -223,12 +247,15 @@ public class ServerManager {
         ServiceCreateResponse response6 = setup.createRedisContainer();
         switch (response6.getResult()) {
             case OK:
-                System.out.println("Created Redis container successfully."); break;
+                System.out.println("Created Redis container successfully.");
+                break;
             case RUNNING:
-                System.out.println("Redis container already running."); break;
+                System.out.println("Redis container already running.");
+                break;
             case FAILED_GENERIC:
                 System.err.printf("Failed to create the Redis container! ID: %s, Message: %s.%n",
-                        response6.getServiceId(), response6.getAdditionalInfos()); break;
+                        response6.getServiceId(), response6.getAdditionalInfos());
+                break;
 
             default:
                 throw new NotImplementedException("Result " + response6.getResult() + " not implemented.");
@@ -261,18 +288,24 @@ public class ServerManager {
         ServiceUpdateResponse response1 = new BungeePoolUpdater(docker).update(false);
         switch (response1.getResult()) {
             case CREATED:
-                System.out.println("BungeeCord-Pool created successfully."); break;
+                System.out.println("BungeeCord-Pool created successfully.");
+                break;
             case NOT_REQUIRED:
-                System.out.println("BungeeCord-Pool already running and up-to-date."); break;
+                System.out.println("BungeeCord-Pool already running and up-to-date.");
+                break;
             case NOT_CONFIGURED:
-                System.err.println("BungeeCord-Pool not configured."); break;
+                System.err.println("BungeeCord-Pool not configured.");
+                break;
             case UPDATED:
-                System.out.println("BungeeCord-Pool updating."); break;
+                System.out.println("BungeeCord-Pool updating.");
+                break;
             case DESTROYED:
-                System.out.println("BungeeCord-Pool not configured anymore. Destroying it."); break;
+                System.out.println("BungeeCord-Pool not configured anymore. Destroying it.");
+                break;
             case FAILED_GENERIC:
                 System.err.printf("Failed to create the BungeeCord-Pool. ServiceId: %s",
-                        response1.getServiceId()); break;
+                        response1.getServiceId());
+                break;
 
             default:
                 throw new NotImplementedException("Result " + response1.getResult() + " not implemented.");
@@ -282,18 +315,24 @@ public class ServerManager {
         ServiceUpdateResponse response2 = new LobbyPoolUpdater(docker, keyValueClient).update(false);
         switch (response2.getResult()) {
             case CREATED:
-                System.out.println("LobbyServer-Pool created successfully."); break;
+                System.out.println("LobbyServer-Pool created successfully.");
+                break;
             case NOT_REQUIRED:
-                System.out.println("LobbyServer-Pool already running and up-to-date."); break;
+                System.out.println("LobbyServer-Pool already running and up-to-date.");
+                break;
             case NOT_CONFIGURED:
-                System.err.println("LobbyServer-Pool not configured."); break;
+                System.err.println("LobbyServer-Pool not configured.");
+                break;
             case UPDATED:
-                System.out.println("LobbyServer-Pool updating."); break;
+                System.out.println("LobbyServer-Pool updating.");
+                break;
             case DESTROYED:
-                System.out.println("LobbyServer-Pool not configured anymore. Destroying it."); break;
+                System.out.println("LobbyServer-Pool not configured anymore. Destroying it.");
+                break;
             case FAILED_GENERIC:
                 System.err.printf("Failed to create the LobbyServer-Pool. ServiceId: %s",
-                        response2.getServiceId()); break;
+                        response2.getServiceId());
+                break;
 
             default:
                 throw new NotImplementedException("Result " + response2.getResult() + " not implemented.");
@@ -305,16 +344,21 @@ public class ServerManager {
             ServiceUpdateResponse response3 = new MinecraftPoolUpdater(docker, pool).update(false);
             switch (response3.getResult()) {
                 case CREATED:
-                    System.out.printf("Minecraft-Pool %s created successfully.\n", pool.getName()); break;
+                    System.out.printf("Minecraft-Pool %s created successfully.\n", pool.getName());
+                    break;
                 case NOT_REQUIRED:
-                    System.out.printf("Minecraft-Pool %s already running and up-to-date.\n", pool.getName()); break;
+                    System.out.printf("Minecraft-Pool %s already running and up-to-date.\n", pool.getName());
+                    break;
                 case NOT_CONFIGURED:
-                    System.err.printf("Minecraft-Pool %s not configured.\n", pool.getName()); break;
+                    System.err.printf("Minecraft-Pool %s not configured.\n", pool.getName());
+                    break;
                 case UPDATED:
-                    System.out.printf("Minecraft-Pool %s updating.\n", pool.getName()); break;
+                    System.out.printf("Minecraft-Pool %s updating.\n", pool.getName());
+                    break;
                 case FAILED_GENERIC:
                     System.err.printf("Failed to create the Minecraft-Pool %s. ServiceId: %s",
-                            pool.getName(), response3.getServiceId()); break;
+                            pool.getName(), response3.getServiceId());
+                    break;
 
                 default:
                     throw new NotImplementedException("Result " + response3.getResult() + " not implemented.");
@@ -333,67 +377,6 @@ public class ServerManager {
     private void requestShutdown(boolean killContainers) {
 
     }
-
-
-    public void startCommandDispatcher() {
-        System.out.println("Enter help for help.");
-        Scanner scanner = new Scanner(System.in);
-
-        whileloop:
-        while (true) {
-            System.out.print("> ");
-            List<String> input = Utils.splitArgString(scanner.nextLine());
-
-            if (input.size() == 0)
-                continue;
-
-            if (input.get(0).equals(""))    // Empty input
-                continue;
-
-            String command = input.get(0);
-            String[] inputArray = input.subList(1, input.size()).toArray(new String[0]);
-            int exitCode = 0;
-
-
-            switch (command.toLowerCase()) {
-                case "exit":
-                    ExitCommand exitCommand = new ExitCommand();
-                    exitCode = new CommandLine(exitCommand).execute(inputArray);
-
-                    if (exitCode == CommandLine.ExitCode.OK) {
-                        this.requestShutdown(exitCommand.isKillContainers());
-                        break whileloop;
-                    }
-                    break;
-
-                case "status":
-                    exitCode = new CommandLine(new StatusCommand()).execute(inputArray);
-                    break;
-
-                case "docker":
-                    exitCode = new CommandLine(new DockerCommand()).execute(inputArray);
-                    break;
-
-                case "system":
-                    exitCode = new CommandLine(new SystemCmd()).execute(inputArray);
-                    break;
-
-                case "images":
-                    exitCode = new CommandLine(new ImageCmd()).execute(inputArray);
-                    break;
-
-                case "help":
-                default:
-                    exitCode = new CommandLine(new HelpCommand()).execute(inputArray);
-                    break;
-            }
-
-
-        }
-
-        System.out.println("Goodbye.");
-    }
-
 
 
 }

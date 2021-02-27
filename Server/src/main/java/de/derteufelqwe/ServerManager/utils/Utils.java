@@ -1,4 +1,4 @@
-package de.derteufelqwe.ServerManager;
+package de.derteufelqwe.ServerManager.utils;
 
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.utils.Pair;

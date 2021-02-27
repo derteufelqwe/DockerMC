@@ -3,9 +3,8 @@ package de.derteufelqwe.commons.hibernate.objects.permissions;
 import com.sun.istack.NotNull;
 import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
 import de.derteufelqwe.commons.hibernate.objects.DBService;
-import jakarta.validation.Constraint;
-import lombok.*;
-import org.hibernate.annotations.DiscriminatorOptions;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
@@ -13,7 +12,6 @@ import org.hibernate.annotations.Type;
 import javax.annotation.Nullable;
 import javax.persistence.*;
 import java.sql.Timestamp;
-import java.util.List;
 
 @Getter
 @Setter
@@ -21,7 +19,7 @@ import java.util.List;
 public class Permission {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     @NotNull

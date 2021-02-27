@@ -2,7 +2,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
     <modelVersion>4.0.0</modelVersion>
     <artifactId>Server</artifactId>
 
@@ -12,11 +11,13 @@
         <version>1.0</version>
     </parent>
 
+    <properties>
+        <spring.version>2.4.3</spring.version>
+    </properties>
 
     <build>
         <defaultGoal>clean package</defaultGoal>
         <plugins>
-
             <!--  Configure manifest of jar  -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -24,11 +25,21 @@
                 <version>3.0.0</version>
                 <configuration>
                     <outputDirectory>C:/Users/Arne/Desktop/ServerManager</outputDirectory>
-                    <archive>
-                        <manifest>
-                            <mainClass>de.derteufelqwe.ServerManager.ServerManager</mainClass>
-                        </manifest>
-                    </archive>
+<!--                    <archive>-->
+<!--                        <manifest>-->
+<!--                            <mainClass>de.derteufelqwe.ServerManager.ServerManager</mainClass>-->
+<!--                        </manifest>-->
+<!--                    </archive>-->
+                </configuration>
+            </plugin>
+
+            <!--  Surefire plugin  -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.12.4</version>
+                <configuration>
+                    <skipTests>true</skipTests>
                 </configuration>
             </plugin>
 
@@ -62,6 +73,20 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!--  Spring plugin  -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
         </plugins>
 
     </build>
@@ -81,7 +106,6 @@
             <version>3.2.5</version>
         </dependency>
 
-
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
@@ -94,13 +118,6 @@
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <version>1.25</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/info.picocli/picocli -->
-        <dependency>
-            <groupId>info.picocli</groupId>
-            <artifactId>picocli</artifactId>
-            <version>4.2.0</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.orbitz.consul/consul-client -->
@@ -131,14 +148,26 @@
             <version>4.4</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot -->
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.30</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+            <version>${spring.version}</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.springframework.shell/spring-shell-starter -->
+        <dependency>
+            <groupId>org.springframework.shell</groupId>
+            <artifactId>spring-shell-starter</artifactId>
+            <version>2.0.1.RELEASE</version>
+        </dependency>
 
     </dependencies>
 
