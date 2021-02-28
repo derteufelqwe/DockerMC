@@ -16,8 +16,10 @@ import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.exceptions.InvalidServiceConfig;
 import de.derteufelqwe.ServerManager.exceptions.TimeoutException;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.config.Config;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -33,21 +35,14 @@ public class Docker {
     private int PULL_INTERVAL = 5;      // Pause between Pull checks
     private int PULL_REPETITIONS = 25;  // Amount of times the interval gets waited
 
-    private MainConfig mainConfig = ServerManager.CONFIG.get(MainConfig.class);
-
+    private MainConfig mainConfig;
 
     @Getter
     private DockerClient docker;
 
-    public Docker() {
-        this(ServerManager.CONFIG.get(MainConfig.class));
-    }
 
-    public Docker(MainConfig mainConfig) {
-        this(mainConfig.getDockerProtocol(), mainConfig.getDockerIP(), mainConfig.getDockerPort());
-    }
-
-    public Docker(String protocol, String host, int port) {
+    public Docker(String protocol, String host, int port, MainConfig config) {
+        this.mainConfig = config;
         DockerClientConfig dockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
                 .withDockerHost(String.format("%s://%s:%s", protocol, host, Integer.toString(port)))
                 .withDockerTlsVerify(mainConfig.isUseTLSVerify())
@@ -57,6 +52,11 @@ public class Docker {
         docker = DockerClientImpl.getInstance(dockerClientConfig)
                 .withDockerCmdExecFactory(new NettyDockerCmdExecFactory());
     }
+
+    public Docker(MainConfig mainConfig) {
+        this(mainConfig.getDockerProtocol(), mainConfig.getDockerIP(), mainConfig.getDockerPort(), mainConfig);
+    }
+
 
     /**
      * Short version for the docker exec command.

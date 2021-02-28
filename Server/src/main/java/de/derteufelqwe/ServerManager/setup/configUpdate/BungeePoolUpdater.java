@@ -3,7 +3,6 @@ package de.derteufelqwe.ServerManager.setup.configUpdate;
 import com.github.dockerjava.api.model.UpdateConfig;
 import com.github.dockerjava.api.model.UpdateFailureAction;
 import com.github.dockerjava.api.model.UpdateOrder;
-import com.sun.istack.internal.NotNull;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.setup.ServiceCreateResponse;
 import de.derteufelqwe.ServerManager.setup.servers.BungeePool;
@@ -19,7 +18,7 @@ public class BungeePoolUpdater extends DMCServiceUpdater<BungeePool> {
 
     @Override
     protected BungeePool getNewConfig() {
-        return this.infrastructureConfig.getBungeePool();
+        return this.serversConfig.getBungeePool();
     }
 
     @Override

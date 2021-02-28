@@ -29,7 +29,7 @@ public class Config<A> {
     }
 
     private File getFile() {
-        File file = new File("plugins/" + fileName);
+        File file = new File(fileName);
         if (file.getParentFile() != null)
             file.getParentFile().mkdirs();
 

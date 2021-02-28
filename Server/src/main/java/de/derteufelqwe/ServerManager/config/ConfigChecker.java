@@ -1,6 +1,5 @@
 package de.derteufelqwe.ServerManager.config;
 
-import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.exceptions.InvalidConfigException;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import org.apache.commons.collections4.Bag;
@@ -10,10 +9,7 @@ import org.apache.commons.collections4.bag.HashBag;
  * Validates the configs
  */
 public class ConfigChecker {
-
-    private InfrastructureConfig infrastructureConfig = ServerManager.CONFIG.get(InfrastructureConfig.class);
-
-
+    
     public ConfigChecker() {
     }
 
@@ -21,18 +17,18 @@ public class ConfigChecker {
     /**
      * Validates the infrastructure config
      */
-    public void validateInfrastructureConfig() {
-        this.validateNamesNotDoubling();
+    public void validateInfrastructureConfig(ServersConfig config) throws InvalidConfigException {
+        this.validateNamesNotDoubling(config);
 
-        if (this.infrastructureConfig.getBungeePool() != null) {
-            this.infrastructureConfig.getBungeePool().valid();
+        if (config.getBungeePool() != null) {
+            config.getBungeePool().valid();
         }
 
-        if (this.infrastructureConfig.getLobbyPool() != null) {
-            this.infrastructureConfig.getLobbyPool().valid();
+        if (config.getLobbyPool() != null) {
+            config.getLobbyPool().valid();
         }
 
-        for (ServerPool pool : this.infrastructureConfig.getPoolServers()) {
+        for (ServerPool pool : config.getPoolServers()) {
             pool.valid();
         }
 
@@ -42,18 +38,18 @@ public class ConfigChecker {
     /**
      * Validates that Server Names don't double
      */
-    private void validateNamesNotDoubling() throws InvalidConfigException {
+    private void validateNamesNotDoubling(ServersConfig config) throws InvalidConfigException {
         Bag<String> names = new HashBag<>();
 
-        if (this.infrastructureConfig.getBungeePool() != null) {
-            names.add(this.infrastructureConfig.getBungeePool().getName());
+        if (config.getBungeePool() != null) {
+            names.add(config.getBungeePool().getName());
         }
 
-        if (this.infrastructureConfig.getLobbyPool() != null) {
-            names.add(this.infrastructureConfig.getLobbyPool().getName());
+        if (config.getLobbyPool() != null) {
+            names.add(config.getLobbyPool().getName());
         }
 
-        for (ServerPool pool : this.infrastructureConfig.getPoolServers()) {
+        for (ServerPool pool : config.getPoolServers()) {
             names.add(pool.getName());
         }
 

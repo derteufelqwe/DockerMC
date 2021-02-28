@@ -3,27 +3,26 @@ package de.derteufelqwe.ServerManager.setup.configUpdate;
 import com.github.dockerjava.api.model.UpdateConfig;
 import com.github.dockerjava.api.model.UpdateFailureAction;
 import com.github.dockerjava.api.model.UpdateOrder;
-import com.orbitz.consul.KeyValueClient;
-import com.sun.istack.internal.NotNull;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.setup.ServiceCreateResponse;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import de.derteufelqwe.commons.Constants;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import javax.annotation.Nullable;
 
 public class LobbyPoolUpdater extends DMCServiceUpdater<ServerPool> {
 
-    private KeyValueClient kvClient;
+    private StringRedisTemplate redisTemplate;
 
-    public LobbyPoolUpdater(Docker docker, KeyValueClient kvClient) {
+    public LobbyPoolUpdater(Docker docker, StringRedisTemplate redisTemplate) {
         super(docker);
-        this.kvClient = kvClient;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
     protected ServerPool getNewConfig() {
-        return this.infrastructureConfig.getLobbyPool();
+        return this.serversConfig.getLobbyPool();
     }
 
     @Override
@@ -43,7 +42,7 @@ public class LobbyPoolUpdater extends DMCServiceUpdater<ServerPool> {
 
     @Override
     protected ServiceCreateResponse createNewService() {
-        return new LobbyPoolCreator(this.docker, this.kvClient).create();
+        return new LobbyPoolCreator(this.docker, this.redisTemplate).create();
     }
 
     @Override

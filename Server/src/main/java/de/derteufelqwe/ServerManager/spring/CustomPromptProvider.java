@@ -10,6 +10,6 @@ public class CustomPromptProvider implements PromptProvider {
 
     @Override
     public AttributedString getPrompt() {
-        return new AttributedString("root:>", AttributedStyle.DEFAULT);
+        return new AttributedString("dmc:>", AttributedStyle.DEFAULT);
     }
 }

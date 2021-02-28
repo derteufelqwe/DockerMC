@@ -1,6 +1,5 @@
 package de.derteufelqwe.ServerManager.setup.configUpdate;
 
-import com.orbitz.consul.KeyValueClient;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.setup.servers.BungeePool;
 import de.derteufelqwe.commons.Constants;
@@ -13,7 +12,7 @@ class BungeePoolCreator extends DMCServiceCreator<BungeePool> {
 
     @Override
     protected BungeePool getConfigObject() {
-        return this.infrastructureConfig.getBungeePool();
+        return this.serversConfig.getBungeePool();
     }
 
     @Override

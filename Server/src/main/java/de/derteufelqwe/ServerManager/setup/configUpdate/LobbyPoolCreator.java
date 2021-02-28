@@ -1,24 +1,24 @@
 package de.derteufelqwe.ServerManager.setup.configUpdate;
 
-import com.orbitz.consul.KeyValueClient;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import de.derteufelqwe.ServerManager.setup.templates.DockerObjTemplate;
 import de.derteufelqwe.commons.Constants;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 class LobbyPoolCreator extends DMCServiceCreator<ServerPool> {
 
-    protected KeyValueClient kvClient;
+    protected StringRedisTemplate redisTemplate;
 
-    public LobbyPoolCreator(Docker docker, KeyValueClient kvClient) {
+    public LobbyPoolCreator(Docker docker, StringRedisTemplate redisTemplate) {
         super(docker);
-        this.kvClient =kvClient;
+        this.redisTemplate = redisTemplate;
     }
 
 
     @Override
     protected ServerPool getConfigObject() {
-        return this.infrastructureConfig.getLobbyPool();
+        return this.serversConfig.getLobbyPool();
     }
 
     @Override
@@ -32,19 +32,19 @@ class LobbyPoolCreator extends DMCServiceCreator<ServerPool> {
     }
 
     /**
-     * Sets the default server name in consul.
+     * Sets the default server name in redis.
      *
      * @param serverName Name to set
      */
-    private void addToConsul(String serverName) {
-        kvClient.putValue("system/lobbyServerName", serverName);
+    private void addToRedis(String serverName) {
+        this.redisTemplate.opsForValue().set(Constants.REDIS_KEY_LOBBYSERVER, serverName);
     }
 
     @Override
     protected void onServiceCreated(DockerObjTemplate.CreateResponse createResponse) {
         super.onServiceCreated(createResponse);
 
-        this.addToConsul(this.getConfigObject().getName());
+        this.addToRedis(this.getConfigObject().getName());
 
     }
 

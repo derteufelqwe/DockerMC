@@ -23,7 +23,9 @@ import java.util.concurrent.TimeUnit;
 
 public class RegistryCertificates {
 
+    private MainConfig mainConfig = ServerManager.MAIN_CONFIG.get();
     private Docker docker;
+
 
     public RegistryCertificates(Docker docker) {
         this.docker = docker;
@@ -45,9 +47,7 @@ public class RegistryCertificates {
 
     @SneakyThrows
     public DockerObjTemplate.CreateResponse create() {
-        MainConfig mainConfig = ServerManager.CONFIG.get(MainConfig.class);
         CertificateCfg cfg = mainConfig.getRegistryCerCfg();
-
 
         // -----  SSL-certificate generation  -----
 

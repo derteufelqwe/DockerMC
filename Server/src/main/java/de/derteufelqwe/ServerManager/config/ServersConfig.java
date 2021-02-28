@@ -16,7 +16,7 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class InfrastructureConfig {
+public class ServersConfig {
 
     // Nginx server
     @Comment("Nginx reverse proxy")
@@ -40,15 +40,15 @@ public class InfrastructureConfig {
     @NotNull private List<PersistentServerPool> persistentServerPool = new ArrayList<>();
 
 
-    public InfrastructureConfig() {
+    public ServersConfig() {
     }
 
     /**
      * Creates an example config
      * @return
      */
-    public static InfrastructureConfig example() {
-        InfrastructureConfig config = new InfrastructureConfig();
+    public static ServersConfig example() {
+        ServersConfig config = new ServersConfig();
 
         config.setBungeePool(new BungeePool("BungeePool", "waterfall", "1G", 1.0F, 2, new ServiceConstraints(1), 25577));
         config.setLobbyPool(new ServerPool("LobbyServer", "testmc", "512M", 1.0F, 2, null, 10));

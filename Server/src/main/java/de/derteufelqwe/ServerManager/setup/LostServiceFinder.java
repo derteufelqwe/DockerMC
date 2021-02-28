@@ -3,7 +3,7 @@ package de.derteufelqwe.ServerManager.setup;
 import com.github.dockerjava.api.model.Service;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
-import de.derteufelqwe.ServerManager.config.InfrastructureConfig;
+import de.derteufelqwe.ServerManager.config.ServersConfig;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.Utils;
@@ -13,14 +13,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Identifies and removed "lost" services.
+ * Identifies "lost" services.
  * A "lost" service is a Minecraft-Pool, which has no matching config anymore. This can happen when the config changes
- * and pools get renamed.
+ * or the pools get renamed.
  */
 public class LostServiceFinder {
 
     private Docker docker;
-    private InfrastructureConfig infrastructureConfig = ServerManager.CONFIG.get(InfrastructureConfig.class);
+    private ServersConfig serversConfig = ServerManager.SERVERS_CONFIG.get();
 
     public LostServiceFinder(Docker docker) {
         this.docker = docker;
@@ -50,15 +50,15 @@ public class LostServiceFinder {
     private List<String> getConfiguredServiceNames() {
         List<String> names = new ArrayList<>();
 
-        if (this.infrastructureConfig.getBungeePool() != null) {
-            names.add(this.infrastructureConfig.getBungeePool().getName());
+        if (this.serversConfig.getBungeePool() != null) {
+            names.add(this.serversConfig.getBungeePool().getName());
         }
 
-        if (this.infrastructureConfig.getLobbyPool() != null) {
-            names.add(this.infrastructureConfig.getLobbyPool().getName());
+        if (this.serversConfig.getLobbyPool() != null) {
+            names.add(this.serversConfig.getLobbyPool().getName());
         }
 
-        for (ServerPool pool : this.infrastructureConfig.getPoolServers()) {
+        for (ServerPool pool : this.serversConfig.getPoolServers()) {
             names.add(pool.getName());
         }
 

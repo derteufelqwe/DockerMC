@@ -1,9 +1,8 @@
 package de.derteufelqwe.ServerManager.setup.configUpdate;
 
-import com.orbitz.consul.KeyValueClient;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
-import de.derteufelqwe.ServerManager.config.InfrastructureConfig;
+import de.derteufelqwe.ServerManager.config.ServersConfig;
 import de.derteufelqwe.ServerManager.config.SystemConfig;
 import de.derteufelqwe.ServerManager.setup.ServiceCreateResponse;
 import de.derteufelqwe.ServerManager.setup.ServiceStart;
@@ -13,13 +12,14 @@ import de.derteufelqwe.commons.Constants;
 
 /**
  * Base class for every MC server config service creation
+ *
  * @param <CFG> Type of the config like {@link de.derteufelqwe.ServerManager.setup.servers.BungeePool}
  *              or {@link de.derteufelqwe.ServerManager.setup.servers.ServerPool}
  */
 abstract class DMCServiceCreator<CFG extends ServiceTemplate> {
 
-    protected InfrastructureConfig infrastructureConfig = ServerManager.CONFIG.get(InfrastructureConfig.class);
-    protected SystemConfig systemConfig = ServerManager.CONFIG.get(SystemConfig.class);
+    protected ServersConfig serversConfig = ServerManager.SERVERS_CONFIG.get();
+    protected SystemConfig systemConfig = ServerManager.SYSTEM_CONFIG.get();
 
     protected Docker docker;
 

@@ -1,17 +1,16 @@
 package de.derteufelqwe.ServerManager.config.objects;
 
 
-import de.derteufelqwe.ServerManager.ServerManager;
-import de.derteufelqwe.ServerManager.config.InfrastructureConfig;
+import de.derteufelqwe.ServerManager.config.ServersConfig;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
-import de.derteufelqwe.commons.config.annotations.Exclude;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.annotation.Nullable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Spliterator;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * This class is a wrapper for a HashMap storing the pool servers
@@ -52,18 +51,18 @@ public class ServerPoolContainer implements Iterable<ServerPool> {
 
 
     /**
-     * Removes all obsolete entries based on available entries in the {@link InfrastructureConfig}
+     * Removes all obsolete entries based on available entries in the {@link ServersConfig}
      */
     public void cleanup() {
-        List<String> existingNames = ServerManager.CONFIG.get(InfrastructureConfig.class).getPoolServers().stream()
-                .map(s -> s.getName())
-                .collect(Collectors.toList());
-
-        for (String name : new HashSet<>(this.data.keySet())) {
-            if (!existingNames.contains(name)) {
-                this.data.remove(name);
-            }
-        }
+//        List<String> existingNames = serversConfig.getPoolServers().stream()
+//                .map(s -> s.getName())
+//                .collect(Collectors.toList());
+//
+//        for (String name : new HashSet<>(this.data.keySet())) {
+//            if (!existingNames.contains(name)) {
+//                this.data.remove(name);
+//            }
+//        }
 
     }
 

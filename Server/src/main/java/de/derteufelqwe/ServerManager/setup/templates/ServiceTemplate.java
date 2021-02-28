@@ -4,10 +4,10 @@ import com.github.dockerjava.api.command.CreateServiceResponse;
 import com.github.dockerjava.api.model.*;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
-import de.derteufelqwe.ServerManager.utils.Utils;
 import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.exceptions.InvalidConfigException;
+import de.derteufelqwe.ServerManager.utils.Utils;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.annotations.Exclude;
 import lombok.*;
@@ -38,7 +38,8 @@ public class ServiceTemplate extends DockerObjTemplate {
     // Amount of replicas
     protected int replications;
     // Constraints where to place the servers. Can be null if it doesn't matter.
-    @Nullable protected ServiceConstraints constraints;
+    @Nullable
+    protected ServiceConstraints constraints;
 
 
     public ServiceTemplate(String name, String image, String ramLimit, float cpuLimit, int replications, ServiceConstraints constraints) {
@@ -123,7 +124,9 @@ public class ServiceTemplate extends DockerObjTemplate {
      */
     public void init(Docker docker) {
         super.init(docker);
-        MainConfig mainConfig = ServerManager.CONFIG.get(MainConfig.class);
+
+        // Authconfig must be set here so the deserialized class has this information too
+        MainConfig mainConfig = ServerManager.MAIN_CONFIG.get();
         this.authConfig = new AuthConfig()
                 .withUsername(mainConfig.getRegistryUsername())
                 .withPassword(mainConfig.getRegistryPassword());

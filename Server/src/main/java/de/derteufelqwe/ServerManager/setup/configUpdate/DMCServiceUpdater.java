@@ -3,10 +3,9 @@ package de.derteufelqwe.ServerManager.setup.configUpdate;
 import com.github.dockerjava.api.model.Service;
 import com.github.dockerjava.api.model.ServiceSpec;
 import com.github.dockerjava.api.model.UpdateConfig;
-import com.sun.istack.internal.NotNull;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
-import de.derteufelqwe.ServerManager.config.InfrastructureConfig;
+import de.derteufelqwe.ServerManager.config.ServersConfig;
 import de.derteufelqwe.ServerManager.config.SystemConfig;
 import de.derteufelqwe.ServerManager.setup.ServiceCreateResponse;
 import de.derteufelqwe.ServerManager.setup.ServiceStart;
@@ -26,8 +25,8 @@ import javax.annotation.Nullable;
  */
 abstract class DMCServiceUpdater<CFG extends ServiceTemplate> {
 
-    protected InfrastructureConfig infrastructureConfig = ServerManager.CONFIG.get(InfrastructureConfig.class);
-    protected SystemConfig systemConfig = ServerManager.CONFIG.get(SystemConfig.class);
+    protected ServersConfig serversConfig = ServerManager.SERVERS_CONFIG.get();
+    protected SystemConfig systemConfig = ServerManager.SYSTEM_CONFIG.get();
 
     protected Docker docker;
 
@@ -163,7 +162,7 @@ abstract class DMCServiceUpdater<CFG extends ServiceTemplate> {
         if (!findResponse.isFound()) {
             this.createService(response);
 
-        // Update the service
+            // Update the service
         } else {
             this.updateDockerService(response, configNew.getServiceSpec(), findResponse.getServiceID());
             this.setOldConfig((CFG) configNew.clone());
