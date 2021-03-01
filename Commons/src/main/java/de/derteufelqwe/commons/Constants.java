@@ -6,22 +6,23 @@ import java.util.UUID;
 
 public class Constants {
 
+    /**
+     * If true indicates that this is running on windows but connected to docker on linux
+     */
+    public static final boolean DEBUG = true;
 
-    public static final String LOGO =
-            " _____                         ___  ___                                  \n" +
-            "/  ___|                        |  \\/  |                                  \n" +
-            "\\ `--.  ___ _ ____   _____ _ __| .  . | __ _ _ __   __ _  __ _  ___ _ __ \n" +
-            " `--. \\/ _ \\ '__\\ \\ / / _ \\ '__| |\\/| |/ _` | '_ \\ / _` |/ _` |/ _ \\ '__|\n" +
-            "/\\__/ /  __/ |   \\ V /  __/ |  | |  | | (_| | | | | (_| | (_| |  __/ |   \n" +
-            "\\____/ \\___|_|    \\_/ \\___|_|  \\_|  |_/\\__,_|_| |_|\\__,_|\\__, |\\___|_|   \n" +
-            "                                                          __/ |          \n" +
-            "                                                         |___/           ";
-
-    public static final String AUTHOR = "derteufelqwe";
-    public static final String WORKDIR_WND = "C:/Users/Arne/Desktop/ServerManager/Server/";
     public static final String WORKDIR = System.getProperty("user.dir").replace("\\", "/") + "/";
+    public static String WORKDIR_LNX = WORKDIR;
+
+    // If DEBUG manually set the workdir to the server folder on linux. This is required so that docker can mount correctly
+    static {
+        if (DEBUG) {
+            WORKDIR_LNX = "/home/arne/ServerManager/Server/";
+        }
+    }
 
     public static final String CONFIG_PATH = WORKDIR + "server/configs/";
+    public static final String DATA_PATH = WORKDIR + "/server/internal/data/";
 
     // Networking
     public static final String NETW_OVERNET_NAME = "overnet";
@@ -36,9 +37,13 @@ public class Constants {
     private static final String registryCertPath = "server/internal/security/registry-certs/";
 
     /**
-     * @param windows If true, returns the path required for the windows host, if false for docker
+     * Normal registry certs path that can be a windows or linux path depending on where the program was executed.
      */
-    public static final String REGISTRY_CERT_PATH(boolean windows) { return windows ? WORKDIR_WND + registryCertPath : WORKDIR + registryCertPath; }
+    public static final String REGISTRY_CERT_PATH_1 = WORKDIR + registryCertPath;
+    /**
+     * Special registry certs path, which is always a linux path. This is required for the docker mounts
+     */
+    public static final String REGISTRY_CERT_PATH_2 = WORKDIR_LNX + registryCertPath;
     public static final String REGISTRY_CERT_NAME  = "ca.crt";
     public static final String REGISTRY_KEY_NAME  = "ca.key";
     public static final String REGISTRY_HTPASSWD_NAME = "htpasswd";
@@ -106,7 +111,7 @@ public class Constants {
 
     /**
      * Important!
-     *      Image names must container a version tag like 'latest' or docker will download every version of the image.
+     *      Image names must contain a version tag like 'latest' or docker will download every version of the image.
      */
     public enum Images {
         REGISTRY("registry:latest"),
@@ -114,7 +119,7 @@ public class Constants {
         HTPASSWD("xmartlabs/htpasswd:latest"),
         CONSUL("consul:latest"),
         POSTGRES("postgres:latest"),
-        LOGCOLLECTOR("registry.swarm/logcollector"),
+        LOGCOLLECTOR("registry.swarm/logcollector:latest"),
         REDIS("redis:latest")
         ;
 

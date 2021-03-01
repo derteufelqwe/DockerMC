@@ -28,7 +28,7 @@ public class TestSessionBuilder extends SessionBuilder {
 
 
     @Override
-    protected Properties getProperties() {
+    public Properties getProperties() {
         String tmpDir = System.getProperty("java.io.tmpdir");
         Properties properties = super.getProperties();
 

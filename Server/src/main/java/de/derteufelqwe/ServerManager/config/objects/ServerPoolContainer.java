@@ -26,6 +26,10 @@ public class ServerPoolContainer implements Iterable<ServerPool> {
         this.data.put(pool.getName(), pool);
     }
 
+    public void removeServer(String name) {
+        this.data.remove(name);
+    }
+
     public ServerPool getServer(String name) {
         return this.data.get(name);
     }
@@ -48,23 +52,5 @@ public class ServerPoolContainer implements Iterable<ServerPool> {
     public Spliterator<ServerPool> spliterator() {
         return this.data.values().spliterator();
     }
-
-
-    /**
-     * Removes all obsolete entries based on available entries in the {@link ServersConfig}
-     */
-    public void cleanup() {
-//        List<String> existingNames = serversConfig.getPoolServers().stream()
-//                .map(s -> s.getName())
-//                .collect(Collectors.toList());
-//
-//        for (String name : new HashSet<>(this.data.keySet())) {
-//            if (!existingNames.contains(name)) {
-//                this.data.remove(name);
-//            }
-//        }
-
-    }
-
 
 }

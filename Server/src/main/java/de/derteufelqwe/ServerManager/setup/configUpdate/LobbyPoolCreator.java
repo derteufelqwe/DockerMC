@@ -28,7 +28,7 @@ class LobbyPoolCreator extends DMCServiceCreator<ServerPool> {
 
     @Override
     protected void updateSystemConfig(ServerPool newData) {
-        this.systemConfig.setLobbyPool(newData);
+        this.oldServersConfig.setLobbyPool(newData);
     }
 
     /**

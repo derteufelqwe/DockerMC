@@ -1,22 +1,23 @@
 package de.derteufelqwe.bungeeplugin.commands.permission;
 
 import co.aikar.commands.BaseCommand;
-import co.aikar.commands.CommandHelp;
-import co.aikar.commands.annotation.*;
+import co.aikar.commands.annotation.CatchUnknown;
+import co.aikar.commands.annotation.CommandAlias;
+import co.aikar.commands.annotation.Default;
+import co.aikar.commands.annotation.Subcommand;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
 import de.derteufelqwe.commons.hibernate.objects.DBService;
-import de.derteufelqwe.commons.hibernate.objects.permissions.*;
+import de.derteufelqwe.commons.hibernate.objects.permissions.Permission;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
-import java.awt.image.BufferedImage;
 import java.sql.Timestamp;
 import java.text.ParseException;
 
@@ -261,9 +262,9 @@ public class PermissionCommand extends BaseCommand {
                         return;
                     }
 
-                    ServicePermission newPerm = new ServicePermission(permission);
-                    newPerm.setService(service);
-                    session.persist(newPerm);
+//                    ServicePermission newPerm = new ServicePermission(permission);
+//                    newPerm.setService(service);
+//                    session.persist(newPerm);
 
 //                    player.getServicePermissions().add(newPerm);
                     session.update(player);
@@ -301,23 +302,23 @@ public class PermissionCommand extends BaseCommand {
                         return;
                     }
 
-                    // Find existing permission if available
-                    TimedPermission newPerm = player.findTimedPermission(permission);
-                    if (newPerm == null) {
-                        newPerm = new TimedPermission(permission, endTimestamp);
-                        session.persist(newPerm);
-
-//                        player.getTimedPermissions().add(newPerm);
-                        session.update(player);
-
-                        sender.sendMessage(new TextComponent(PREFIX + "Added '" + permission + "' expiring at " + endTime + " to player " + playerName + "."));
-
-                    } else {
-                        newPerm.setTimeout(endTimestamp);
-                        session.persist(newPerm);
-
-                        sender.sendMessage(new TextComponent(PREFIX + "Updated '" + permission + "' expiring at " + endTime + " for player " + playerName + "."));
-                    }
+//                    // Find existing permission if available
+//                    TimedPermission newPerm = player.findTimedPermission(permission);
+//                    if (newPerm == null) {
+//                        newPerm = new TimedPermission(permission, endTimestamp);
+//                        session.persist(newPerm);
+//
+////                        player.getTimedPermissions().add(newPerm);
+//                        session.update(player);
+//
+//                        sender.sendMessage(new TextComponent(PREFIX + "Added '" + permission + "' expiring at " + endTime + " to player " + playerName + "."));
+//
+//                    } else {
+//                        newPerm.setTimeout(endTimestamp);
+//                        session.persist(newPerm);
+//
+//                        sender.sendMessage(new TextComponent(PREFIX + "Updated '" + permission + "' expiring at " + endTime + " for player " + playerName + "."));
+//                    }
 
                     tx.commit();
 
@@ -402,8 +403,6 @@ public class PermissionCommand extends BaseCommand {
                         return;
                     }
 
-                    ServicePermission newPerm = player.findServicePermission(service, permission);
-                    session.delete(newPerm);
 
                     tx.commit();
 
@@ -435,8 +434,6 @@ public class PermissionCommand extends BaseCommand {
                         return;
                     }
 
-                    TimedPermission oldPerm = player.findTimedPermission(permission);
-                    session.delete(oldPerm);
 
                     tx.commit();
 

@@ -42,10 +42,10 @@ public class RegistryContainer extends ExposableContainerTemplate {
                 new Bind("registry_data", new Volume("/var/lib/registry"), false)
         );
         mounts.add(
-                new Bind(Constants.REGISTRY_CERT_PATH(false), new Volume("/auth"))
+                new Bind(Constants.REGISTRY_CERT_PATH_2, new Volume("/auth"))
         );
         mounts.add(
-                new Bind(Constants.REGISTRY_CERT_PATH(false), new Volume("/certs"))
+                new Bind(Constants.REGISTRY_CERT_PATH_2, new Volume("/certs"))
         );
 
         return mounts;
@@ -62,7 +62,8 @@ public class RegistryContainer extends ExposableContainerTemplate {
                 "REGISTRY_HTTP_TLS_CERTIFICATE=/certs/" + Constants.REGISTRY_CERT_NAME,
                 "REGISTRY_HTTP_TLS_KEY=/certs/" + Constants.REGISTRY_KEY_NAME,
                 "LOGLEVEL=INFO",
-                "DEBUG=true"
+                "DEBUG=true",
+                "REGISTRY_STORAGE_DELETE_ENABLED=true"
         ));
 
         return envs;

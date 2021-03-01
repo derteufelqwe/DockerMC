@@ -6,7 +6,7 @@ import com.github.dockerjava.api.model.UpdateConfig;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.config.ServersConfig;
-import de.derteufelqwe.ServerManager.config.SystemConfig;
+import de.derteufelqwe.ServerManager.config.OldServersConfig;
 import de.derteufelqwe.ServerManager.setup.ServiceCreateResponse;
 import de.derteufelqwe.ServerManager.setup.ServiceStart;
 import de.derteufelqwe.ServerManager.setup.ServiceUpdate;
@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 abstract class DMCServiceUpdater<CFG extends ServiceTemplate> {
 
     protected ServersConfig serversConfig = ServerManager.SERVERS_CONFIG.get();
-    protected SystemConfig systemConfig = ServerManager.SYSTEM_CONFIG.get();
+    protected OldServersConfig oldServersConfig = ServerManager.SERVERS_CONFIG_OLD.get();
 
     protected Docker docker;
 
@@ -73,7 +73,7 @@ abstract class DMCServiceUpdater<CFG extends ServiceTemplate> {
     protected abstract UpdateConfig getUpdateConfig();
 
     /**
-     * Increments the force update counter to enable force updates.
+     * Increments the force update counter to enable force updates. This is required for the docker api
      */
     protected int getForceUpdateCounter(ServiceSpec spec) {
         int start = spec.getTaskTemplate().getForceUpdate();

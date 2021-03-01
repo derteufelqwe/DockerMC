@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @Data
 @NoArgsConstructor
 @ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, exclude = {"authConfig"})
 public class ServiceTemplate extends DockerObjTemplate {
 
     @Getter(AccessLevel.NONE)

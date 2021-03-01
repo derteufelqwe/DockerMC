@@ -64,7 +64,7 @@ public class RegistryCertificates {
         CreateContainerResponse response = docker.getDocker().createContainerCmd(Constants.Images.OPENSSL.image())
                 .withLabels(Utils.quickLabel(Constants.ContainerType.REGISTRY_CERTS_GEN))
                 .withVolumes(sslOutput)
-                .withBinds(new Bind(Constants.REGISTRY_CERT_PATH(false), sslOutput))
+                .withBinds(new Bind(Constants.REGISTRY_CERT_PATH_2, sslOutput))
                 .withCmd(command)
                 .exec();
 
@@ -95,7 +95,7 @@ public class RegistryCertificates {
             throw new FatalDockerMCError("Faulty content of htpasswd file: '" + containerOutput + "'");
         }
 
-        File htpasswdFile = new File(Constants.REGISTRY_CERT_PATH(true) + "htpasswd");
+        File htpasswdFile = new File(Constants.REGISTRY_CERT_PATH_1 + "htpasswd");
 
         FileWriter writer = new FileWriter(htpasswdFile);
         writer.write(containerOutput);
@@ -119,9 +119,9 @@ public class RegistryCertificates {
      */
     public class RegistryCertFiles {
 
-        private File caCrt = new File(Constants.REGISTRY_CERT_PATH(true) + "ca.crt");
-        private File caKey = new File(Constants.REGISTRY_CERT_PATH(true) + "ca.key");
-        private File htpasswd = new File(Constants.REGISTRY_CERT_PATH(true) + "htpasswd");
+        private File caCrt = new File(Constants.REGISTRY_CERT_PATH_1 + "ca.crt");
+        private File caKey = new File(Constants.REGISTRY_CERT_PATH_1 + "ca.key");
+        private File htpasswd = new File(Constants.REGISTRY_CERT_PATH_1 + "htpasswd");
 
         public RegistryCertFiles() {
         }

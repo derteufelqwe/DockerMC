@@ -27,12 +27,12 @@ public class LobbyPoolUpdater extends DMCServiceUpdater<ServerPool> {
 
     @Override
     protected ServerPool getOldConfig() {
-        return this.systemConfig.getLobbyPool();
+        return this.oldServersConfig.getLobbyPool();
     }
 
     @Override
     protected void setOldConfig(@Nullable ServerPool configObj) {
-        this.systemConfig.setLobbyPool(configObj);
+        this.oldServersConfig.setLobbyPool(configObj);
     }
 
     @Override

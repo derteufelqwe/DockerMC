@@ -9,7 +9,10 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
+import org.hibernate.engine.spi.SessionFactoryDelegatingImpl;
+import org.hibernate.internal.SessionFactoryImpl;
 
+import javax.sql.DataSource;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -48,7 +51,7 @@ public class SessionBuilder {
     }
 
     
-    protected Properties getProperties() {
+    public Properties getProperties() {
         Properties properties = new Properties();
 
         properties.setProperty(Environment.DRIVER, "org.postgresql.Driver");

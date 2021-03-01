@@ -23,12 +23,12 @@ public class BungeePoolUpdater extends DMCServiceUpdater<BungeePool> {
 
     @Override
     protected BungeePool getOldConfig() {
-        return this.systemConfig.getBungeePool();
+        return this.oldServersConfig.getBungeePool();
     }
 
     @Override
     protected void setOldConfig(@Nullable BungeePool configObj) {
-        this.systemConfig.setBungeePool(configObj);
+        this.oldServersConfig.setBungeePool(configObj);
     }
 
     @Override

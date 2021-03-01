@@ -235,32 +235,4 @@ public class DBPlayer {
         return null;
     }
 
-    /**
-     * Finds a service permission if available
-     */
-    @CheckForNull
-    public ServicePermission findServicePermission(DBService service, String permission) {
-//        for (ServicePermission perm : this.servicePermissions) {
-//            if (perm.getPermissionText().equals(permission) && perm.getService().getId().equals(service.getId())) {
-//                return perm;
-//            }
-//        }
-
-        return null;
-    }
-
-    /**
-     * Finds a timed permission if available
-     */
-    @CheckForNull
-    public TimedPermission findTimedPermission(String permission) {
-//        for (TimedPermission perm : this.timedPermissions) {
-//            if (perm.getPermissionText().equals(permission)) {
-//                return perm;
-//            }
-//        }
-
-        return null;
-    }
-
 }

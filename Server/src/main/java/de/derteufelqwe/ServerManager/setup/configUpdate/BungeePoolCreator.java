@@ -22,7 +22,7 @@ class BungeePoolCreator extends DMCServiceCreator<BungeePool> {
 
     @Override
     protected void updateSystemConfig(BungeePool newData) {
-        this.systemConfig.setBungeePool(newData);
+        this.oldServersConfig.setBungeePool(newData);
     }
 
 }

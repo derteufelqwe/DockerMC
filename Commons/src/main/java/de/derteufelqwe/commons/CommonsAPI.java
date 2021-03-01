@@ -9,22 +9,16 @@ import de.derteufelqwe.commons.hibernate.objects.DBService;
 import de.derteufelqwe.commons.hibernate.objects.Notification;
 import de.derteufelqwe.commons.hibernate.objects.economy.ServiceBalance;
 import de.derteufelqwe.commons.hibernate.objects.permissions.PermissionGroup;
-import de.derteufelqwe.commons.hibernate.objects.permissions.PlayerToPermissionGroup;
-import de.derteufelqwe.commons.hibernate.objects.permissions.ServicePermission;
-import de.derteufelqwe.commons.hibernate.objects.permissions.TimedPermission;
-import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.query.NativeQuery;
 
 import javax.annotation.CheckForNull;
 import javax.persistence.NoResultException;
-import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -131,6 +125,7 @@ public class CommonsAPI {
 
     /**
      * Returns all containers from the DB, which represent a running Minecraft server
+     *
      * @return A list that might be empty
      */
     @NotNull
@@ -152,6 +147,7 @@ public class CommonsAPI {
 
     /**
      * Returns all containers from the DB, which represent a running BungeeCord proxy
+     *
      * @return A list that might be empty
      */
     @NotNull
@@ -196,51 +192,6 @@ public class CommonsAPI {
         );
 
         TypedQuery<PermissionGroup> queryRes = session.createQuery(cq);
-
-        try {
-            return queryRes.getSingleResult();
-
-        } catch (NoResultException e) {
-            return null;
-        }
-    }
-
-    @CheckForNull
-    @Deprecated
-    public TimedPermission getTimedPermissionForPlayer(Session session, DBPlayer player, String permission) {
-        CriteriaBuilder cb = session.getCriteriaBuilder();
-        CriteriaQuery<TimedPermission> cq = cb.createQuery(TimedPermission.class);
-        Root<TimedPermission> root = cq.from(TimedPermission.class);
-
-        cq.select(root).where(
-                cb.equal(root.get("permissionText"), permission),
-                cb.equal(root.join("player").get("uuid"), player.getUuid())
-        );
-
-        TypedQuery<TimedPermission> queryRes = session.createQuery(cq);
-
-        try {
-            return queryRes.getSingleResult();
-
-        } catch (NoResultException e) {
-            return null;
-        }
-    }
-
-    @CheckForNull
-    @Deprecated
-    public ServicePermission getServicePermissionForPlayer(Session session, DBPlayer player, DBService service, String permission) {
-        CriteriaBuilder cb = session.getCriteriaBuilder();
-        CriteriaQuery<ServicePermission> cq = cb.createQuery(ServicePermission.class);
-        Root<ServicePermission> root = cq.from(ServicePermission.class);
-
-        cq.select(root).where(
-                cb.equal(root.get("permissionText"), permission),
-                cb.equal(root.join("player").get("uuid"), player.getUuid()),
-                cb.equal(root.join("service").get("id"), service.getId())
-        );
-
-        TypedQuery<ServicePermission> queryRes = session.createQuery(cq);
 
         try {
             return queryRes.getSingleResult();
@@ -301,7 +252,6 @@ public class CommonsAPI {
             throw e;
         }
     }
-
 
 
 }

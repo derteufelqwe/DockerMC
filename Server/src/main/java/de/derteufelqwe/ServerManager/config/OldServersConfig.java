@@ -18,7 +18,7 @@ import java.util.List;
  */
 @Data
 @NoArgsConstructor
-public class SystemConfig {
+public class OldServersConfig {
 
     @Comment("Last known config for the BungeePool")
     @Nullable private BungeePool bungeePool;

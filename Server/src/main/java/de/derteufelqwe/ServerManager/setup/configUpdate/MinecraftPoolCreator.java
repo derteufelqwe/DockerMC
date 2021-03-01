@@ -25,7 +25,7 @@ class MinecraftPoolCreator extends DMCServiceCreator<ServerPool> {
 
     @Override
     protected void updateSystemConfig(ServerPool newData) {
-        this.systemConfig.getPoolServers().addServer(newData);
+        this.oldServersConfig.getPoolServers().addServer(newData);
     }
 
 }

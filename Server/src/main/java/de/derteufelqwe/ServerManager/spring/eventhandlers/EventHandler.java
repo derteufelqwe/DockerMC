@@ -1,6 +1,7 @@
 package de.derteufelqwe.ServerManager.spring.eventhandlers;
 
 import com.github.dockerjava.api.model.Service;
+import com.sun.applet2.preloader.event.ApplicationExitEvent;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.config.ConfigChecker;
@@ -22,6 +23,11 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.boot.context.event.ApplicationStartingEvent;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -34,13 +40,19 @@ import java.util.concurrent.TimeUnit;
 public class EventHandler {
 
     @Autowired
-    private Docker docker;
+    private ApplicationContext appContext;
     @Autowired
     private StringRedisTemplate redisTemplate;
+    @Autowired
+    private Docker docker;
     @Autowired
     private Config<ServersConfig> serversConfig;
 
 
+    /**
+     * Checks if the infrastructure is running and intact
+     * @param event
+     */
     @EventListener
     public void onCheckInfrastructureEvent(CheckInfrastructureEvent event) {
         if (!this.checkAndCreateInfrastructure()) {
@@ -49,6 +61,10 @@ public class EventHandler {
         }
     }
 
+    /**
+     * Reloads the minecraft server config
+     * @param event
+     */
     @EventListener
     public void onReloadConfigEvent(ReloadConfigEvent event) {
         ServerManager.SERVERS_CONFIG.load();
@@ -68,6 +84,36 @@ public class EventHandler {
         if (!this.checkAndCreateMCServers()) {
             event.setSuccess(false);
             event.setMessage("Failed to setup the minecraft servers. Solve the problem mentioned above.");
+        }
+    }
+
+    /**
+     * Startup code
+     * @param event
+     */
+    @EventListener
+    public void onStart(ApplicationStartedEvent event) {
+        if (ServerManager.SKIP_STARTUP_CHECKS)
+            return;
+
+        System.out.println("Start code");
+        // Infrastructure setup
+        log.info("Setting infrastructure up...");
+        CheckInfrastructureEvent infrastructureEvent = new CheckInfrastructureEvent(this, CheckInfrastructureEvent.ReloadSource.APPLICATION_START);
+        appContext.publishEvent(infrastructureEvent);
+
+        if (!infrastructureEvent.isSuccess()) {
+            log.error("Infrastructure setup failed with: {}", infrastructureEvent.getMessage());
+            SpringApplication.exit(appContext, () -> 100);
+        }
+
+        // Servers config setup
+        ReloadConfigEvent reloadConfigEvent = new ReloadConfigEvent(this, ReloadConfigEvent.ReloadSource.APPLICATION_START);
+        appContext.publishEvent(reloadConfigEvent);
+
+        if (!reloadConfigEvent.isSuccess()) {
+            log.fatal("Minecraft server setup failed with: '{}'", reloadConfigEvent.getMessage());
+            SpringApplication.exit(appContext, () -> 102);
         }
     }
 

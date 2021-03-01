@@ -63,6 +63,7 @@ public final class MinecraftPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         // --- Setup ---
+        System.out.println("tmp");
         INSTANCE = this;
         this.addSignalHandlers();
         CONFIG.load();

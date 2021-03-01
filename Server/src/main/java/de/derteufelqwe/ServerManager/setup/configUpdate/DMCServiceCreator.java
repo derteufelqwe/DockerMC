@@ -3,7 +3,7 @@ package de.derteufelqwe.ServerManager.setup.configUpdate;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.config.ServersConfig;
-import de.derteufelqwe.ServerManager.config.SystemConfig;
+import de.derteufelqwe.ServerManager.config.OldServersConfig;
 import de.derteufelqwe.ServerManager.setup.ServiceCreateResponse;
 import de.derteufelqwe.ServerManager.setup.ServiceStart;
 import de.derteufelqwe.ServerManager.setup.templates.DockerObjTemplate;
@@ -19,7 +19,7 @@ import de.derteufelqwe.commons.Constants;
 abstract class DMCServiceCreator<CFG extends ServiceTemplate> {
 
     protected ServersConfig serversConfig = ServerManager.SERVERS_CONFIG.get();
-    protected SystemConfig systemConfig = ServerManager.SYSTEM_CONFIG.get();
+    protected OldServersConfig oldServersConfig = ServerManager.SERVERS_CONFIG_OLD.get();
 
     protected Docker docker;
 

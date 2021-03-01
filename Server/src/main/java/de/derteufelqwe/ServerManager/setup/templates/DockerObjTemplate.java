@@ -13,6 +13,7 @@ import lombok.*;
  */
 @Data
 @NoArgsConstructor
+@EqualsAndHashCode(exclude = "docker")
 public abstract class DockerObjTemplate implements Cloneable {
 
     @Getter(AccessLevel.NONE)

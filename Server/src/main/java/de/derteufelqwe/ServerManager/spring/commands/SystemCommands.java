@@ -1,21 +1,27 @@
 package de.derteufelqwe.ServerManager.spring.commands;
 
 import de.derteufelqwe.ServerManager.Docker;
-import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.spring.events.CheckInfrastructureEvent;
 import de.derteufelqwe.ServerManager.spring.events.ReloadConfigEvent;
-import de.derteufelqwe.ServerManager.spring.events.TestEvent;
 import de.derteufelqwe.commons.Constants;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.core.tools.picocli.CommandLine;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEvent;
+import org.springframework.boot.ansi.AnsiColor;
+import org.springframework.boot.ansi.AnsiColors;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
+import sun.security.x509.X509CertImpl;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Date;
 
 @ShellComponent
 @Log4j2
@@ -58,7 +64,24 @@ public class SystemCommands {
 
     @ShellMethod(value = "Prints information about the registry cert information. Most notably its expiration date.", key = "system registry-cert-infos")
     public void registryCertInfos() {
-//        File certFile = new File(Constants.REGISTRY_CERT_PATH())
+        try {
+            File certFile = new File(Constants.REGISTRY_CERT_PATH_1 + Constants.REGISTRY_CERT_NAME);
+            X509Certificate certificate = new X509CertImpl(new FileInputStream(certFile));
+
+            log.info(String.format("Name         | %s", Constants.REGISTRY_CERT_NAME));
+            log.info(String.format("Start        | %s", certificate.getNotBefore().toString()));
+            if (certificate.getNotAfter().before(new Date(System.currentTimeMillis())))
+                log.error(String.format("Expiration   | %s (Expired)", certificate.getNotAfter().toString()));
+            else
+                log.info(String.format("Expiration   | %s", certificate.getNotAfter().toString()));
+            log.info(String.format("Serialnumber | %s", certificate.getSerialNumber().toString()));
+
+        } catch (IOException e) {
+            log.warn("Certificate not found! Make sure it's generated.");
+
+        } catch (CertificateException e) {
+            log.error("Invalid certificate. Try to regenerate it. Error: {}.", e.getMessage());
+        }
     }
 
 }

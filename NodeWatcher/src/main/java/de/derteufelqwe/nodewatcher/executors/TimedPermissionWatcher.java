@@ -1,28 +1,16 @@
 package de.derteufelqwe.nodewatcher.executors;
 
-import de.derteufelqwe.commons.exceptions.DmcAPIException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
-import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
-import de.derteufelqwe.commons.hibernate.objects.permissions.TimedPermission;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import lombok.SneakyThrows;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Rmoves all {@link de.derteufelqwe.commons.hibernate.objects.permissions.TimedPermission}s which timed out
+ *
  */
 public class TimedPermissionWatcher extends Thread {
 
