@@ -5,6 +5,7 @@ import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.spring.events.CheckInfrastructureEvent;
 import de.derteufelqwe.ServerManager.spring.events.ReloadConfigEvent;
 import de.derteufelqwe.ServerManager.spring.events.TestEvent;
+import de.derteufelqwe.commons.Constants;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
@@ -13,6 +14,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
+
+import java.io.File;
 
 @ShellComponent
 @Log4j2
@@ -53,5 +56,9 @@ public class SystemCommands {
         }
     }
 
+    @ShellMethod(value = "Prints information about the registry cert information. Most notably its expiration date.", key = "system registry-cert-infos")
+    public void registryCertInfos() {
+//        File certFile = new File(Constants.REGISTRY_CERT_PATH())
+    }
 
 }

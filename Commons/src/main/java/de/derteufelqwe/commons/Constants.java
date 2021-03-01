@@ -19,9 +19,9 @@ public class Constants {
 
     public static final String AUTHOR = "derteufelqwe";
     public static final String WORKDIR_WND = "C:/Users/Arne/Desktop/ServerManager/Server/";
-    public static final String WORKDIR = "/home/arne/ServerManager/Server/";
+    public static final String WORKDIR = System.getProperty("user.dir").replace("\\", "/") + "/";
 
-    public static final String CONFIG_PATH = WORKDIR_WND + "server/configs/";
+    public static final String CONFIG_PATH = WORKDIR + "server/configs/";
 
     // Networking
     public static final String NETW_OVERNET_NAME = "overnet";

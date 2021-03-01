@@ -10,7 +10,7 @@
                      fileName="./logs/ServerManager-log4j2.log"
                      filePattern="./logs/$${date:yyyy-MM}/ServerManager-log4j2-%d{-dd-MMMM-yyyy}-%i.log.gz">
             <PatternLayout>
-                <pattern>%d %p %C{1.} [%t] %m%n</pattern>
+                <pattern>%d [%-5level] %msg%n%throwable</pattern>
             </PatternLayout>
             <Policies>
                 <!-- rollover on startup, daily and when the file reaches
