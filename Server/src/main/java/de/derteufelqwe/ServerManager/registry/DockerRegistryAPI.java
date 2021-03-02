@@ -23,12 +23,14 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
+import org.bouncycastle.util.encoders.Base64;
 import sun.security.x509.X509CertImpl;
 
 import javax.net.ssl.SSLContext;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -131,18 +133,16 @@ public class DockerRegistryAPI {
 
                         // Return the page result
                         if (isSuccessful(response.getStatusLine().getStatusCode())) {
-                            return new RESTResponse(response.getStatusLine(), pageData);
+                            return new RESTResponse(response, pageData);
 
                         } else {
                             // Handle the '404 not found' message
                             if (pageData.startsWith("404")) {
-                                return new RESTResponse(response.getStatusLine(), pageData);
+                                return new RESTResponse(response, pageData);
 
-                            // Return the normal error response
+                            // Return the error response
                             } else {
-                                return new RESTResponse(response.getStatusLine(),
-                                        gson.fromJson(pageData, RESTResponse.class).getErrors()
-                                );
+                                return new RESTResponse(response, gson.fromJson(pageData, RESTResponse.class).getErrors());
                             }
                         }
 
@@ -196,10 +196,17 @@ public class DockerRegistryAPI {
     }
 
     public ImageManifest getManifest(String image, String tag) {
-        RESTResponse restResponse = this.get(image + "/manifests/" + tag, new Header[0]);
+        String pwd = "Basic " + new String(Base64.encode("admin:root".getBytes(StandardCharsets.UTF_8)));
+        Header[] headers = new Header[] {
+                new BasicHeader("Authorization", pwd)
+        };
+
+        RESTResponse restResponse = this.get(image + "/manifests/" + tag, headers);
         this.checkResponse(restResponse);
 
-        return gson.fromJson(restResponse.getResponse(), ImageManifest.class);
+        ImageManifest manifest = gson.fromJson(restResponse.getResponse(), ImageManifest.class);
+        manifest.setContentDigest(restResponse.getHeaders().get("Docker-Content-Digest"));
+        return manifest;
     }
 
     public DeleteManifest getDeleteManifest(String image, String tag) {
@@ -210,12 +217,14 @@ public class DockerRegistryAPI {
         RESTResponse restResponse = this.get(image + "/manifests/" + tag, headers);
         this.checkResponse(restResponse);
 
-        return gson.fromJson(restResponse.getResponse(), DeleteManifest.class);
+        DeleteManifest manifest = gson.fromJson(restResponse.getResponse(), DeleteManifest.class);
+        manifest.setContentDigest(restResponse.getHeaders().get("Docker-Content-Digest"));
+        return manifest;
     }
 
     public void deleteManifest(String image, String digest) {
         Header[] headers = new Header[] {
-                new BasicHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+//                new BasicHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
         };
 
         RESTResponse restResponse = this.delete(image + "/manifests/" + digest, headers);

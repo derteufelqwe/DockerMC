@@ -32,7 +32,8 @@ public class ExposableContainerTemplate extends ContainerTemplate {
 
     /**
      * Returns the containers port, that the exposed port gets mapped to.
-     * Defaults to the same port number as the exposed port
+     * Defaults to the same port number as the exposed port.
+     * This is the port inside the docker container, NOT the one on the host
      */
     protected int getContainerPort() {
         return this.port;

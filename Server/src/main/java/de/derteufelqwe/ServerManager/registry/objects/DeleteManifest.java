@@ -1,5 +1,6 @@
 package de.derteufelqwe.ServerManager.registry.objects;
 
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,5 +24,8 @@ public class DeleteManifest {
 
     @SerializedName("layers")
     private List<DeleteLayer> layers;
+
+    @Expose(deserialize = false)
+    private String contentDigest;
 
 }

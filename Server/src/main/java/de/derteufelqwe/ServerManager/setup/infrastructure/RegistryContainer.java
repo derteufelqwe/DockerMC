@@ -78,4 +78,16 @@ public class RegistryContainer extends ExposableContainerTemplate {
     protected int getContainerPort() {
         return 5000;
     }
+
+
+
+    @Override
+    protected List<String> getNetworks() {
+        List<String> networks = super.getNetworks();
+
+        networks.add(Constants.NETW_OVERNET_NAME);
+
+        return networks;
+    }
+
 }

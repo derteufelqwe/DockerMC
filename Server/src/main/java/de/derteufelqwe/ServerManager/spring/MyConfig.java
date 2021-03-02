@@ -113,7 +113,8 @@ public class MyConfig {
 
     @Bean
     public DockerRegistryAPI dockerRegistryAPI() {
-        return new DockerRegistryAPI("https://" + Constants.REGISTRY_URL, mainConfig.get().getRegistryUsername(), mainConfig.get().getRegistryPassword());
+        return null;
+//        return new DockerRegistryAPI("https://" + Constants.REGISTRY_URL, mainConfig.get().getRegistryUsername(), mainConfig.get().getRegistryPassword());
     }
 
 }
