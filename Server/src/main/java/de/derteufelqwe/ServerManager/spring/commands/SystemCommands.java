@@ -1,6 +1,7 @@
 package de.derteufelqwe.ServerManager.spring.commands;
 
 import de.derteufelqwe.ServerManager.Docker;
+import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.spring.events.CheckInfrastructureEvent;
 import de.derteufelqwe.ServerManager.spring.events.ReloadConfigEvent;
 import de.derteufelqwe.commons.Constants;
@@ -36,8 +37,15 @@ public class SystemCommands {
     private StringRedisTemplate redisTemplate;
 
 
-    @ShellMethod(value = "Reloads and updates the servers config.", key = "system reload-config")
+    @ShellMethod(value = "Reloads all config files", key = "system reload-config")
     public void reloadConfig() {
+        ServerManager.MAIN_CONFIG.load();
+        ServerManager.SERVERS_CONFIG.load();
+        log.info("Reloaded config files.");
+    }
+
+    @ShellMethod(value = "Reloads and updates the servers config.", key = "system check-server")
+    public void checkServers() {
         ReloadConfigEvent reloadConfigEvent = new ReloadConfigEvent(this, ReloadConfigEvent.ReloadSource.COMMAND);
         applicationEventPublisher.publishEvent(reloadConfigEvent);
 

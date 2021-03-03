@@ -8,7 +8,9 @@ import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
 import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
 
 @SpringBootApplication
 public class ServerManager {

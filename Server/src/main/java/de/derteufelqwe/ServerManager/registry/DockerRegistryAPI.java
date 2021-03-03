@@ -43,7 +43,6 @@ public class DockerRegistryAPI {
     private final Type TYPE_LIST_STRING = new TypeToken<ArrayList<String>>(){}.getType();
 
     private Gson gson = createGson();
-    private SSLContext sslContext;
     private HttpClientBuilder clientBuilder;
 
     private String url;
@@ -55,7 +54,6 @@ public class DockerRegistryAPI {
         this.url = url;
         this.username = username;
         this.password = password;
-        this.sslContext = createSSLContext();
         this.clientBuilder = createClientBuilder();
     }
 
@@ -98,7 +96,7 @@ public class DockerRegistryAPI {
 
     private HttpClientBuilder createClientBuilder() {
         HttpClientBuilder builder = HttpClientBuilder.create()
-                .setSSLContext(this.sslContext);
+                .setSSLContext(createSSLContext());
 
         if (!(this.username == null && this.password == null))
                 builder.setDefaultCredentialsProvider(this.getCredentialsProvider());

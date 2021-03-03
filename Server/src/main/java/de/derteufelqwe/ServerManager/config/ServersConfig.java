@@ -1,11 +1,10 @@
 package de.derteufelqwe.ServerManager.config;
 
-import com.sun.istack.internal.NotNull;
-import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
-import de.derteufelqwe.ServerManager.setup.infrastructure.NginxService;
+import com.sun.istack.NotNull;
 import de.derteufelqwe.ServerManager.setup.servers.BungeePool;
 import de.derteufelqwe.ServerManager.setup.servers.PersistentServerPool;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
+import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
 import de.derteufelqwe.commons.config.annotations.Comment;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,26 +17,25 @@ import java.util.List;
 @AllArgsConstructor
 public class ServersConfig {
 
-    // Nginx server
-    @Comment("Nginx reverse proxy")
-    @Deprecated
-    @Nullable private NginxService nginxService;
-
     // BungeeCord servers
     @Comment("BungeeCord servers")
-    @Nullable private BungeePool bungeePool;
+    @Nullable
+    private BungeePool bungeePool;
 
     // Lobby server
     @Comment("Pool of lobby servers")
-    @Nullable private ServerPool lobbyPool;
+    @Nullable
+    private ServerPool lobbyPool;
 
     // Servers, which have multiple replicates
     @Comment("Multiple other server pools")
-    @NotNull private List<ServerPool> poolServers = new ArrayList<>();
+    @NotNull
+    private List<ServerPool> poolServers = new ArrayList<>();
 
     // Multiple servers, persistent
     @Comment("Persistent server pools")
-    @NotNull private List<PersistentServerPool> persistentServerPool = new ArrayList<>();
+    @NotNull
+    private List<PersistentServerPool> persistentServerPool = new ArrayList<>();
 
 
     public ServersConfig() {
@@ -45,6 +43,7 @@ public class ServersConfig {
 
     /**
      * Creates an example config
+     *
      * @return
      */
     public static ServersConfig example() {

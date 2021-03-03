@@ -4,6 +4,8 @@ import com.github.dockerjava.api.model.Service;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.spring.events.CheckInfrastructureEvent;
 import de.derteufelqwe.ServerManager.spring.events.ReloadConfigEvent;
+import de.derteufelqwe.ServerManager.tablebuilder.Column;
+import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import lombok.extern.log4j.Log4j2;
@@ -49,17 +51,28 @@ public class ServersCommands {
                 .withLabelFilter(Collections.singletonMap(Constants.DOCKER_IDENTIFIER_KEY, Constants.DOCKER_IDENTIFIER_VALUE))
                 .exec();
 
-        String formatString = "%-20s | %-25s | %-10s ";
-        log.info(String.format(formatString, "Name", "ID", "Type"));
+        TableBuilder tableBuilder = new TableBuilder()
+                .withColumn(new Column.Builder()
+                        .withTitle("Name")
+                        .build())
+                .withColumn(new Column.Builder()
+                        .withTitle("ID")
+                        .build())
+                .withColumn(new Column.Builder()
+                        .withTitle("Type")
+                        .build());
+
         for (Service service : services) {
             String name = service.getSpec().getName();
             String lobbyAppend = name.equals(lobbyServerName) ? " (LobbyServer)" : "";
-            log.info(String.format(formatString + lobbyAppend,
-                    name,
-                    service.getId(),
-                    service.getSpec().getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY))
-            );
+            String type = service.getSpec().getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY);
+
+            tableBuilder.addToColumn(0, name);
+            tableBuilder.addToColumn(1, service.getId());
+            tableBuilder.addToColumn(2, type + lobbyAppend);
         }
+
+        tableBuilder.build(log);
     }
 
     @ShellMethod(value = "Lists all minecraft containers", key = "server list-containers")
@@ -69,19 +82,41 @@ public class ServersCommands {
                     "SELECT * FROM containers AS c WHERE c.exitcode IS NULL",
                     DBContainer.class).getResultList();
 
-            String formatString = "%-20s | %-30s | %-14s | %-25s";
-            log.info(String.format(formatString, "ID", "Name", "Type", "ServiceName"));
-            log.info("---------------------------------------------------------------------------------------");
+            TableBuilder tableBuilder = new TableBuilder()
+                    .withColumn(new Column.Builder()
+                            .withTitle("ID")
+                            .withMaxWidth(20)
+                            .build())
+                    .withColumn(new Column.Builder()
+                            .withTitle("Name")
+                            .withMaxWidth(30)
+                            .build())
+                    .withColumn(new Column.Builder()
+                            .withTitle("Type")
+                            .build())
+                    .withColumn(new Column.Builder()
+                            .withTitle("Service")
+                            .build());
+
             for(DBContainer container : containers) {
-                log.info(String.format(formatString,
-                        container.getId().substring(0, 20),
-                        container.getName().length() > 30 ? container.getName().substring(0, 30) : container.getName(),
-                        container.getService().getType(),
-                        container.getService().getName()
-                    ));
+                tableBuilder.addToColumn(0, container.getId());
+                tableBuilder.addToColumn(1, container.getName());
+                tableBuilder.addToColumn(2, container.getService().getType());
+                tableBuilder.addToColumn(3, container.getService().getName());
             }
 
+            tableBuilder.build(log);
         }
+    }
+
+    @ShellMethod(value = "Returns the currently configured lobby server", key = "server get-lobbyserver")
+    private void getLobbyServerName() {
+        String lobbyServer = redisTemplate.opsForValue().get(Constants.REDIS_KEY_LOBBYSERVER);
+
+        if (lobbyServer == null || lobbyServer.equals(""))
+            log.warn("LobbyServer name not configured.");
+        else
+            log.info("LobbyServer name: '{}'.", lobbyServer);
     }
 
 }

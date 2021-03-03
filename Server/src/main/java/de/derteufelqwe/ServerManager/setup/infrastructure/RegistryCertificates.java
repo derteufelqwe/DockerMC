@@ -3,7 +3,9 @@ package de.derteufelqwe.ServerManager.setup.infrastructure;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.WaitContainerResultCallback;
 import com.github.dockerjava.api.model.Bind;
+import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Volume;
+import com.sun.istack.NotNull;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.config.MainConfig;
@@ -12,15 +14,25 @@ import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.setup.templates.DockerObjTemplate;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.Utils;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
+import javax.annotation.CheckForNull;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+@Log4j2
 public class RegistryCertificates {
 
     private MainConfig mainConfig = ServerManager.MAIN_CONFIG.get();
@@ -40,70 +52,41 @@ public class RegistryCertificates {
             return new DockerObjTemplate.FindResponse(true, null);
 
         } else {
-
             return new DockerObjTemplate.FindResponse(false, null);
         }
     }
 
-    @SneakyThrows
+
     public DockerObjTemplate.CreateResponse create() {
-        CertificateCfg cfg = mainConfig.getRegistryCerCfg();
-
-        // -----  SSL-certificate generation  -----
-
-        Volume sslOutput = new Volume("/export");
-        List<String> command = new ArrayList<>(Arrays.asList(
-                "req", "-newkey", "rsa:4096", "-nodes", "-sha256", "-x509", "-days", "356",
-                "-out", "/export/" + Constants.REGISTRY_CERT_NAME, "-keyout", "/export/" + Constants.REGISTRY_KEY_NAME,
-                "-subj"));
-
-        command.add(String.format("/C=%s/ST=%s/L=%s/O=%s/CN=%s/emailAddress=%s",
-                cfg.getCountryCode(), cfg.getState(), cfg.getCity(), cfg.getOrganizationName(), Constants.REGISTRY_URL, cfg.getEmail()));
-
         docker.pullImage(Constants.Images.OPENSSL.image());
-        CreateContainerResponse response = docker.getDocker().createContainerCmd(Constants.Images.OPENSSL.image())
-                .withLabels(Utils.quickLabel(Constants.ContainerType.REGISTRY_CERTS_GEN))
-                .withVolumes(sslOutput)
-                .withBinds(new Bind(Constants.REGISTRY_CERT_PATH_2, sslOutput))
-                .withCmd(command)
-                .exec();
-
-        docker.getDocker().startContainerCmd(response.getId()).exec();
-
-        docker.getDocker().waitContainerCmd(response.getId())
-                .exec(new WaitContainerResultCallback())
-                .awaitStatusCode(10, TimeUnit.SECONDS);
-
-        // -----  Generate htpasswd file  -----
-
         docker.pullImage(Constants.Images.HTPASSWD.image());
-        CreateContainerResponse htpasswdContainer = docker.getDocker().createContainerCmd(Constants.Images.HTPASSWD.image())
-                .withCmd(mainConfig.getRegistryUsername(), mainConfig.getRegistryPassword())
-                .exec();
+        this.destroy();     // Remove old files
 
-        docker.getDocker().startContainerCmd(htpasswdContainer.getId()).exec();
+        File sslCertConf;
+        try {
+             sslCertConf = this.createSSLConfFile();
 
-        docker.getDocker().waitContainerCmd(htpasswdContainer.getId())
-                .exec(new WaitContainerResultCallback())
-                .awaitStatusCode(10, TimeUnit.SECONDS);
-
-        // -----  Save the htpasswd file  -----
-
-        String containerOutput = docker.getContainerLog(htpasswdContainer.getId());
-
-        if (!containerOutput.startsWith(mainConfig.getRegistryUsername())) {
-            throw new FatalDockerMCError("Faulty content of htpasswd file: '" + containerOutput + "'");
+        } catch (IOException e) {
+            return new DockerObjTemplate.CreateResponse(false, null, e.getMessage());
         }
 
-        File htpasswdFile = new File(Constants.REGISTRY_CERT_PATH_1 + "htpasswd");
+        try {
+            DockerObjTemplate.CreateResponse response = this.createCertificate();
 
-        FileWriter writer = new FileWriter(htpasswdFile);
-        writer.write(containerOutput);
-        writer.close();
+            try {
+                this.createHtpasswdFile();
 
-        return new DockerObjTemplate.CreateResponse(true, response.getId());
+            } catch (IOException | FatalDockerMCError e) {
+                return new DockerObjTemplate.CreateResponse(false, "", e.getMessage());
+            }
+
+            return response;
+
+        } finally {
+            sslCertConf.delete();
+        }
+
     }
-
 
     public DockerObjTemplate.DestroyResponse destroy() {
         RegistryCertFiles registryCertFiles = new RegistryCertFiles();
@@ -115,13 +98,107 @@ public class RegistryCertificates {
 
 
     /**
+     * Temporarily copies the sslCert.cnf file and fills its placeholders with the required values.
+     * @return The file object of the config file
+     * @throws IOException
+     */
+    private File createSSLConfFile() throws IOException {
+        CertificateCfg cfg = mainConfig.getRegistryCerCfg();
+
+        String sslCertConfig = IOUtils.resourceToString("sslCert.cnf", StandardCharsets.UTF_8, getClass().getClassLoader());
+        sslCertConfig = sslCertConfig
+                .replaceFirst("\\{C\\}", cfg.getCountryCode())      // County code
+                .replaceFirst("\\{ST\\}", cfg.getState())           // State
+                .replaceFirst("\\{L\\}", cfg.getCity())             // State
+                .replaceFirst("\\{O\\}", cfg.getOrganizationName()) // State
+                .replaceFirst("\\{M\\}", cfg.getEmail());           // State
+
+        File file = new File(Constants.REGISTRY_CERT_PATH_1 + "/sslCert.cnf");
+        FileUtils.write(file, sslCertConfig, StandardCharsets.UTF_8);
+
+        return file;
+    }
+
+    /**
+     * Generates the SSL certificate and key based on the sslCert.cnf config file.
+     * @return Contains the container log if the generation failed.
+     */
+    private DockerObjTemplate.CreateResponse createCertificate() {
+        Volume sslOutput = new Volume("/export");
+        Bind bind = new Bind(Constants.REGISTRY_CERT_PATH_2, sslOutput);
+
+        List<String> command = new ArrayList<>(Arrays.asList(
+                "req", "-x509", "-newkey", "rsa:4096", "-nodes", "-sha256", "-days", "356",
+                "-out", "/export/" + Constants.REGISTRY_CERT_NAME, "-keyout", "/export/" + Constants.REGISTRY_KEY_NAME,
+                "-config", "/export/sslCert.cnf"));
+
+        // Create and start the container, which generates the SSL certificate
+        CreateContainerResponse response = docker.getDocker().createContainerCmd(Constants.Images.OPENSSL.image())
+                .withVolumes(sslOutput)
+                .withHostConfig(new HostConfig()
+                        .withBinds(bind))
+                .withCmd(command)
+                .exec();
+
+        log.debug("Certificate creation container: {}.", response.getId());
+        docker.getDocker().startContainerCmd(response.getId()).exec();
+
+        // Check if the container finished properly
+        int exitCode = docker.getDocker().waitContainerCmd(response.getId())
+                .exec(new WaitContainerResultCallback())
+                .awaitStatusCode(10, TimeUnit.SECONDS);
+
+        if (exitCode == 0) {
+            return new DockerObjTemplate.CreateResponse(true, response.getId());
+        }
+
+        // Download the container log in case of failure
+        String log = docker.getContainerLog(response.getId());
+
+        return new DockerObjTemplate.CreateResponse(false, response.getId(), log);
+    }
+
+    /**
+     * Generates the htpasswd file required to login into the registry.
+     * @throws FatalDockerMCError Container exited with code != 0
+     * @throws IOException File couldn't be saved.
+     */
+    private void createHtpasswdFile() throws FatalDockerMCError, IOException {
+        CreateContainerResponse response = docker.getDocker().createContainerCmd(Constants.Images.HTPASSWD.image())
+                .withCmd(mainConfig.getRegistryUsername(), mainConfig.getRegistryPassword())
+                .exec();
+
+        log.debug("Htpasswd creation container: {}.", response.getId());
+        docker.getDocker().startContainerCmd(response.getId()).exec();
+
+        int exitCode = docker.getDocker().waitContainerCmd(response.getId())
+                .exec(new WaitContainerResultCallback())
+                .awaitStatusCode(10, TimeUnit.SECONDS);
+
+        if (exitCode != 0) {
+            throw new FatalDockerMCError("Htpasswd creation container {} exited with code {}.", response.getId(), exitCode);
+        }
+
+        // Save the htpasswd
+        String containerOutput = docker.getContainerLog(response.getId());
+
+        if (!containerOutput.startsWith(mainConfig.getRegistryUsername())) {
+            throw new FatalDockerMCError("Faulty content of htpasswd file: '" + containerOutput + "'");
+        }
+
+        File htpasswdFile = new File(Constants.REGISTRY_CERT_PATH_1 + "htpasswd");
+        FileUtils.write(htpasswdFile, containerOutput, StandardCharsets.UTF_8);
+    }
+
+
+    /**
      * Utility class to work with the certificates for the registry
      */
-    public class RegistryCertFiles {
+    public static class RegistryCertFiles {
 
-        private File caCrt = new File(Constants.REGISTRY_CERT_PATH_1 + "ca.crt");
-        private File caKey = new File(Constants.REGISTRY_CERT_PATH_1 + "ca.key");
-        private File htpasswd = new File(Constants.REGISTRY_CERT_PATH_1 + "htpasswd");
+        private final File caCrt = new File(Constants.REGISTRY_CERT_PATH_1 + "ca.crt");
+        private final File caKey = new File(Constants.REGISTRY_CERT_PATH_1 + "ca.key");
+        private final File htpasswd = new File(Constants.REGISTRY_CERT_PATH_1 + "htpasswd");
 
         public RegistryCertFiles() {
         }
@@ -130,6 +207,7 @@ public class RegistryCertificates {
             return caCrt.exists() && caKey.exists() && htpasswd.exists();
         }
 
+        @SuppressWarnings("all")
         public void deleteFiles() {
             caCrt.delete();
             caKey.delete();

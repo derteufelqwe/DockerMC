@@ -1,7 +1,6 @@
 package de.derteufelqwe.ServerManager.spring.eventhandlers;
 
 import com.github.dockerjava.api.model.Service;
-import com.sun.applet2.preloader.event.ApplicationExitEvent;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.config.ConfigChecker;
@@ -23,11 +22,8 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
-import org.springframework.boot.context.event.ApplicationStartingEvent;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -51,6 +47,7 @@ public class EventHandler {
 
     /**
      * Checks if the infrastructure is running and intact
+     *
      * @param event
      */
     @EventListener
@@ -63,6 +60,7 @@ public class EventHandler {
 
     /**
      * Reloads the minecraft server config
+     *
      * @param event
      */
     @EventListener
@@ -89,6 +87,7 @@ public class EventHandler {
 
     /**
      * Startup code
+     *
      * @param event
      */
     @EventListener
@@ -236,7 +235,7 @@ public class EventHandler {
      * Creates all the servers specified in the InfrastructureConfig.yml.
      * Identifies and stops lost services.
      */
-    private boolean checkAndCreateMCServers(){
+    private boolean checkAndCreateMCServers() {
         LostServiceFinder cleaner = new LostServiceFinder(docker);
         List<Service> lostServices = cleaner.findLostServices();
         ServersConfig serversConfig = this.serversConfig.get();

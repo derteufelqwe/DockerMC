@@ -29,8 +29,10 @@ public class Constants {
     public static final String SUBNET_OVERNET = "11.0.0.0/8";
 
     // Docker image building
-    public static final String IMAGE_PATH = WORKDIR + "server/images/";
-    public static final String DOCKERFILES_PATH = WORKDIR + "server/internal/dockerfiles/";
+    public static final String IMAGE_MINECRAFT_PATH = WORKDIR + "images/minecraft/";
+    public static final String IMAGE_BUNGEE_PATH = WORKDIR + "images/bungeecord";
+    public static final String DOCKERFILE_MINECRAFT_PATH = WORKDIR + "server/dockerfiles/minecraft.dfile";
+    public static final String DOCKERFILE_BUNGEE_PATH = WORKDIR + "server/dockerfiles/bungee.dfile";
 
     // -----  Registry  -----
     // Path to the Registry Certificate and key
@@ -98,6 +100,7 @@ public class Constants {
         POSTGRES_DB,
         REDIS_DB,
 
+
         NGINX,
         NGINX_POOL,
         BUNGEE,
@@ -120,7 +123,8 @@ public class Constants {
         CONSUL("consul:latest"),
         POSTGRES("postgres:latest"),
         LOGCOLLECTOR("registry.swarm/logcollector:latest"),
-        REDIS("redis:latest")
+        REDIS("redis:latest"),
+        DECKSCHRUBBER("lhanxetus/deckschrubber:latest")
         ;
 
         private String imageName;
