@@ -13,6 +13,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
@@ -35,7 +36,7 @@ public class ServersCommands {
 
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
-    @Autowired
+    @Autowired @Lazy
     private SessionFactory sessionFactory;
     @Autowired
     private Docker docker;

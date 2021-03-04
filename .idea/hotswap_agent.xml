@@ -2,5 +2,10 @@
 <project version="4">
   <component name="HotSwapAgentPluginSettingsProvider">
     <option name="agentPath" value="C:\Users\Arne\AppData\Local\JetBrains\Toolbox\apps\IDEA-U\ch-0\202.7660.26.plugins\hotswap-agent-intellij-plugin\lib\agent\hotswap-agent-1.4.1.jar" />
+    <option name="selectedRunConfigurations">
+      <set>
+        <option value="ServerManager" />
+      </set>
+    </option>
   </component>
 </project>

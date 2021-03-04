@@ -2,6 +2,8 @@ package de.derteufelqwe.commons;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
+import java.util.Collections;
+import java.util.Map;
 import java.util.UUID;
 
 public class Constants {
@@ -33,6 +35,7 @@ public class Constants {
     public static final String IMAGE_BUNGEE_PATH = WORKDIR + "images/bungeecord";
     public static final String DOCKERFILE_MINECRAFT_PATH = WORKDIR + "server/dockerfiles/minecraft.dfile";
     public static final String DOCKERFILE_BUNGEE_PATH = WORKDIR + "server/dockerfiles/bungee.dfile";
+    public static final String DOCKER_IMAGE_TYPE_TAG = "DockerMCImageType";
 
     // -----  Registry  -----
     // Path to the Registry Certificate and key
@@ -59,6 +62,7 @@ public class Constants {
     public static final String SERVER_NAME_KEY = "ServerName";
     // Tag Key to identify types of Containers
     public static final String CONTAINER_IDENTIFIER_KEY = "Type";
+    public static final Map<String, String> DOCKER_IDENTIFIER_MAP = Collections.singletonMap(DOCKER_IDENTIFIER_KEY, DOCKER_IDENTIFIER_VALUE);
 
     // -----  Timings  -----
     // Time in seconds which containers have to get up and running

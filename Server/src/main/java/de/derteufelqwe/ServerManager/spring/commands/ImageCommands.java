@@ -1,27 +1,30 @@
 package de.derteufelqwe.ServerManager.spring.commands;
 
+import com.github.dockerjava.api.async.ResultCallback;
+import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.WaitContainerResultCallback;
-import com.github.dockerjava.api.model.Bind;
-import com.github.dockerjava.api.model.HostConfig;
-import com.github.dockerjava.api.model.Volume;
+import com.github.dockerjava.api.exception.DockerClientException;
+import com.github.dockerjava.api.model.*;
 import de.derteufelqwe.ServerManager.Docker;
-import de.derteufelqwe.ServerManager.ServerManager;
+import de.derteufelqwe.ServerManager.callbacks.ImageBuildCallback;
+import de.derteufelqwe.ServerManager.callbacks.ImagePushCallback;
 import de.derteufelqwe.ServerManager.config.MainConfig;
-import de.derteufelqwe.ServerManager.config.objects.CertificateCfg;
 import de.derteufelqwe.ServerManager.registry.DockerRegistryAPI;
 import de.derteufelqwe.ServerManager.registry.RegistryAPIException;
-import de.derteufelqwe.ServerManager.registry.objects.*;
-import de.derteufelqwe.ServerManager.setup.infrastructure.RegistryCertificates;
+import de.derteufelqwe.ServerManager.registry.objects.Catalog;
+import de.derteufelqwe.ServerManager.registry.objects.ImageManifest;
+import de.derteufelqwe.ServerManager.registry.objects.Tags;
 import de.derteufelqwe.ServerManager.tablebuilder.Column;
 import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
 import de.derteufelqwe.commons.Constants;
-import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.config.Config;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
+import org.checkerframework.checker.units.qual.A;
+import org.fusesource.jansi.Ansi;
+import org.fusesource.jansi.AnsiConsole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -31,17 +34,20 @@ import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 
 import javax.annotation.CheckForNull;
+import java.io.Closeable;
 import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 @ShellComponent
 @Log4j2
 @ShellCommandGroup(value = "image")
 public class ImageCommands {
+
+    private final Pattern RE_IMAGE_NAME = Pattern.compile("[a-z0-9]+(?:[._-]{1,2}[a-z0-9]+)*");
+    private final Pattern RE_IMAGE_TAG = Pattern.compile("[a-z0-9]+(?:[a-z0-9]+)*");
 
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
@@ -56,12 +62,15 @@ public class ImageCommands {
 
 
     @ShellMethod(value = "Lists all available images", key = "image list")
-    public void listImages() {
+    public void listImages(@ShellOption({"-nb", "--noBungee"}) boolean noBungee, @ShellOption({"-nm", "--noMinecraft"}) boolean noMinecraft) {
         Catalog catalog = registryAPI.getCatalog();
 
         TableBuilder tableBuilder = new TableBuilder()
                 .withColumn(new Column.Builder()
                         .withTitle("Name")
+                        .build())
+                .withColumn(new Column.Builder()
+                        .withTitle("Type")
                         .build())
                 .withColumn(new Column.Builder()
                         .withTitle("Tags")
@@ -81,8 +90,18 @@ public class ImageCommands {
                 additionalTags = tags.getTags().size() - 10;
             }
 
+            // Skip images based on the filter
+            ImageManifest manifest = registryAPI.getManifest(image, firstTags.get(0));
+            String type = manifest.getDMCImageType();
+
+            if (noMinecraft && type != null && type.equals(ImageType.MINECRAFT.name()))
+                continue;
+            if (noBungee && type != null && type.equals(ImageType.BUNGEE.name()))
+                continue;
+
             tableBuilder.addToColumn(0, image);
-            tableBuilder.addToColumn(1, String.join(", ", firstTags) + "  (" + additionalTags + " more)");
+            tableBuilder.addToColumn(1, type);
+            tableBuilder.addToColumn(2, String.join(", ", firstTags) + "  (" + additionalTags + " more)");
         }
 
         tableBuilder.build(log);
@@ -181,40 +200,39 @@ public class ImageCommands {
     }
 
     @ShellMethod(value = "Builds a new image for use in the swarm.", key = "image build")
-    public void buildImage(String imageType, String name, String tag) {
+    public void buildImage(String imageType, String name, @ShellOption(defaultValue = "latest") String tag) {
         ImageType type = parseImageType(imageType);
         if (type == null) {
             log.error("Invalid type {}.", imageType);
             return;
         }
 
-        // Create the required files
-        File dockerfileIn;
-        File dockerfileOut;
-        if (type == ImageType.MINECRAFT) {
-            dockerfileIn = new File(Constants.DOCKERFILE_MINECRAFT_PATH);
-            dockerfileOut = new File(Constants.IMAGE_MINECRAFT_PATH + name + "/Dockerfile");
+        name = name.toLowerCase();
+        tag = tag.toLowerCase();
 
-        } else {
-            dockerfileIn = new File(Constants.DOCKERFILE_BUNGEE_PATH);
-            dockerfileOut = new File(Constants.IMAGE_BUNGEE_PATH + name + "/Dockerfile");
+        // Check if name and tag are valid.
+        if (!RE_IMAGE_NAME.matcher(name).matches()) {
+            log.error("Invalid image name. It must follow this regex: {}", RE_IMAGE_NAME.pattern());
+            return;
         }
-
-        // Temporarily copy the dockerfile
-        try {
-            FileUtils.copyFile(dockerfileIn, dockerfileOut);
-
-        } catch (Exception e) {
-            log.error("Failed to copy Dockerfile. Error: {}.", e.getMessage());
+        if (!RE_IMAGE_TAG.matcher(tag).matches()) {
+            log.error("Invalid image tag. It must follow this regex: {}", RE_IMAGE_TAG.pattern());
+            return;
+        }
+        if (name.startsWith(Constants.REGISTRY_URL) || name.contains("/")) {
+            log.error("Invalid image name. It can't start with '{}' or container slashes.", Constants.REGISTRY_URL);
             return;
         }
 
+        String fullName = Constants.REGISTRY_URL + "/" + name + ":" + tag;
 
+        String imageID = this.buildImage(type, name, tag, fullName);
+        if (imageID == null)
+            return;
 
-        // Remove the dockerfile again
-        dockerfileOut.delete();
+        this.pushImage(fullName);
 
-        System.out.println("Done");
+        log.info("Successfully build and pushed image {}:{} ({}).", name, tag, imageID);
     }
 
     @CheckForNull
@@ -233,11 +251,78 @@ public class ImageCommands {
         }
     }
 
+    @SneakyThrows
+    @CheckForNull
+    private String buildImage(ImageType type, String name, String tag, String fullName) {
+        File dockerfileIn;
+        File dockerfileOut;
+        File sourceFolder;
+        if (type == ImageType.MINECRAFT) {
+            dockerfileIn = new File(Constants.DOCKERFILE_MINECRAFT_PATH);
+            dockerfileOut = new File(Constants.IMAGE_MINECRAFT_PATH + name + "/Dockerfile");
+            sourceFolder = new File(Constants.IMAGE_MINECRAFT_PATH + name + "/");
 
-    /*
-     *  docker run --rm --network overnet lhanxetus/deckschrubber -registry https://registry:5000 -username admin -password root -repos testmc -latest 0 -debug -insecure
-     *  openssl x509 -in ca.crt -noout -text
-     */
+        } else {
+            dockerfileIn = new File(Constants.DOCKERFILE_BUNGEE_PATH);
+            dockerfileOut = new File(Constants.IMAGE_BUNGEE_PATH + name + "/Dockerfile");
+            sourceFolder = new File(Constants.IMAGE_BUNGEE_PATH + name + "/");
+        }
+
+        // Check if the folder actually exists
+        if (!sourceFolder.exists()) {
+            log.error("Couldn't find image data folder {}.", name);
+            return null;
+        }
+
+        // Temporarily copy the dockerfile
+        try {
+            FileUtils.copyFile(dockerfileIn, dockerfileOut);
+//            File tmp = new File(Constants.IMAGE_MINECRAFT_PATH + name + "/tmp.txt");
+//            Random rnd = new Random();
+//            byte[] bytes = new byte[100];
+//            rnd.nextBytes(bytes);
+//            FileUtils.write(tmp, new String(bytes));
+
+        } catch (Exception e) {
+            log.error("Failed to copy Dockerfile. Error: {}.", e.getMessage());
+            return null;
+        }
+
+        // Build the image
+        BuildImageResultCallback callback = docker.getDocker().buildImageCmd(sourceFolder)
+                .withTags(Collections.singleton(fullName))
+                .withLabels(Collections.singletonMap(Constants.DOCKER_IMAGE_TYPE_TAG, type.name()))
+                .exec(new ImageBuildCallback())
+                .awaitCompletion();
+
+        // Fetch the ID
+        String imageID;
+        try {
+            imageID = callback.awaitImageId();
+        } catch (DockerClientException e) {
+            log.error("Building image {}:{} failed with: {}.", name, tag, e.getMessage());
+            return null;
+        }
+
+        // Remove the dockerfile again
+        dockerfileOut.delete();
+
+        return imageID;
+    }
+
+    @SneakyThrows
+    private boolean pushImage(String imageName) {
+        docker.getDocker().pushImageCmd(imageName)
+                .withAuthConfig(new AuthConfig()
+                        .withUsername(mainConfig.get().getRegistryUsername())
+                        .withPassword(mainConfig.get().getRegistryPassword()))
+                .exec(new ImagePushCallback())
+                .awaitCompletion()
+                .awaitSuccess();
+
+        return true;
+    }
+
 
     @SneakyThrows
     @ShellMethod(value = "testing", key = "test")

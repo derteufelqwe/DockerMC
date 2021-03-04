@@ -12,4 +12,5 @@ HEALTHCHECK --interval=10s --start-period=10s --retries=2 --timeout=2s CMD curl 
 
 COPY . /server
 
+
 CMD ["java", "-XX:+UseContainerSupport", "-Xmx2G", "-jar", "papermc.jar" ]

@@ -9,12 +9,15 @@ import de.derteufelqwe.ServerManager.registry.DockerRegistryAPI;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
+import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Environment;
+import org.jline.terminal.Terminal;
 import org.postgresql.Driver;
 import org.postgresql.ds.PGSimpleDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -54,14 +57,14 @@ public class MyConfig {
         return ServerManager.SERVERS_CONFIG;
     }
 
-    @Bean
+    @Bean @Lazy
     public JedisConnectionFactory getRedisFactory() {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration("ubuntu1", 6379);
 
         return new JedisConnectionFactory(config);
     }
 
-    @Bean
+    @Bean @Lazy
     public RedisTemplate<String, Object> getRedisTemplate() {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(this.getRedisFactory());
@@ -69,7 +72,7 @@ public class MyConfig {
         return template;
     }
 
-    @Bean
+    @Bean @Lazy
     public LocalSessionFactoryBean sessionFactoryBean() {
         LocalSessionFactoryBean sessionFactoryBean = new LocalSessionFactoryBean();
         sessionFactoryBean.setDataSource(this.dataSource());
@@ -79,7 +82,7 @@ public class MyConfig {
         return sessionFactoryBean;
     }
 
-    @Bean
+    @Bean @Lazy
     public DataSource dataSource() {
         PGSimpleDataSource dataSource = new PGSimpleDataSource();
         dataSource.setServerName("ubuntu1");
@@ -103,17 +106,21 @@ public class MyConfig {
         return properties;
     }
 
-    @Bean
+    @Bean @Lazy
     public PlatformTransactionManager hibernateTransactionManager() {
+        LocalSessionFactoryBean sessionFactoryBean = new LocalSessionFactoryBean();
+        sessionFactoryBean.setDataSource(this.dataSource());
+        sessionFactoryBean.setPackagesToScan("de.derteufelqwe.commons.hibernate.objects");
+        sessionFactoryBean.setHibernateProperties(this.hibernateProperties());
+
         HibernateTransactionManager transactionManager = new HibernateTransactionManager();
-        transactionManager.setSessionFactory(this.sessionFactoryBean().getObject());
+        transactionManager.setSessionFactory(sessionFactoryBean.getObject());
 
         return transactionManager;
     }
 
     @Bean
     public DockerRegistryAPI dockerRegistryAPI() {
-//        return null;
         return new DockerRegistryAPI("https://" + Constants.REGISTRY_URL, mainConfig.get().getRegistryUsername(), mainConfig.get().getRegistryPassword());
     }
 
