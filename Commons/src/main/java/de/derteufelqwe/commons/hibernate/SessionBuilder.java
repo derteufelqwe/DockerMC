@@ -1,18 +1,18 @@
 package de.derteufelqwe.commons.hibernate;
 
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.exceptions.DockerMCException;
 import de.derteufelqwe.commons.hibernate.objects.*;
 import de.derteufelqwe.commons.hibernate.objects.economy.*;
-import de.derteufelqwe.commons.hibernate.objects.permissions.*;
-import lombok.Getter;
+import de.derteufelqwe.commons.hibernate.objects.permissions.Permission;
+import de.derteufelqwe.commons.hibernate.objects.permissions.PermissionGroup;
+import de.derteufelqwe.commons.hibernate.objects.permissions.PlayerToPermissionGroup;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
-import org.hibernate.engine.spi.SessionFactoryDelegatingImpl;
-import org.hibernate.internal.SessionFactoryImpl;
+import org.hibernate.exception.JDBCConnectionException;
 
-import javax.sql.DataSource;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -46,11 +46,14 @@ public class SessionBuilder {
     }
 
 
-    public void init() {
+    public void init() throws JDBCConnectionException {
+        if (sessionFactory != null)
+            sessionFactory.close();
+
         this.sessionFactory = this.buildSessionFactory();
     }
 
-    
+
     public Properties getProperties() {
         Properties properties = new Properties();
 
@@ -102,10 +105,18 @@ public class SessionBuilder {
             config.addAnnotatedClass(clazz);
         }
 
-        return config.buildSessionFactory();
+        try {
+            return config.buildSessionFactory();
+
+        } catch (NullPointerException e) {
+            throw new DockerMCException(e);
+        }
     }
 
     public Session openSession() {
+        if (sessionFactory == null)
+            this.init();
+
         return this.sessionFactory.openSession();
     }
 

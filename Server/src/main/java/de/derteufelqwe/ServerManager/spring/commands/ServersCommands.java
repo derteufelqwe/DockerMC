@@ -2,11 +2,13 @@ package de.derteufelqwe.ServerManager.spring.commands;
 
 import com.github.dockerjava.api.model.Service;
 import de.derteufelqwe.ServerManager.Docker;
+import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.spring.events.CheckInfrastructureEvent;
 import de.derteufelqwe.ServerManager.spring.events.ReloadConfigEvent;
 import de.derteufelqwe.ServerManager.tablebuilder.Column;
 import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import lombok.extern.log4j.Log4j2;
 import org.hibernate.Session;
@@ -36,12 +38,12 @@ public class ServersCommands {
 
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
-    @Autowired @Lazy
-    private SessionFactory sessionFactory;
     @Autowired
     private Docker docker;
     @Autowired
     private StringRedisTemplate redisTemplate;
+    @Autowired
+    private SessionBuilder sessionBuilder;
 
 
     @ShellMethod(value = "Lists all running BungeeCord and Minecraft server", key = "server list-services")
@@ -78,7 +80,7 @@ public class ServersCommands {
 
     @ShellMethod(value = "Lists all minecraft containers", key = "server list-containers")
     private void listContainers() {
-        try (Session session = sessionFactory.openSession()) {
+        try (Session session = sessionBuilder.openSession()) {
             List<DBContainer> containers = session.createNativeQuery(
                     "SELECT * FROM containers AS c WHERE c.exitcode IS NULL",
                     DBContainer.class).getResultList();

@@ -18,12 +18,16 @@ import de.derteufelqwe.ServerManager.spring.events.CheckInfrastructureEvent;
 import de.derteufelqwe.ServerManager.spring.events.ReloadConfigEvent;
 import de.derteufelqwe.ServerManager.utils.Utils;
 import de.derteufelqwe.commons.config.Config;
+import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.NotImplementedException;
+import org.hibernate.exception.JDBCConnectionException;
+import org.hibernate.service.spi.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -43,6 +47,8 @@ public class EventHandler {
     private Docker docker;
     @Autowired
     private Config<ServersConfig> serversConfig;
+    @Autowired
+    private SessionBuilder sessionBuilder;
 
 
     /**
@@ -181,6 +187,12 @@ public class EventHandler {
             case OK:
                 log.info("Created Postgres DB container successfully.");
                 Utils.sleep(TimeUnit.SECONDS, 5);
+                try {
+                    sessionBuilder.init();
+
+                } catch (ServiceException e) {
+                    log.error("Failed to connect to postgres database after database setup.");
+                }
                 break;
             case RUNNING:
                 log.info("Postgres DB container already running.");

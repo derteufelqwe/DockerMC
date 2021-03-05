@@ -9,8 +9,11 @@ import de.derteufelqwe.ServerManager.registry.DockerRegistryAPI;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
+import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Environment;
+import org.hibernate.service.spi.ServiceException;
 import org.jline.terminal.Terminal;
 import org.postgresql.Driver;
 import org.postgresql.ds.PGSimpleDataSource;
@@ -31,7 +34,11 @@ import java.util.Properties;
 
 @Configuration
 @EnableTransactionManagement
+@Log4j2
 public class MyConfig {
+
+    @Getter
+    private static SessionBuilder sessionBuilder;
 
     @Autowired
     private Config<MainConfig> mainConfig;
@@ -57,14 +64,14 @@ public class MyConfig {
         return ServerManager.SERVERS_CONFIG;
     }
 
-    @Bean @Lazy
+    @Bean
     public JedisConnectionFactory getRedisFactory() {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration("ubuntu1", 6379);
 
         return new JedisConnectionFactory(config);
     }
 
-    @Bean @Lazy
+    @Bean
     public RedisTemplate<String, Object> getRedisTemplate() {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(this.getRedisFactory());
@@ -72,51 +79,18 @@ public class MyConfig {
         return template;
     }
 
-    @Bean @Lazy
-    public LocalSessionFactoryBean sessionFactoryBean() {
-        LocalSessionFactoryBean sessionFactoryBean = new LocalSessionFactoryBean();
-        sessionFactoryBean.setDataSource(this.dataSource());
-        sessionFactoryBean.setPackagesToScan("de.derteufelqwe.commons.hibernate.objects");
-        sessionFactoryBean.setHibernateProperties(this.hibernateProperties());
+    @Bean
+    SessionBuilder sessionBuilderBean() {
+        sessionBuilder = new SessionBuilder("admin", "password", "ubuntu1", Constants.POSTGRESDB_PORT, false);
 
-        return sessionFactoryBean;
-    }
+        try {
+            sessionBuilder.init();
 
-    @Bean @Lazy
-    public DataSource dataSource() {
-        PGSimpleDataSource dataSource = new PGSimpleDataSource();
-        dataSource.setServerName("ubuntu1");
-        dataSource.setDatabaseName("postgres");
-        dataSource.setUser("admin");
-        dataSource.setPassword("password");
+        } catch (Exception e) {
+            log.warn("Couldn't connect to postgres database. Maybe it's just not started yet.");
+        }
 
-        return dataSource;
-    }
-
-    private final Properties hibernateProperties() {
-        Properties properties = new Properties();
-
-        properties.setProperty(Environment.DIALECT, "org.hibernate.dialect.PostgreSQLDialect");
-        properties.setProperty(Environment.SHOW_SQL, "false");
-        properties.setProperty(Environment.HBM2DDL_AUTO, "update"); // create / update
-        properties.setProperty(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread");
-        properties.setProperty(Environment.PHYSICAL_NAMING_STRATEGY, "org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl");
-        properties.setProperty(Environment.POOL_SIZE, "32");
-
-        return properties;
-    }
-
-    @Bean @Lazy
-    public PlatformTransactionManager hibernateTransactionManager() {
-        LocalSessionFactoryBean sessionFactoryBean = new LocalSessionFactoryBean();
-        sessionFactoryBean.setDataSource(this.dataSource());
-        sessionFactoryBean.setPackagesToScan("de.derteufelqwe.commons.hibernate.objects");
-        sessionFactoryBean.setHibernateProperties(this.hibernateProperties());
-
-        HibernateTransactionManager transactionManager = new HibernateTransactionManager();
-        transactionManager.setSessionFactory(sessionFactoryBean.getObject());
-
-        return transactionManager;
+        return sessionBuilder;
     }
 
     @Bean

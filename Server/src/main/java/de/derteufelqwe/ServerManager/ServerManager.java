@@ -7,12 +7,21 @@ import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
 import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
+import de.derteufelqwe.commons.hibernate.SessionBuilder;
+import lombok.extern.log4j.Log4j2;
+import org.hibernate.exception.JDBCConnectionException;
+import org.hibernate.service.spi.ServiceException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
+
+import java.net.ConnectException;
 
 
 @SpringBootApplication
+@Log4j2
 public class ServerManager {
 
     public static final boolean SKIP_STARTUP_CHECKS = true;
