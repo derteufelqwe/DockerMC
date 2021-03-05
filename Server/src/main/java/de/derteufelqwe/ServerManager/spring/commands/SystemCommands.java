@@ -1,5 +1,6 @@
 package de.derteufelqwe.ServerManager.spring.commands;
 
+import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Service;
 import com.sun.javaws.exceptions.InvalidArgumentException;
@@ -204,6 +205,24 @@ public class SystemCommands {
             return;
         }
 
+        PostgresDBContainer postgresDBContainer = new PostgresDBContainer();
+        postgresDBContainer.init(docker);
+        if (postgresDBContainer.find().isFound()) {
+            log.error("Postgres must be stopped for full data deletion!");
+            return;
+        }
+
+        try {
+            docker.getDocker().removeVolumeCmd(Constants.REGISTRY_VOLUME_NAME).exec();
+
+        } catch (NotFoundException ignored) {}
+
+        try {
+            docker.getDocker().removeVolumeCmd(Constants.POSTGRES_VOLUME_NAME).exec();
+
+        } catch (NotFoundException ignored) {}
+
+        log.info("Deleted all volumes DockerMC volumes.");
     }
 
 }

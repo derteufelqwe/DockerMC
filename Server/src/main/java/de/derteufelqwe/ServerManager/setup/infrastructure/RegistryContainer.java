@@ -39,7 +39,7 @@ public class RegistryContainer extends ExposableContainerTemplate {
         List<Bind> mounts = super.getBindMounts();
 
         mounts.add(
-                new Bind("registry_data", new Volume("/var/lib/registry"), false)
+                new Bind(Constants.REGISTRY_VOLUME_NAME, new Volume("/var/lib/registry"), false)
         );
         mounts.add(
                 new Bind(Constants.REGISTRY_CERT_PATH_2, new Volume("/auth"))

@@ -39,20 +39,20 @@ public class Constants {
 
     // -----  Registry  -----
     // Path to the Registry Certificate and key
-    private static final String registryCertPath = "server/internal/security/registry-certs/";
-
+    private static final String REGISTRY_CERT_PATH = "server/internal/security/registry-certs/";
     /**
      * Normal registry certs path that can be a windows or linux path depending on where the program was executed.
      */
-    public static final String REGISTRY_CERT_PATH_1 = WORKDIR + registryCertPath;
+    public static final String REGISTRY_CERT_PATH_1 = WORKDIR + REGISTRY_CERT_PATH;
     /**
      * Special registry certs path, which is always a linux path. This is required for the docker mounts
      */
-    public static final String REGISTRY_CERT_PATH_2 = WORKDIR_LNX + registryCertPath;
+    public static final String REGISTRY_CERT_PATH_2 = WORKDIR_LNX + REGISTRY_CERT_PATH;
     public static final String REGISTRY_CERT_NAME  = "ca.crt";
     public static final String REGISTRY_KEY_NAME  = "ca.key";
     public static final String REGISTRY_HTPASSWD_NAME = "htpasswd";
     public static final String REGISTRY_URL = "registry.swarm";
+    public static final String REGISTRY_VOLUME_NAME = "registry_data";
 
     // -----  Tags  -----
     // Identifies a container, which belongs the DockerMC
@@ -73,6 +73,7 @@ public class Constants {
     // -----  Postgres  -----
     public static final String POSTGRESDB_CONTAINER_NAME = "Postgres";
     public static final int POSTGRESDB_PORT = 5432;
+    public static final String POSTGRES_VOLUME_NAME = "dmc_postgres_data";
     public static final UUID CONSOLE_USER_UUID = new UUID(Long.MAX_VALUE, Long.MAX_VALUE);
     public static final String CONSOLE_USER_NAME = "Console-Website-User";
 
@@ -140,24 +141,6 @@ public class Constants {
         public String image() {
             return this.imageName;
         }
-    }
-
-    public enum Configs {
-        MAIN("MainConfig.yml"),
-        INFRASTRUCTURE("InfrastructureConfig.yml"),
-        SYSTEM("SystemData.yml")
-        ;
-
-        private String fileName;
-
-        Configs(String name) {
-            this.fileName = name;
-        }
-
-        public String filename() {
-            return this.fileName;
-        }
-
     }
 
 }

@@ -51,7 +51,7 @@ public class PostgresDBContainer extends ExposableContainerTemplate {
         List<Mount> mounts = super.getMounts();
 
         mounts.add(new Mount()
-                .withSource("dmc_postgres_data")
+                .withSource(Constants.POSTGRES_VOLUME_NAME)
                 .withTarget("/var/lib/postgresql/data")
                 .withType(MountType.VOLUME)
         );
