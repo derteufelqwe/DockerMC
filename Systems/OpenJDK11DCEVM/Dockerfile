@@ -4,7 +4,7 @@ ENV JDK_URL="https://github.com/TravaOpenJDK/trava-jdk-11-dcevm/releases/downloa
 ENV JAVA_HOME="/dcevm-11.0.10+3"
 ENV PATH="$PATH:$JAVA_HOME/bin"
 
-RUN apt update && apt install -y wget
+RUN apt update && apt install -y wget curl
 
 RUN wget -O OpenJDK11.tar.gz $JDK_URL
 

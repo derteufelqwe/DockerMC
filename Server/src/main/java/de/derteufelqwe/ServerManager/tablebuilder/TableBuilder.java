@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -16,6 +17,7 @@ public class TableBuilder {
     private String crossSeparator = "+";
     private String outerSeparator = "";
     private boolean bottomLine = false;
+    private boolean topLine = false;
 
     private List<Column> columns = new ArrayList<>();
 
@@ -131,6 +133,11 @@ public class TableBuilder {
         sb.append("\n");
         sb.append(sep);
 
+        // First line header
+        if (topLine) {
+            sb.insert(0, sep.toString() + "\n");
+        }
+
         // --- Column entries ---
 
         Optional<Integer> longestColumn = this.columns.stream().map(c -> c.getCells().size()).max(Integer::compareTo);
@@ -172,13 +179,18 @@ public class TableBuilder {
 
 
 
-    public void addToColumn(int index, String... lines) {
+    public void addToColumn(int index, Object... lines) {
         if (columns.size() == 0)
             throw new RuntimeException("No columns added.");
         if (index > columns.size() - 1)
             throw new RuntimeException(String.format("Index %s too large. Only %s columns were added.", index, columns.size()));
 
-        this.columns.get(index).addCell(String.join("\n", lines));
+        String line = Arrays.stream(lines)
+                .map(l -> l == null ? "null" : l)
+                .map(Object::toString)
+                .collect(Collectors.joining("\n"));
+
+        this.columns.get(index).addCell(line);
     }
 
 
@@ -209,6 +221,11 @@ public class TableBuilder {
 
     public TableBuilder withBottomLine() {
         this.bottomLine = true;
+        return this;
+    }
+
+    public TableBuilder withTopLine() {
+        this.topLine = true;
         return this;
     }
 

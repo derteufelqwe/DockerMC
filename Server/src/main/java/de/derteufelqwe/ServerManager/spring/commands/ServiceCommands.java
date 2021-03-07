@@ -1,5 +1,6 @@
 package de.derteufelqwe.ServerManager.spring.commands;
 
+import com.github.dockerjava.api.command.HealthStateLog;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Container;
@@ -10,20 +11,14 @@ import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
 import de.derteufelqwe.ServerManager.utils.Utils;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
-import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import lombok.extern.log4j.Log4j2;
-import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @ShellComponent
@@ -82,6 +77,14 @@ public class ServiceCommands {
             return;
         }
 
+        TableBuilder tableBuilder = new TableBuilder()
+                .withColumn(new Column.Builder()
+                        .withTitle("Attribute")
+                        .build())
+                .withColumn(new Column.Builder()
+                        .withTitle("Value")
+                        .build());
+
         String currentNodeID = Utils.getLocalSwarmNode(docker);
 
         Map<String, String> filters = new HashMap<>();
@@ -98,12 +101,63 @@ public class ServiceCommands {
                 .map(c -> docker.getDocker().inspectContainerCmd(c.getId()).exec())
                 .collect(Collectors.toList());
 
-        // Log the info
-        log.info("ID: {}", service.getId());
-        log.info("Name: {}", service.getSpec().getName());
-        log.info("Updated: {}", service.getUpdatedAt());
-        log.info("Wanted replicas: {}", service.getSpec().getMode().getReplicated().getReplicas());
+        Set<String> health = this.getHealthLogs(inspectContainerResponses);
 
+        // --- Log the infos ---
+        tableBuilder.addToColumn(0, "ID");
+        tableBuilder.addToColumn(1, service.getId());
+
+        tableBuilder.addToColumn(0, "Name");
+        tableBuilder.addToColumn(1, service.getSpec().getName());
+
+        tableBuilder.addToColumn(0, "Updated");
+        tableBuilder.addToColumn(1, service.getUpdatedAt().toString());
+
+        tableBuilder.addToColumn(0, "Wanted replicas");
+        tableBuilder.addToColumn(1, service.getSpec().getMode().getReplicated().getReplicas());
+
+        tableBuilder.addToColumn(0, "Health");
+        if (health.size() == 0)
+            tableBuilder.addToColumn(1, "(healthy)");
+        else
+            tableBuilder.addToColumn(1, health);
+
+        tableBuilder.build(log);
+    }
+
+
+
+    /**
+     * Analyzes the health checks of containers and returns a set of their error outputs
+     * @param containers
+     * @return
+     */
+    private Set<String> getHealthLogs(List<InspectContainerResponse> containers) {
+        Set<String> logs = new HashSet<>();
+
+        List<InspectContainerResponse.ContainerState> states = containers.stream()
+                .map(InspectContainerResponse::getState)
+                .filter(s -> !s.getRunning())
+                .collect(Collectors.toList());
+
+        if (states.size() == 0)
+            return logs;
+
+        for (InspectContainerResponse.ContainerState state : states) {
+            // Containers with no health checks have no health property
+            if (state.getHealth() == null)
+                continue;
+
+            Set<String> healthLogs = state.getHealth().getLog().stream()
+                    .map(HealthStateLog::getOutput)
+                    .map(l -> l.replace("\n", ""))
+                    .map(l -> l.replace("\r", ""))
+                    .collect(Collectors.toSet());
+
+            logs.addAll(healthLogs);
+        }
+
+        return logs;
     }
 
 }
