@@ -46,38 +46,6 @@ public class ServersCommands {
     private SessionBuilder sessionBuilder;
 
 
-    @ShellMethod(value = "Lists all running BungeeCord and Minecraft server", key = "server list-services")
-    public void listServices() {
-        String lobbyServerName = redisTemplate.opsForValue().get(Constants.REDIS_KEY_LOBBYSERVER);
-
-        List<Service> services = docker.getDocker().listServicesCmd()
-                .withLabelFilter(Collections.singletonMap(Constants.DOCKER_IDENTIFIER_KEY, Constants.DOCKER_IDENTIFIER_VALUE))
-                .exec();
-
-        TableBuilder tableBuilder = new TableBuilder()
-                .withColumn(new Column.Builder()
-                        .withTitle("Name")
-                        .build())
-                .withColumn(new Column.Builder()
-                        .withTitle("ID")
-                        .build())
-                .withColumn(new Column.Builder()
-                        .withTitle("Type")
-                        .build());
-
-        for (Service service : services) {
-            String name = service.getSpec().getName();
-            String lobbyAppend = name.equals(lobbyServerName) ? " (LobbyServer)" : "";
-            String type = service.getSpec().getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY);
-
-            tableBuilder.addToColumn(0, name);
-            tableBuilder.addToColumn(1, service.getId());
-            tableBuilder.addToColumn(2, type + lobbyAppend);
-        }
-
-        tableBuilder.build(log);
-    }
-
     @ShellMethod(value = "Lists all minecraft containers", key = "server list-containers")
     private void listContainers() {
         try (Session session = sessionBuilder.openSession()) {

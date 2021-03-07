@@ -1,8 +1,7 @@
 package de.derteufelqwe.ServerManager.spring.commands;
 
 import com.github.dockerjava.api.exception.NotFoundException;
-import com.github.dockerjava.api.model.Container;
-import com.github.dockerjava.api.model.Service;
+import com.github.dockerjava.api.model.*;
 import com.sun.javaws.exceptions.InvalidArgumentException;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
@@ -11,6 +10,8 @@ import de.derteufelqwe.ServerManager.setup.infrastructure.RedisContainer;
 import de.derteufelqwe.ServerManager.setup.infrastructure.RegistryContainer;
 import de.derteufelqwe.ServerManager.spring.events.CheckInfrastructureEvent;
 import de.derteufelqwe.ServerManager.spring.events.ReloadConfigEvent;
+import de.derteufelqwe.ServerManager.tablebuilder.Column;
+import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
 import de.derteufelqwe.commons.Constants;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.core.tools.picocli.CommandLine;
@@ -31,8 +32,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @ShellComponent
 @Log4j2
@@ -96,6 +100,7 @@ public class SystemCommands {
             else
                 log.info(String.format("Expiration   : %s", certificate.getNotAfter().toString()));
             log.info(String.format("Serialnumber : %s", certificate.getSerialNumber().toString()));
+            log.info(String.format("Path         : %s", "'/etc/docker/certs.d/" + Constants.REGISTRY_URL + "'"));
 
         } catch (IOException e) {
             log.warn("Certificate not found! Make sure it's generated.");
@@ -223,6 +228,57 @@ public class SystemCommands {
         } catch (NotFoundException ignored) {}
 
         log.info("Deleted all volumes DockerMC volumes.");
+    }
+
+    @ShellMethod(value = "Lists all available docker nodes", key = "system list-nodes")
+    public void listNodes() {
+        Info info = docker.getDocker().infoCmd().exec();
+        String currentNodeId = info.getSwarm().getNodeID();
+        List<SwarmNode> nodes = docker.getDocker().listSwarmNodesCmd().exec();
+
+        TableBuilder tableBuilder = new TableBuilder()
+                .withColumn(new Column.Builder()
+                        .withTitle("NodeID")
+                        .build())
+                .withColumn(new Column.Builder()
+                        .withTitle("Name")
+                        .build())
+                .withColumn(new Column.Builder()
+                        .withTitle("Status")
+                        .withMinWidth(8)
+                        .build())
+                .withColumn(new Column.Builder()
+                        .withTitle("IP")
+                        .build())
+                .withColumn(new Column.Builder()
+                        .withTitle("Role")
+                        .build())
+                ;
+
+        for (SwarmNode node : nodes) {
+            String idPrefix = node.getId().equals(currentNodeId) ? "> " : "";
+            Map<String, String> labels = node.getSpec().getLabels();
+
+            tableBuilder.addToColumn(0, idPrefix + node.getId());
+            tableBuilder.addToColumn(1, labels.getOrDefault("name", "<NO_NAME>"));
+            tableBuilder.addToColumn(2, node.getSpec().getAvailability().name());
+            tableBuilder.addToColumn(3, node.getStatus().getAddress());
+            tableBuilder.addToColumn(4, node.getSpec().getRole().name());
+        }
+
+        tableBuilder.build(log);
+    }
+
+    @ShellMethod(value = "Returns the required information to join a new node to the swarm", key = "system join-node")
+    public void joinNode() {
+        Swarm swarm = docker.getDocker().inspectSwarmCmd().exec();
+        SwarmInfo swarmInfo = docker.getDocker().infoCmd().exec().getSwarm();
+
+        log.info("To join a new node to the swarm enter the following command on the host you want to join.");
+        log.info("docker swarm join --token {} {}:2377", swarm.getJoinTokens().getWorker(), swarmInfo.getNodeAddr());
+
+        log.info("Afterwards you can add a name to your node if you wish using the following command. (Replace NAME and NODE_ID with the fitting values)");
+        log.info("docker node update --label-add name=<NAME> <NODE_ID>");
     }
 
 }

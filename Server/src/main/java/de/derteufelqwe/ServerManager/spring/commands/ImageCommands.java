@@ -226,6 +226,7 @@ public class ImageCommands {
 
         String fullName = Constants.REGISTRY_URL + "/" + name + ":" + tag;
 
+        log.info("Building image {}:{}.", name, tag);
         String imageID = this.buildImage(type, name, tag, fullName);
         if (imageID == null)
             return;
@@ -327,7 +328,19 @@ public class ImageCommands {
     @SneakyThrows
     @ShellMethod(value = "testing", key = "test")
     public void test() {
-        buildImage("MC", "testmc", "latest");
+        String currentNode = docker.getDocker().infoCmd().exec().getSwarm().getNodeID();
+
+        Map<String, String> filters = new HashMap<>();
+            filters.put("com.docker.swarm.node.id", currentNode);
+            filters.put("com.docker.swarm.service.id", "tlctm2ek8rpj6uhtcblr41q6c");
+
+        List<Container> containers = docker.getDocker().listContainersCmd()
+                .withLabelFilter(filters)
+                .withStatusFilter(Collections.singleton("exited"))
+                .withShowAll(true)
+                .exec();
+
+        System.out.println("done");
     }
 
 

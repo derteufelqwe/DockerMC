@@ -16,7 +16,7 @@ public class Column {
     private String paddingLeft = " ";
     private String paddingRight = " ";
 
-    private List<String> cells = new ArrayList<>();
+    private List<Cell> cells = new ArrayList<>();
 
 
     private Column() {
@@ -25,14 +25,14 @@ public class Column {
 
 
     public void addCell(String data) {
-        this.cells.add(data);
+        this.cells.add(new Cell(data, this));
     }
 
     /**
      * Returns the the width of the row. The length of the individual cells and widthMax are taken into account aswell.
      */
     public int getWidth() {
-        Optional<Integer> width = this.cells.stream().map(String::length).max(Integer::compareTo);
+        Optional<Integer> width = this.cells.stream().map(Cell::getMaxWitdh).max(Integer::compareTo);
         if (width.isPresent() && width.get() > withMin)
             if (widthMax <= 0 || width.get() < widthMax)
                 return width.get();
@@ -43,21 +43,29 @@ public class Column {
     }
 
     /**
-     * Returns a cell or "" if it doesn't exist.
+     * Returns the required height of the row.
      * @return
      */
-    @NotNull
-    public String getCell(int index) {
-        if (index >= cells.size())
-            return "";
+    public int getHeight() {
+        Optional<Integer> heigth = this.cells.stream().map(Cell::getHeight).max(Integer::compareTo);
+        if (heigth.isPresent())
+            return heigth.get();
 
-        String data = cells.get(index);
-        if (widthMax > 0 && data.length() > widthMax)
-            return data.substring(0, widthMax);
-
-        return data;
+        return 0;
     }
 
+    @NotNull
+    public Cell getCell(int index) {
+        if (index < cells.size())
+            return cells.get(index);
+
+        return new Cell("", this);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Column<%s, %s>", title, cells.size());
+    }
 
     public static class Builder {
 

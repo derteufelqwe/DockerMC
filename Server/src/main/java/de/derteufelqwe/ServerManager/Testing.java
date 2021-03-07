@@ -11,12 +11,26 @@ public class Testing {
 
     @SneakyThrows
     public static void main(String[] args) {
-        DockerRegistryAPI api = new DockerRegistryAPI("https://registry.swarm", "admin", "root");
-        for (int i = 0; i < 1000; i++) {
-            api.getManifest("testmc", "latest");
-            System.out.print("\rIteration " + i);
-        }
-        System.out.println("Done");
+
+        TableBuilder tableBuilder = new TableBuilder()
+//                .withOuterSeparator('|')
+//                .withBottomLine()
+                .withColumn(new Column.Builder()
+                        .withTitle("Title")
+                        .build())
+                .withColumn(new Column.Builder()
+                        .withTitle("Content")
+                        .build());
+
+        tableBuilder.addToColumn(0, "A");
+        tableBuilder.addToColumn(1, "1", "2");
+
+        tableBuilder.addToColumn(0, "B\n\nYo");
+        tableBuilder.addToColumn(1, "1\n2\n3\n4");
+
+        tableBuilder.addToColumn(1, "1\n2");
+
+        System.out.println(tableBuilder.build());
     }
 
 }

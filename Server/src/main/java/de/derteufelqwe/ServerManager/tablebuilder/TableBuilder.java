@@ -3,17 +3,17 @@ package de.derteufelqwe.ServerManager.tablebuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
-import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class TableBuilder {
 
     private String columnSeparator = "|";
     private String headerSeparator = "-";
-    private String headerCrossSymbol = "+";
+    private String crossSeparator = "+";
     private String outerSeparator = "";
     private boolean bottomLine = false;
 
@@ -24,11 +24,84 @@ public class TableBuilder {
 
     }
 
+    private int getRowHeight(int rowIndex) {
+        Optional<Integer> height = columns.stream()
+                .map(c -> c.getCell(rowIndex))
+                .map(Cell::getHeight)
+                .max(Integer::compareTo);
+
+        if (height.isPresent())
+            return height.get();
+
+        return 0;
+    }
+
+    /**
+     * Builds a single row of the table
+     * @param index Index of the row to build
+     * @return
+     */
+    private String buildRow(int index) {
+        StringBuilder sb = new StringBuilder();
+
+        // All cells in that row
+        List<Cell> cells = columns.stream()
+                .map(c -> c.getCell(index))
+                .collect(Collectors.toList());;
+
+        Optional<Integer> maxheightOptional = cells.stream()
+                .map(Cell::getHeight)
+                .max(Integer::compareTo);
+
+        if (!maxheightOptional.isPresent())
+            return "";
+
+        // The max height of all cells in that row
+        int maxHeight = maxheightOptional.get();
+
+
+        // Cell height iterator
+        for (int i = 0; i < maxHeight; i++) {
+            sb.append(outerSeparator);
+
+            // Cell iterator
+            for (int j = 0; j < cells.size(); j++) {
+                Cell cell = cells.get(j);
+                Column column = cell.getColumn();
+
+                // Left padding
+                sb.append(column.getPaddingLeft());
+
+                // Entry
+                sb.append(String.format("%-" + column.getWidth() + "s", cell.getLine(i)));
+
+                // Right padding
+                sb.append(column.getPaddingRight());
+
+                // Cell separator
+                if (j < columns.size() - 1) {
+                    sb.append(columnSeparator);
+                }
+            }
+            sb.append(outerSeparator);
+
+            // Newline in the cell
+            if (i < maxHeight - 1)
+                sb.append("\n");
+        }
+
+        return sb.toString();
+    }
+
     public String build() {
         StringBuilder sb = new StringBuilder();
         StringBuilder sep = new StringBuilder();
 
-        sb.append(outerSeparator);
+        // --- Build the heading ---
+        sb.append(outerSeparator);  // Outer separator (left)
+        if (!outerSeparator.equals(""))
+            sep.append(crossSeparator);
+
         for (int i = 0; i < columns.size(); i++) {
             Column column = columns.get(i);
 
@@ -47,10 +120,14 @@ public class TableBuilder {
             // Separator
             if (i < columns.size() - 1) {
                 sb.append(columnSeparator);
-                sep.append(headerCrossSymbol);
+                sep.append(crossSeparator);
             }
         }
-        // Separator line
+        sb.append(outerSeparator);  // Outer separator (right)
+        if (!outerSeparator.equals(""))
+            sep.append(crossSeparator);
+
+        // Heading separator line
         sb.append("\n");
         sb.append(sep);
 
@@ -61,27 +138,17 @@ public class TableBuilder {
             return sb.toString();
 
 
+        // Column height iterator (row iterator)
         for (int i = 0; i < longestColumn.get(); i++) {
             sb.append("\n");
 
-            for (int j = 0; j < columns.size(); j++) {
-                Column column = columns.get(j);
+            sb.append(buildRow(i));
 
-                // Left padding
-                sb.append(column.getPaddingLeft());
-
-                // Entry
-                sb.append(String.format("%-" + column.getWidth() + "s", column.getCell(i)));
-
-                // Right padding
-                sb.append(column.getPaddingRight());
-
-                // Separator
-                if (j < columns.size() - 1) {
-                    sb.append(columnSeparator);
-                }
+            // Separator line after row
+            if (i < longestColumn.get() - 1) {
+                sb.append("\n");
+                sb.append(sep);
             }
-
         }
 
         // Last line
@@ -105,13 +172,13 @@ public class TableBuilder {
 
 
 
-    public void addToColumn(int index, String data) {
+    public void addToColumn(int index, String... lines) {
         if (columns.size() == 0)
             throw new RuntimeException("No columns added.");
         if (index > columns.size() - 1)
             throw new RuntimeException(String.format("Index %s too large. Only %s columns were added.", index, columns.size()));
 
-        this.columns.get(index).addCell(data);
+        this.columns.get(index).addCell(String.join("\n", lines));
     }
 
 
@@ -130,8 +197,8 @@ public class TableBuilder {
         return this;
     }
 
-    public TableBuilder withHeaderCrossSeparator(char separator) {
-        this.headerCrossSymbol = Character.toString(separator);
+    public TableBuilder withCrossSeparator(char separator) {
+        this.crossSeparator = Character.toString(separator);
         return this;
     }
 

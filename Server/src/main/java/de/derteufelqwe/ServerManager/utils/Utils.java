@@ -1,5 +1,6 @@
 package de.derteufelqwe.ServerManager.utils;
 
+import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.utils.Pair;
 
@@ -83,6 +84,10 @@ public class Utils {
         } catch (InterruptedException e) {
             return false;
         }
+    }
+
+    public static String getLocalSwarmNode(Docker docker) {
+        return docker.getDocker().infoCmd().exec().getSwarm().getNodeID();
     }
 
 }
