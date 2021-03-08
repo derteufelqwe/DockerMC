@@ -16,6 +16,12 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "ip_bans")
+@Table(name = "ip_bans", indexes = {
+        @Index(name = "ID_IDX", columnList = "id"),
+        @Index(name = "BANNED_BY_IDX", columnList = "bannedby_uuid"),
+        @Index(name = "UNBANNED_BY_IDX", columnList = "unbannedby_uuid"),
+        @Index(name = "BANNED_UNTIL_IDX", columnList = "banneduntil"),
+})
 public class IPBan {
 
     // ----- General Information -----

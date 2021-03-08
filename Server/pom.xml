@@ -13,6 +13,8 @@
 
     <properties>
         <spring.version>2.4.3</spring.version>
+<!--        <docker-java-version>3.2.5</docker-java-version>-->
+        <docker-java-version>0-SNAPSHOT</docker-java-version>
     </properties>
 
     <build>
@@ -113,11 +115,25 @@
             </exclusions>
         </dependency>
 
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/com.github.docker-java/docker-java-transport-netty &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>com.github.docker-java</groupId>-->
+<!--            <artifactId>docker-java-transport-netty</artifactId>-->
+<!--            <version>0-SNAPSHOT</version>-->
+<!--        </dependency>-->
+
+        <!-- https://mvnrepository.com/artifact/com.github.docker-java/docker-java-core -->
+        <dependency>
+            <groupId>com.github.docker-java</groupId>
+            <artifactId>docker-java-core</artifactId>
+            <version>${docker-java-version}</version>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/com.github.docker-java/docker-java-transport-netty -->
         <dependency>
             <groupId>com.github.docker-java</groupId>
-            <artifactId>docker-java-transport-netty</artifactId>
-            <version>3.2.5</version>
+            <artifactId>docker-java-transport-httpclient5</artifactId>
+            <version>${docker-java-version}</version>
         </dependency>
 
         <dependency>

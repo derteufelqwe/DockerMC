@@ -10,16 +10,15 @@ import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.core.command.ExecStartResultCallback;
 import com.github.dockerjava.core.command.LogContainerResultCallback;
 import com.github.dockerjava.core.command.PullImageResultCallback;
-import com.github.dockerjava.netty.NettyDockerCmdExecFactory;
+import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
+import com.github.dockerjava.transport.DockerHttpClient;
 import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.exceptions.InvalidServiceConfig;
 import de.derteufelqwe.ServerManager.exceptions.TimeoutException;
 import de.derteufelqwe.commons.Constants;
-import de.derteufelqwe.commons.config.Config;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -43,14 +42,18 @@ public class Docker {
 
     public Docker(String protocol, String host, int port, MainConfig config) {
         this.mainConfig = config;
-        DockerClientConfig dockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
-                .withDockerHost(String.format("%s://%s:%s", protocol, host, Integer.toString(port)))
+        DockerClientConfig clientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
+                .withDockerHost(String.format("%s://%s:%s", protocol, host, port))
                 .withDockerTlsVerify(mainConfig.isUseTLSVerify())
                 .withApiVersion(mainConfig.getAPIVersion())
                 .build();
 
-        docker = DockerClientImpl.getInstance(dockerClientConfig)
-                .withDockerCmdExecFactory(new NettyDockerCmdExecFactory());
+        DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
+                .dockerHost(clientConfig.getDockerHost())
+                .sslConfig(clientConfig.getSSLConfig())
+                .build();
+
+        docker = DockerClientImpl.getInstance(clientConfig, httpClient);
     }
 
     public Docker(MainConfig mainConfig) {
@@ -97,6 +100,7 @@ public class Docker {
 
     /**
      * Reads the log from a container and returns them as a string
+     *
      * @param containerID
      * @return
      */
@@ -128,6 +132,7 @@ public class Docker {
 
     /**
      * Reads the log from a service and returns them as a string
+     *
      * @param serviceID
      * @return
      */
@@ -160,6 +165,7 @@ public class Docker {
 
     /**
      * Pulls an image from the registry
+     *
      * @param image Image to pull
      * @throws FatalDockerMCError
      */
@@ -208,6 +214,7 @@ public class Docker {
 
     /**
      * Waits #{timeout} seconds for the service to spawn all its tasks
+     *
      * @param service Service to check for
      * @param timeout Timeout to wait
      */
@@ -240,6 +247,7 @@ public class Docker {
 
     /**
      * Same as waitService but takes a serviceID as an argument
+     *
      * @param serviceID
      * @param timeout
      */

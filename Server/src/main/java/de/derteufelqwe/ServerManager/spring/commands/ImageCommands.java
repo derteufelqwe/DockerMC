@@ -3,9 +3,11 @@ package de.derteufelqwe.ServerManager.spring.commands;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.command.InspectTaskCmd;
 import com.github.dockerjava.api.command.WaitContainerResultCallback;
 import com.github.dockerjava.api.exception.DockerClientException;
 import com.github.dockerjava.api.model.*;
+import com.google.gson.Gson;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.callbacks.ImageBuildCallback;
 import de.derteufelqwe.ServerManager.callbacks.ImagePushCallback;
@@ -22,6 +24,7 @@ import de.derteufelqwe.commons.config.Config;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.checkerframework.checker.units.qual.A;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiConsole;
@@ -37,9 +40,14 @@ import javax.annotation.CheckForNull;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.jar.JarFile;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
 
 @ShellComponent
 @Log4j2
@@ -59,6 +67,8 @@ public class ImageCommands {
     private DockerRegistryAPI registryAPI;
     @Autowired
     private Config<MainConfig> mainConfig;
+    @Autowired
+    private Gson gson;
 
 
     @ShellMethod(value = "Lists all available images", key = "image list")
@@ -275,14 +285,15 @@ public class ImageCommands {
             return null;
         }
 
+        // Check if the DockerMC plugin is present
+        if (!checkMinecraftPlugins(sourceFolder)) {
+            log.error("Image {} has no DockerMC plugin.", name);
+            return null;
+        }
+
         // Temporarily copy the dockerfile
         try {
             FileUtils.copyFile(dockerfileIn, dockerfileOut);
-//            File tmp = new File(Constants.IMAGE_MINECRAFT_PATH + name + "/tmp.txt");
-//            Random rnd = new Random();
-//            byte[] bytes = new byte[100];
-//            rnd.nextBytes(bytes);
-//            FileUtils.write(tmp, new String(bytes));
 
         } catch (Exception e) {
             log.error("Failed to copy Dockerfile. Error: {}.", e.getMessage());
@@ -324,21 +335,54 @@ public class ImageCommands {
         return true;
     }
 
+    @SuppressWarnings("unchecked")
+    private boolean checkMinecraftPlugins(File sourceFolder) {
+        File pluginsPath = new File(sourceFolder.getPath() + "/plugins/");
+        if (!pluginsPath.exists() || !pluginsPath.isDirectory())
+            return false;
+
+        for (File plugin : pluginsPath.listFiles()) {
+            if (!plugin.isFile())
+                continue;
+
+            try {
+                JarFile jarFile = new JarFile(plugin);
+
+                try {
+                    ZipEntry dockermcFile = jarFile.getEntry("dockermc.json");
+                    if (dockermcFile == null)   // File not found
+                        continue;
+                    Map<String, Object> content = (Map<String, Object>) gson.fromJson(new InputStreamReader(jarFile.getInputStream(dockermcFile)), Map.class);
+                    String type = (String) content.getOrDefault("type", "");
+                    if (type.equals("MINECRAFT") || type.equals("BUNGEECORD"))
+                        return true;
+
+                } finally {
+                    jarFile.close();
+                }
+
+            } catch (IOException e) {
+                log.warn("IOException occurred while analyzing plugins. Message: {}", e.getMessage());
+
+            }
+        }
+
+        return false;
+    }
+
 
     @SneakyThrows
     @ShellMethod(value = "testing", key = "test")
     public void test() {
-        String currentNode = docker.getDocker().infoCmd().exec().getSwarm().getNodeID();
+        List<Task> tasks = docker.getDocker().listTasksCmd()
+                .withServiceFilter("dtngfxjhelka")
+                .withStateFilter(TaskState.RUNNING)
+                .exec().stream()
+                .filter(t -> t.getStatus().getState().equals(TaskState.RUNNING))
+                .collect(Collectors.toList());
 
-        Map<String, String> filters = new HashMap<>();
-            filters.put("com.docker.swarm.node.id", currentNode);
-            filters.put("com.docker.swarm.service.id", "tlctm2ek8rpj6uhtcblr41q6c");
+        Task task = docker.getDocker().inspectTaskCmd("ow551t0yf60g5mllxw").exec();
 
-        List<Container> containers = docker.getDocker().listContainersCmd()
-                .withLabelFilter(filters)
-                .withStatusFilter(Collections.singleton("exited"))
-                .withShowAll(true)
-                .exec();
 
         System.out.println("done");
     }

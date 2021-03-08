@@ -18,6 +18,11 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "bank_transactions")
+@Table(name = "bank_transactions", indexes = {
+        @Index(name = "ID_IDX", columnList = "id"),
+        @Index(name = "BANK_IDX", columnList = "bank_name"),
+        @Index(name = "PLAYER_IDX", columnList = "player_uuid"),
+})
 public class BankTransaction {
 
     @Id

@@ -1,5 +1,7 @@
 package de.derteufelqwe.ServerManager.spring;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.config.MainConfig;
@@ -13,6 +15,7 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Environment;
+import org.hibernate.exception.JDBCConnectionException;
 import org.hibernate.service.spi.ServiceException;
 import org.jline.terminal.Terminal;
 import org.postgresql.Driver;
@@ -86,7 +89,7 @@ public class MyConfig {
         try {
             sessionBuilder.init();
 
-        } catch (Exception e) {
+        } catch (JDBCConnectionException e) {
             log.warn("Couldn't connect to postgres database. Maybe it's just not started yet.");
         }
 
@@ -96,6 +99,12 @@ public class MyConfig {
     @Bean
     public DockerRegistryAPI dockerRegistryAPI() {
         return new DockerRegistryAPI("https://" + Constants.REGISTRY_URL, mainConfig.get().getRegistryUsername(), mainConfig.get().getRegistryPassword());
+    }
+
+    @Bean
+    public Gson getGson() {
+        return new GsonBuilder()
+                .create();
     }
 
 }

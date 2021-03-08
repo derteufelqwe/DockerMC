@@ -24,13 +24,14 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@ToString(exclude = {"skinData", "onlineStats", "logins", "gottenBans", "executedBans", "executedIpBans", "liftedBans",
-        "liftedIpBans", "additionPermGroups", "ownedBanks", "banks"})
+@ToString(exclude = {"skinData", "logins", "gottenBans", "executedBans", "executedIpBans", "liftedBans",
+        "liftedIpBans", "ownedBanks", "banks"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "players")
 @Table(name = "players", indexes = {
-        @Index(name = "NAME_INDEX", columnList = "name")
+        @Index(name = "ID_INDEX", columnList = "uuid"),
+        @Index(name = "NAME_INDEX", columnList = "name"),
 })
 public class DBPlayer {
 

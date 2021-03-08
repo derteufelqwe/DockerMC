@@ -18,6 +18,12 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "player_logins")
+@Table(name = "player_logins", indexes = {
+        @Index(name = "ID_IDX", columnList = "id"),
+        @Index(name = "PLAYER_IDX", columnList = "player_uuid"),
+        @Index(name = "SERVICE_IDX", columnList = "service_id"),
+        @Index(name = "TIMESTAMP_IDX", columnList = "jointime"),
+})
 public class PlayerLogin {
 
     // ----- General Information -----

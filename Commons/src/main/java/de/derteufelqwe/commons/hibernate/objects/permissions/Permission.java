@@ -16,6 +16,13 @@ import java.sql.Timestamp;
 @Getter
 @Setter
 @Entity(name = "permissions")
+@Table(name = "permissions", indexes = {
+        @Index(name = "ID_IDX", columnList = "id"),
+        @Index(name = "TEXT_IDX", columnList = "permission_text"),
+        @Index(name = "PLAYER_IDX", columnList = "player_uuid"),
+        @Index(name = "GROUP_IDX", columnList = "group_id"),
+        @Index(name = "SERVICE_IDX", columnList = "service_id"),
+})
 public class Permission {
 
     @Id

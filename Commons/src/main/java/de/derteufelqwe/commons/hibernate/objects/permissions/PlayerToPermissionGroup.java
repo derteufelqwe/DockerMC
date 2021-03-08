@@ -18,6 +18,13 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @ToString(exclude = {"player", "permissionGroup"})
 @Entity(name = "players_permission_groups")
+@Table(name = "players_permission_groups", indexes = {
+        @Index(name = "ID_IDX", columnList = "id"),
+        @Index(name = "TIMEOUT_IDX", columnList = "timeout"),
+        @Index(name = "PLAYER_IDX", columnList = "player_uuid"),
+        @Index(name = "PERMISSIONGROUP_IDX", columnList = "permissiongroup_id"),
+        @Index(name = "SERVICE_IDX", columnList = "service_id"),
+})
 public class PlayerToPermissionGroup {
 
     @Id

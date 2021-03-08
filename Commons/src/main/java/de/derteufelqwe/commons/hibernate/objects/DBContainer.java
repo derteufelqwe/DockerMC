@@ -14,8 +14,13 @@ import java.util.List;
 @ToString(exclude = {"log", "containerStats"})
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "containers")
+@Entity(name = "containers")
+@Table(name = "containers", indexes = {
+        @Index(name = "ID_IDX", columnList = "id"),
+        @Index(name = "NAME_IDX", columnList = "name"),
+        @Index(name = "NODE_IDX", columnList = "node_id"),
+        @Index(name = "SERVICE_IDX", columnList = "service_id"),
+})
 public class DBContainer {
 
     @Id

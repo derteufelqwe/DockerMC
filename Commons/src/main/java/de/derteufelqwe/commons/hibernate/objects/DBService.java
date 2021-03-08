@@ -14,7 +14,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "services")
+@Table(name = "services", indexes = {
+        @Index(name = "ID_IDX", columnList = "id"),
+        @Index(name = "NAME_IDX", columnList = "name"),
+})
 public class DBService {
 
     @Id

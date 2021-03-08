@@ -5,6 +5,8 @@ import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Service;
+import com.github.dockerjava.api.model.Task;
+import com.github.dockerjava.api.model.TaskState;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.tablebuilder.Column;
 import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
@@ -50,6 +52,9 @@ public class ServiceCommands {
                         .withTitle("ID")
                         .build())
                 .withColumn(new Column.Builder()
+                        .withTitle("Replicas")
+                        .build())
+                .withColumn(new Column.Builder()
                         .withTitle("Type")
                         .build());
 
@@ -58,9 +63,13 @@ public class ServiceCommands {
             String lobbyAppend = name.equals(lobbyServerName) ? " (LobbyServer)" : "";
             String type = service.getSpec().getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY);
 
+            long maxReplicas = service.getSpec().getMode().getReplicated().getReplicas();
+            int runningReplicas = getRunningReplicas(service.getId());
+
             tableBuilder.addToColumn(0, name);
             tableBuilder.addToColumn(1, service.getId());
-            tableBuilder.addToColumn(2, type + lobbyAppend);
+            tableBuilder.addToColumn(2, String.format("%s/%s", runningReplicas, maxReplicas));
+            tableBuilder.addToColumn(3, type + lobbyAppend);
         }
 
         tableBuilder.build(log);
@@ -103,6 +112,9 @@ public class ServiceCommands {
 
         Set<String> health = this.getHealthLogs(inspectContainerResponses);
 
+        long maxReplicas = service.getSpec().getMode().getReplicated().getReplicas();
+        int runningReplicas = getRunningReplicas(service.getId());
+
         // --- Log the infos ---
         tableBuilder.addToColumn(0, "ID");
         tableBuilder.addToColumn(1, service.getId());
@@ -113,8 +125,8 @@ public class ServiceCommands {
         tableBuilder.addToColumn(0, "Updated");
         tableBuilder.addToColumn(1, service.getUpdatedAt().toString());
 
-        tableBuilder.addToColumn(0, "Wanted replicas");
-        tableBuilder.addToColumn(1, service.getSpec().getMode().getReplicated().getReplicas());
+        tableBuilder.addToColumn(0, "Replicas");
+        tableBuilder.addToColumn(1, String.format("%s/%s", runningReplicas, maxReplicas));
 
         tableBuilder.addToColumn(0, "Health");
         if (health.size() == 0)
@@ -149,6 +161,7 @@ public class ServiceCommands {
                 continue;
 
             Set<String> healthLogs = state.getHealth().getLog().stream()
+                    .filter(l -> l.getExitCodeLong() != 0)
                     .map(HealthStateLog::getOutput)
                     .map(l -> l.replace("\n", ""))
                     .map(l -> l.replace("\r", ""))
@@ -158,6 +171,21 @@ public class ServiceCommands {
         }
 
         return logs;
+    }
+
+    /**
+     * Returns the amount of tasks of a service that are currently running.
+     * @return
+     */
+    private int getRunningReplicas(String serviceId) {
+        List<Task> tasks = docker.getDocker().listTasksCmd()
+                .withServiceFilter(serviceId)
+                .withStateFilter(TaskState.RUNNING)
+                .exec().stream()
+                .filter(t -> t.getStatus().getState().equals(TaskState.RUNNING))
+                .collect(Collectors.toList());
+
+        return tasks.size();
     }
 
 }

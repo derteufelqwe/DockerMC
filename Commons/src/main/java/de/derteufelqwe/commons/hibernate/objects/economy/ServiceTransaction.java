@@ -16,6 +16,12 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "service_transactions")
+@Table(name = "service_transactions", indexes = {
+        @Index(name = "ID_IDX", columnList = "id"),
+        @Index(name = "FROM_IDX", columnList = "from_uuid"),
+        @Index(name = "TO_IDX", columnList = "to_uuid"),
+        @Index(name = "SERVICE_IDX", columnList = "service_id"),
+})
 public class ServiceTransaction {
 
     @Id

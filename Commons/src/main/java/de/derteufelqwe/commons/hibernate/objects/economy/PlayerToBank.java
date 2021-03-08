@@ -15,9 +15,14 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "player_banks")
-@Table(uniqueConstraints = {
+@Table(name = "player_banks", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"player_uuid", "bank_name"})
+}, indexes = {
+        @Index(name = "ID_IDX", columnList = "id"),
+        @Index(name = "PLAYER_IDX", columnList = "player_uuid"),
+        @Index(name = "BANK_IDX", columnList = "bank_name"),
 })
+
 public class PlayerToBank {
 
     @Id

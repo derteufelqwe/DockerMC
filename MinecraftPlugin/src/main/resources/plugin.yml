@@ -1,6 +1,6 @@
 name: MinecraftPlugin
 version: ${project.version}
-main: minecraftplugin.minecraftplugin.MinecraftPlugin
+main: de.derteufelqwe.minecraftplugin.MinecraftPlugin
 authors: [derteufelqwe]
 description: Essentials for DockerMC
 

@@ -19,6 +19,10 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "banks")
+@Table(name = "banks", indexes = {
+        @Index(name = "NAME_IDX", columnList = "name"),
+        @Index(name = "OWNER_IDX", columnList = "owner_uuid"),
+})
 public class Bank {
 
     @Id
