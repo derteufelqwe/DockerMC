@@ -4,7 +4,7 @@ import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.events.BungeeRequestPlayerKickEvent;
 import de.derteufelqwe.bungeeplugin.redis.PlayerData;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
-import de.derteufelqwe.commons.exceptions.NotFoundException;
+import de.derteufelqwe.commons.exceptions.EntryNotFoundException;
 import de.derteufelqwe.commons.protobuf.RedisMessages;
 import net.md_5.bungee.api.Callback;
 import net.md_5.bungee.api.ProxyServer;
@@ -47,21 +47,21 @@ public class BungeeAPI {
         redisDataManager.sendMessage(requestPlayerKick);
     }
 
-    public void kickPlayer(UUID playerId, String reason) throws NotFoundException {
+    public void kickPlayer(UUID playerId, String reason) throws EntryNotFoundException {
         PlayerData playerData = this.redisDataManager.getPlayer(playerId);
 
         if (playerData == null) {
-            throw new NotFoundException("Player %s not online.", playerId);
+            throw new EntryNotFoundException("Player %s not online.", playerId);
         }
 
         this.kickPlayer(playerId, playerData.getUsername(), reason);
     }
 
-    public void kickPlayer(String playerName, String reason) throws NotFoundException {
+    public void kickPlayer(String playerName, String reason) throws EntryNotFoundException {
         PlayerData playerData = this.redisDataManager.getPlayer(playerName);
 
         if (playerData == null) {
-            throw new NotFoundException("Player %s not online.", playerName);
+            throw new EntryNotFoundException("Player %s not online.", playerName);
         }
 
         try {

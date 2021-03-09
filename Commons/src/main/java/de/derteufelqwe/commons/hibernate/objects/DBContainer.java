@@ -23,6 +23,19 @@ import java.util.List;
 })
 public class DBContainer {
 
+    /*
+     * Exit codes:
+     *  0  : OK
+     *  125: docker daemon error
+     *  126: command can't be invoked (inside of the container)
+     *  127: command cannot be found
+     *  130: container terminated by ctrl-c
+     *  137: container received SIGKILL
+     *  143: container received SIGTERM
+     * Custom ones
+     *  51 : Container already deleted before its data could be transferred into the database (stop time will be invalid)
+     */
+
     @Id
     @Type(type = "text")
     private String id;

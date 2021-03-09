@@ -5,9 +5,11 @@ import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.Node;
 import de.derteufelqwe.commons.hibernate.objects.NodeStats;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
+import de.derteufelqwe.nodewatcher.misc.LogPrefix;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.logging.log4j.Logger;
+import org.checkerframework.checker.units.qual.A;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
@@ -16,6 +18,7 @@ import javax.annotation.CheckReturnValue;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,50 +35,62 @@ public class HostResourceWatcher extends Thread {
     private SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
 
     private final String swarmNodeId = NodeWatcher.getSwarmNodeId();
-    private boolean doRun = true;
+    private AtomicBoolean doRun = new AtomicBoolean(true);
     private Integer maxRam;
     private CpuLoadData oldData;
+    // Debug
+    private boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
 
 
     public HostResourceWatcher() {
         this.maxRam = this.getHostsMaxRam();
     }
 
-    @SneakyThrows
     @Override
     public void run() {
         this.oldData = getCpuData();
 
         try (Session session = sessionBuilder.openSession()) {
-            while (this.doRun) {
-                TimeUnit.SECONDS.sleep(1);
-
-                Transaction tx = session.beginTransaction();
+            while (this.doRun.get()) {
                 try {
-                    int ramUsage = this.getRamUsage();
-                    double cpuUsage = this.getCpuUsagePercent();
+                    TimeUnit.SECONDS.sleep(1);
 
-                    if (ramUsage < 0) {
-                        logger.error("Read invalid host RAM usage.");
-                        continue;
+                    Transaction tx = session.beginTransaction();
+                    try {
+                        int ramUsage = this.getRamUsage();
+                        double cpuUsage = this.getCpuUsagePercent();
+
+                        if (ramUsage < 0) {
+                            if (!isWindows)
+                                logger.error(LogPrefix.HRW + "Read invalid host RAM usage.");
+                            continue;
+                        }
+
+                        if (cpuUsage < 0) {
+                            logger.error(LogPrefix.HRW + "Read invalid host CPU usage.");
+                            continue;
+                        }
+
+                        Node node = session.get(Node.class, swarmNodeId);
+                        if (node == null) {
+                            logger.error(LogPrefix.HRW + "Failed to get node for id '{}' .", swarmNodeId);
+                            continue;
+                        }
+
+                        NodeStats nodeStats = new NodeStats(node, new Timestamp(new Date().getTime()), (float) cpuUsage, ramUsage);
+                        session.persist(nodeStats);
+
+                    } finally {
+                        tx.commit();
                     }
 
-                    if (cpuUsage < 0) {
-                        logger.error("Read invalid host CPU usage.");
-                        continue;
-                    }
+                } catch (InterruptedException e1) {
+                    this.doRun.set(false);
+                    logger.warn(LogPrefix.HRW + "Stopping ContainerLogFetcher.");
 
-                    Node node = session.get(Node.class, swarmNodeId);
-                    if (node == null) {
-                        logger.error("Failed to get node for id '{}' .", swarmNodeId);
-                        continue;
-                    }
-
-                    NodeStats nodeStats = new NodeStats(node, new Timestamp(new Date().getTime()), (float) cpuUsage, ramUsage);
-                    session.persist(nodeStats);
-
-                } finally {
-                    tx.commit();
+                } catch (Exception e2) {
+                    logger.error(LogPrefix.HRW + "Caught exception: {}.", e2.getMessage());
+                    e2.printStackTrace(System.err);
                 }
             }
         }
@@ -83,7 +98,7 @@ public class HostResourceWatcher extends Thread {
     }
 
     public void interrupt() {
-        this.doRun = false;
+        this.doRun.set(false);
     }
 
 
@@ -102,7 +117,7 @@ public class HostResourceWatcher extends Thread {
             try {
                 Node node = session.get(Node.class, NodeWatcher.getSwarmNodeId());
                 if (node == null) {
-                    logger.error("Failed to find node {} in database.", swarmNodeId);
+                    logger.error(LogPrefix.HRW + "Failed to find node {} in database.", swarmNodeId);
                     return -1;
                 }
 
@@ -202,7 +217,7 @@ public class HostResourceWatcher extends Thread {
                 guest_nice = Integer.parseInt(m.group(10));
 
             } catch (NumberFormatException e) {
-                throw new RuntimeException("Failed to parse cpu load data.");
+                throw new RuntimeException(LogPrefix.HRW + "Failed to parse cpu load data.");
             }
         }
 

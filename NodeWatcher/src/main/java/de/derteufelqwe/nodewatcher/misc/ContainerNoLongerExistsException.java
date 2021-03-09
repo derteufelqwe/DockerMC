@@ -1,16 +1,14 @@
 package de.derteufelqwe.nodewatcher.misc;
 
+import de.derteufelqwe.commons.exceptions.DockerMCException;
+
 /**
  * Raised by the {@link de.derteufelqwe.nodewatcher.stats.ContainerStatsCallback} when the callback should end
  */
-public class ContainerNoLongerExistsException extends RuntimeException {
+public class ContainerNoLongerExistsException extends DockerMCException {
 
-    public ContainerNoLongerExistsException(String message) {
-        super(message);
-    }
-
-    public ContainerNoLongerExistsException(String message, Object... args) {
-        super(String.format(message, args));
+    public ContainerNoLongerExistsException(String prefix, String id) {
+        super(prefix + "Container %s no longer available. Removing it.", id);
     }
 
 }

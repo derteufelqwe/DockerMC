@@ -1,6 +1,7 @@
 package de.derteufelqwe.nodewatcher.stats;
 
 import com.github.dockerjava.api.async.ResultCallback;
+import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Statistics;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
@@ -8,12 +9,15 @@ import de.derteufelqwe.commons.hibernate.objects.ContainerStats;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.misc.ContainerNoLongerExistsException;
 import de.derteufelqwe.nodewatcher.misc.InvalidSystemStateException;
+import de.derteufelqwe.nodewatcher.misc.LogPrefix;
 import de.derteufelqwe.nodewatcher.misc.NWUtils;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.exception.ConstraintViolationException;
 
+import javax.persistence.PersistenceException;
 import java.io.Closeable;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -24,10 +28,11 @@ import java.util.Date;
  */
 public class ContainerStatsCallback implements ResultCallback<Statistics> {
 
+    private final int MAX_FAILS = 5;
+
     private Logger logger = NodeWatcher.getLogger();
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
     private String containerId;
-    private DBContainer containerObj; // To map the stats to it
     private int noResultCounter = 0;
     private long sysCpuOld = -1;
     private long cpuCpuOld = -1;
@@ -40,25 +45,7 @@ public class ContainerStatsCallback implements ResultCallback<Statistics> {
 
     @Override
     public void onStart(Closeable closeable) {
-        try (Session session = sessionBuilder.openSession()) {
-            Transaction tx = session.beginTransaction();
-
-            try {
-                DBContainer container;
-                try {
-                    container = session.getReference(DBContainer.class, this.containerId);
-
-                } catch (ObjectNotFoundException e) {
-                    throw new InvalidSystemStateException("Failed to find container %s for the ContainerStatsCallback!", this.containerId);
-                }
-                this.containerObj = container;
-
-            } finally {
-                tx.commit();
-            }
-        }
-
-        logger.info("[ContainerStats] Added container " + this.containerId + ".");
+        logger.info(LogPrefix.STATS + "Added container " + this.containerId + ".");
     }
 
     @Override
@@ -88,24 +75,24 @@ public class ContainerStatsCallback implements ResultCallback<Statistics> {
 
                 try {
                     Timestamp ts = new Timestamp(new Date().getTime());
-//                    Timestamp ts = NWUtils.getLocalTimestampWithoutTimezone();
-                    ContainerStats containerStats = new ContainerStats(this.containerObj, ts, (float) cpuPercent, ramUsage);
-                    session.persist(containerStats);
+                    DBContainer dbContainer = session.getReference(DBContainer.class, containerId);
 
+                    ContainerStats containerStats = new ContainerStats(dbContainer, ts, (float) cpuPercent, ramUsage);
+                    session.persist(containerStats);
 
                 } finally {
                     tx.commit();
                 }
             }
 
+            noResultCounter = 0;
 
         // Null if the container is not running anymore
         } catch (NullPointerException e) {
-//            e.printStackTrace();
             noResultCounter++;
 
-            if (noResultCounter >= 5) {
-                throw new ContainerNoLongerExistsException("Container %s no longer available.", this.containerId);
+            if (noResultCounter >= MAX_FAILS) {
+                throw new ContainerNoLongerExistsException(LogPrefix.STATS, this.containerId);
             }
         }
 
@@ -113,12 +100,31 @@ public class ContainerStatsCallback implements ResultCallback<Statistics> {
 
     @Override
     public void onError(Throwable throwable) {
-        logger.error(throwable.getMessage());
+        // This exception is no error and just indicates that the container is stopped.
+        if (throwable instanceof ContainerNoLongerExistsException) {
+            logger.info(LogPrefix.STATS + throwable.getMessage());
+
+        } else if (throwable instanceof PersistenceException) {
+            Throwable cause = throwable.getCause();
+            // Indicates that no DBContainer exists
+            if (cause instanceof ConstraintViolationException) {
+                logger.error(LogPrefix.STATS + "DBContainer {} not found.", ((ConstraintViolationException) cause).getConstraintName());
+
+            } else {
+                logger.error(LogPrefix.STATS + throwable.getMessage());
+            }
+
+        } else if (throwable instanceof NotFoundException) {
+            logger.error(LogPrefix.STATS + "Container {} not found on host.", containerId);
+
+        } else {
+            logger.error(LogPrefix.STATS + throwable.getMessage());
+        }
     }
 
     @Override
     public void onComplete() {
-        logger.info("[ContainerStats] Removed container " + this.containerId + ".");
+        logger.info(LogPrefix.STATS + "Removed container " + this.containerId + ".");
     }
 
     @Override

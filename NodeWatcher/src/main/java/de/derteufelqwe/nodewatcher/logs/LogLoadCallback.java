@@ -1,11 +1,13 @@
 package de.derteufelqwe.nodewatcher.logs;
 
 import com.github.dockerjava.api.async.ResultCallback;
+import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Frame;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.misc.IRemoveContainerObserver;
+import de.derteufelqwe.nodewatcher.misc.LogPrefix;
 import de.derteufelqwe.nodewatcher.misc.NWUtils;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
@@ -57,8 +59,15 @@ public class LogLoadCallback implements ResultCallback<Frame> {
 
     @Override
     public void onError(Throwable throwable) {
-        logger.error("Failed to download " + this.containerId + " containers log.");
-        logger.error(throwable.getMessage());
+        // Can't download logs as the container doesn't exist anymore
+        if (throwable instanceof NotFoundException) {
+            logger.error(LogPrefix.LOGS + "Container {} not found on the host.", containerId);
+            this.observer.onRemoveContainer(containerId);
+
+        } else {
+            logger.error(LogPrefix.LOGS + "Failed to download {} containers log.", this.containerId);
+            logger.error(LogPrefix.LOGS + throwable.getMessage());
+        }
     }
 
     @Override
@@ -71,7 +80,7 @@ public class LogLoadCallback implements ResultCallback<Frame> {
         // Get the new timestamp
         Timestamp lastLogTimestamp = this.getLastTimestamp();
         if (lastLogTimestamp == null) {
-            logger.error("Failed to parse the last log timestamp for " + this.containerId + "!");
+            logger.error(LogPrefix.LOGS + "Failed to parse the last log timestamp for {} !", this.containerId);
             return;
         }
 
@@ -83,7 +92,7 @@ public class LogLoadCallback implements ResultCallback<Frame> {
             try {
                 DBContainer container = session.get(DBContainer.class, this.containerId);
                 if (container == null) {
-                    logger.error("Failed to find container " + this.containerId + "!");
+                    logger.error(LogPrefix.LOGS + "Failed to find container {} !", this.containerId);
                     return;
                 }
 
@@ -97,7 +106,7 @@ public class LogLoadCallback implements ResultCallback<Frame> {
                 container.setLastLogTimestamp(lastLogTimestamp);
 
                 session.update(container);
-                logger.info("[ContainerLogFetcher] Updated logs of " + this.containerId + ".");
+                logger.debug(LogPrefix.LOGS + "Updated logs of {}.", this.containerId);
 
                 // Remove the container from active log downloading when it's stopped by now
                 if (container.getStopTime() != null) {

@@ -5,6 +5,7 @@ import com.github.dockerjava.api.DockerClient;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.nodewatcher.misc.INewContainerObserver;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
+import de.derteufelqwe.nodewatcher.misc.LogPrefix;
 import de.derteufelqwe.nodewatcher.misc.NWUtils;
 import org.apache.logging.log4j.Logger;
 
@@ -52,7 +53,7 @@ public class ContainerResourceWatcher implements INewContainerObserver {
             this.startContainerStat(id);
         }
 
-        logger.info("[ContainerResourceWatcher] Initialized with " + runningContainers.size() + " containers.");
+        logger.info(LogPrefix.CRW + "Initialized with {} containers.", runningContainers.size());
     }
 
 

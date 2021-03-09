@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
     <Appenders>
+<!--        Default logger for all logger -->
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%highlight{%d{HH:mm:ss.SSS} [%-5level] %msg%n}{WARN=yellow, INFO=def, TRACE=def, DEBUG=def}" disableAnsi="false"/>
+        </Console>
+<!--        Custom logger for DMC log messages-->
+        <Console name="DMCConsole" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} %style{[%-5level]}{magenta} %style{%.-7msg}{blue} %highlight{%smsg}{WARN=yellow, INFO=def, TRACE=def, DEBUG=def} %n" disableAnsi="false"/>
         </Console>
     </Appenders>
     <Loggers>
@@ -11,6 +16,9 @@
         </Root>
         <logger name="org.hibernate" level="error" additivity="false">
             <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="de.derteufelqwe.nodewatcher" level="all" additivity="false">
+            <AppenderRef ref="DMCConsole"/>
         </logger>
 
     </Loggers>

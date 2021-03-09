@@ -14,6 +14,7 @@ import de.derteufelqwe.nodewatcher.executors.TimedPermissionWatcher;
 import de.derteufelqwe.nodewatcher.logs.ContainerLogFetcher;
 import de.derteufelqwe.nodewatcher.misc.DockerClientFactory;
 import de.derteufelqwe.nodewatcher.misc.InvalidSystemStateException;
+import de.derteufelqwe.nodewatcher.misc.LogPrefix;
 import de.derteufelqwe.nodewatcher.stats.ContainerResourceWatcher;
 import de.derteufelqwe.nodewatcher.stats.HostResourceWatcher;
 import lombok.Getter;
@@ -77,7 +78,7 @@ public class NodeWatcher {
                 .exec();
 
         if (nodes.size() != 1) {
-            throw new InvalidSystemStateException("Found %s nodes: %s.\n", nodes.size(), nodes);
+            throw new InvalidSystemStateException(LogPrefix.CW + "Found %s nodes: %s.\n", nodes.size(), nodes);
         }
 
         try (Session session = sessionBuilder.openSession()) {
@@ -89,7 +90,7 @@ public class NodeWatcher {
 
                 // Node already known
                 if (node != null) {
-                    logger.info("[NodeWatcher] Local node already known.");
+                    logger.info(LogPrefix.CW + "Local node already known.");
                     return;
                 }
 
@@ -98,7 +99,7 @@ public class NodeWatcher {
                 node.setMaxRam(this.getMaxHostMemory());
 
                 session.save(node);
-                logger.info("[NodeWatcher] Added new node " + node);
+                logger.info(LogPrefix.CW + "Added new node {}.", node);
 
             } catch (Exception e) {
                 tx.rollback();
@@ -171,7 +172,7 @@ public class NodeWatcher {
         this.startContainerWatcher();   // Start last, since most watchers need its event
         this.startTimedPermissionWatcher();
 
-        logger.info("[NodeWatcher] Started successfully.");
+        logger.info(LogPrefix.NW + "NodeWatcher started successfully.");
     }
 
     @SneakyThrows

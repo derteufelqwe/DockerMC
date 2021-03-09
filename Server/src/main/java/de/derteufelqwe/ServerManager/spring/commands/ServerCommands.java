@@ -34,7 +34,7 @@ import java.util.List;
 @ShellComponent
 @Log4j2
 @ShellCommandGroup(value = "server")
-public class ServersCommands {
+public class ServerCommands {
 
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;

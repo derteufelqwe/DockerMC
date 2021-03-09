@@ -3,6 +3,7 @@ package de.derteufelqwe.nodewatcher.executors;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Event;
 import com.github.dockerjava.api.model.EventActor;
@@ -16,6 +17,7 @@ import de.derteufelqwe.commons.hibernate.objects.Node;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.misc.INewContainerObserver;
 import de.derteufelqwe.nodewatcher.misc.InvalidSystemStateException;
+import de.derteufelqwe.nodewatcher.misc.LogPrefix;
 import de.derteufelqwe.nodewatcher.misc.NWUtils;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
@@ -72,18 +74,20 @@ public class ContainerWatcher implements ResultCallback<Event> {
                     break;
 
                 default:
-                    System.err.println("Got invalid event type " + object);
+                    logger.error(LogPrefix.CW + "Got invalid event type " + object);
             }
 
         } catch (Exception e) {
-            System.err.println(e.getMessage());
+            logger.error(LogPrefix.CW + "Exception occurred in the ContainerWatcher.");
+            logger.error(LogPrefix.CW + e.getMessage());
+            e.printStackTrace(System.err);
         }
     }
 
     @Override
     public void onError(Throwable throwable) {
-        logger.error("Exception occured in the containerwatcher");
-        logger.error(throwable.getMessage());
+        logger.error(LogPrefix.CW + "Uncaught exception occurred in the ContainerWatcher.");
+        logger.error(LogPrefix.CW + throwable.getMessage());
     }
 
     @Override
@@ -117,12 +121,18 @@ public class ContainerWatcher implements ResultCallback<Event> {
                 try {
                     DBContainer dbContainer = session.get(DBContainer.class, containerId);
                     if (dbContainer == null) {
-                        System.err.println("[ContainerWatcher] Failed to find container object for " + containerId + ".");
+                        logger.error(LogPrefix.CW + "Failed to find container object for {}.", containerId);
                         continue;
                     }
 
-                    InspectContainerResponse response = dockerClient.inspectContainerCmd(containerId).exec();
-                    this.finishContainerEntry(containerId, NWUtils.parseDockerTimestamp(response.getState().getFinishedAt()), response.getState().getExitCodeLong().shortValue());
+                    try {
+                        InspectContainerResponse response = dockerClient.inspectContainerCmd(containerId).exec();
+                        this.finishContainerEntry(containerId, NWUtils.parseDockerTimestamp(response.getState().getFinishedAt()), response.getState().getExitCodeLong().shortValue());
+
+                    // Container was deleted while the NodeWatcher was offline
+                    } catch (NotFoundException e) {
+                        this.finishContainerEntry(containerId, new Timestamp(System.currentTimeMillis()), (short) 51);
+                    }
 
                 } finally {
                     tx.commit();
@@ -188,13 +198,13 @@ public class ContainerWatcher implements ResultCallback<Event> {
         short taskSlot = this.getTaskSlot(cont);
 
         if (serviceId == null) {
-            throw new InvalidSystemStateException("Container %s has no information about its service.", id);
+            throw new InvalidSystemStateException(LogPrefix.CW + "Container %s has no information about its service.", id);
         }
         if (taskId == null) {
-            throw new InvalidSystemStateException("Container %s has no information about its task id.", id);
+            throw new InvalidSystemStateException(LogPrefix.CW + "Container %s has no information about its task id.", id);
         }
         if (taskSlot < 0) {
-            throw new InvalidSystemStateException("Container %s has not information about its task slot.", id);
+            throw new InvalidSystemStateException(LogPrefix.CW + "Container %s has not information about its task slot.", id);
         }
 
         DBService dbService = this.getOrCreateService(serviceId);
@@ -204,12 +214,12 @@ public class ContainerWatcher implements ResultCallback<Event> {
 
             try {
                 if (nodeId == null) {
-                    throw new InvalidSystemStateException("OnContainerStart for %s failed to find node %s.", id, nodeId);
+                    throw new InvalidSystemStateException(LogPrefix.CW + "OnContainerStart for %s failed to find node %s.", id, nodeId);
                 }
 
                 Node node = session.get(Node.class, nodeId);
                 if (node == null) {
-                    throw new InvalidSystemStateException("Node %s not found.", nodeId);
+                    throw new InvalidSystemStateException(LogPrefix.CW + "Node %s not found.", nodeId);
                 }
 
                 DBContainer container = new DBContainer(
@@ -226,7 +236,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
 
                 // SaveOrUpdate is required when restarting a stopped container. Otherwise a unique constraint violation would be thrown
                 session.saveOrUpdate(container);
-                logger.info("[ContainerWatcher] Created container entry " + id + ".");
+                logger.info(LogPrefix.CW + "Created container entry " + id + ".");
 
             } finally {
                 tx.commit();
@@ -266,7 +276,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
             try {
                 DBContainer container = session.get(DBContainer.class, id);
                 if (container == null) {
-                    System.err.println("Stopped Container with id " + id + " not found!");
+                    logger.error(LogPrefix.CW + "Stopped Container with id {} not found!", id);
                     return;
                 }
 
@@ -274,7 +284,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
                 container.setExitcode(exitCode);
 
                 session.update(container);
-                logger.info("[ContainerWatcher] Updated container entry " + id + ".");
+                logger.info(LogPrefix.CW + "Finished container entry {}.", id);
 
             } finally {
                 tx.commit();
@@ -396,7 +406,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
 
                 session.persist(dbService);
 
-                logger.info("[ContainerWatcher] Added new Service " + dbService.getId() + ".");
+                logger.info(LogPrefix.CW + "Added new Service {}.", dbService.getId());
                 return dbService;
 
             } finally {

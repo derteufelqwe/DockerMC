@@ -4,7 +4,7 @@ import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.Constants;
-import de.derteufelqwe.commons.exceptions.NotFoundException;
+import de.derteufelqwe.commons.exceptions.EntryNotFoundException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
 import de.derteufelqwe.commons.hibernate.objects.PlayerBan;
@@ -141,7 +141,7 @@ public class BanCommand extends Command {
             try {
                 BungeePlugin.getBungeeApi().kickPlayer(targetPlayer, "You got banned!");
 
-            } catch (NotFoundException ignored) {
+            } catch (EntryNotFoundException ignored) {
             }
         }
     }

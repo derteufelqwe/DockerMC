@@ -3,13 +3,13 @@ package de.derteufelqwe.commons.exceptions;
 /**
  * Called when a value is not found in redis or the db when it should be there
  */
-public class NotFoundException extends BaseException {
+public class EntryNotFoundException extends BaseException {
 
-    public NotFoundException() {
+    public EntryNotFoundException() {
         super();
     }
 
-    public NotFoundException(String message, Object... args) {
+    public EntryNotFoundException(String message, Object... args) {
         super(message, args);
     }
 }

@@ -2,7 +2,7 @@ package de.derteufelqwe.bungeeplugin.commands.misc;
 
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
-import de.derteufelqwe.commons.exceptions.NotFoundException;
+import de.derteufelqwe.commons.exceptions.EntryNotFoundException;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -57,7 +57,7 @@ public class KickCommand extends Command {
 
             sender.sendMessage(new TextComponent(String.format(ChatColor.RED + "Kicked player %s.", targetPlayer)));
 
-        } catch (NotFoundException e) {
+        } catch (EntryNotFoundException e) {
             sender.sendMessage(new TextComponent(ChatColor.RED + "Player " + targetPlayer + " is not online."));
         }
     }

@@ -2,12 +2,15 @@ package de.derteufelqwe.nodewatcher.executors;
 
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
+import de.derteufelqwe.nodewatcher.misc.LogPrefix;
 import lombok.SneakyThrows;
 import org.apache.logging.log4j.Logger;
+import org.checkerframework.checker.units.qual.A;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
@@ -17,7 +20,7 @@ public class TimedPermissionWatcher extends Thread {
     private Logger logger = NodeWatcher.getLogger();
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
 
-    private boolean doRun = true;
+    private AtomicBoolean doRun = new AtomicBoolean(true);
 
     private long lastCleanTimestamp = 0;
 
@@ -30,19 +33,29 @@ public class TimedPermissionWatcher extends Thread {
     @SneakyThrows
     @Override
     public void run() {
-        while (this.doRun) {
-            TimeUnit.SECONDS.sleep(1);
-            if (System.currentTimeMillis() < this.lastCleanTimestamp + 60000) {
-                continue;
-            }
+        while (this.doRun.get()) {
+            try {
+                TimeUnit.SECONDS.sleep(1);
+                if (System.currentTimeMillis() < this.lastCleanTimestamp + 60000) {
+                    continue;
+                }
 
-            this.cleanPermissions();
-            this.lastCleanTimestamp = System.currentTimeMillis();
+                this.cleanPermissions();
+                this.lastCleanTimestamp = System.currentTimeMillis();
+
+            } catch (InterruptedException e1) {
+                this.doRun.set(false);
+                logger.warn(LogPrefix.TPW + "Stopping TimedPermissionWatcher.");
+
+            } catch (Exception e) {
+                logger.error(LogPrefix.TPW + "Caught exception: {}.", e.getMessage());
+                e.printStackTrace(System.err);
+            }
         }
     }
 
     public void interrupt() {
-        this.doRun = false;
+        this.doRun.set(false);
     }
 
 
@@ -64,7 +77,7 @@ public class TimedPermissionWatcher extends Thread {
 
                 tx.commit();
 
-                logger.debug("Deleted {} timed out permission and {} permission group assignments.", permRows, permGroupRows);
+                logger.debug(LogPrefix.TPW + "Deleted {} timed out permission and {} permission group assignments.", permRows, permGroupRows);
 
             } catch (Exception e) {
                 tx.rollback();
