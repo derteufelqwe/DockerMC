@@ -125,11 +125,10 @@ public class Constants {
         REGISTRY("registry:latest"),
         OPENSSL("frapsoft/openssl:latest"),
         HTPASSWD("xmartlabs/htpasswd:latest"),
-        CONSUL("consul:latest"),
         POSTGRES("postgres:latest"),
-        LOGCOLLECTOR("registry.swarm/logcollector:latest"),
         REDIS("redis:latest"),
-        DECKSCHRUBBER("lhanxetus/deckschrubber:latest")
+        DECKSCHRUBBER("lhanxetus/deckschrubber:latest"),
+        LOGCOLLECTOR("registry.swarm/logcollector:latest")
         ;
 
         private String imageName;

@@ -2,24 +2,20 @@ package de.derteufelqwe.ServerManager.callbacks;
 
 import com.github.dockerjava.api.async.ResultCallbackTemplate;
 import com.github.dockerjava.api.exception.DockerClientException;
-import com.github.dockerjava.api.model.ErrorDetail;
+import com.github.dockerjava.api.model.PullResponseItem;
 import com.github.dockerjava.api.model.PushResponseItem;
 import com.github.dockerjava.api.model.ResponseItem;
 
-import javax.print.Doc;
+import java.util.concurrent.TimeUnit;
 
-/**
- * A custom callback for image pushing, which prints the current push progress in the console (NOT the logger)
- * and supports sync waiting for completion.
- */
-public class ImagePushCallback extends ResultCallbackTemplate<ImagePushCallback, PushResponseItem> {
+public class ImagePullCallback extends ResultCallbackTemplate<ImagePullCallback, PullResponseItem> {
 
     private ResponseItem.ErrorDetail error;
     private Throwable throwable;
     private boolean completed = false;
 
     @Override
-    public void onNext(PushResponseItem object) {
+    public void onNext(PullResponseItem object) {
         if (object.isErrorIndicated())
             this.error = object.getErrorDetail();
 
@@ -42,7 +38,6 @@ public class ImagePushCallback extends ResultCallbackTemplate<ImagePushCallback,
     public void onComplete() {
         this.completed = true;
         super.onComplete();
-        System.out.println("");
     }
 
     public void awaitSuccess() throws InterruptedException {
@@ -55,4 +50,16 @@ public class ImagePushCallback extends ResultCallbackTemplate<ImagePushCallback,
             throw new DockerClientException("Image push failed.", throwable);
     }
 
+    @Override
+    public boolean awaitCompletion(long timeout, TimeUnit timeUnit) throws InterruptedException {
+        boolean result = super.awaitCompletion(timeout, timeUnit);
+
+        if (error != null)
+            throw new DockerClientException("Image push failed with: " + error.getMessage() + "(" + error.getCode() + ").");
+
+        if (throwable != null)
+            throw new DockerClientException("Image push failed.", throwable);
+
+        return result;
+    }
 }

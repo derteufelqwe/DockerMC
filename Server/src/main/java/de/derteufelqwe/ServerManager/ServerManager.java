@@ -24,6 +24,14 @@ import java.net.ConnectException;
 @Log4j2
 public class ServerManager {
 
+    /*
+     * ToDo-List:
+     *  - Docker secrets for password management
+     *  - Improved config system
+     *  - Clean database layouts
+     *  - Switch overlay network
+     */
+
     public static final boolean SKIP_STARTUP_CHECKS = true;
 
     /*

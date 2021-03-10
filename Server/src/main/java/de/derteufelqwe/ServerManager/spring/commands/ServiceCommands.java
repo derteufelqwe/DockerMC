@@ -45,6 +45,7 @@ public class ServiceCommands {
                 .exec();
 
         TableBuilder tableBuilder = new TableBuilder()
+                .withNoRowSeparation()
                 .withColumn(new Column.Builder()
                         .withTitle("Name")
                         .build())

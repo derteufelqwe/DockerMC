@@ -15,7 +15,6 @@ public class InfrastructureSetup {
     private OvernetNetwork overnetNetwork = new OvernetNetwork();
     private RegistryCertificates registryCertificates;
     private RegistryContainer registryContainer = new RegistryContainer();
-    private ConsulContainer consulContainer = new ConsulContainer();
     private PostgresDBContainer postgresDBContainer = new PostgresDBContainer();
     private LogCollectorService logCollectorService = new LogCollectorService();
     private RedisContainer redisContainer = new RedisContainer();
@@ -26,7 +25,6 @@ public class InfrastructureSetup {
         this.overnetNetwork.init(docker);
         this.registryCertificates = new RegistryCertificates(docker);
         this.registryContainer.init(docker);
-        this.consulContainer.init(docker);
         this.postgresDBContainer.init(docker);
         this.logCollectorService.init(docker);
         this.redisContainer.init(docker);
@@ -85,28 +83,6 @@ public class InfrastructureSetup {
 
         if (!this.registryContainer.find().isFound()) {
             DockerObjTemplate.CreateResponse createResponse = this.registryContainer.create();
-            response.setServiceId(createResponse.getServiceID());
-
-            if (createResponse.isCreated()) {
-                response.setResult(ServiceStart.OK);
-
-            } else {
-                response.setResult(ServiceStart.FAILED_GENERIC);
-                response.setAdditionalInfos(createResponse.getMessage());
-            }
-
-        } else {
-            response.setResult(ServiceStart.RUNNING);
-        }
-
-        return response;
-    }
-
-    public ServiceCreateResponse createConsulContainer() {
-        ServiceCreateResponse response = new ServiceCreateResponse("Consul", Constants.ContainerType.CONSUL_POOL);
-
-        if (!this.consulContainer.find().isFound()) {
-            DockerObjTemplate.CreateResponse createResponse = this.consulContainer.create();
             response.setServiceId(createResponse.getServiceID());
 
             if (createResponse.isCreated()) {

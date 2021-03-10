@@ -20,15 +20,7 @@ public class MainConfig {
     @Comment("Docker-API version")
     private String APIVersion = "1.40";
 
-    private int minecraftPort = 25565;
     private int proxyPort = 25565;
-
-    @Comment("Tag name to identify all docker containers, which belong to DockerMC.")
-    private String idTag = "DockerMC";
-    @Comment("Tag to identify all Bungeecord proxies.")
-    private String proxyID = "bungee";
-    @Comment("Tag to identify all Minecraft servers")
-    private String mcServerID = "mcServer";
 
     @Comment("Username for the registry")
     private String registryUsername = "admin";

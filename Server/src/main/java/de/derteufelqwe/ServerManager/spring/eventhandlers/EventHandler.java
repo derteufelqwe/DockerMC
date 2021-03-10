@@ -40,8 +40,6 @@ import java.util.concurrent.TimeUnit;
 public class EventHandler {
 
     @Autowired
-    private ApplicationContext appContext;
-    @Autowired
     private StringRedisTemplate redisTemplate;
     @Autowired
     private Docker docker;
@@ -88,37 +86,6 @@ public class EventHandler {
         if (!this.checkAndCreateMCServers()) {
             event.setSuccess(false);
             event.setMessage("Failed to setup the minecraft servers. Solve the problem mentioned above.");
-        }
-    }
-
-    /**
-     * Startup code
-     *
-     * @param event
-     */
-    @EventListener
-    public void onStart(ApplicationStartedEvent event) {
-        if (ServerManager.SKIP_STARTUP_CHECKS)
-            return;
-
-        System.out.println("Start code");
-        // Infrastructure setup
-        log.info("Setting infrastructure up...");
-        CheckInfrastructureEvent infrastructureEvent = new CheckInfrastructureEvent(this, CheckInfrastructureEvent.ReloadSource.APPLICATION_START);
-        appContext.publishEvent(infrastructureEvent);
-
-        if (!infrastructureEvent.isSuccess()) {
-            log.error("Infrastructure setup failed with: {}", infrastructureEvent.getMessage());
-            SpringApplication.exit(appContext, () -> 100);
-        }
-
-        // Servers config setup
-        ReloadConfigEvent reloadConfigEvent = new ReloadConfigEvent(this, ReloadConfigEvent.ReloadSource.APPLICATION_START);
-        appContext.publishEvent(reloadConfigEvent);
-
-        if (!reloadConfigEvent.isSuccess()) {
-            log.fatal("Minecraft server setup failed with: '{}'", reloadConfigEvent.getMessage());
-            SpringApplication.exit(appContext, () -> 102);
         }
     }
 

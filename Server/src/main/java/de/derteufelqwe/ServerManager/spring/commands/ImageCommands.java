@@ -374,15 +374,6 @@ public class ImageCommands {
     @SneakyThrows
     @ShellMethod(value = "testing", key = "test")
     public void test() {
-        List<Task> tasks = docker.getDocker().listTasksCmd()
-                .withServiceFilter("dtngfxjhelka")
-                .withStateFilter(TaskState.RUNNING)
-                .exec().stream()
-                .filter(t -> t.getStatus().getState().equals(TaskState.RUNNING))
-                .collect(Collectors.toList());
-
-        Task task = docker.getDocker().inspectTaskCmd("ow551t0yf60g5mllxw").exec();
-
 
         System.out.println("done");
     }

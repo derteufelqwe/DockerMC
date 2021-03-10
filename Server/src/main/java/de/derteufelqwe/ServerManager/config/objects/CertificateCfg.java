@@ -8,23 +8,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CertificateCfg {
 
-    @Comment("Country Code, 2 letters (can be empty)")
-    private String countryCode = "DE";
-    @Comment("State or province name (can be empty)")
-    private String state = "";
-    @Comment("City name (can be empty)")
-    private String city = "";
-    @Comment("Organization name (can be empty, but should be filled)")
-    private String organizationName = "DockerMCTest";
-    @Comment("Email (can be empty, doesn't need to be a valid email)")
-    private String email = "test@test.com";
-
-    /*
-     Signature Algorithm: sha256WithRSAEncryption
-        Issuer: C = AA, ST = BB, L = CC, O = DD, OU = EE, CN = FF, emailAddress = GG
-        Validity
-     */
-
-
+    @Comment("Country Code, 2 letters (e.g. DE or UK")
+    private String countryCode;
+    @Comment("State or province name")
+    private String state;
+    @Comment("City name")
+    private String city;
+    @Comment("Organization name")
+    private String organizationName;
+    @Comment("Email (Doesn't need to be a valid email)")
+    private String email;
 
 }

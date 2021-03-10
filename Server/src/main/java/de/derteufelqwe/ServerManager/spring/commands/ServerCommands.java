@@ -46,7 +46,7 @@ public class ServerCommands {
     private SessionBuilder sessionBuilder;
 
 
-    @ShellMethod(value = "Lists all minecraft containers", key = "server list-containers")
+    @ShellMethod(value = "Lists all minecraft containers", key = "server list")
     private void listContainers() {
         try (Session session = sessionBuilder.openSession()) {
             List<DBContainer> containers = session.createNativeQuery(
@@ -80,7 +80,7 @@ public class ServerCommands {
         }
     }
 
-    @ShellMethod(value = "Returns the currently configured lobby server", key = "server get-lobbyserver")
+    @ShellMethod(value = "Returns the currently configured lobby server", key = "server lobbyserver")
     private void getLobbyServerName() {
         String lobbyServer = redisTemplate.opsForValue().get(Constants.REDIS_KEY_LOBBYSERVER);
 

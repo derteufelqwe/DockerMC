@@ -18,6 +18,7 @@ public class TableBuilder {
     private String outerSeparator = "";
     private boolean bottomLine = false;
     private boolean topLine = false;
+    private boolean separateRows = true;
 
     private List<Column> columns = new ArrayList<>();
 
@@ -152,7 +153,7 @@ public class TableBuilder {
             sb.append(buildRow(i));
 
             // Separator line after row
-            if (i < longestColumn.get() - 1) {
+            if (separateRows && i < longestColumn.get() - 1) {
                 sb.append("\n");
                 sb.append(sep);
             }
@@ -226,6 +227,11 @@ public class TableBuilder {
 
     public TableBuilder withTopLine() {
         this.topLine = true;
+        return this;
+    }
+
+    public TableBuilder withNoRowSeparation() {
+        this.separateRows = false;
         return this;
     }
 

@@ -12,6 +12,7 @@ import com.github.dockerjava.core.command.LogContainerResultCallback;
 import com.github.dockerjava.core.command.PullImageResultCallback;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
+import de.derteufelqwe.ServerManager.callbacks.ImagePullCallback;
 import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.exceptions.InvalidServiceConfig;
@@ -19,6 +20,7 @@ import de.derteufelqwe.ServerManager.exceptions.TimeoutException;
 import de.derteufelqwe.commons.Constants;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -28,6 +30,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+@Log4j2
 public class Docker {
 
     private Pattern STD_REMOVE = Pattern.compile("^STDOUT: |STDERR: ");
@@ -167,49 +170,25 @@ public class Docker {
      * Pulls an image from the registry
      *
      * @param image Image to pull
-     * @throws FatalDockerMCError
      */
-    public void pullImage(String image) throws NotFoundException {
-        System.out.println("Pulling image " + image + "...");
+    public ImagePullCallback pullImage(String image) throws NotFoundException {
+        AuthConfig authConfig = null;
 
-        try {
-            AuthConfig authConfig = null;
-
-            if (image.startsWith("registry.swarm/")) {
-                authConfig = new AuthConfig()
-                        .withUsername(mainConfig.getRegistryUsername())
-                        .withPassword(mainConfig.getRegistryPassword());
-            }
-
-            docker.pullImageCmd(image)
-                    .withAuthConfig(authConfig)
-                    .exec(new PullImageResultCallback() {
-                        @Override
-                        public void onNext(PullResponseItem item) {
-                            super.onNext(item);
-                            String status = item.getStatus();
-                            String progress = item.getProgress() != null ? item.getProgress() : "";
-                            System.out.print(String.format("\r%s %s", status, progress));
-                        }
-                    })
-                    .awaitCompletion(120, TimeUnit.SECONDS);
-            System.out.println(""); // Newline after the pull
-
-
-            TimeUnit.SECONDS.sleep(PULL_INTERVAL);
-            int imageCount = docker.listImagesCmd()
-                    .withShowAll(true)
-                    .withImageNameFilter(image)
-                    .exec().size();
-
-            if (imageCount == 0) {
-                throw new NotFoundException("Image " + image + " not found. This may be caused by a slow image download " +
-                        "(download taking longer than 120 seconds). Try downloading the image by hand.");
-            }
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        if (image.startsWith("registry.swarm/")) {
+            authConfig = new AuthConfig()
+                    .withUsername(mainConfig.getRegistryUsername())
+                    .withPassword(mainConfig.getRegistryPassword());
         }
+
+        ImagePullCallback callback = docker.pullImageCmd(image)
+                .withAuthConfig(authConfig)
+                .exec(new ImagePullCallback());
+
+        return callback;
+    }
+
+    public ImagePullCallback pullImage(Constants.Images image) throws NotFoundException {
+        return this.pullImage(image.image());
     }
 
     /**
