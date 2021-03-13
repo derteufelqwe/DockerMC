@@ -16,7 +16,7 @@ public class InfrastructureSetup {
     private RegistryCertificates registryCertificates;
     private RegistryContainer registryContainer = new RegistryContainer();
     private PostgresDBContainer postgresDBContainer = new PostgresDBContainer();
-    private LogCollectorService logCollectorService = new LogCollectorService();
+    private NodeWatcherService nodeWatcherService = new NodeWatcherService();
     private RedisContainer redisContainer = new RedisContainer();
 
 
@@ -26,7 +26,7 @@ public class InfrastructureSetup {
         this.registryCertificates = new RegistryCertificates(docker);
         this.registryContainer.init(docker);
         this.postgresDBContainer.init(docker);
-        this.logCollectorService.init(docker);
+        this.nodeWatcherService.init(docker);
         this.redisContainer.init(docker);
     }
 
@@ -122,11 +122,11 @@ public class InfrastructureSetup {
         return response;
     }
 
-    public ServiceCreateResponse createLogcollectorService() {
-        ServiceCreateResponse response = new ServiceCreateResponse("LogCollector", Constants.ContainerType.LOGCOLLECTOR);
+    public ServiceCreateResponse createNodeWatcherService() {
+        ServiceCreateResponse response = new ServiceCreateResponse("NodeWatcher", Constants.ContainerType.LOGCOLLECTOR);
 
-        if (!this.logCollectorService.find().isFound()) {
-            DockerObjTemplate.CreateResponse createResponse = this.logCollectorService.create();
+        if (!this.nodeWatcherService.find().isFound()) {
+            DockerObjTemplate.CreateResponse createResponse = this.nodeWatcherService.create();
             response.setServiceId(createResponse.getServiceID());
 
             if (createResponse.isCreated()) {

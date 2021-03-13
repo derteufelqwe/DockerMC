@@ -22,7 +22,7 @@ public class HelpCommand implements Help.Command {
         new HelpBuilder("Default Commands:")
                 .addEntry("help", "Shows this help.")
                 .addEntry("history", "Shows the command history.")
-                .addEntry("exit", "Shows the command history.")
+                .addEntry("exit", "Exits the DockerMC console. This doesn't affect the servers.")
                 .addEntry("clear", "Clears the terminal.")
                 .print();
 

@@ -53,8 +53,8 @@ public class MinecraftPoolUpdater extends DMCServiceUpdater<ServerPool> {
     @Override
     protected UpdateConfig getUpdateConfig() {
         return new UpdateConfig()
-                .withParallelism(2)
-                .withOrder(UpdateOrder.START_FIRST)
+                .withParallelism(mainConfig.get().getPoolParallelUpdates())
+                .withOrder(this.getUpdateOrder())
                 .withFailureAction(UpdateFailureAction.CONTINUE)
                 ;
     }

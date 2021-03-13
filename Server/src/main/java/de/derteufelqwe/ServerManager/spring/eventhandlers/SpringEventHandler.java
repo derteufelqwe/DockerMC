@@ -3,6 +3,7 @@ package de.derteufelqwe.ServerManager.spring.eventhandlers;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.callbacks.ImagePullCallback;
+import de.derteufelqwe.ServerManager.spring.Commons;
 import de.derteufelqwe.ServerManager.spring.events.CheckInfrastructureEvent;
 import de.derteufelqwe.ServerManager.spring.events.ReloadConfigEvent;
 import de.derteufelqwe.commons.Constants;
@@ -24,6 +25,8 @@ public class SpringEventHandler {
     private ApplicationContext appContext;
     @Autowired
     private Docker docker;
+    @Autowired
+    private Commons commons;
 
 
     /**
@@ -36,10 +39,15 @@ public class SpringEventHandler {
         if (ServerManager.SKIP_STARTUP_CHECKS)
             return;
 
-
         this.pullImages();
-        this.checkInfrastructure();
-        this.checkMinecraftServers();
+        if (!commons.checkAndCreateInfrastructure()) {
+            log.error("Infrastructure setup failed!");
+            SpringApplication.exit(appContext, () -> 100);
+        }
+        if (!commons.checkAndCreateMCServers()) {
+            log.fatal("Minecraft server setup failed!");
+            SpringApplication.exit(appContext, () -> 102);
+        }
     }
 
 
@@ -70,27 +78,5 @@ public class SpringEventHandler {
 
         log.info("Downloaded all required images.");
     }
-
-    private void checkInfrastructure() {
-        log.info("Setting infrastructure up...");
-        CheckInfrastructureEvent infrastructureEvent = new CheckInfrastructureEvent(this, CheckInfrastructureEvent.ReloadSource.APPLICATION_START);
-        appContext.publishEvent(infrastructureEvent);
-
-        if (!infrastructureEvent.isSuccess()) {
-            log.error("Infrastructure setup failed with: {}", infrastructureEvent.getMessage());
-            SpringApplication.exit(appContext, () -> 100);
-        }
-    }
-
-    private void checkMinecraftServers() {
-        ReloadConfigEvent reloadConfigEvent = new ReloadConfigEvent(this, ReloadConfigEvent.ReloadSource.APPLICATION_START);
-        appContext.publishEvent(reloadConfigEvent);
-
-        if (!reloadConfigEvent.isSuccess()) {
-            log.fatal("Minecraft server setup failed with: '{}'", reloadConfigEvent.getMessage());
-            SpringApplication.exit(appContext, () -> 102);
-        }
-    }
-
 
 }

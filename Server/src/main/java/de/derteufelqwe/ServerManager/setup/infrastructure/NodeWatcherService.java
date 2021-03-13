@@ -1,6 +1,8 @@
 package de.derteufelqwe.ServerManager.setup.infrastructure;
 
 import com.github.dockerjava.api.model.Mount;
+import com.github.dockerjava.api.model.SwarmNode;
+import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceTemplate;
 import de.derteufelqwe.commons.Constants;
@@ -9,13 +11,24 @@ import de.derteufelqwe.commons.Utils;
 import java.util.List;
 import java.util.Map;
 
-public class LogCollectorService extends ServiceTemplate {
+public class NodeWatcherService extends ServiceTemplate {
 
-    public LogCollectorService() {
-        super("LogCollector", Constants.Images.LOGCOLLECTOR.image(), "512M", 0.5F, 1,
+    public NodeWatcherService() {
+        super("NodeWatcher", Constants.Images.NODEWATCHER.image(), "512M", 0.5F, 1,
                 new ServiceConstraints(1));
     }
 
+    /**
+     * Update the replication count based on the amount of nodes in the swarm
+     * @param docker Docker instance to add
+     */
+    @Override
+    public void init(Docker docker) {
+        super.init(docker);
+
+        List<SwarmNode> nodes = docker.getDocker().listSwarmNodesCmd().exec();
+        this.replications = nodes.size();
+    }
 
     @Override
     protected boolean useGlobalMode() {

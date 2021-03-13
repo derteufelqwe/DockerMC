@@ -48,8 +48,8 @@ public class LobbyPoolUpdater extends DMCServiceUpdater<ServerPool> {
     @Override
     protected UpdateConfig getUpdateConfig() {
         return new UpdateConfig()
-                .withParallelism(2)
-                .withOrder(UpdateOrder.START_FIRST)
+                .withParallelism(mainConfig.get().getLobbyPoolParallelUpdates())
+                .withOrder(this.getUpdateOrder())
                 .withFailureAction(UpdateFailureAction.CONTINUE)
                 ;
     }

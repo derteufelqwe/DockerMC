@@ -1,4 +1,4 @@
-package de.derteufelqwe.ServerManager.spring.eventhandlers;
+package de.derteufelqwe.ServerManager.spring;
 
 import com.github.dockerjava.api.model.Service;
 import de.derteufelqwe.ServerManager.Docker;
@@ -14,30 +14,23 @@ import de.derteufelqwe.ServerManager.setup.configUpdate.BungeePoolUpdater;
 import de.derteufelqwe.ServerManager.setup.configUpdate.LobbyPoolUpdater;
 import de.derteufelqwe.ServerManager.setup.configUpdate.MinecraftPoolUpdater;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
-import de.derteufelqwe.ServerManager.spring.events.CheckInfrastructureEvent;
-import de.derteufelqwe.ServerManager.spring.events.ReloadConfigEvent;
 import de.derteufelqwe.ServerManager.utils.Utils;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.NotImplementedException;
-import org.hibernate.exception.JDBCConnectionException;
 import org.hibernate.service.spi.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.context.event.ApplicationStartedEvent;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@Component
+/**
+ * Gathers methods, that might be used in different places
+ */
 @Log4j2
-public class EventHandler {
+public class Commons {
 
     @Autowired
     private StringRedisTemplate redisTemplate;
@@ -50,25 +43,10 @@ public class EventHandler {
 
 
     /**
-     * Checks if the infrastructure is running and intact
-     *
-     * @param event
+     * Reloads the minecraft servers
+     * @return
      */
-    @EventListener
-    public void onCheckInfrastructureEvent(CheckInfrastructureEvent event) {
-        if (!this.checkAndCreateInfrastructure()) {
-            event.setSuccess(false);
-            event.setMessage("Failed to setup the required infrastructure. Solve the problem mentioned above.");
-        }
-    }
-
-    /**
-     * Reloads the minecraft server config
-     *
-     * @param event
-     */
-    @EventListener
-    public void onReloadConfigEvent(ReloadConfigEvent event) {
+    public boolean reloadConfig() {
         ServerManager.SERVERS_CONFIG.load();
 
         // Servers config check
@@ -77,28 +55,47 @@ public class EventHandler {
             checker.validateInfrastructureConfig(serversConfig.get());
 
         } catch (InvalidConfigException e) {
-            event.setSuccess(false);
-            event.setMessage(String.format("Invalid servers config file. Error: %s.", e.getMessage()));
-            return;
+            log.error("Invalid servers config file. Error: {}.", e.getMessage());
+            return false;
         }
 
         // Servers setup
         if (!this.checkAndCreateMCServers()) {
-            event.setSuccess(false);
-            event.setMessage("Failed to setup the minecraft servers. Solve the problem mentioned above.");
+            log.error("Failed to setup the minecraft servers. Solve the problem mentioned above.");
+            return false;
         }
+
+        return true;
     }
 
+    // -----  Infrastructure  -----
 
     /**
      * Checks if the required infrastructure exist and creates it if necessary.
      */
-    private boolean checkAndCreateInfrastructure() {
-        InfrastructureSetup setup = new InfrastructureSetup(docker);
+    public boolean checkAndCreateInfrastructure() {
 
-        // Overnet network
-        ServiceCreateResponse response0 = setup.createOvernetNetwork();
-        switch (response0.getResult()) {
+        if (!this.createOvernetNetwork())
+            return false;
+        if (!this.createRegistryCertificates())
+            return false;
+        if (!this.createRegistryContainer())
+            return false;
+        if (!this.createPostgresContainer())
+            return false;
+        if (!this.createRedisContainer())
+            return false;
+        if (!this.createNodeWatcherService())
+            return false;
+
+        return true;
+    }
+
+    public boolean createOvernetNetwork() {
+        InfrastructureSetup setup = new InfrastructureSetup(docker);
+        ServiceCreateResponse response = setup.createOvernetNetwork();
+
+        switch (response.getResult()) {
             case OK:
                 log.info("Created overnet network successfully.");
                 break;
@@ -110,12 +107,17 @@ public class EventHandler {
                 return false;
 
             default:
-                throw new NotImplementedException("Result " + response0.getResult() + " not implemented.");
+                throw new NotImplementedException("Result " + response.getResult() + " not implemented.");
         }
 
-        // Registry Certificates
-        ServiceCreateResponse response1 = setup.createRegistryCerts();
-        switch (response1.getResult()) {
+        return true;
+    }
+
+    public boolean createRegistryCertificates() {
+        InfrastructureSetup setup = new InfrastructureSetup(docker);
+        ServiceCreateResponse response = setup.createRegistryCerts();
+
+        switch (response.getResult()) {
             case OK:
                 log.info("Created registry certificates successfully.");
                 break;
@@ -123,16 +125,21 @@ public class EventHandler {
                 log.info("Registry certificates already existing.");
                 break;
             case FAILED_GENERIC:
-                log.error("Failed to create the registry certificates! Message: {}.", response1.getAdditionalInfos());
+                log.error("Failed to create the registry certificates! Message: {}.", response.getAdditionalInfos());
                 return false;
 
             default:
-                throw new NotImplementedException("Result " + response1.getResult() + " not implemented.");
+                throw new NotImplementedException("Result " + response.getResult() + " not implemented.");
         }
 
-        // Registry Container
-        ServiceCreateResponse response2 = setup.createRegistryContainer();
-        switch (response2.getResult()) {
+        return true;
+    }
+
+    public boolean createRegistryContainer() {
+        InfrastructureSetup setup = new InfrastructureSetup(docker);
+        ServiceCreateResponse response = setup.createRegistryContainer();
+
+        switch (response.getResult()) {
             case OK:
                 log.info("Created registry container successfully.");
                 break;
@@ -141,16 +148,21 @@ public class EventHandler {
                 break;
             case FAILED_GENERIC:
                 log.error("Failed to create the registry container! ID: {}, Message: {}.",
-                        response2.getServiceId(), response2.getAdditionalInfos());
+                        response.getServiceId(), response.getAdditionalInfos());
                 return false;
 
             default:
-                throw new NotImplementedException("Result " + response2.getResult() + " not implemented.");
+                throw new NotImplementedException("Result " + response.getResult() + " not implemented.");
         }
 
-        // Postgres Database
-        ServiceCreateResponse response3 = setup.createPostgresContainer();
-        switch (response3.getResult()) {
+        return true;
+    }
+
+    public boolean createPostgresContainer() {
+        InfrastructureSetup setup = new InfrastructureSetup(docker);
+        ServiceCreateResponse response = setup.createPostgresContainer();
+
+        switch (response.getResult()) {
             case OK:
                 log.info("Created Postgres DB container successfully.");
                 Utils.sleep(TimeUnit.SECONDS, 5);
@@ -166,32 +178,21 @@ public class EventHandler {
                 break;
             case FAILED_GENERIC:
                 log.error("Failed to create the Postgres DB container! ID: {}, Message: {}.",
-                        response3.getServiceId(), response3.getAdditionalInfos());
+                        response.getServiceId(), response.getAdditionalInfos());
                 return false;
 
             default:
-                throw new NotImplementedException("Result " + response3.getResult() + " not implemented.");
+                throw new NotImplementedException("Result " + response.getResult() + " not implemented.");
         }
 
-        // Logcollector service
-//        ServiceCreateResponse response4 = setup.createLogcollectorService();
-//        switch (response4.getResult()) {
-//            case OK:
-//                log.info("Created LogCollector service successfully."); break;
-//            case RUNNING:
-//                log.info("LogCollector service already running."); break;
-//            case FAILED_GENERIC:
-//                log.error("Failed to create the LogCollector service! ID: {}, Message: {}.",
-//                        response4.getServiceId(), response4.getAdditionalInfos());
-//                return false;
-//
-//            default:
-//                throw new NotImplementedException("Result " + response4.getResult() + " not implemented.");
-//        }
+        return true;
+    }
 
-        // Redis container
-        ServiceCreateResponse response5 = setup.createRedisContainer();
-        switch (response5.getResult()) {
+    public boolean createRedisContainer() {
+        InfrastructureSetup setup = new InfrastructureSetup(docker);
+        ServiceCreateResponse response = setup.createRedisContainer();
+
+        switch (response.getResult()) {
             case OK:
                 log.info("Created Redis container successfully.");
                 break;
@@ -200,25 +201,47 @@ public class EventHandler {
                 break;
             case FAILED_GENERIC:
                 log.error("Failed to create the Redis container! ID: {}, Message: {}.",
-                        response5.getServiceId(), response5.getAdditionalInfos());
+                        response.getServiceId(), response.getAdditionalInfos());
                 return false;
 
             default:
-                throw new NotImplementedException("Result " + response5.getResult() + " not implemented.");
+                throw new NotImplementedException("Result " + response.getResult() + " not implemented.");
         }
 
         return true;
     }
 
+    public boolean createNodeWatcherService() {
+        InfrastructureSetup setup = new InfrastructureSetup(docker);
+        ServiceCreateResponse response = setup.createNodeWatcherService();
+
+        switch (response.getResult()) {
+            case OK:
+                log.info("Created NodeWatcher service successfully."); break;
+            case RUNNING:
+                log.info("NodeWatcher service already running."); break;
+            case FAILED_GENERIC:
+                log.error("Failed to create the NodeWatcher service! ID: {}, Message: {}.",
+                        response.getServiceId(), response.getAdditionalInfos());
+                return false;
+
+            default:
+                throw new NotImplementedException("Result " + response.getResult() + " not implemented.");
+        }
+
+        return true;
+    }
+
+    // -----  Minecraft server creation / updating  -----
+
     /**
      * Creates all the servers specified in the InfrastructureConfig.yml.
      * Identifies and stops lost services.
      */
-    private boolean checkAndCreateMCServers() {
+    public boolean checkAndCreateMCServers(boolean force) {
         LostServiceFinder cleaner = new LostServiceFinder(docker);
         List<Service> lostServices = cleaner.findLostServices();
         ServersConfig serversConfig = this.serversConfig.get();
-
 
         for (Service lostService : lostServices) {
             log.warn("Removing lost service {} ({}).", lostService.getSpec().getName(), lostService.getId());
@@ -230,9 +253,36 @@ public class EventHandler {
             );
         }
 
-        // BungeeCord
-        ServiceUpdateResponse response1 = new BungeePoolUpdater(docker).update(false);
-        switch (response1.getResult()) {
+
+        if (!createBungeeServer(force))
+            return false;
+
+        if (!createLobbyServer(force))
+            return false;
+
+        if (!createPoolServers(force))
+            return false;
+
+        return true;
+    }
+
+    /**
+     * Default server creation method
+     * @return
+     */
+    public boolean checkAndCreateMCServers() {
+        return checkAndCreateMCServers(false);
+    }
+
+    /**
+     * Creates or updates the BungeeCord service
+     * @param force
+     * @return
+     */
+    public boolean createBungeeServer(boolean force) {
+        ServiceUpdateResponse response = new BungeePoolUpdater(docker).update(force);
+
+        switch (response.getResult()) {
             case CREATED:
                 log.info("BungeeCord-Pool created successfully.");
                 break;
@@ -250,16 +300,25 @@ public class EventHandler {
                 break;
             case FAILED_GENERIC:
                 log.error("Failed to create the BungeeCord-Pool. ServiceId: {}",
-                        response1.getServiceId());
+                        response.getServiceId());
                 return false;
 
             default:
-                throw new NotImplementedException("Result " + response1.getResult() + " not implemented.");
+                throw new NotImplementedException("Result " + response.getResult() + " not implemented.");
         }
 
-        // Lobby Pool
-        ServiceUpdateResponse response2 = new LobbyPoolUpdater(docker, redisTemplate).update(false);
-        switch (response2.getResult()) {
+        return true;
+    }
+
+    /**
+     * Creates or updates the LobbyServer service
+     * @param force
+     * @return
+     */
+    public boolean createLobbyServer(boolean force) {
+        ServiceUpdateResponse response = new LobbyPoolUpdater(docker, redisTemplate).update(false);
+
+        switch (response.getResult()) {
             case CREATED:
                 log.info("LobbyServer-Pool created successfully.");
                 break;
@@ -277,18 +336,23 @@ public class EventHandler {
                 break;
             case FAILED_GENERIC:
                 log.error("Failed to create the LobbyServer-Pool. ServiceId: {}",
-                        response2.getServiceId());
+                        response.getServiceId());
                 return false;
 
             default:
-                throw new NotImplementedException("Result " + response2.getResult() + " not implemented.");
+                throw new NotImplementedException("Result " + response.getResult() + " not implemented.");
         }
 
+        return true;
+    }
 
-        // Other Server Pools
+    public boolean createPoolServers(boolean force) {
+        ServersConfig serversConfig = this.serversConfig.get();
+
         for (ServerPool pool : serversConfig.getPoolServers()) {
-            ServiceUpdateResponse response3 = new MinecraftPoolUpdater(docker, pool).update(false);
-            switch (response3.getResult()) {
+            ServiceUpdateResponse response = new MinecraftPoolUpdater(docker, pool).update(false);
+
+            switch (response.getResult()) {
                 case CREATED:
                     log.info("Minecraft-Pool {} created successfully.", pool.getName());
                     break;
@@ -303,11 +367,11 @@ public class EventHandler {
                     break;
                 case FAILED_GENERIC:
                     log.error("Failed to create the Minecraft-Pool {}. ServiceId: {}",
-                            pool.getName(), response3.getServiceId());
+                            pool.getName(), response.getServiceId());
                     return false;
 
                 default:
-                    throw new NotImplementedException("Result " + response3.getResult() + " not implemented.");
+                    throw new NotImplementedException("Result " + response.getResult() + " not implemented.");
             }
         }
 

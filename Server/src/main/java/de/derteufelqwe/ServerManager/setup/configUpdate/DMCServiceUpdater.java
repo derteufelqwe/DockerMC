@@ -3,8 +3,10 @@ package de.derteufelqwe.ServerManager.setup.configUpdate;
 import com.github.dockerjava.api.model.Service;
 import com.github.dockerjava.api.model.ServiceSpec;
 import com.github.dockerjava.api.model.UpdateConfig;
+import com.github.dockerjava.api.model.UpdateOrder;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
+import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.config.ServersConfig;
 import de.derteufelqwe.ServerManager.config.OldServersConfig;
 import de.derteufelqwe.ServerManager.setup.ServiceCreateResponse;
@@ -12,8 +14,10 @@ import de.derteufelqwe.ServerManager.setup.ServiceStart;
 import de.derteufelqwe.ServerManager.setup.ServiceUpdate;
 import de.derteufelqwe.ServerManager.setup.ServiceUpdateResponse;
 import de.derteufelqwe.ServerManager.setup.templates.DockerObjTemplate;
+import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceTemplate;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.config.Config;
 
 import javax.annotation.Nullable;
 
@@ -27,6 +31,7 @@ abstract class DMCServiceUpdater<CFG extends ServiceTemplate> {
 
     protected ServersConfig serversConfig = ServerManager.SERVERS_CONFIG.get();
     protected OldServersConfig oldServersConfig = ServerManager.SERVERS_CONFIG_OLD.get();
+    protected Config<MainConfig> mainConfig = ServerManager.MAIN_CONFIG;
 
     protected Docker docker;
 
@@ -124,6 +129,24 @@ abstract class DMCServiceUpdater<CFG extends ServiceTemplate> {
         } else {
             response.setResult(ServiceUpdate.FAILED_GENERIC);
         }
+    }
+
+    /**
+     * Returns the update order. If a node limit is set it's STOP_FIRST, otherwise START_FIRST.
+     * The config can force a
+     */
+    protected UpdateOrder getUpdateOrder() {
+        if (mainConfig.get().isForceStopFirst())
+            return UpdateOrder.STOP_FIRST;
+
+        ServiceConstraints constraints = getNewConfig().getConstraints();
+        if (constraints == null)
+            return UpdateOrder.START_FIRST;
+
+        if (constraints.getNodeLimit() <= 0)
+            return UpdateOrder.START_FIRST;
+
+        return UpdateOrder.STOP_FIRST;
     }
 
 

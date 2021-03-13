@@ -8,32 +8,20 @@ import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.config.ServersConfig;
 import de.derteufelqwe.ServerManager.config.OldServersConfig;
 import de.derteufelqwe.ServerManager.registry.DockerRegistryAPI;
+import de.derteufelqwe.ServerManager.utils.ServiceHealthReader;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Environment;
 import org.hibernate.exception.JDBCConnectionException;
-import org.hibernate.service.spi.ServiceException;
-import org.jline.terminal.Terminal;
-import org.postgresql.Driver;
-import org.postgresql.ds.PGSimpleDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-
-import javax.sql.DataSource;
-import java.util.Properties;
 
 @Configuration
 @EnableTransactionManagement
@@ -45,6 +33,9 @@ public class MyConfig {
 
     @Autowired
     private Config<MainConfig> mainConfig;
+
+    @Autowired
+    private Docker docker;
 
 
     @Bean
@@ -105,6 +96,16 @@ public class MyConfig {
     public Gson getGson() {
         return new GsonBuilder()
                 .create();
+    }
+
+    @Bean
+    public Commons getCommons() {
+        return new Commons();
+    }
+
+    @Bean
+    public ServiceHealthReader healthReader() {
+        return new ServiceHealthReader(docker);
     }
 
 }

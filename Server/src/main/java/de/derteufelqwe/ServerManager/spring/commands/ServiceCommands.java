@@ -3,25 +3,24 @@ package de.derteufelqwe.ServerManager.spring.commands;
 import com.github.dockerjava.api.command.HealthStateLog;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.exception.NotFoundException;
-import com.github.dockerjava.api.model.Container;
-import com.github.dockerjava.api.model.Service;
-import com.github.dockerjava.api.model.Task;
-import com.github.dockerjava.api.model.TaskState;
+import com.github.dockerjava.api.model.*;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.tablebuilder.Column;
 import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
 import de.derteufelqwe.ServerManager.utils.HelpBuilder;
+import de.derteufelqwe.ServerManager.utils.ServiceHealthReader;
 import de.derteufelqwe.ServerManager.utils.Utils;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @ShellComponent
@@ -34,6 +33,8 @@ public class ServiceCommands {
     private StringRedisTemplate redisTemplate;
     @Autowired
     private SessionBuilder sessionBuilder;
+    @Autowired
+    private ServiceHealthReader healthReader;
 
 
     @ShellMethod(value = "Shows the help", key = "service")
@@ -74,6 +75,9 @@ public class ServiceCommands {
                         .withTitle("Replicas")
                         .build())
                 .withColumn(new Column.Builder()
+                        .withTitle("Health")
+                        .build())
+                .withColumn(new Column.Builder()
                         .withTitle("Type")
                         .build());
 
@@ -84,11 +88,16 @@ public class ServiceCommands {
 
             long maxReplicas = service.getSpec().getMode().getReplicated().getReplicas();
             int runningReplicas = getRunningReplicas(service.getId());
+            ServiceHealthReader.ServiceHealth health = healthReader.getHealth(service.getId());
 
             tableBuilder.addToColumn(0, name);
             tableBuilder.addToColumn(1, service.getId());
             tableBuilder.addToColumn(2, String.format("%s/%s", runningReplicas, maxReplicas));
-            tableBuilder.addToColumn(3, type + lobbyAppend);
+            if (health.isHealthy())
+                tableBuilder.addToColumn(3, "Healthy");
+            else
+                tableBuilder.addToColumn(3, "Unhealthy");
+            tableBuilder.addToColumn(4, type + lobbyAppend);
         }
 
         tableBuilder.build(log);
@@ -113,23 +122,7 @@ public class ServiceCommands {
                         .withTitle("Value")
                         .build());
 
-        String currentNodeID = Utils.getLocalSwarmNode(docker);
-
-        Map<String, String> filters = new HashMap<>();
-        filters.put("com.docker.swarm.node.id", currentNodeID);
-        filters.put("com.docker.swarm.service.id", service.getId());
-
-        List<Container> containers = docker.getDocker().listContainersCmd()
-                .withLabelFilter(filters)
-                .withShowAll(true)
-                .exec();
-        containers = containers.subList(0, Math.min(containers.size(), 5));
-
-        List<InspectContainerResponse> inspectContainerResponses = containers.stream()
-                .map(c -> docker.getDocker().inspectContainerCmd(c.getId()).exec())
-                .collect(Collectors.toList());
-
-        Set<String> health = this.getHealthLogs(inspectContainerResponses);
+        ServiceHealthReader.ServiceHealth health = healthReader.getHealth(service.getId());
 
         long maxReplicas = service.getSpec().getMode().getReplicated().getReplicas();
         int runningReplicas = getRunningReplicas(service.getId());
@@ -148,52 +141,18 @@ public class ServiceCommands {
         tableBuilder.addToColumn(1, String.format("%s/%s", runningReplicas, maxReplicas));
 
         tableBuilder.addToColumn(0, "Health");
-        if (health.size() == 0)
+        if (health.isHealthy())
             tableBuilder.addToColumn(1, "(healthy)");
         else
-            tableBuilder.addToColumn(1, health);
+            tableBuilder.addToColumn(1, health.getLogs());
 
         tableBuilder.build(log);
     }
 
 
-
-    /**
-     * Analyzes the health checks of containers and returns a set of their error outputs
-     * @param containers
-     * @return
-     */
-    private Set<String> getHealthLogs(List<InspectContainerResponse> containers) {
-        Set<String> logs = new HashSet<>();
-
-        List<InspectContainerResponse.ContainerState> states = containers.stream()
-                .map(InspectContainerResponse::getState)
-                .filter(s -> !s.getRunning())
-                .collect(Collectors.toList());
-
-        if (states.size() == 0)
-            return logs;
-
-        for (InspectContainerResponse.ContainerState state : states) {
-            // Containers with no health checks have no health property
-            if (state.getHealth() == null)
-                continue;
-
-            Set<String> healthLogs = state.getHealth().getLog().stream()
-                    .filter(l -> l.getExitCodeLong() != 0)
-                    .map(HealthStateLog::getOutput)
-                    .map(l -> l.replace("\n", ""))
-                    .map(l -> l.replace("\r", ""))
-                    .collect(Collectors.toSet());
-
-            logs.addAll(healthLogs);
-        }
-
-        return logs;
-    }
-
     /**
      * Returns the amount of tasks of a service that are currently running.
+     *
      * @return
      */
     private int getRunningReplicas(String serviceId) {

@@ -128,7 +128,7 @@ public class Constants {
         POSTGRES("postgres:latest"),
         REDIS("redis:latest"),
         DECKSCHRUBBER("lhanxetus/deckschrubber:latest"),
-        LOGCOLLECTOR("registry.swarm/logcollector:latest")
+        NODEWATCHER("registry.swarm/nodewatcher:latest")
         ;
 
         private String imageName;

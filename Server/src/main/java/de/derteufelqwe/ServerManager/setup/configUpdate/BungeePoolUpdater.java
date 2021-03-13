@@ -44,8 +44,8 @@ public class BungeePoolUpdater extends DMCServiceUpdater<BungeePool> {
     @Override
     protected UpdateConfig getUpdateConfig() {
         return new UpdateConfig()
-                .withParallelism(1)
-                .withOrder(UpdateOrder.STOP_FIRST)
+                .withParallelism(mainConfig.get().getBungeePoolParallelUpdates())
+                .withOrder(this.getUpdateOrder())
                 .withFailureAction(UpdateFailureAction.CONTINUE)
                 ;
     }

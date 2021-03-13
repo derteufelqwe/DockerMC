@@ -8,11 +8,13 @@ import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.setup.infrastructure.PostgresDBContainer;
 import de.derteufelqwe.ServerManager.setup.infrastructure.RedisContainer;
 import de.derteufelqwe.ServerManager.setup.infrastructure.RegistryContainer;
+import de.derteufelqwe.ServerManager.spring.Commons;
 import de.derteufelqwe.ServerManager.spring.events.CheckInfrastructureEvent;
 import de.derteufelqwe.ServerManager.spring.events.ReloadConfigEvent;
 import de.derteufelqwe.ServerManager.tablebuilder.Column;
 import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
 import de.derteufelqwe.ServerManager.utils.HelpBuilder;
+import de.derteufelqwe.ServerManager.utils.Utils;
 import de.derteufelqwe.commons.Constants;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.core.tools.picocli.CommandLine;
@@ -28,6 +30,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
+import org.springframework.shell.standard.ShellOption;
 import sun.security.x509.X509CertImpl;
 
 import java.io.File;
@@ -53,6 +56,8 @@ public class SystemCommands {
     private StringRedisTemplate redisTemplate;
     @Autowired @Lazy
     private LineReader lineReader;
+    @Autowired
+    private Commons commons;
 
 
     @ShellMethod(value = "Shows the help", key = "system")
@@ -88,24 +93,39 @@ public class SystemCommands {
     }
 
     @ShellMethod(value = "Reloads and updates the servers config.", key = "system checkServers")
-    public void checkServers() {
-        ReloadConfigEvent reloadConfigEvent = new ReloadConfigEvent(this, ReloadConfigEvent.ReloadSource.COMMAND);
-        applicationEventPublisher.publishEvent(reloadConfigEvent);
+    public void checkServers(
+            @ShellOption({"-f", "--force"}) boolean force,
+            @ShellOption({"-b", "--bungee"}) boolean updateBungee,
+            @ShellOption({"-l", "--lobby"}) boolean updateLobby,
+            @ShellOption({"-p", "--pool"}) boolean updatePool
+    ) {
+        // Update everything at default
+        if (!updateBungee && !updateLobby && !updatePool) {
+            if (commons.checkAndCreateMCServers(force)) {
+                log.info("Successfully reloaded server config.");
 
-        if (reloadConfigEvent.isSuccess()) {
-            log.info("Successfully reloaded server config.");
+            } else {
+                log.error("Config reload failed!");
+            }
 
-        } else {
-            log.error("Config reload failed with: '{}'", reloadConfigEvent.getMessage());
+            return;
         }
+
+        // Handle the special cases
+        if (updateBungee)
+            commons.createBungeeServer(force);
+
+        if (updateLobby)
+            commons.createLobbyServer(force);
+
+        if (updatePool)
+            commons.createPoolServers(force);
+
     }
 
-    @ShellMethod(value = "Checks if all parts of the infrastructure are up and running or starts them.", key = "system check-infrastructure")
+    @ShellMethod(value = "Checks if all parts of the infrastructure are up and running or starts them.", key = "system checkInfrastructure")
     public void checkInfrastructure() {
-        CheckInfrastructureEvent infrastructureEvent = new CheckInfrastructureEvent(this, CheckInfrastructureEvent.ReloadSource.COMMAND);
-        applicationEventPublisher.publishEvent(infrastructureEvent);
-
-        if (infrastructureEvent.isSuccess()) {
+        if (commons.checkAndCreateInfrastructure()) {
             log.info("Infrastructure is up and running.");
 
         } else {
@@ -164,7 +184,20 @@ public class SystemCommands {
     }
 
     @ShellMethod(value = "Stops all infrastructure container..", key = {"system shutdownInfrastructure"})
-    public void shutdownInfrastructure() {
+    public void shutdownInfrastructure(
+            @ShellOption({"-n", "--network"}) boolean createNetwork,
+            @ShellOption({"-c", "--certs"}) boolean createCerts,
+            @ShellOption({"-r", "--registry"}) boolean createRegistry,
+            @ShellOption({"-p", "--postgres"}) boolean createPostgres,
+            @ShellOption({"-rd", "--redis"}) boolean createRedis,
+            @ShellOption({"-nw", "--nodewatcher"}) boolean createNodeWatcher
+    ) {
+        // Default action
+        if (Utils.allFalse(createNetwork, createCerts, createRegistry, createPostgres, createRedis, createNodeWatcher)) {
+            RegistryContainer registryContainer = new RegistryContainer();
+            registryContainer.init(docker);
+            registryContainer.destroy();
+        }
         log.warn("You are about to stop ALL Infrastructure containers. The Minecraft and BungeeCord containers depend on " +
                 "them and will stop working properly when doing so. Are you sure? (Y/N)");
         String input = lineReader.readLine("> ").toUpperCase();
@@ -307,5 +340,6 @@ public class SystemCommands {
         log.info("Afterwards you can add a name to your node if you wish using the following command. (Replace NAME and NODE_ID with the fitting values)");
         log.info("docker node update --label-add name=<NAME> <NODE_ID>");
     }
+
 
 }

@@ -70,6 +70,7 @@ public class ImageCommands {
     @Autowired
     private Gson gson;
 
+
     @ShellMethod(value = "Shows the help", key = "image")
     public void showHelp() {
         System.out.println("Manage images");
@@ -95,6 +96,7 @@ public class ImageCommands {
         Catalog catalog = registryAPI.getCatalog();
 
         TableBuilder tableBuilder = new TableBuilder()
+                .withNoRowSeparation()
                 .withColumn(new Column.Builder()
                         .withTitle("Name")
                         .build())
@@ -376,6 +378,7 @@ public class ImageCommands {
     @SneakyThrows
     @ShellMethod(value = "testing", key = "test")
     public void test() {
+
 
         System.out.println("done");
     }

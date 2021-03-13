@@ -34,7 +34,11 @@ public class MainConfig {
     private int bungeePoolParallelUpdates = 2;
     @Comment("Amount of Looby-Pool tasks, that can get updated in parallel. This should be less than your maximum instances.")
     private int lobbyPoolParallelUpdates = 2;
+    @Comment("Amount of Pool tasks, that can get updated in parallel. This should be less than your maximum instances.")
+    private int PoolParallelUpdates = 2;
 
+    @Comment("Forces DMC to stop the containers before starting a new one on a service update.")
+    private boolean forceStopFirst = false;
 }
 
 

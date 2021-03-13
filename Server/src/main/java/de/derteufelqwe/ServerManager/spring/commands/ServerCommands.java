@@ -68,10 +68,11 @@ public class ServerCommands {
     private void listContainers() {
         try (Session session = sessionBuilder.openSession()) {
             List<DBContainer> containers = session.createNativeQuery(
-                    "SELECT * FROM containers AS c WHERE c.exitcode IS NULL",
+                    "SELECT * FROM containers AS c WHERE c.exitcode IS NULL ORDER BY c.service_id",
                     DBContainer.class).getResultList();
 
             TableBuilder tableBuilder = new TableBuilder()
+                    .withNoRowSeparation()
                     .withColumn(new Column.Builder()
                             .withTitle("ID")
                             .withMaxWidth(20)

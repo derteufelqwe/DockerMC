@@ -1,13 +1,11 @@
 package de.derteufelqwe.ServerManager.tablebuilder;
 
+import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class TableBuilder {
@@ -180,7 +178,7 @@ public class TableBuilder {
 
 
 
-    public void addToColumn(int index, Object... lines) {
+    public void addToColumn(int index, String... lines) {
         if (columns.size() == 0)
             throw new RuntimeException("No columns added.");
         if (index > columns.size() - 1)
@@ -192,6 +190,10 @@ public class TableBuilder {
                 .collect(Collectors.joining("\n"));
 
         this.columns.get(index).addCell(line);
+    }
+
+    public void addToColumn(int index, Collection<String> collection) {
+        this.addToColumn(index, collection.toArray(new String[0]));
     }
 
 

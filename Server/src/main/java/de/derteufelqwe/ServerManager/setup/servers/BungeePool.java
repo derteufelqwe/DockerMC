@@ -1,9 +1,12 @@
 package de.derteufelqwe.ServerManager.setup.servers;
 
+import de.derteufelqwe.ServerManager.ServerManager;
+import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.setup.templates.ExposableServiceTemplate;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.Utils;
+import de.derteufelqwe.commons.config.Config;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -55,5 +58,14 @@ public class BungeePool extends ExposableServiceTemplate {
         List<String> envs = super.getEnvs();
 
         return envs;
+    }
+
+    /**
+     * Expose the BungeeCord service to the specified port
+     * @return
+     */
+    @Override
+    protected int getContainerPort() {
+        return ServerManager.MAIN_CONFIG.get().getProxyPort();
     }
 }

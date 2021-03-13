@@ -1,5 +1,6 @@
 package de.derteufelqwe.nodewatcher;
 
+import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import lombok.SneakyThrows;
 import org.hibernate.Session;
@@ -22,8 +23,8 @@ public class Main {
     public static void main(String[] args) {
         Logger.getLogger("org.hibernate").setLevel(Level.WARNING);
 
-        NodeWatcher nodeWatcher = new NodeWatcher("tcp://ubuntu1:2375", new SessionBuilder("admin", "password", "ubuntu1", 5432));
-//        NodeWatcher nodeWatcher = new NodeWatcher("unix:///var/run/docker.sock", new SessionBuilder("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT));
+//        NodeWatcher nodeWatcher = new NodeWatcher("tcp://ubuntu1:2375", new SessionBuilder("admin", "password", "ubuntu1", 5432));
+        NodeWatcher nodeWatcher = new NodeWatcher("unix:///var/run/docker.sock", new SessionBuilder("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT));
 
 
         nodeWatcher.start();
