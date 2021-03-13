@@ -7,6 +7,7 @@ import de.derteufelqwe.ServerManager.spring.events.CheckInfrastructureEvent;
 import de.derteufelqwe.ServerManager.spring.events.ReloadConfigEvent;
 import de.derteufelqwe.ServerManager.tablebuilder.Column;
 import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
+import de.derteufelqwe.ServerManager.utils.HelpBuilder;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
@@ -33,7 +34,6 @@ import java.util.List;
 
 @ShellComponent
 @Log4j2
-@ShellCommandGroup(value = "server")
 public class ServerCommands {
 
     @Autowired
@@ -44,6 +44,24 @@ public class ServerCommands {
     private StringRedisTemplate redisTemplate;
     @Autowired
     private SessionBuilder sessionBuilder;
+
+
+    @ShellMethod(value = "Shows the help", key = "server")
+    private void showHelp() {
+        System.out.println("Manage servers");
+        System.out.println("");
+
+        new HelpBuilder("Commands:")
+                .addEntry("help", "Shows this help")
+                .addEntry("list", "Lists all running containers from the DB")
+                .addEntry("lobbyserver", "Displays the name of the LobbyServer")
+                .print();
+    }
+
+    @ShellMethod(value = "Shows the help", key = "server help")
+    private void showHelp2() {
+        showHelp();
+    }
 
 
     @ShellMethod(value = "Lists all minecraft containers", key = "server list")

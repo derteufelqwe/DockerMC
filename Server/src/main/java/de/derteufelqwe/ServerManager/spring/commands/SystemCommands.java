@@ -12,11 +12,14 @@ import de.derteufelqwe.ServerManager.spring.events.CheckInfrastructureEvent;
 import de.derteufelqwe.ServerManager.spring.events.ReloadConfigEvent;
 import de.derteufelqwe.ServerManager.tablebuilder.Column;
 import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
+import de.derteufelqwe.ServerManager.utils.HelpBuilder;
 import de.derteufelqwe.commons.Constants;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.core.tools.picocli.CommandLine;
 import org.jline.reader.LineReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.ansi.AnsiColor;
 import org.springframework.boot.ansi.AnsiColors;
 import org.springframework.context.ApplicationEventPublisher;
@@ -40,7 +43,6 @@ import java.util.stream.Collectors;
 
 @ShellComponent
 @Log4j2
-@ShellCommandGroup(value = "system")
 public class SystemCommands {
 
     @Autowired
@@ -53,14 +55,39 @@ public class SystemCommands {
     private LineReader lineReader;
 
 
-    @ShellMethod(value = "Reloads all config files", key = "system reload-config")
+    @ShellMethod(value = "Shows the help", key = "system")
+    private void showHelp() {
+        System.out.println("Manage the DockerMC system");
+        System.out.println("");
+
+        new HelpBuilder("Commands:")
+                .addEntry("help", "Shows this help")
+                .addEntry("reloadConfig", "Reloads all config files")
+                .addEntry("checkServers", "Checks if all MC / BC servers are running as configured in the config")
+                .addEntry("checkInfrastructure", "Checks if the general infrastructure is up and running")
+                .addEntry("registryCertInfos", "Displays information about the registry SSL certificate")
+                .addEntry("shutdownServers", "Removes all MC / BC services and thus stopps all servers")
+                .addEntry("shutdownInfrastructure", "Stops all infrastructure containers")
+                .addEntry("cleanAllData", "Deletes ALL data gathered by DockerMC")
+                .addEntry("listNodes", "Lists all available nodes in the swarm")
+                .addEntry("joinNode", "Displays information on how to join a new node to the swarm")
+                .print();
+    }
+
+    @ShellMethod(value = "Shows the help", key = "system help")
+    private void showHelp2() {
+        showHelp();
+    }
+
+
+    @ShellMethod(value = "Reloads all config files", key = "system reloadConfig")
     public void reloadConfig() {
         ServerManager.MAIN_CONFIG.load();
         ServerManager.SERVERS_CONFIG.load();
         log.info("Reloaded config files.");
     }
 
-    @ShellMethod(value = "Reloads and updates the servers config.", key = "system check-servers")
+    @ShellMethod(value = "Reloads and updates the servers config.", key = "system checkServers")
     public void checkServers() {
         ReloadConfigEvent reloadConfigEvent = new ReloadConfigEvent(this, ReloadConfigEvent.ReloadSource.COMMAND);
         applicationEventPublisher.publishEvent(reloadConfigEvent);
@@ -86,7 +113,7 @@ public class SystemCommands {
         }
     }
 
-    @ShellMethod(value = "Prints information about the registry cert information. Most notably its expiration date.", key = "system registry-cert-infos")
+    @ShellMethod(value = "Prints information about the registry cert information. Most notably its expiration date.", key = "system registryCertInfos")
     public void registryCertInfos() {
         try {
             File certFile = new File(Constants.REGISTRY_CERT_PATH_1 + Constants.REGISTRY_CERT_NAME);
@@ -110,7 +137,7 @@ public class SystemCommands {
         }
     }
 
-    @ShellMethod(value = "Stops ALL Minecraft and BungeeCord server.", key = {"system shutdown-servers"})
+    @ShellMethod(value = "Stops ALL Minecraft and BungeeCord server.", key = {"system shutdownServers"})
     public void shutdownServer() {
         log.warn("You are about to stop ALL Minecraft and BungeeCord server, kicking all players in the process. Are you sure? (Y/N)");
         String input = lineReader.readLine("> ").toUpperCase();
@@ -136,7 +163,7 @@ public class SystemCommands {
         log.info("Successfully stopped all Minecraft and BungeeCord services.");
     }
 
-    @ShellMethod(value = "Stops all infrastructure container..", key = {"system shutdown-infrastructure"})
+    @ShellMethod(value = "Stops all infrastructure container..", key = {"system shutdownInfrastructure"})
     public void shutdownInfrastructure() {
         log.warn("You are about to stop ALL Infrastructure containers. The Minecraft and BungeeCord containers depend on " +
                 "them and will stop working properly when doing so. Are you sure? (Y/N)");
@@ -184,7 +211,7 @@ public class SystemCommands {
         log.info("Successfully stopped all infrastructure containers.");
     }
 
-    @ShellMethod(value = "Clears all data that has been gathered by the infrastructure. This includes THE WHOLE DATABASE AND REGISTRY!", key = "system clean-all-data")
+    @ShellMethod(value = "Clears all data that has been gathered by the infrastructure. This includes THE WHOLE DATABASE AND REGISTRY!", key = "system cleanAllData")
     public void clearData() {
         log.warn("You are about to delete every persistent storage of DockerMC. This includes all images in the registry " +
                 "as well as the whole PostgreSQL database. The infrastructure must be stopped for this. Are you sure?");
@@ -230,7 +257,7 @@ public class SystemCommands {
         log.info("Deleted all volumes DockerMC volumes.");
     }
 
-    @ShellMethod(value = "Lists all available docker nodes", key = "system list-nodes")
+    @ShellMethod(value = "Lists all available docker nodes", key = "system listNodes")
     public void listNodes() {
         Info info = docker.getDocker().infoCmd().exec();
         String currentNodeId = info.getSwarm().getNodeID();
@@ -269,7 +296,7 @@ public class SystemCommands {
         tableBuilder.build(log);
     }
 
-    @ShellMethod(value = "Returns the required information to join a new node to the swarm", key = "system join-node")
+    @ShellMethod(value = "Returns the required information to join a new node to the swarm", key = "system joinNode")
     public void joinNode() {
         Swarm swarm = docker.getDocker().inspectSwarmCmd().exec();
         SwarmInfo swarmInfo = docker.getDocker().infoCmd().exec().getSwarm();

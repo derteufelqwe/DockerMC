@@ -16,6 +16,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.util.StringUtils;
 
 import java.net.ConnectException;
 
@@ -52,8 +53,14 @@ public class ServerManager {
     }
 
 
+
     public static void main(String[] args) {
-        SpringApplication.run(ServerManager.class, args);
+        String[] disabledCommands = {
+                "--spring.shell.command.script.enabled=false"
+        };
+        String[] fullArgs = StringUtils.concatenateStringArrays(args, disabledCommands);
+
+        SpringApplication.run(ServerManager.class, fullArgs);
     }
 
 }

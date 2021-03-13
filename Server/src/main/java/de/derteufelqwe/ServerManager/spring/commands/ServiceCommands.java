@@ -10,6 +10,7 @@ import com.github.dockerjava.api.model.TaskState;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.tablebuilder.Column;
 import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
+import de.derteufelqwe.ServerManager.utils.HelpBuilder;
 import de.derteufelqwe.ServerManager.utils.Utils;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
@@ -25,7 +26,6 @@ import java.util.stream.Collectors;
 
 @ShellComponent
 @Log4j2
-@ShellCommandGroup(value = "service")
 public class ServiceCommands {
 
     @Autowired
@@ -34,6 +34,24 @@ public class ServiceCommands {
     private StringRedisTemplate redisTemplate;
     @Autowired
     private SessionBuilder sessionBuilder;
+
+
+    @ShellMethod(value = "Shows the help", key = "service")
+    private void showHelp() {
+        System.out.println("Manage services");
+        System.out.println("");
+
+        new HelpBuilder("Commands:")
+                .addEntry("help", "Shows this help")
+                .addEntry("list", "Lists all available services")
+                .addEntry("details", "Displays details about a certain service")
+                .print();
+    }
+
+    @ShellMethod(value = "Shows the help", key = "service help")
+    private void showHelp2() {
+        showHelp();
+    }
 
 
     @ShellMethod(value = "Lists all running BungeeCord and Minecraft server", key = "service list")

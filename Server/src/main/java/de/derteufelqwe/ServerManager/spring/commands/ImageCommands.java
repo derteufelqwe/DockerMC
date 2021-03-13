@@ -19,6 +19,7 @@ import de.derteufelqwe.ServerManager.registry.objects.ImageManifest;
 import de.derteufelqwe.ServerManager.registry.objects.Tags;
 import de.derteufelqwe.ServerManager.tablebuilder.Column;
 import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
+import de.derteufelqwe.ServerManager.utils.HelpBuilder;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import lombok.SneakyThrows;
@@ -51,7 +52,6 @@ import java.util.zip.ZipEntry;
 
 @ShellComponent
 @Log4j2
-@ShellCommandGroup(value = "image")
 public class ImageCommands {
 
     private final Pattern RE_IMAGE_NAME = Pattern.compile("[a-z0-9]+(?:[._-]{1,2}[a-z0-9]+)*");
@@ -69,6 +69,25 @@ public class ImageCommands {
     private Config<MainConfig> mainConfig;
     @Autowired
     private Gson gson;
+
+    @ShellMethod(value = "Shows the help", key = "image")
+    public void showHelp() {
+        System.out.println("Manage images");
+        System.out.println("");
+
+        new HelpBuilder("Commands:")
+                .addEntry("help", "Shows this help")
+                .addEntry("list", "Lists all available images in the local registry")
+                .addEntry("tags", "Lists all tags an image has")
+                .addEntry("delete", "Deletes an image from the registry (experimental!)")
+                .addEntry("build", "Builds a new image and pushed it to the registry")
+                .print();
+    }
+
+    @ShellMethod(value = "Shows the help", key = "image help")
+    public void showHelp2() {
+        showHelp();
+    }
 
 
     @ShellMethod(value = "Lists all available images", key = "image list")
@@ -210,10 +229,9 @@ public class ImageCommands {
     }
 
     @ShellMethod(value = "Builds a new image for use in the swarm.", key = "image build")
-    public void buildImage(String imageType, String name, @ShellOption(defaultValue = "latest") String tag) {
-        ImageType type = parseImageType(imageType);
-        if (type == null) {
-            log.error("Invalid type {}.", imageType);
+    public void buildImage(ImageType imageType, String name, @ShellOption(defaultValue = "latest") String tag) {
+        if (imageType == null) {
+            log.error("Got Invalid value for 'imageType'. Expected MINECRAFT or BUNGEE.");
             return;
         }
 
@@ -237,29 +255,13 @@ public class ImageCommands {
         String fullName = Constants.REGISTRY_URL + "/" + name + ":" + tag;
 
         log.info("Building image {}:{}.", name, tag);
-        String imageID = this.buildImage(type, name, tag, fullName);
+        String imageID = this.buildImage(imageType, name, tag, fullName);
         if (imageID == null)
             return;
 
         this.pushImage(fullName);
 
         log.info("Successfully build and pushed image {}:{} ({}).", name, tag, imageID);
-    }
-
-    @CheckForNull
-    private ImageType parseImageType(String imageType) {
-        imageType = imageType.toUpperCase();
-        if (imageType.equals("MC"))
-            imageType = "MINECRAFT";
-        if (imageType.equals("BC"))
-            imageType = "BUNGEE";
-
-        try {
-            return ImageType.valueOf(imageType);
-
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
     }
 
     @SneakyThrows
