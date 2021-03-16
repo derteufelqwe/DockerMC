@@ -1,6 +1,6 @@
 package de.derteufelqwe.bungeeplugin.commands.misc;
 
-import de.derteufelqwe.bungeeplugin.health.HealthHandler;
+import de.derteufelqwe.commons.health.HealthHandler;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;

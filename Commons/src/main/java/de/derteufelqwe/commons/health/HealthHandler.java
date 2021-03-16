@@ -1,4 +1,4 @@
-package de.derteufelqwe.minecraftplugin.health;
+package de.derteufelqwe.commons.health;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;

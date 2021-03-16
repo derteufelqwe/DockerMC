@@ -3,6 +3,7 @@ package de.derteufelqwe.nodewatcher.logs;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Frame;
+import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
@@ -67,6 +68,7 @@ public class LogLoadCallback implements ResultCallback<Frame> {
         } else {
             logger.error(LogPrefix.LOGS + "Failed to download {} containers log.", this.containerId);
             logger.error(LogPrefix.LOGS + throwable.getMessage());
+            CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, throwable, NodeWatcher.getMetaData());
         }
     }
 

@@ -14,16 +14,12 @@ import java.util.List;
 @Entity(name = "nodes")
 @Table(name = "nodes", indexes = {
         @Index(name = "ID_IDX", columnList = "id"),
-        @Index(name = "NAME_IDX", columnList = "name"),
 })
 public class Node {
 
     @Id
     @Type(type = "text")
     private String id;
-
-    @Type(type = "text")
-    private String name;
 
     private Integer maxRam;
 
@@ -34,9 +30,9 @@ public class Node {
     private List<NodeStats> nodeStats;
 
 
-    public Node(String id, String name) {
+    public Node(String id, int maxRam) {
         this.id = id;
-        this.name = name;
+        this.maxRam = maxRam;
     }
 
 }

@@ -102,4 +102,8 @@ public class Utils {
         return new Timestamp(format.parse(timestamp).getTime());
     }
 
+    public static boolean isWindows() {
+        return System.getProperty("os.name").toLowerCase().startsWith("windows");
+    }
+
 }

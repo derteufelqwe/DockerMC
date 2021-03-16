@@ -26,7 +26,7 @@ import java.util.UUID;
 public class RedisPublishListener extends BinaryJedisPubSub implements Runnable {
 
     private JedisPool jedisPool = MinecraftPlugin.getRedisPool().getJedisPool();
-    private String localContainerId = MinecraftPlugin.getMetaData().getContainerID();
+    private String localContainerId = MinecraftPlugin.getMetaData().readContainerID();
 
 
     public RedisPublishListener() {

@@ -86,13 +86,20 @@ public class ServiceCommands {
             String lobbyAppend = name.equals(lobbyServerName) ? " (LobbyServer)" : "";
             String type = service.getSpec().getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY);
 
-            long maxReplicas = service.getSpec().getMode().getReplicated().getReplicas();
+            ServiceModeConfig modeConfig = service.getSpec().getMode();
+            long maxReplicas = -1;
+            if (modeConfig.getReplicated() != null)
+                maxReplicas = modeConfig.getReplicated().getReplicas();
             int runningReplicas = getRunningReplicas(service.getId());
             ServiceHealthReader.ServiceHealth health = healthReader.getHealth(service.getId());
 
             tableBuilder.addToColumn(0, name);
             tableBuilder.addToColumn(1, service.getId());
-            tableBuilder.addToColumn(2, String.format("%s/%s", runningReplicas, maxReplicas));
+            if (maxReplicas >= 0)
+                tableBuilder.addToColumn(2, String.format("%s/%s", runningReplicas, maxReplicas));
+            else
+                tableBuilder.addToColumn(2, String.format("%s (g)", runningReplicas));
+
             if (health.isHealthy())
                 tableBuilder.addToColumn(3, "Healthy");
             else
@@ -124,7 +131,10 @@ public class ServiceCommands {
 
         ServiceHealthReader.ServiceHealth health = healthReader.getHealth(service.getId());
 
-        long maxReplicas = service.getSpec().getMode().getReplicated().getReplicas();
+        ServiceModeConfig serviceModeConfig = service.getSpec().getMode();
+        long maxReplicas = -1;
+        if (serviceModeConfig.getReplicated() != null)
+            maxReplicas = serviceModeConfig.getReplicated().getReplicas();
         int runningReplicas = getRunningReplicas(service.getId());
 
         // --- Log the infos ---
@@ -138,7 +148,10 @@ public class ServiceCommands {
         tableBuilder.addToColumn(1, service.getUpdatedAt().toString());
 
         tableBuilder.addToColumn(0, "Replicas");
-        tableBuilder.addToColumn(1, String.format("%s/%s", runningReplicas, maxReplicas));
+        if (maxReplicas >= 0)
+            tableBuilder.addToColumn(1, String.format("%s/%s", runningReplicas, maxReplicas));
+        else
+            tableBuilder.addToColumn(1, String.format("%s (g)", runningReplicas));
 
         tableBuilder.addToColumn(0, "Health");
         if (health.isHealthy())

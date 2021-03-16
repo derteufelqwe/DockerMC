@@ -1,24 +1,22 @@
 package de.derteufelqwe.minecraftplugin;
 
-import de.derteufelqwe.commons.misc.MetaDataBase;
+import de.derteufelqwe.commons.misc.ServiceMetaData;
 import lombok.Getter;
 
 /**
- * Container specific information
+ * Minecraft service container specific information
  */
 @Getter
-public class ContainerMetaData extends MetaDataBase {
+public class ContainerMetaData extends ServiceMetaData {
 
-    private String taskName;
     private String serverName;
-    private String containerIp;
+    private String containerIP;
     private int softPlayerLimit;
 
     public ContainerMetaData() {
-        this.taskName = this.getString("TASK_NAME");
         this.serverName = this.getString("SERVER_NAME");
+        this.containerIP = this.overnetIp();
         this.softPlayerLimit = this.getInt("SOFT_PLAYER_LIMIT");
-        this.containerIp = this.overnetIp();
     }
 
 }

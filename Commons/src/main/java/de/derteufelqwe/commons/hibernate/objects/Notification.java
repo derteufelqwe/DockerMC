@@ -29,7 +29,6 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-
     @Type(type = "text")
     private String type;
 
@@ -37,12 +36,17 @@ public class Notification {
     private String message;
 
     @Type(type = "jsonb")
+    @Column(columnDefinition = "jsonb")
     private Map<String, Object> data;
 
     private boolean read = false;
 
     private Timestamp timestamp;
 
+
+    public Notification(String type) {
+        this.type = type;
+    }
 
     public Notification(String type, String message, Map<String, Object> data) {
         this.type = type;

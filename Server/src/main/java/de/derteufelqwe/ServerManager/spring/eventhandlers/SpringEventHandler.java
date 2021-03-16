@@ -4,8 +4,6 @@ import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.callbacks.ImagePullCallback;
 import de.derteufelqwe.ServerManager.spring.Commons;
-import de.derteufelqwe.ServerManager.spring.events.CheckInfrastructureEvent;
-import de.derteufelqwe.ServerManager.spring.events.ReloadConfigEvent;
 import de.derteufelqwe.commons.Constants;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,11 +38,11 @@ public class SpringEventHandler {
             return;
 
         this.pullImages();
-        if (!commons.checkAndCreateInfrastructure()) {
+        if (!commons.createFullInfrastructure()) {
             log.error("Infrastructure setup failed!");
             SpringApplication.exit(appContext, () -> 100);
         }
-        if (!commons.checkAndCreateMCServers()) {
+        if (!commons.createAllMCServers()) {
             log.fatal("Minecraft server setup failed!");
             SpringApplication.exit(appContext, () -> 102);
         }

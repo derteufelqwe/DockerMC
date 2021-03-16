@@ -1,6 +1,6 @@
 package de.derteufelqwe.bungeeplugin.redis;
 
-import com.sun.istack.NotNull;
+import org.jetbrains.annotations.NotNull;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import lombok.Getter;
 import lombok.Setter;

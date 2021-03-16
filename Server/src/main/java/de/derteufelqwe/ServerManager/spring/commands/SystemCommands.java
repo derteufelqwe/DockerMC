@@ -2,32 +2,23 @@ package de.derteufelqwe.ServerManager.spring.commands;
 
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.*;
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.setup.infrastructure.PostgresDBContainer;
 import de.derteufelqwe.ServerManager.setup.infrastructure.RedisContainer;
 import de.derteufelqwe.ServerManager.setup.infrastructure.RegistryContainer;
 import de.derteufelqwe.ServerManager.spring.Commons;
-import de.derteufelqwe.ServerManager.spring.events.CheckInfrastructureEvent;
-import de.derteufelqwe.ServerManager.spring.events.ReloadConfigEvent;
 import de.derteufelqwe.ServerManager.tablebuilder.Column;
 import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
 import de.derteufelqwe.ServerManager.utils.HelpBuilder;
 import de.derteufelqwe.ServerManager.utils.Utils;
 import de.derteufelqwe.commons.Constants;
 import lombok.extern.log4j.Log4j2;
-import org.apache.logging.log4j.core.tools.picocli.CommandLine;
 import org.jline.reader.LineReader;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
-import org.springframework.boot.ansi.AnsiColor;
-import org.springframework.boot.ansi.AnsiColors;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
@@ -38,11 +29,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @ShellComponent
 @Log4j2
@@ -92,40 +81,9 @@ public class SystemCommands {
         log.info("Reloaded config files.");
     }
 
-    @ShellMethod(value = "Reloads and updates the servers config.", key = "system checkServers")
-    public void checkServers(
-            @ShellOption({"-f", "--force"}) boolean force,
-            @ShellOption({"-b", "--bungee"}) boolean updateBungee,
-            @ShellOption({"-l", "--lobby"}) boolean updateLobby,
-            @ShellOption({"-p", "--pool"}) boolean updatePool
-    ) {
-        // Update everything at default
-        if (!updateBungee && !updateLobby && !updatePool) {
-            if (commons.checkAndCreateMCServers(force)) {
-                log.info("Successfully reloaded server config.");
-
-            } else {
-                log.error("Config reload failed!");
-            }
-
-            return;
-        }
-
-        // Handle the special cases
-        if (updateBungee)
-            commons.createBungeeServer(force);
-
-        if (updateLobby)
-            commons.createLobbyServer(force);
-
-        if (updatePool)
-            commons.createPoolServers(force);
-
-    }
-
     @ShellMethod(value = "Checks if all parts of the infrastructure are up and running or starts them.", key = "system checkInfrastructure")
     public void checkInfrastructure() {
-        if (commons.checkAndCreateInfrastructure()) {
+        if (commons.createFullInfrastructure()) {
             log.info("Infrastructure is up and running.");
 
         } else {
@@ -157,91 +115,44 @@ public class SystemCommands {
         }
     }
 
-    @ShellMethod(value = "Stops ALL Minecraft and BungeeCord server.", key = {"system shutdownServers"})
-    public void shutdownServer() {
-        log.warn("You are about to stop ALL Minecraft and BungeeCord server, kicking all players in the process. Are you sure? (Y/N)");
-        String input = lineReader.readLine("> ").toUpperCase();
-
-        if (!input.equals("Y")) {
-            log.info("Server shutdown cancelled.");
-            return;
-        }
-
-        List<Service> services = docker.getDocker().listServicesCmd()
-                .withLabelFilter(Constants.DOCKER_IDENTIFIER_MAP)
-                .exec();
-        log.info("Found {} active services.", services.size());
-
-        for (Service service : services) {
-            String name = service.getSpec().getName();
-            String type = service.getSpec().getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY);
-
-            docker.getDocker().removeServiceCmd(service.getId()).exec();
-            log.info("Removed {} service {} ({}).", type, name, service.getId());
-        }
-
-        log.info("Successfully stopped all Minecraft and BungeeCord services.");
-    }
-
-    @ShellMethod(value = "Stops all infrastructure container..", key = {"system shutdownInfrastructure"})
+    @ShellMethod(value = "Stops all infrastructure containers.", key = {"system shutdownInfrastructure"})
     public void shutdownInfrastructure(
-            @ShellOption({"-n", "--network"}) boolean createNetwork,
-            @ShellOption({"-c", "--certs"}) boolean createCerts,
-            @ShellOption({"-r", "--registry"}) boolean createRegistry,
-            @ShellOption({"-p", "--postgres"}) boolean createPostgres,
-            @ShellOption({"-rd", "--redis"}) boolean createRedis,
-            @ShellOption({"-nw", "--nodewatcher"}) boolean createNodeWatcher
+            @ShellOption({"-r", "--registry"}) boolean stopRegistry,
+            @ShellOption({"-rd", "--redis"}) boolean stopRedis,
+            @ShellOption({"-p", "--postgres"}) boolean stopPostgres,
+            @ShellOption({"-nw", "--nodewatcher"}) boolean stopNodeWatcher
     ) {
         // Default action
-        if (Utils.allFalse(createNetwork, createCerts, createRegistry, createPostgres, createRedis, createNodeWatcher)) {
-            RegistryContainer registryContainer = new RegistryContainer();
-            registryContainer.init(docker);
-            registryContainer.destroy();
-        }
-        log.warn("You are about to stop ALL Infrastructure containers. The Minecraft and BungeeCord containers depend on " +
-                "them and will stop working properly when doing so. Are you sure? (Y/N)");
-        String input = lineReader.readLine("> ").toUpperCase();
+        if (Utils.allFalse(stopRegistry, stopPostgres, stopRedis, stopNodeWatcher)) {
+            log.warn("You are about to stop ALL Infrastructure containers. The Minecraft and BungeeCord containers depend on " +
+                    "them and will stop working properly when doing so. Are you sure? (Y/N)");
+            String input = lineReader.readLine("> ").toUpperCase();
 
-        if (!input.equals("Y")) {
-            log.info("System shutdown cancelled.");
+            if (!input.equals("Y")) {
+                log.info("System shutdown cancelled.");
+                return;
+            }
+
+            if (!this.commons.stopInfrastructure()) {
+                log.error("Infrastructure shutdown failed!");
+            }
+
             return;
         }
 
-        List<Container> containers = docker.getDocker().listContainersCmd()
-                .withLabelFilter(Constants.DOCKER_IDENTIFIER_MAP)
-                .exec();
 
-        for (Container container : containers) {
-            String typeStr = container.getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY);
-            if (typeStr == null)
-                continue;
+        // Stop single services
+        if (stopRegistry)
+            this.commons.stopRegistryContainer();
 
-            try {
-                Constants.ContainerType type = Constants.ContainerType.valueOf(typeStr);
+        if (stopRedis)
+            this.commons.stopRedisContainer();
 
-                switch (type) {
-                    case REGISTRY:
-                        docker.getDocker().stopContainerCmd(container.getId()).exec();
-                        log.info("Stopped registry container.");
-                        break;
+        if (stopPostgres)
+            this.commons.stopPostgresContainer();
 
-                    case REDIS_DB:
-                        docker.getDocker().stopContainerCmd(container.getId()).exec();
-                        log.info("Stopped redis container");
-                        break;
-
-                    case POSTGRES_DB:
-                        log.info("Stopped postgres container.");
-                        docker.getDocker().stopContainerCmd(container.getId()).exec();
-                        break;
-                }
-
-            } catch (IllegalArgumentException e) {
-
-            }
-        }
-
-        log.info("Successfully stopped all infrastructure containers.");
+        if (stopNodeWatcher)
+            this.commons.stopNodeWatcherService();
     }
 
     @ShellMethod(value = "Clears all data that has been gathered by the infrastructure. This includes THE WHOLE DATABASE AND REGISTRY!", key = "system cleanAllData")

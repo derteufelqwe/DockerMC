@@ -45,7 +45,6 @@ class LobbyPoolCreator extends DMCServiceCreator<ServerPool> {
         super.onServiceCreated(createResponse);
 
         this.addToRedis(this.getConfigObject().getName());
-
     }
 
 }

@@ -1,13 +1,13 @@
-package de.derteufelqwe.bungeeplugin.health;
+package de.derteufelqwe.commons.health;
 
 import com.sun.net.httpserver.HttpServer;
-import net.md_5.bungee.api.ProxyServer;
+import org.bukkit.Bukkit;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
 /**
- * Starts a little HTTP server
+ * A small webserver, which is used for the docker health check
  */
 public class HealthCheck {
 
@@ -24,7 +24,7 @@ public class HealthCheck {
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("[Fatal Error] Failed to start health check server.");
-            ProxyServer.getInstance().stop("[Fatal Error] Failed to start health check server.");
+            Bukkit.getServer().shutdown();
         }
     }
 

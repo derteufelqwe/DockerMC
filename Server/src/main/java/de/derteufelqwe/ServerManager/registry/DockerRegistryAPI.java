@@ -3,7 +3,7 @@ package de.derteufelqwe.ServerManager.registry;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import com.sun.istack.NotNull;
+import org.jetbrains.annotations.NotNull;
 import de.derteufelqwe.ServerManager.registry.deserializers.HistoryDeserializer;
 import de.derteufelqwe.ServerManager.registry.deserializers.RESTErrorDeserializer;
 import de.derteufelqwe.ServerManager.registry.deserializers.V1CompatibilityDeserializer;

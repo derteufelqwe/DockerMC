@@ -20,7 +20,7 @@ public class DMCInfo extends DMCBaseCommand {
     @Subcommand("bungee")
     public void bungeeInfo(CommandSender sender) {
         try (Session session = sessionBuilder.openSession()) {
-            DBContainer container = session.get(DBContainer.class, BungeePlugin.META_DATA.getContainerID());
+            DBContainer container = session.get(DBContainer.class, BungeePlugin.META_DATA.readContainerID());
             if (container == null) {
                 send(sender, PREFIX + ChatColor.RED + "Container not found.");
                 return;

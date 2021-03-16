@@ -60,12 +60,4 @@ public class BungeePool extends ExposableServiceTemplate {
         return envs;
     }
 
-    /**
-     * Expose the BungeeCord service to the specified port
-     * @return
-     */
-    @Override
-    protected int getContainerPort() {
-        return ServerManager.MAIN_CONFIG.get().getProxyPort();
-    }
 }

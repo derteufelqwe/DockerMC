@@ -2,6 +2,7 @@ package de.derteufelqwe.nodewatcher.logs;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.exception.NotFoundException;
+import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.nodewatcher.executors.ContainerWatcher;
@@ -98,6 +99,7 @@ public class ContainerLogFetcher extends Thread implements INewContainerObserver
             } catch (Exception e2) {
                 logger.error(LogPrefix.LOGS + "Caught exception: {}.", e2.getMessage());
                 e2.printStackTrace(System.err);
+                CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e2, NodeWatcher.getMetaData());
             }
         }
     }

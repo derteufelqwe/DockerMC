@@ -100,8 +100,8 @@ public class Constants {
         OVERNET,    // Not actually a container
         CONSUL,
         CONSUL_POOL,
-        LOGCOLLECTOR,
-        LOGCOLLECTOR_POOL,
+        NODE_WATCHER,
+        NODE_WATCHER_POOL,
         POSTGRES_DB,
         REDIS_DB,
 

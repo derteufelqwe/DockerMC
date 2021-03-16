@@ -1,6 +1,6 @@
 package de.derteufelqwe.ServerManager.config;
 
-import com.sun.istack.NotNull;
+import org.jetbrains.annotations.NotNull;
 import de.derteufelqwe.ServerManager.config.objects.ServerPoolContainer;
 import de.derteufelqwe.ServerManager.setup.servers.BungeePool;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;

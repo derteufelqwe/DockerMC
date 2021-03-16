@@ -8,6 +8,7 @@ import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
 import de.derteufelqwe.commons.config.providers.DefaultYamlProvider;
 import de.derteufelqwe.commons.config.providers.MinecraftGsonProvider;
+import de.derteufelqwe.commons.health.HealthCheck;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.protobuf.RedisMessages;
 import de.derteufelqwe.commons.redis.RedisPool;
@@ -21,7 +22,6 @@ import de.derteufelqwe.minecraftplugin.economy.DMCEconomy;
 import de.derteufelqwe.minecraftplugin.economy.DMCEconomyImpl;
 import de.derteufelqwe.minecraftplugin.eventhandlers.MiscEventHandler;
 import de.derteufelqwe.minecraftplugin.eventhandlers.TeleportSignEvents;
-import de.derteufelqwe.minecraftplugin.health.HealthCheck;
 import lombok.Getter;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
@@ -176,7 +176,7 @@ public final class MinecraftPlugin extends JavaPlugin {
      */
     private void registerContainer() {
         RedisMessages.MCServerStarted mcStarted = RedisMessages.MCServerStarted.newBuilder()
-                .setContainerId(metaData.getContainerID())
+                .setContainerId(metaData.readContainerID())
                 .build();
 
         RedisMessages.RedisMessage message = RedisMessages.RedisMessage.newBuilder()
@@ -195,7 +195,7 @@ public final class MinecraftPlugin extends JavaPlugin {
      */
     private void deregisterContainer() {
         RedisMessages.MCServerStopped mcStopped = RedisMessages.MCServerStopped.newBuilder()
-                .setContainerId(metaData.getContainerID())
+                .setContainerId(metaData.readContainerID())
                 .build();
 
         RedisMessages.RedisMessage message = RedisMessages.RedisMessage.newBuilder()

@@ -1,6 +1,6 @@
 package de.derteufelqwe.commons.hibernate.objects.permissions;
 
-import com.sun.istack.NotNull;
+import org.jetbrains.annotations.NotNull;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;

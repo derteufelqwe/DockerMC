@@ -1,6 +1,6 @@
 package de.derteufelqwe.ServerManager.tablebuilder;
 
-import com.sun.istack.NotNull;
+import org.jetbrains.annotations.NotNull;
 import lombok.Getter;
 
 import java.util.ArrayList;

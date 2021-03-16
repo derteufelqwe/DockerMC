@@ -1,10 +1,7 @@
 package de.derteufelqwe.ServerManager.spring.commands;
 
 import com.github.dockerjava.api.async.ResultCallback;
-import com.github.dockerjava.api.command.BuildImageResultCallback;
-import com.github.dockerjava.api.command.CreateContainerResponse;
-import com.github.dockerjava.api.command.InspectTaskCmd;
-import com.github.dockerjava.api.command.WaitContainerResultCallback;
+import com.github.dockerjava.api.command.*;
 import com.github.dockerjava.api.exception.DockerClientException;
 import com.github.dockerjava.api.model.*;
 import com.google.gson.Gson;
@@ -376,9 +373,10 @@ public class ImageCommands {
 
 
     @SneakyThrows
-    @ShellMethod(value = "testing", key = "test")
+    @ShellMethod(value = "testing", key = "testi")
     public void test() {
-
+        InspectContainerResponse response = docker.getDocker().inspectContainerCmd("d3583097f8cd").exec();
+        HealthState health = response.getState().getHealth();
 
         System.out.println("done");
     }

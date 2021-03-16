@@ -8,12 +8,14 @@ import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Event;
 import com.github.dockerjava.api.model.EventActor;
 import com.github.dockerjava.api.model.Service;
+import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.DBService;
 import de.derteufelqwe.commons.hibernate.objects.Node;
+import de.derteufelqwe.commons.misc.ServiceMetaData;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.misc.INewContainerObserver;
 import de.derteufelqwe.nodewatcher.misc.InvalidSystemStateException;
@@ -56,9 +58,15 @@ public class ContainerWatcher implements ResultCallback<Event> {
      */
     @Override
     public void onStart(Closeable closeable) {
-        List<Container> containers = this.getRunningBungeeMinecraftContainers();
-        this.gatherStartedContainers(containers);
-        this.completeStoppedContainers(containers);
+        try {
+            List<Container> containers = this.getRunningBungeeMinecraftContainers();
+            this.gatherStartedContainers(containers);
+            this.completeStoppedContainers(containers);
+
+        } catch (Exception e) {
+            CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e, NodeWatcher.getMetaData());
+            throw e;
+        }
     }
 
     @Override
@@ -81,6 +89,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
             logger.error(LogPrefix.CW + "Exception occurred in the ContainerWatcher.");
             logger.error(LogPrefix.CW + e.getMessage());
             e.printStackTrace(System.err);
+            CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e, NodeWatcher.getMetaData());
         }
     }
 

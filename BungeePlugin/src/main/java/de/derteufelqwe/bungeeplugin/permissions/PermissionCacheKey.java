@@ -1,7 +1,7 @@
 package de.derteufelqwe.bungeeplugin.permissions;
 
-import com.sun.istack.NotNull;
-import com.sun.istack.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 

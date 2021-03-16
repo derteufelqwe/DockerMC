@@ -2,7 +2,7 @@ package de.derteufelqwe.bungeeplugin.runnables;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.sun.istack.NotNull;
+import org.jetbrains.annotations.NotNull;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.utils.mojangapi.MojangAPIProfile;
 import de.derteufelqwe.bungeeplugin.utils.mojangapi.MojangAPIProfileDeserializer;

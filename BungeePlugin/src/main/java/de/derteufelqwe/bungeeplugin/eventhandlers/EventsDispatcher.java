@@ -1,6 +1,6 @@
 package de.derteufelqwe.bungeeplugin.eventhandlers;
 
-import com.sun.istack.Nullable;
+import org.jetbrains.annotations.Nullable;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.events.BungeePlayerJoinEvent;
 import de.derteufelqwe.bungeeplugin.events.BungeePlayerLeaveEvent;
@@ -68,7 +68,7 @@ public class EventsDispatcher implements Listener {
     private TaskScheduler scheduler = ProxyServer.getInstance().getScheduler();
 
     private TextComponent errorMessage = new TextComponent(ChatColor.RED + String.format("Internal server error. Failed to login. " +
-            "Please notify the staff with id '%s'! Retry in a few seconds.", BungeePlugin.META_DATA.getContainerID()));
+            "Please notify the staff with id '%s'! Retry in a few seconds.", BungeePlugin.META_DATA.readContainerID()));
 
     private RedisMessages.BungeeMessageBase messageBase;
     private final Method getLoginRequestMethod;

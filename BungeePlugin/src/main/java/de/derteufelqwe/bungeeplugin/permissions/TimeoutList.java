@@ -1,6 +1,6 @@
 package de.derteufelqwe.bungeeplugin.permissions;
 
-import com.sun.istack.NotNull;
+import org.jetbrains.annotations.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

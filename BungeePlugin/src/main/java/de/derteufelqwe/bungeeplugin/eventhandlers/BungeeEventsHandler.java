@@ -1,6 +1,6 @@
 package de.derteufelqwe.bungeeplugin.eventhandlers;
 
-import com.sun.istack.Nullable;
+import org.jetbrains.annotations.Nullable;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.events.*;
 import de.derteufelqwe.bungeeplugin.redis.PlayerData;

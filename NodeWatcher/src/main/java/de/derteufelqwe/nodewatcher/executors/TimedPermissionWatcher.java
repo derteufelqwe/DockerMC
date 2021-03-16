@@ -1,5 +1,6 @@
 package de.derteufelqwe.nodewatcher.executors;
 
+import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.misc.LogPrefix;
@@ -47,9 +48,10 @@ public class TimedPermissionWatcher extends Thread {
                 this.doRun.set(false);
                 logger.warn(LogPrefix.TPW + "Stopping TimedPermissionWatcher.");
 
-            } catch (Exception e) {
-                logger.error(LogPrefix.TPW + "Caught exception: {}.", e.getMessage());
-                e.printStackTrace(System.err);
+            } catch (Exception e2) {
+                logger.error(LogPrefix.TPW + "Caught exception: {}.", e2.getMessage());
+                e2.printStackTrace(System.err);
+                CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e2, NodeWatcher.getMetaData());
             }
         }
     }

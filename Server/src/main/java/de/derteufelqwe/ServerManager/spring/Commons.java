@@ -6,15 +6,14 @@ import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.config.ConfigChecker;
 import de.derteufelqwe.ServerManager.config.ServersConfig;
 import de.derteufelqwe.ServerManager.exceptions.InvalidConfigException;
-import de.derteufelqwe.ServerManager.setup.InfrastructureSetup;
-import de.derteufelqwe.ServerManager.setup.LostServiceFinder;
-import de.derteufelqwe.ServerManager.setup.ServiceCreateResponse;
-import de.derteufelqwe.ServerManager.setup.ServiceUpdateResponse;
+import de.derteufelqwe.ServerManager.setup.*;
 import de.derteufelqwe.ServerManager.setup.configUpdate.BungeePoolUpdater;
 import de.derteufelqwe.ServerManager.setup.configUpdate.LobbyPoolUpdater;
 import de.derteufelqwe.ServerManager.setup.configUpdate.MinecraftPoolUpdater;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
+import de.derteufelqwe.ServerManager.spring.commands.ImageCommands;
 import de.derteufelqwe.ServerManager.utils.Utils;
+import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import lombok.extern.log4j.Log4j2;
@@ -23,6 +22,7 @@ import org.hibernate.service.spi.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -46,7 +46,7 @@ public class Commons {
      * Reloads the minecraft servers
      * @return
      */
-    public boolean reloadConfig() {
+    public boolean reloadServerConfig() {
         ServerManager.SERVERS_CONFIG.load();
 
         // Servers config check
@@ -59,22 +59,15 @@ public class Commons {
             return false;
         }
 
-        // Servers setup
-        if (!this.checkAndCreateMCServers()) {
-            log.error("Failed to setup the minecraft servers. Solve the problem mentioned above.");
-            return false;
-        }
-
         return true;
     }
 
-    // -----  Infrastructure  -----
+    // -----  Infrastructure setup  -----
 
     /**
      * Checks if the required infrastructure exist and creates it if necessary.
      */
-    public boolean checkAndCreateInfrastructure() {
-
+    public boolean createFullInfrastructure() {
         if (!this.createOvernetNetwork())
             return false;
         if (!this.createRegistryCertificates())
@@ -232,13 +225,112 @@ public class Commons {
         return true;
     }
 
-    // -----  Minecraft server creation / updating  -----
+    // -----  Infrastructure shutdown  -----
+
+    public boolean stopInfrastructure() {
+        if (!this.stopRegistryContainer())
+            return false;
+        if (!this.stopNodeWatcherService())
+            return false;
+        if (!this.stopRedisContainer())
+            return false;
+        if (!this.stopPostgresContainer())
+            return false;
+
+        return true;
+    }
+
+    public boolean stopRegistryContainer() {
+        InfrastructureSetup setup = new InfrastructureSetup(docker);
+        ServiceStopResponse response = setup.stopRegistryContainer();
+
+        switch (response.getResult()) {
+            case OK:
+                log.info("Stopped registry container successfully."); break;
+            case NOT_RUNNING:
+                log.info("Registry container not running."); break;
+            case FAILED_GENERIC:
+                log.error("Failed to stop the registry container! ID: {}, Message: {}.",
+                        response.getServiceId(), response.getAdditionalInfos());
+                return false;
+
+            default:
+                throw new NotImplementedException("Result " + response.getResult() + " not implemented.");
+        }
+
+        return true;
+    }
+
+    public boolean stopPostgresContainer() {
+        InfrastructureSetup setup = new InfrastructureSetup(docker);
+        ServiceStopResponse response = setup.stopPostgresContainer();
+
+        switch (response.getResult()) {
+            case OK:
+                log.info("Stopped postres container successfully."); break;
+            case NOT_RUNNING:
+                log.info("Postgres container not running."); break;
+            case FAILED_GENERIC:
+                log.error("Failed to stop the postgres container! ID: {}, Message: {}.",
+                        response.getServiceId(), response.getAdditionalInfos());
+                return false;
+
+            default:
+                throw new NotImplementedException("Result " + response.getResult() + " not implemented.");
+        }
+
+        return true;
+    }
+
+    public boolean stopNodeWatcherService() {
+        InfrastructureSetup setup = new InfrastructureSetup(docker);
+        ServiceStopResponse response = setup.stopNodeWatcherService();
+
+        switch (response.getResult()) {
+            case OK:
+                log.info("Stopped NodeWatcher service successfully."); break;
+            case NOT_RUNNING:
+                log.info("NodeWatcher service not running."); break;
+            case FAILED_GENERIC:
+                log.error("Failed to stop the NodeWatcher service! ID: {}, Message: {}.",
+                        response.getServiceId(), response.getAdditionalInfos());
+                return false;
+
+            default:
+                throw new NotImplementedException("Result " + response.getResult() + " not implemented.");
+        }
+
+        return true;
+    }
+
+    public boolean stopRedisContainer() {
+        InfrastructureSetup setup = new InfrastructureSetup(docker);
+        ServiceStopResponse response = setup.stopRedisContainer();
+
+        switch (response.getResult()) {
+            case OK:
+                log.info("Stopped redis container successfully."); break;
+            case NOT_RUNNING:
+                log.info("Redis container not running."); break;
+            case FAILED_GENERIC:
+                log.error("Failed to stop the redis container! ID: {}, Message: {}.",
+                        response.getServiceId(), response.getAdditionalInfos());
+                return false;
+
+            default:
+                throw new NotImplementedException("Result " + response.getResult() + " not implemented.");
+        }
+
+        return true;
+    }
+
+    // -----  Minecraft server setup  -----
 
     /**
      * Creates all the servers specified in the InfrastructureConfig.yml.
      * Identifies and stops lost services.
      */
-    public boolean checkAndCreateMCServers(boolean force) {
+    public boolean createAllMCServers(boolean force) {
         LostServiceFinder cleaner = new LostServiceFinder(docker);
         List<Service> lostServices = cleaner.findLostServices();
         ServersConfig serversConfig = this.serversConfig.get();
@@ -270,8 +362,8 @@ public class Commons {
      * Default server creation method
      * @return
      */
-    public boolean checkAndCreateMCServers() {
-        return checkAndCreateMCServers(false);
+    public boolean createAllMCServers() {
+        return createAllMCServers(false);
     }
 
     /**
@@ -316,7 +408,7 @@ public class Commons {
      * @return
      */
     public boolean createLobbyServer(boolean force) {
-        ServiceUpdateResponse response = new LobbyPoolUpdater(docker, redisTemplate).update(false);
+        ServiceUpdateResponse response = new LobbyPoolUpdater(docker, redisTemplate).update(force);
 
         switch (response.getResult()) {
             case CREATED:
@@ -350,7 +442,7 @@ public class Commons {
         ServersConfig serversConfig = this.serversConfig.get();
 
         for (ServerPool pool : serversConfig.getPoolServers()) {
-            ServiceUpdateResponse response = new MinecraftPoolUpdater(docker, pool).update(false);
+            ServiceUpdateResponse response = new MinecraftPoolUpdater(docker, pool).update(force);
 
             switch (response.getResult()) {
                 case CREATED:
@@ -376,6 +468,74 @@ public class Commons {
         }
 
         return true;
+    }
+
+    // -----  Minecraft server shutdown  -----
+
+    public boolean stopAllMCServers() {
+        List<Service> services = docker.getDocker().listServicesCmd()
+                .withLabelFilter(Constants.DOCKER_IDENTIFIER_MAP)
+                .exec();
+        log.info("Found {} active services.", services.size());
+
+        for (Service service : services) {
+            String name = service.getSpec().getName();
+            String type = service.getSpec().getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY);
+
+            docker.getDocker().removeServiceCmd(service.getId()).exec();
+            log.info("Removed {} service {} ({}).", type, name, service.getId());
+        }
+
+        return true;
+    }
+
+    private boolean stopGenericServer(String serviceName, Constants.ContainerType type, String logName) {
+        List<Service> services = docker.getDocker().listServicesCmd()
+                .withLabelFilter(Constants.DOCKER_IDENTIFIER_MAP)
+                .withLabelFilter(Collections.singletonMap(Constants.CONTAINER_IDENTIFIER_KEY, type.name()))
+                .withNameFilter(Collections.singletonList(serviceName))
+                .exec();
+        log.info("Found {} active {} services.", services.size(), logName);
+
+        for (Service service : services) {
+            String name = service.getSpec().getName();
+
+            docker.getDocker().removeServiceCmd(service.getId()).exec();
+            log.info("Removed {} service {} ({}).", logName, name, service.getId());
+        }
+
+        return true;
+    }
+
+    public boolean stopBungeeServer() {
+        return stopGenericServer(null, Constants.ContainerType.BUNGEE_POOL, "Bungee");
+    }
+
+    public boolean stopLobbyServer() {
+        ServerPool pool = serversConfig.get().getLobbyPool();
+        if (pool == null) {
+            log.info("LobbyPool not configured.");
+            return false;
+        }
+
+        return stopGenericServer(pool.getName(), Constants.ContainerType.MINECRAFT_POOL, "LobbyServer");
+    }
+
+    public boolean stopPoolServer(String serverName) {
+        ServerPool pool = null;
+        for (ServerPool serverPool : serversConfig.get().getPoolServers()) {
+            if (serverPool.getName().equals(serverName)) {
+                pool = serverPool;
+                break;
+            }
+        }
+
+        if (pool == null) {
+            log.warn("Pool server {} is not present.", serverName);
+            return false;
+        }
+
+        return stopGenericServer(pool.getName(), Constants.ContainerType.MINECRAFT_POOL, pool.getName());
     }
 
 }

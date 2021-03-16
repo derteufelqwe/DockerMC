@@ -1,5 +1,6 @@
 package de.derteufelqwe.nodewatcher.stats;
 
+import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.Node;
@@ -39,7 +40,7 @@ public class HostResourceWatcher extends Thread {
     private Integer maxRam;
     private CpuLoadData oldData;
     // Debug
-    private boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+    private boolean isWindows = Utils.isWindows();
 
 
     public HostResourceWatcher() {
@@ -91,6 +92,7 @@ public class HostResourceWatcher extends Thread {
                 } catch (Exception e2) {
                     logger.error(LogPrefix.HRW + "Caught exception: {}.", e2.getMessage());
                     e2.printStackTrace(System.err);
+                    CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e2, NodeWatcher.getMetaData());
                 }
             }
         }

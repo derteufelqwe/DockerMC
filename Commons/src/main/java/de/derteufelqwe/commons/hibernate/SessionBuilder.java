@@ -11,6 +11,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
+import org.hibernate.dialect.PostgreSQL10Dialect;
 import org.hibernate.exception.JDBCConnectionException;
 
 import java.util.HashSet;
@@ -34,7 +35,7 @@ public class SessionBuilder {
         this.port = port;
 
         if (init)
-            this.sessionFactory = this.buildSessionFactory();
+            this.init();
     }
 
     public SessionBuilder(String user, String password, String host, int port) {
@@ -61,7 +62,7 @@ public class SessionBuilder {
         properties.setProperty(Environment.URL, "jdbc:postgresql://" + host + ":" + port + "/postgres?useSSL=false");
         properties.setProperty(Environment.USER, user);
         properties.setProperty(Environment.PASS, password);
-        properties.setProperty(Environment.DIALECT, "org.hibernate.dialect.PostgreSQLDialect");
+        properties.setProperty(Environment.DIALECT, "org.hibernate.dialect.PostgreSQL10Dialect");
         properties.setProperty(Environment.SHOW_SQL, "false");
         properties.setProperty(Environment.HBM2DDL_AUTO, "update"); // create / update
         properties.setProperty(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread");

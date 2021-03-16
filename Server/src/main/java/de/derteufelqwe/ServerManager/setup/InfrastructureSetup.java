@@ -30,6 +30,7 @@ public class InfrastructureSetup {
         this.redisContainer.init(docker);
     }
 
+    // -----  Infrastructure setup  -----
 
     public ServiceCreateResponse createOvernetNetwork() {
         ServiceCreateResponse response = new ServiceCreateResponse("OvernetCreation", Constants.ContainerType.OVERNET);
@@ -123,7 +124,7 @@ public class InfrastructureSetup {
     }
 
     public ServiceCreateResponse createNodeWatcherService() {
-        ServiceCreateResponse response = new ServiceCreateResponse("NodeWatcher", Constants.ContainerType.LOGCOLLECTOR);
+        ServiceCreateResponse response = new ServiceCreateResponse("NodeWatcher", Constants.ContainerType.NODE_WATCHER);
 
         if (!this.nodeWatcherService.find().isFound()) {
             DockerObjTemplate.CreateResponse createResponse = this.nodeWatcherService.create();
@@ -161,6 +162,92 @@ public class InfrastructureSetup {
 
         } else {
             response.setResult(ServiceStart.RUNNING);
+        }
+
+        return response;
+    }
+
+    // -----  Infrastructure destruction  -----
+
+    public ServiceStopResponse stopRegistryContainer() {
+        ServiceStopResponse response = new ServiceStopResponse("Registry", Constants.ContainerType.REGISTRY);
+
+        if (this.registryContainer.find().isFound()) {
+            DockerObjTemplate.DestroyResponse destroyResponse = this.registryContainer.destroy();
+
+            if (destroyResponse.isDestroyed()) {
+                response.setResult(ServiceStop.OK);
+
+            } else {
+                response.setResult(ServiceStop.FAILED_GENERIC);
+                response.setAdditionalInfos(destroyResponse.getServiceID());
+            }
+
+        } else {
+            response.setResult(ServiceStop.NOT_RUNNING);
+        }
+
+        return response;
+    }
+
+    public ServiceStopResponse stopPostgresContainer() {
+        ServiceStopResponse response = new ServiceStopResponse("PostgresDatabase", Constants.ContainerType.POSTGRES_DB);
+
+        if (this.postgresDBContainer.find().isFound()) {
+            DockerObjTemplate.DestroyResponse destroyResponse = this.postgresDBContainer.destroy();
+
+            if (destroyResponse.isDestroyed()) {
+                response.setResult(ServiceStop.OK);
+
+            } else {
+                response.setResult(ServiceStop.FAILED_GENERIC);
+                response.setAdditionalInfos(destroyResponse.getServiceID());
+            }
+
+        } else {
+            response.setResult(ServiceStop.NOT_RUNNING);
+        }
+
+        return response;
+    }
+
+    public ServiceStopResponse stopNodeWatcherService() {
+        ServiceStopResponse response = new ServiceStopResponse("NodeWatcher", Constants.ContainerType.NODE_WATCHER);
+
+        if (this.nodeWatcherService.find().isFound()) {
+            DockerObjTemplate.DestroyResponse destroyResponse = this.nodeWatcherService.destroy();
+
+            if (destroyResponse.isDestroyed()) {
+                response.setResult(ServiceStop.OK);
+
+            } else {
+                response.setResult(ServiceStop.FAILED_GENERIC);
+                response.setAdditionalInfos(destroyResponse.getServiceID());
+            }
+
+        } else {
+            response.setResult(ServiceStop.NOT_RUNNING);
+        }
+
+        return response;
+    }
+
+    public ServiceStopResponse stopRedisContainer() {
+        ServiceStopResponse response = new ServiceStopResponse("Redis", Constants.ContainerType.REDIS_DB);
+
+        if (this.redisContainer.find().isFound()) {
+            DockerObjTemplate.DestroyResponse destroyResponse = this.redisContainer.destroy();
+
+            if (destroyResponse.isDestroyed()) {
+                response.setResult(ServiceStop.OK);
+
+            } else {
+                response.setResult(ServiceStop.FAILED_GENERIC);
+                response.setAdditionalInfos(destroyResponse.getServiceID());
+            }
+
+        } else {
+            response.setResult(ServiceStop.NOT_RUNNING);
         }
 
         return response;

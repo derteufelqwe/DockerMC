@@ -20,8 +20,6 @@ public class MainConfig {
     @Comment("Docker-API version")
     private String APIVersion = "1.40";
 
-    private int proxyPort = 25565;
-
     @Comment("Username for the registry")
     private String registryUsername = "admin";
     @Comment("Password for the registry")

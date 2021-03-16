@@ -9,6 +9,8 @@ import com.google.common.cache.CacheLoader;
 import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.Node;
+import de.derteufelqwe.commons.misc.MetaDataBase;
+import de.derteufelqwe.commons.misc.ServiceMetaData;
 import de.derteufelqwe.nodewatcher.executors.ContainerWatcher;
 import de.derteufelqwe.nodewatcher.executors.TimedPermissionWatcher;
 import de.derteufelqwe.nodewatcher.logs.ContainerLogFetcher;
@@ -44,12 +46,10 @@ public class NodeWatcher {
     @Getter
     private static Logger logger = LogManager.getLogger(NodeWatcher.class.getName() + "MyLogger");
 
-    @Getter
-    private static DockerClientFactory dockerClientFactory;
-    @Getter
-    private static SessionBuilder sessionBuilder;
-    @Getter
-    private static String swarmNodeId;
+    @Getter private static DockerClientFactory dockerClientFactory;
+    @Getter private static SessionBuilder sessionBuilder;
+    @Getter private static String swarmNodeId;
+    @Getter private static ServiceMetaData metaData = new ServiceMetaData();
 
     private DockerClient dockerClient;
 
@@ -73,20 +73,11 @@ public class NodeWatcher {
      * Saves the docker swarm nodes in the database
      */
     private void saveSwarmNode() {
-        List<SwarmNode> nodes = dockerClient.listSwarmNodesCmd()
-                .withIdFilter(Collections.singletonList(swarmNodeId))
-                .exec();
-
-        if (nodes.size() != 1) {
-            throw new InvalidSystemStateException(LogPrefix.CW + "Found %s nodes: %s.\n", nodes.size(), nodes);
-        }
-
         try (Session session = sessionBuilder.openSession()) {
-            SwarmNode swarmNode = nodes.get(0);
             Transaction tx = session.beginTransaction();
 
             try {
-                Node node = session.get(Node.class, swarmNode.getId());
+                Node node = session.get(Node.class, swarmNodeId);
 
                 // Node already known
                 if (node != null) {
@@ -95,8 +86,10 @@ public class NodeWatcher {
                 }
 
                 // Node needs to be added
-                node = new Node(swarmNode.getId(), this.getSwarmName(swarmNode));
-                node.setMaxRam(this.getMaxHostMemory());
+                node = new Node(
+                        swarmNodeId,
+                        this.getMaxHostMemory()
+                );
 
                 session.save(node);
                 logger.info(LogPrefix.CW + "Added new node {}.", node);

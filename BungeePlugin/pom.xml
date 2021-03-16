@@ -180,7 +180,8 @@
             <version>1.6.0.Final</version>
         </dependency>
 
-<!-- ############# Test dependencies #############-->
+
+        <!-- ############# Test dependencies #############-->
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>

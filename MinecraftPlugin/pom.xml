@@ -76,7 +76,9 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <finalName>DockerMCPlugin</finalName>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+
                             <relocations>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
@@ -139,13 +141,6 @@
             <artifactId>paper-api</artifactId>
             <version>1.12.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/com.orbitz.consul/consul-client -->
-        <dependency>
-            <groupId>com.orbitz.consul</groupId>
-            <artifactId>consul-client</artifactId>
-            <version>1.4.2</version>
         </dependency>
 
 <!--        <dependency>-->

@@ -1,6 +1,6 @@
 package de.derteufelqwe.ServerManager.config;
 
-import com.sun.istack.NotNull;
+import org.jetbrains.annotations.NotNull;
 import de.derteufelqwe.ServerManager.setup.servers.BungeePool;
 import de.derteufelqwe.ServerManager.setup.servers.PersistentServerPool;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
@@ -8,6 +8,7 @@ import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
 import de.derteufelqwe.commons.config.annotations.Comment;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class ServersConfig {
 
     // BungeeCord servers
@@ -36,24 +38,5 @@ public class ServersConfig {
     @Comment("Persistent server pools")
     @NotNull
     private List<PersistentServerPool> persistentServerPool = new ArrayList<>();
-
-
-    public ServersConfig() {
-    }
-
-    /**
-     * Creates an example config
-     *
-     * @return
-     */
-    public static ServersConfig example() {
-        ServersConfig config = new ServersConfig();
-
-        config.setBungeePool(new BungeePool("BungeePool", "waterfall", "1G", 1.0F, 2, new ServiceConstraints(1), 25577));
-        config.setLobbyPool(new ServerPool("LobbyServer", "testmc", "512M", 1.0F, 2, null, 10));
-        config.getPoolServers().add(new ServerPool("Minigame-1", "testmc", "512M", 1.0F, 2, null, 2));
-
-        return config;
-    }
 
 }

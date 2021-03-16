@@ -3,7 +3,7 @@ package de.derteufelqwe.minecraftplugin.commands.dockermc;
 import co.aikar.commands.annotation.CatchUnknown;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.Subcommand;
-import de.derteufelqwe.minecraftplugin.health.HealthHandler;
+import de.derteufelqwe.commons.health.HealthHandler;
 import de.derteufelqwe.minecraftplugin.commands.DMCBaseCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;

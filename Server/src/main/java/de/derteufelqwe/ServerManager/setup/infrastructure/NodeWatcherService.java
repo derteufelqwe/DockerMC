@@ -13,21 +13,12 @@ import java.util.Map;
 
 public class NodeWatcherService extends ServiceTemplate {
 
+    /**
+     * Note: Since the useGlobalMode is true the replications count is irrelevant.
+     */
     public NodeWatcherService() {
         super("NodeWatcher", Constants.Images.NODEWATCHER.image(), "512M", 0.5F, 1,
                 new ServiceConstraints(1));
-    }
-
-    /**
-     * Update the replication count based on the amount of nodes in the swarm
-     * @param docker Docker instance to add
-     */
-    @Override
-    public void init(Docker docker) {
-        super.init(docker);
-
-        List<SwarmNode> nodes = docker.getDocker().listSwarmNodesCmd().exec();
-        this.replications = nodes.size();
     }
 
     @Override
@@ -47,7 +38,7 @@ public class NodeWatcherService extends ServiceTemplate {
     protected Map<String, String> getServiceLabels() {
         Map<String, String> labels = super.getServiceLabels();
 
-        labels.putAll(Utils.quickLabel(Constants.ContainerType.LOGCOLLECTOR_POOL));
+        labels.putAll(Utils.quickLabel(Constants.ContainerType.NODE_WATCHER_POOL));
 
         return labels;
     }
@@ -56,7 +47,7 @@ public class NodeWatcherService extends ServiceTemplate {
     protected Map<String, String> getContainerLabels() {
         Map<String, String> labels = super.getContainerLabels();
 
-        labels.putAll(Utils.quickLabel(Constants.ContainerType.LOGCOLLECTOR));
+        labels.putAll(Utils.quickLabel(Constants.ContainerType.NODE_WATCHER));
 
         return labels;
     }

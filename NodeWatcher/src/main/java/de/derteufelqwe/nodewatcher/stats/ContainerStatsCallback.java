@@ -3,6 +3,7 @@ package de.derteufelqwe.nodewatcher.stats;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Statistics;
+import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.ContainerStats;
@@ -94,6 +95,10 @@ public class ContainerStatsCallback implements ResultCallback<Statistics> {
             if (noResultCounter >= MAX_FAILS) {
                 throw new ContainerNoLongerExistsException(LogPrefix.STATS, this.containerId);
             }
+        } catch (Exception e2) {
+            logger.error(LogPrefix.LOGS + "Caught exception: {}.", e2.getMessage());
+            e2.printStackTrace(System.err);
+            CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e2, NodeWatcher.getMetaData());
         }
 
     }
@@ -119,6 +124,8 @@ public class ContainerStatsCallback implements ResultCallback<Statistics> {
 
         } else {
             logger.error(LogPrefix.STATS + throwable.getMessage());
+            throwable.printStackTrace();
+            CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, throwable, NodeWatcher.getMetaData());
         }
     }
 

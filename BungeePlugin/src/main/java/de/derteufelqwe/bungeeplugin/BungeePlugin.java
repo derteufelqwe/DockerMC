@@ -10,7 +10,6 @@ import de.derteufelqwe.bungeeplugin.commands.permission.PermissionCommand;
 import de.derteufelqwe.bungeeplugin.commands.permission.PermissionGroupCommand;
 import de.derteufelqwe.bungeeplugin.eventhandlers.*;
 import de.derteufelqwe.bungeeplugin.events.DMCServerAddEvent;
-import de.derteufelqwe.bungeeplugin.health.HealthCheck;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.bungeeplugin.redis.RedisPublishListener;
 import de.derteufelqwe.bungeeplugin.runnables.DefaultCallback;
@@ -22,6 +21,7 @@ import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
 import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
+import de.derteufelqwe.commons.health.HealthCheck;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
@@ -35,6 +35,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.annotations.common.util.impl.LoggerFactory;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
@@ -42,6 +43,7 @@ import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class BungeePlugin extends Plugin {
 
@@ -50,7 +52,7 @@ public final class BungeePlugin extends Plugin {
     @Getter
     public static RedisPool redisPool = new RedisPool("redis");
     @Getter
-    public static SessionBuilder sessionBuilder = new SessionBuilder("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT);
+    public static SessionBuilder sessionBuilder;
     @Getter
     private static RedisDataManager redisDataManager;   // Manage data from and to redis
     private final RedisPublishListener redisPublishListener = new RedisPublishListener();
@@ -75,8 +77,15 @@ public final class BungeePlugin extends Plugin {
 
     @Override
     public void onEnable() {
+        System.out.println("### Enabling DockerMC BungeeCord plugin ###");
         // --- Setup --
         this.addSignalHandlers();
+
+        Logger.getLogger("org.hibernate.tool.schema.internal.ExceptionHandlerLoggedImpl").setLevel(Level.OFF);   // Prevent Hibernate from printing Index already exists warnings
+        Logger.getLogger("org.postgresql").setLevel(Level.OFF);   // Prevent Hibernate from printing Index already exists warnings
+        Logger.getLogger("org.postgresql.Driver").setLevel(Level.OFF);   // Prevent Hibernate from printing Index already exists warnings
+        sessionBuilder = new SessionBuilder("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT);
+
         dmcLogger = new DMCLogger("DMCLogger", Level.WARNING, getLogger());
         BungeePlugin.PLUGIN = this;
         CONFIG.load();
@@ -122,7 +131,7 @@ public final class BungeePlugin extends Plugin {
         this.registerContainer();
 
         BungeePlugin.STATE = ServerState.RUNNING;
-        dmcLogger.info("[System] Server %s (%s) started successfully.\n", META_DATA.getTaskName(), META_DATA.getContainerID());
+        dmcLogger.info("[System] Server %s (%s) started successfully.\n", META_DATA.getTaskName(), META_DATA.readContainerID());
     }
 
     @Override

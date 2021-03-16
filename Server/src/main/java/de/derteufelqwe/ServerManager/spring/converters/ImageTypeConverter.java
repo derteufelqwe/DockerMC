@@ -1,6 +1,5 @@
 package de.derteufelqwe.ServerManager.spring.converters;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import de.derteufelqwe.ServerManager.spring.commands.ImageCommands;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;

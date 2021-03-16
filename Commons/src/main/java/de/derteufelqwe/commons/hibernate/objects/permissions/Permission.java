@@ -1,6 +1,6 @@
 package de.derteufelqwe.commons.hibernate.objects.permissions;
 
-import com.sun.istack.NotNull;
+import org.jetbrains.annotations.NotNull;
 import de.derteufelqwe.commons.hibernate.objects.DBPlayer;
 import de.derteufelqwe.commons.hibernate.objects.DBService;
 import lombok.Getter;
