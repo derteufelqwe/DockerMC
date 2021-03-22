@@ -74,6 +74,11 @@ public class DBContainer {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private List<ContainerStats> containerStats;
 
+    @OneToMany(mappedBy = "container", cascade = CascadeType.ALL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OrderBy("timestamp desc")
+    private List<DBContainerHealth> containerHealths;
+
 
     public DBContainer(String id) {
         this.id = id;
@@ -110,6 +115,18 @@ public class DBContainer {
      */
     public String getMinecraftServerName() {
         return this.getService().getName() + "-" + this.getTaskSlot();
+    }
+
+    /**
+     * Checks the latest health log if the container is currently healthy.
+     */
+    public boolean isHealthy() {
+        if (this.containerHealths == null || this.containerHealths.size() == 0) {
+            return true;
+        }
+
+        DBContainerHealth health = this.containerHealths.get(0);
+        return health.isHealthy();
     }
 
 }

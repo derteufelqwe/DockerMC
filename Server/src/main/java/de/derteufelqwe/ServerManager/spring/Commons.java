@@ -482,6 +482,10 @@ public class Commons {
             String name = service.getSpec().getName();
             String type = service.getSpec().getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY);
 
+            if (!(type.equals(Constants.ContainerType.BUNGEE_POOL.name()) || type.equals(Constants.ContainerType.MINECRAFT_POOL.name()))) {
+                continue;
+            }
+
             docker.getDocker().removeServiceCmd(service.getId()).exec();
             log.info("Removed {} service {} ({}).", type, name, service.getId());
         }

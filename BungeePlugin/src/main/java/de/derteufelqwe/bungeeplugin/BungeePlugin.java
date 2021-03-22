@@ -35,7 +35,6 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.hibernate.annotations.common.util.impl.LoggerFactory;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
@@ -52,7 +51,7 @@ public final class BungeePlugin extends Plugin {
     @Getter
     public static RedisPool redisPool = new RedisPool("redis");
     @Getter
-    public static SessionBuilder sessionBuilder;
+    public static SessionBuilder sessionBuilder = new SessionBuilder("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT);
     @Getter
     private static RedisDataManager redisDataManager;   // Manage data from and to redis
     private final RedisPublishListener redisPublishListener = new RedisPublishListener();
@@ -77,19 +76,16 @@ public final class BungeePlugin extends Plugin {
 
     @Override
     public void onEnable() {
-        System.out.println("### Enabling DockerMC BungeeCord plugin ###");
-        // --- Setup --
+        System.out.println("### Enabling DockerMC BungeeCord plugin ###we");
+
+        // --- Setup ---
         this.addSignalHandlers();
-
-        Logger.getLogger("org.hibernate.tool.schema.internal.ExceptionHandlerLoggedImpl").setLevel(Level.OFF);   // Prevent Hibernate from printing Index already exists warnings
-        Logger.getLogger("org.postgresql").setLevel(Level.OFF);   // Prevent Hibernate from printing Index already exists warnings
-        Logger.getLogger("org.postgresql.Driver").setLevel(Level.OFF);   // Prevent Hibernate from printing Index already exists warnings
-        sessionBuilder = new SessionBuilder("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT);
-
-        dmcLogger = new DMCLogger("DMCLogger", Level.WARNING, getLogger());
         BungeePlugin.PLUGIN = this;
         CONFIG.load();
-        this.parseConfigFile(CONFIG.get());
+
+        // --- Logger ---
+        dmcLogger = new DMCLogger("DMCLogger", Level.WARNING, getLogger());
+        dmcLogger.parseLevel(CONFIG.get().getLogLevel());
 
         // --- Redis stuff ---
         BungeePlugin.redisDataManager = new RedisDataManager();
@@ -165,25 +161,6 @@ public final class BungeePlugin extends Plugin {
         Signal.handle(new Signal("TERM"), signalHandler);
         Signal.handle(new Signal("INT"), signalHandler);
         Signal.handle(new Signal("HUP"), signalHandler);
-    }
-
-
-    /**
-     * Parses the values in the config file
-     */
-    private void parseConfigFile(ConfigFile config) {
-        Level level;
-        try {
-            level = Level.parse(config.getLogLevel());
-
-        } catch (IllegalArgumentException e) {
-            level = Level.WARNING;
-            dmcLogger.severe("Invalid logLevel " + config.getLogLevel() + ". Resetting to WARNING.");
-            config.setLogLevel("WARNING");
-            CONFIG.save();
-        }
-
-        dmcLogger.setLevel(level);
     }
 
     /**

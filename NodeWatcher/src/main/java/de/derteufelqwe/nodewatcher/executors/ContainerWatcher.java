@@ -17,10 +17,7 @@ import de.derteufelqwe.commons.hibernate.objects.DBService;
 import de.derteufelqwe.commons.hibernate.objects.Node;
 import de.derteufelqwe.commons.misc.ServiceMetaData;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
-import de.derteufelqwe.nodewatcher.misc.INewContainerObserver;
-import de.derteufelqwe.nodewatcher.misc.InvalidSystemStateException;
-import de.derteufelqwe.nodewatcher.misc.LogPrefix;
-import de.derteufelqwe.nodewatcher.misc.NWUtils;
+import de.derteufelqwe.nodewatcher.misc.*;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -46,6 +43,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
     private SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
 
     private final List<INewContainerObserver> newContainerObservers = new ArrayList<>();
+    private final List<IRemoveContainerObserver> removeContainerObservers = new ArrayList<>();
 
 
     public ContainerWatcher() {
@@ -183,6 +181,10 @@ public class ContainerWatcher implements ResultCallback<Event> {
         }
     }
 
+    public void addRemoveContainerObserver(IRemoveContainerObserver removeContainerObserver) {
+        this.removeContainerObservers.add(removeContainerObserver);
+    }
+
 
     /**
      * Saves a container to the database when its started
@@ -299,6 +301,11 @@ public class ContainerWatcher implements ResultCallback<Event> {
                 tx.commit();
             }
 
+        }
+
+        // Notify observers
+        for (IRemoveContainerObserver observer : this.removeContainerObservers) {
+            observer.onRemoveContainer(id);
         }
     }
 

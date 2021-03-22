@@ -63,6 +63,8 @@ public class Constants {
     // Tag Key to identify types of Containers
     public static final String CONTAINER_IDENTIFIER_KEY = "Type";
     public static final Map<String, String> DOCKER_IDENTIFIER_MAP = Collections.singletonMap(DOCKER_IDENTIFIER_KEY, DOCKER_IDENTIFIER_VALUE);
+    // Must be set to false to prevent it
+    public static final String FETCH_SERVICE_HEALTH_NODE_LABEL = "FETCH_SERVICE_HEALTH";
 
     // -----  Timings  -----
     // Time in seconds which containers have to get up and running
@@ -86,10 +88,6 @@ public class Constants {
     public static final String REDIS_KEY_PLAYERCOUNT = "playerCount";
     public static final String REDIS_KEY_LOBBYSERVER = "system#lobbyServerName";
 
-    // -----  Consul  -----
-    public static final String CONSUL_HOST = "Consul";
-    public static final int CONSUL_PORT = 8500;
-
     // BungeeCord
     public static final Timestamp BAN_PERMANENT_TIMESTAMP = new Timestamp(4102444800000L);
 
@@ -98,21 +96,16 @@ public class Constants {
         REGISTRY,
         REGISTRY_CERTS_GEN,
         OVERNET,    // Not actually a container
-        CONSUL,
-        CONSUL_POOL,
         NODE_WATCHER,
         NODE_WATCHER_POOL,
         POSTGRES_DB,
         REDIS_DB,
 
-
-        NGINX,
-        NGINX_POOL,
         BUNGEE,
         BUNGEE_POOL,
         MINECRAFT,
-        MINECRAFT_PERSISTENT,
         MINECRAFT_POOL,
+        MINECRAFT_PERSISTENT,
         MINECRAFT_POOL_PERSISTENT
         ;
     }

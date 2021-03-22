@@ -5,6 +5,10 @@ package de.derteufelqwe.nodewatcher.misc;
  */
 public interface INewContainerObserver {
 
+    /**
+     * Called when the container is already present in the database
+     * @param containerId
+     */
     void onNewContainer(String containerId);
 
 }

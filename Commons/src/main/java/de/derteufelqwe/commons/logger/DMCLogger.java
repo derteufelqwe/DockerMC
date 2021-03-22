@@ -37,6 +37,19 @@ public class DMCLogger {
         return this.level;
     }
 
+    public boolean parseLevel(String level) {
+        try {
+            this.setLevel(Level.parse(level));
+
+        } catch (IllegalArgumentException e) {
+            this.setLevel(Level.WARNING);
+            this.severe("Invalid logLevel " + level + ". Resetting to WARNING.");
+            return false;
+        }
+
+        return true;
+    }
+
 
     public void severe(String msg, Object... args) {
         this.logger.severe(String.format(msg, args));

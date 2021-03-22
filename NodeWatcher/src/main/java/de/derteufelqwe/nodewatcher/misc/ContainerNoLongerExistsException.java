@@ -7,8 +7,8 @@ import de.derteufelqwe.commons.exceptions.DockerMCException;
  */
 public class ContainerNoLongerExistsException extends DockerMCException {
 
-    public ContainerNoLongerExistsException(String prefix, String id) {
-        super(prefix + "Container %s no longer available. Removing it.", id);
+    public ContainerNoLongerExistsException(String id) {
+        super("Container %s no longer available. Removing it.", id);
     }
 
 }

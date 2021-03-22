@@ -64,4 +64,12 @@ public class NodeWatcherService extends ServiceTemplate {
         return mounts;
     }
 
+    @Override
+    protected List<String> getEnvs() {
+        List<String> envs = super.getEnvs();
+
+        envs.add("HOSTNAME={{.Node.Hostname}}");
+
+        return envs;
+    }
 }

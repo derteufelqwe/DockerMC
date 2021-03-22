@@ -55,8 +55,6 @@ public class ServerCommands {
                 .addEntry("help", "Shows this help")
                 .addEntry("list", "Lists all running containers from the DB")
                 .addEntry("lobbyserver", "Displays the name of the LobbyServer")
-                .addEntry("create", "Creates / updates the MC / BC services from the config")
-                .addEntry("stop", "Stops / removes MC / BC services and their containers")
                 .print();
     }
 
@@ -88,13 +86,19 @@ public class ServerCommands {
                             .build())
                     .withColumn(new Column.Builder()
                             .withTitle("Service")
+                            .build())
+                    .withColumn(new Column.Builder()
+                            .withTitle("Health")
                             .build());
 
             for(DBContainer container : containers) {
+                String healthMsg = container.isHealthy() ? "Healthy" : "Unhealthy";
+
                 tableBuilder.addToColumn(0, container.getId());
                 tableBuilder.addToColumn(1, container.getName());
                 tableBuilder.addToColumn(2, container.getService().getType());
                 tableBuilder.addToColumn(3, container.getService().getName());
+                tableBuilder.addToColumn(4, healthMsg);
             }
 
             tableBuilder.build(log);
@@ -111,82 +115,7 @@ public class ServerCommands {
             log.info("LobbyServer name: '{}'.", lobbyServer);
     }
 
-    @ShellMethod(value = "Reloads and updates the servers config.", key = "server create")
-    public void create(
-            @ShellOption({"-rc", "--reloadConfig"}) boolean reloadConfig,
-            @ShellOption({"-f", "--force"}) boolean force,
-            @ShellOption({"-b", "--bungee"}) boolean updateBungee,
-            @ShellOption({"-l", "--lobby"}) boolean updateLobby,
-            @ShellOption({"-p", "--pool"}) boolean updatePool
-    ) {
-        // Reload the config if requrested
-        if (reloadConfig) {
-            if (commons.reloadServerConfig()) {
-                log.info("Reloaded server config.");
 
-            } else {
-                log.error("Server config reload failed. Solve the error and rerun the command.");
-                return;
-            }
-        }
-
-        // Update everything at default
-        if (Utils.allFalse(updateBungee, updateLobby, updatePool)) {
-            if (commons.createAllMCServers(force)) {
-                log.info("Successfully reloaded server config.");
-
-            } else {
-                log.error("Config reload failed!");
-            }
-
-            return;
-        }
-
-        // Handle the special cases
-        if (updateBungee)
-            commons.createBungeeServer(force);
-
-        if (updateLobby)
-            commons.createLobbyServer(force);
-
-        if (updatePool)
-            commons.createPoolServers(force);
-
-    }
-
-    @ShellMethod(value = "Stops ALL Minecraft and BungeeCord server.", key = {"server stop"})
-    public void stop(
-            @ShellOption({"-b", "--bungee"}) boolean stopBungee,
-            @ShellOption({"-l", "--lobby"}) boolean stopLobby,
-            @ShellOption(value = {"-p", "--pool"}, defaultValue = "") List<String> poolNames
-    ) {
-        // Default action
-        if (Utils.allFalse(stopBungee, stopLobby) && poolNames.size() == 0) {
-            log.warn("You are about to stop ALL Minecraft and BungeeCord server, kicking all players in the process. Are you sure? (Y/N)");
-            String input = lineReader.readLine("> ").toUpperCase();
-
-            if (!input.equals("Y")) {
-                log.info("Server shutdown cancelled.");
-                return;
-            }
-
-            commons.stopAllMCServers();
-            log.info("Successfully stopped all Minecraft and BungeeCord services.");
-            return;
-        }
-
-        // Specific actions
-        if (stopBungee)
-            commons.stopBungeeServer();
-
-        if (stopLobby)
-            commons.stopLobbyServer();
-
-        for (String poolName : poolNames) {
-            commons.stopPoolServer(poolName);
-        }
-
-    }
 
 
     @SneakyThrows

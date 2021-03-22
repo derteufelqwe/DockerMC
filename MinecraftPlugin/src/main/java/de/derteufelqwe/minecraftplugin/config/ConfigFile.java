@@ -7,5 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 public class ConfigFile {
 
+    private String logLevel = "INFO";
 
 }

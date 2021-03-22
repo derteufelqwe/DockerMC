@@ -19,6 +19,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.util.StringUtils;
 
 import java.net.ConnectException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 @SpringBootApplication
@@ -30,7 +32,10 @@ public class ServerManager {
      *  - Docker secrets for password management
      *  - Improved config system
      *  - Clean database layouts
-     *  - Switch overlay network
+     *  - Switch overlay network driver
+     *  - Automatic MC / BC plugin downloading
+     *  - Tag DockerMC application and MC / MC plugins with a database schema version
+     *  - Check that the plugins have correct names on image build
      */
 
     public static final boolean SKIP_STARTUP_CHECKS = true;
@@ -59,6 +64,9 @@ public class ServerManager {
                 "--spring.shell.command.script.enabled=false"
         };
         String[] fullArgs = StringUtils.concatenateStringArrays(args, disabledCommands);
+
+        Logger.getLogger("org.hibernate").setLevel(Level.OFF);
+
 
         SpringApplication.run(ServerManager.class, fullArgs);
     }

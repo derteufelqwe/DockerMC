@@ -175,7 +175,7 @@ public class RedisPublishListener extends BinaryJedisPubSub implements Runnable 
     private void onMCServerStarted(RedisMessages.MCServerStarted message) {
         String containerId = message.getContainerId();
 
-        ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, new SessionRunnable() {
+        ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, new SessionRunnable(5) {
             @Override
             public void run(Session session) {
                 DBContainer container = session.get(DBContainer.class, containerId);
@@ -200,7 +200,7 @@ public class RedisPublishListener extends BinaryJedisPubSub implements Runnable 
     private void onMCServerStopped(RedisMessages.MCServerStopped message) {
         String containerId = message.getContainerId();
 
-        ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, new SessionRunnable() {
+        ProxyServer.getInstance().getScheduler().runAsync(BungeePlugin.PLUGIN, new SessionRunnable(5) {
             @Override
             public void run(Session session) {
                 DBContainer container = session.get(DBContainer.class, containerId);

@@ -80,7 +80,7 @@ public class RedisPublishListener extends BinaryJedisPubSub implements Runnable 
         if (containerId.equals(this.localContainerId))
             return;
 
-        Bukkit.getScheduler().runTaskAsynchronously(MinecraftPlugin.INSTANCE, new SessionRunnable() {
+        Bukkit.getScheduler().runTaskAsynchronously(MinecraftPlugin.INSTANCE, new SessionRunnable(3) {
             @Override
             public void run(Session session) {
                 DBContainer container = session.get(DBContainer.class, containerId);
@@ -106,7 +106,7 @@ public class RedisPublishListener extends BinaryJedisPubSub implements Runnable 
         if (containerId.equals(this.localContainerId))
             return;
 
-        Bukkit.getScheduler().runTaskAsynchronously(MinecraftPlugin.INSTANCE, new SessionRunnable() {
+        Bukkit.getScheduler().runTaskAsynchronously(MinecraftPlugin.INSTANCE, new SessionRunnable(3) {
             @Override
             public void run(Session session) {
                 DBContainer container = session.get(DBContainer.class, containerId);

@@ -57,10 +57,8 @@ public class SystemCommands {
         new HelpBuilder("Commands:")
                 .addEntry("help", "Shows this help")
                 .addEntry("reloadConfig", "Reloads all config files")
-                .addEntry("checkServers", "Checks if all MC / BC servers are running as configured in the config")
                 .addEntry("checkInfrastructure", "Checks if the general infrastructure is up and running")
                 .addEntry("registryCertInfos", "Displays information about the registry SSL certificate")
-                .addEntry("shutdownServers", "Removes all MC / BC services and thus stopps all servers")
                 .addEntry("shutdownInfrastructure", "Stops all infrastructure containers")
                 .addEntry("cleanAllData", "Deletes ALL data gathered by DockerMC")
                 .addEntry("listNodes", "Lists all available nodes in the swarm")
@@ -117,13 +115,14 @@ public class SystemCommands {
 
     @ShellMethod(value = "Stops all infrastructure containers.", key = {"system shutdownInfrastructure"})
     public void shutdownInfrastructure(
+            @ShellOption({"-a", "--all"}) boolean all,
             @ShellOption({"-r", "--registry"}) boolean stopRegistry,
             @ShellOption({"-rd", "--redis"}) boolean stopRedis,
             @ShellOption({"-p", "--postgres"}) boolean stopPostgres,
             @ShellOption({"-nw", "--nodewatcher"}) boolean stopNodeWatcher
     ) {
         // Default action
-        if (Utils.allFalse(stopRegistry, stopPostgres, stopRedis, stopNodeWatcher)) {
+        if (all) {
             log.warn("You are about to stop ALL Infrastructure containers. The Minecraft and BungeeCord containers depend on " +
                     "them and will stop working properly when doing so. Are you sure? (Y/N)");
             String input = lineReader.readLine("> ").toUpperCase();

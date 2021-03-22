@@ -10,6 +10,7 @@ import de.derteufelqwe.commons.config.providers.DefaultYamlProvider;
 import de.derteufelqwe.commons.config.providers.MinecraftGsonProvider;
 import de.derteufelqwe.commons.health.HealthCheck;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
+import de.derteufelqwe.commons.logger.DMCLogger;
 import de.derteufelqwe.commons.protobuf.RedisMessages;
 import de.derteufelqwe.commons.redis.RedisPool;
 import de.derteufelqwe.minecraftplugin.commands.TestCmd;
@@ -34,11 +35,15 @@ import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
 import java.lang.reflect.Field;
+import java.util.logging.Level;
 
 public final class MinecraftPlugin extends JavaPlugin {
 
     @Getter
     public static MinecraftPlugin INSTANCE;
+
+    @Getter
+    private static DMCLogger dmcLogger;
 
     // --- Infrastructure ---
     @Getter
@@ -63,11 +68,14 @@ public final class MinecraftPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         // --- Setup ---
-        System.out.println("tmp");
-        INSTANCE = this;
         this.addSignalHandlers();
+        INSTANCE = this;
         CONFIG.load();
         commandManager = new PaperCommandManager(this);
+
+        // --- Logger ---
+        dmcLogger = new DMCLogger("DMCLogger", Level.WARNING, getLogger());
+        dmcLogger.parseLevel(CONFIG.get().getLogLevel());
 
         // Register economy
         getServer().getServicesManager().register(Economy.class, economy, this, ServicePriority.Normal);

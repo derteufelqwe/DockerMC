@@ -5,6 +5,7 @@ import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.*;
 import de.derteufelqwe.ServerManager.Docker;
+import de.derteufelqwe.ServerManager.spring.Commons;
 import de.derteufelqwe.ServerManager.tablebuilder.Column;
 import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
 import de.derteufelqwe.ServerManager.utils.HelpBuilder;
@@ -13,10 +14,13 @@ import de.derteufelqwe.ServerManager.utils.Utils;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import lombok.extern.log4j.Log4j2;
+import org.jline.reader.LineReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
+import org.springframework.shell.standard.ShellOption;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -35,6 +39,10 @@ public class ServiceCommands {
     private SessionBuilder sessionBuilder;
     @Autowired
     private ServiceHealthReader healthReader;
+    @Autowired @Lazy
+    private LineReader lineReader;
+    @Autowired
+    private Commons commons;
 
 
     @ShellMethod(value = "Shows the help", key = "service")
@@ -46,6 +54,8 @@ public class ServiceCommands {
                 .addEntry("help", "Shows this help")
                 .addEntry("list", "Lists all available services")
                 .addEntry("details", "Displays details about a certain service")
+                .addEntry("create", "Creates / updates the MC / BC services from the config")
+                .addEntry("stop", "Stops / removes MC / BC services and their containers")
                 .print();
     }
 
@@ -160,6 +170,85 @@ public class ServiceCommands {
             tableBuilder.addToColumn(1, health.getLogs());
 
         tableBuilder.build(log);
+    }
+
+    @ShellMethod(value = "Reloads and updates the servers config.", key = "service create")
+    public void create(
+            @ShellOption({"-a", "--all"}) boolean all,
+            @ShellOption({"-rc", "--reloadConfig"}) boolean reloadConfig,
+            @ShellOption({"-f", "--force"}) boolean force,
+            @ShellOption({"-b", "--bungee"}) boolean updateBungee,
+            @ShellOption({"-l", "--lobby"}) boolean updateLobby,
+            @ShellOption({"-p", "--pool"}) boolean updatePool
+    ) {
+        // Reload the config if requrested
+        if (reloadConfig) {
+            if (commons.reloadServerConfig()) {
+                log.info("Reloaded server config.");
+
+            } else {
+                log.error("Server config reload failed. Solve the error and rerun the command.");
+                return;
+            }
+        }
+
+        // Update everything at default
+        if (all) {
+            if (commons.createAllMCServers(force)) {
+                log.info("Successfully reloaded server config.");
+
+            } else {
+                log.error("Config reload failed!");
+            }
+
+            return;
+        }
+
+        // Handle the special cases
+        if (updateBungee)
+            commons.createBungeeServer(force);
+
+        if (updateLobby)
+            commons.createLobbyServer(force);
+
+        if (updatePool)
+            commons.createPoolServers(force);
+
+    }
+
+    @ShellMethod(value = "Stops ALL Minecraft and BungeeCord server.", key = {"service stop"})
+    public void stop(
+            @ShellOption({"-a", "--all"}) boolean all,
+            @ShellOption({"-b", "--bungee"}) boolean stopBungee,
+            @ShellOption({"-l", "--lobby"}) boolean stopLobby,
+            @ShellOption(value = {"-p", "--pool"}, defaultValue = "") List<String> poolNames
+    ) {
+        // Default action
+        if (all) {
+            log.warn("You are about to stop ALL Minecraft and BungeeCord server, kicking all players in the process. Are you sure? (Y/N)");
+            String input = lineReader.readLine("> ").toUpperCase();
+
+            if (!input.equals("Y")) {
+                log.info("Server shutdown cancelled.");
+                return;
+            }
+
+            commons.stopAllMCServers();
+            log.info("Successfully stopped all Minecraft and BungeeCord services.");
+            return;
+        }
+
+        // Specific actions
+        if (stopBungee)
+            commons.stopBungeeServer();
+
+        if (stopLobby)
+            commons.stopLobbyServer();
+
+        for (String poolName : poolNames) {
+            commons.stopPoolServer(poolName);
+        }
+
     }
 
 

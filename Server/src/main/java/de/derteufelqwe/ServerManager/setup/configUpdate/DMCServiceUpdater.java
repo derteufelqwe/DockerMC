@@ -189,7 +189,6 @@ abstract class DMCServiceUpdater<CFG extends ServiceTemplate> {
         } else {
             this.updateDockerService(response, configNew.getServiceSpec(), findResponse.getServiceID());
             this.setOldConfig((CFG) configNew.clone());
-
         }
     }
 

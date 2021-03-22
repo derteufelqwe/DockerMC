@@ -6,13 +6,17 @@ import com.github.dockerjava.api.model.SwarmInfo;
 import com.github.dockerjava.api.model.SwarmNode;
 import com.github.dockerjava.api.model.SwarmNodeSpec;
 import com.google.common.cache.CacheLoader;
+import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.Utils;
+import de.derteufelqwe.commons.exceptions.DockerMCException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.Node;
 import de.derteufelqwe.commons.misc.MetaDataBase;
 import de.derteufelqwe.commons.misc.ServiceMetaData;
 import de.derteufelqwe.nodewatcher.executors.ContainerWatcher;
 import de.derteufelqwe.nodewatcher.executors.TimedPermissionWatcher;
+import de.derteufelqwe.nodewatcher.health.ContainerHealthReader;
+import de.derteufelqwe.nodewatcher.health.ServiceHealthReader;
 import de.derteufelqwe.nodewatcher.logs.ContainerLogFetcher;
 import de.derteufelqwe.nodewatcher.misc.DockerClientFactory;
 import de.derteufelqwe.nodewatcher.misc.InvalidSystemStateException;
@@ -24,10 +28,12 @@ import lombok.SneakyThrows;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.checkerframework.checker.units.qual.C;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import javax.annotation.CheckForNull;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +65,8 @@ public class NodeWatcher {
     private ContainerLogFetcher logFetcher;
     private ContainerResourceWatcher containerResourceWatcher;
     private TimedPermissionWatcher timedPermissionWatcher;
+    private ContainerHealthReader containerHealthReader;
+    private ServiceHealthReader serviceHealthReader;
 
 
     public NodeWatcher(String dockerHost, SessionBuilder sessionBuilder) {
@@ -88,6 +96,7 @@ public class NodeWatcher {
                 // Node needs to be added
                 node = new Node(
                         swarmNodeId,
+                        getHostname(),
                         this.getMaxHostMemory()
                 );
 
@@ -107,12 +116,23 @@ public class NodeWatcher {
     }
 
     /**
+     * Reads the hostname of the nodes host
+     * @return
+     */
+    private String getHostname() {
+        return System.getProperty("HOSTNAME");
+    }
+
+    /**
      * Starts the watcher for container starts / deaths
      */
     private void startContainerWatcher() {
         this.containerWatcher = new ContainerWatcher();
-        this.containerWatcher.addNewContainerObserver(this.logFetcher);
-        this.containerWatcher.addNewContainerObserver(this.containerResourceWatcher);
+        containerWatcher.addNewContainerObserver(this.logFetcher);
+        containerWatcher.addRemoveContainerObserver(this.logFetcher);
+        containerWatcher.addNewContainerObserver(this.containerResourceWatcher);
+        containerWatcher.addNewContainerObserver(this.containerHealthReader);
+        containerWatcher.addRemoveContainerObserver(this.containerHealthReader);
 
         dockerClient.eventsCmd()
                 .withLabelFilter("Owner=DockerMC")
@@ -153,6 +173,37 @@ public class NodeWatcher {
         this.timedPermissionWatcher.start();
     }
 
+    /**
+     * Starts the container health monitor
+     */
+    private void startContainerHealthReader() {
+        this.containerHealthReader = new ContainerHealthReader();
+        this.containerHealthReader.init();
+        this.containerHealthReader.start();
+    }
+
+    /**
+     * Starts the service health reader if the node is a master node and doesn't have the label 'FETCH_SERVICE_HEALTH=false'
+     */
+    private void startServiceHealthReader() {
+        List<SwarmNode> nodes = dockerClient.listSwarmNodesCmd()
+                .withIdFilter(Collections.singletonList(swarmNodeId))
+                .exec();
+        if (nodes.size() != 1) {
+            throw new DockerMCException("Docker swarm node %s not found. Found %s nodes.", swarmNodeId, nodes.size());
+        }
+        SwarmNode node = nodes.get(0);
+
+        Map<String, String> labels = node.getSpec().getLabels();
+        if (labels.getOrDefault(Constants.FETCH_SERVICE_HEALTH_NODE_LABEL, "true").equals("false")) {
+            logger.warn("Local node {} has label {}=true. Preventing service health readings from this node.", swarmNodeId, Constants.FETCH_SERVICE_HEALTH_NODE_LABEL);
+            return;
+        }
+
+        this.serviceHealthReader = new ServiceHealthReader();
+        this.serviceHealthReader.start();
+    }
+
 
     @SneakyThrows
     public void start() {
@@ -162,6 +213,7 @@ public class NodeWatcher {
         this.startHostResourceMonitor();
         this.startContainerLogFetcher();
         this.startContainerResourceWatcher();
+        this.startContainerHealthReader();
         this.startContainerWatcher();   // Start last, since most watchers need its event
         this.startTimedPermissionWatcher();
 
@@ -181,6 +233,12 @@ public class NodeWatcher {
         }
         if (this.timedPermissionWatcher != null) {
             this.timedPermissionWatcher.interrupt();
+        }
+        if (this.containerHealthReader != null) {
+            this.serviceHealthReader.interrupt();
+        }
+        if (this.serviceHealthReader != null) {
+            this.serviceHealthReader.interrupt();
         }
 
         dockerClient.close();

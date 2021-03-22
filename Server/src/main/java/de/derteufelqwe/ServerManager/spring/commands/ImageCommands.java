@@ -1,9 +1,10 @@
 package de.derteufelqwe.ServerManager.spring.commands;
 
-import com.github.dockerjava.api.async.ResultCallback;
-import com.github.dockerjava.api.command.*;
+import com.github.dockerjava.api.command.BuildImageResultCallback;
+import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.command.WaitContainerResultCallback;
 import com.github.dockerjava.api.exception.DockerClientException;
-import com.github.dockerjava.api.model.*;
+import com.github.dockerjava.api.model.AuthConfig;
 import com.google.gson.Gson;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.callbacks.ImageBuildCallback;
@@ -19,32 +20,26 @@ import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
 import de.derteufelqwe.ServerManager.utils.HelpBuilder;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
+import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.checkerframework.checker.units.qual.A;
-import org.fusesource.jansi.Ansi;
-import org.fusesource.jansi.AnsiConsole;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 
 import javax.annotation.CheckForNull;
-import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
 @ShellComponent
@@ -66,6 +61,8 @@ public class ImageCommands {
     private Config<MainConfig> mainConfig;
     @Autowired
     private Gson gson;
+    @Autowired
+    private SessionBuilder sessionBuilder;
 
 
     @ShellMethod(value = "Shows the help", key = "image")
@@ -375,10 +372,9 @@ public class ImageCommands {
     @SneakyThrows
     @ShellMethod(value = "testing", key = "testi")
     public void test() {
-        InspectContainerResponse response = docker.getDocker().inspectContainerCmd("d3583097f8cd").exec();
-        HealthState health = response.getState().getHealth();
+        try (Session session = sessionBuilder.openSession()) {
 
-        System.out.println("done");
+        }
     }
 
 

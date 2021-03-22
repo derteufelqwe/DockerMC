@@ -21,6 +21,9 @@ public class Node {
     @Type(type = "text")
     private String id;
 
+    @Type(type = "text")
+    private String name;
+
     private Integer maxRam;
 
     @OneToMany(mappedBy = "node", cascade = CascadeType.ALL)
@@ -30,8 +33,9 @@ public class Node {
     private List<NodeStats> nodeStats;
 
 
-    public Node(String id, int maxRam) {
+    public Node(String id, String name, int maxRam) {
         this.id = id;
+        this.name = name;
         this.maxRam = maxRam;
     }
 
