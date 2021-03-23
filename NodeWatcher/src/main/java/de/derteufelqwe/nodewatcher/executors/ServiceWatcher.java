@@ -1,0 +1,418 @@
+package de.derteufelqwe.nodewatcher.executors;
+
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.async.ResultCallback;
+import com.github.dockerjava.api.model.*;
+import de.derteufelqwe.commons.CommonsAPI;
+import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.exceptions.DockerAPIIncompleteException;
+import de.derteufelqwe.commons.exceptions.DockerMCException;
+import de.derteufelqwe.commons.hibernate.LocalSessionRunnable;
+import de.derteufelqwe.commons.hibernate.SessionBuilder;
+import de.derteufelqwe.commons.hibernate.objects.DBService;
+import de.derteufelqwe.nodewatcher.NodeWatcher;
+
+import de.derteufelqwe.nodewatcher.misc.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.hibernate.Session;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * Watches for docker service events to update the services in the database.
+ */
+public class ServiceWatcher implements ResultCallback<Event> {
+
+    /**
+     * Time in ms in which the second event for the same service gets blocked
+     */
+    public final int EVENT_BLOCK_INTERVAL = 200;
+
+    private final Logger logger = LogManager.getLogger(getClass().getName());
+    private final DockerClient dockerClient = NodeWatcher.getDockerClientFactory().forceNewDockerClient();
+    private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
+
+    private Set<Event> recentEvents = new HashSet<>();
+    private Set<IServiceObserver> observers = new HashSet<>();
+
+
+    public ServiceWatcher() {
+
+    }
+
+
+    /**
+     * Initializes the ContainerWatcher and makes sure that all running containers are stored in the database
+     * and containers the stopped while this ContainerWatcher was offline, are updated accordingly
+     */
+    @Override
+    public void onStart(Closeable closeable) {
+        try {
+            List<Service> runningServices = NWUtils.getRunningMCBCServices(dockerClient);
+            this.finishStoppedServices(runningServices);
+            this.updateRunningServices(runningServices);
+            this.createNewServices(runningServices);
+
+        } catch (Exception e) {
+            CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e, NodeWatcher.getMetaData());
+            throw e;
+        }
+    }
+
+    @Override
+    public void onNext(Event object) {
+        try {
+            EventActor actor = object.getActor();
+
+            if (object.getAction() == null) {
+                logger.warn("Got event without action: {}.", object);
+                return;
+            }
+            if (actor == null) {
+                logger.warn("Got event without actor: {}.", object);
+                return;
+            }
+            if (hadEventRecently(object)) {
+                return;
+            }
+
+            switch (object.getAction()) {
+                case "create":
+                    this.onServiceCreated(actor.getId());
+                    break;
+
+                case "remove":
+                    this.onServiceRemoved(actor.getId());
+                    break;
+
+                case "update":
+                    this.onServiceUpdated(actor.getId());
+                    break;
+
+                default:
+                    logger.error("Got invalid event type " + object);
+            }
+
+            this.recentEvents.add(object);
+
+        } catch (Exception e) {
+            logger.error("Exception occurred in the ContainerWatcher.");
+            logger.error(e.getMessage());
+            e.printStackTrace(System.err);
+            CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e, NodeWatcher.getMetaData());
+        }
+    }
+
+    @Override
+    public void onError(Throwable throwable) {
+        logger.error("Uncaught exception occurred in the ContainerWatcher.");
+        logger.error(throwable.getMessage());
+    }
+
+    @Override
+    public void onComplete() {
+
+    }
+
+    @Override
+    public void close() throws IOException {
+
+    }
+
+    // -----  Custom methods  -----
+
+    public void addObserver(IServiceObserver observer) {
+        this.observers.add(observer);
+    }
+
+    /**
+     * Compares the running services in the DB with the ones actually running and finishes the database records for removed
+     * services
+     * @param runningServices
+     */
+    private void finishStoppedServices(List<Service> runningServices) {
+        List<String> serviceIDs = runningServices.stream()
+                .map(Service::getId)
+                .collect(Collectors.toList());
+
+        Set<String> toFinishIDs = new HashSet<>();
+
+        new LocalSessionRunnable(sessionBuilder) {
+            @Override
+            protected void exec(Session session) {
+                List<DBService> dbServices = session.createNativeQuery(
+                        "SELECT * FROM services AS s WHERE s.active",
+                        DBService.class).getResultList();
+
+                for (DBService dbService : dbServices) {
+                    // Service not running anymore
+                    if (!serviceIDs.contains(dbService.getId())) {
+                        toFinishIDs.add(dbService.getId());
+                    }
+                }
+            }
+        }.run();
+
+        // Remove the services marked for removal
+        for (String id : toFinishIDs) {
+            this.onServiceRemoved(id);
+        }
+    }
+
+    /**
+     * Compares the running services in the DB with the ones actually running and updates the database records
+     * @param runningServices
+     */
+    private void updateRunningServices(List<Service> runningServices) {
+        List<String> serviceIDs = runningServices.stream()
+                .map(Service::getId)
+                .collect(Collectors.toList());
+
+        Set<String> toUpdateIDs = new HashSet<>();
+
+        new LocalSessionRunnable(sessionBuilder) {
+            @Override
+            protected void exec(Session session) {
+                List<DBService> dbServices = session.createNativeQuery(
+                        "SELECT * FROM services AS s WHERE s.active",
+                        DBService.class).getResultList();
+
+                for (DBService dbService : dbServices) {
+                    // Service not running anymore
+                    if (serviceIDs.contains(dbService.getId())) {
+                        toUpdateIDs.add(dbService.getId());
+                    }
+                }
+            }
+        }.run();
+
+        // Update the services marked for updating
+        for (String id : toUpdateIDs) {
+            this.onServiceUpdated(id);
+        }
+    }
+
+    /**
+     * Compares the running services in the DB with the ones actually running and creates the services in the DB, which are running
+     * but not present in the DB
+     * @param runningServices
+     */
+    private void createNewServices(List<Service> runningServices) {
+        List<String> serviceIDs = runningServices.stream()
+                .map(Service::getId)
+                .collect(Collectors.toList());
+
+        Set<String> dbExistingIDs = new HashSet<>();
+
+        new LocalSessionRunnable(sessionBuilder) {
+            @Override
+            protected void exec(Session session) {
+                List<DBService> dbServices = session.createNativeQuery(
+                        "SELECT * FROM services AS s WHERE s.active",
+                        DBService.class).getResultList();
+
+                for (DBService dbService : dbServices) {
+                    dbExistingIDs.add(dbService.getId());
+                }
+            }
+        }.run();
+
+        // Created the services, which are not present in the database
+        for (String id : serviceIDs) {
+            if (!dbExistingIDs.contains(id)) {
+                this.onServiceCreated(id);
+            }
+        }
+    }
+
+    /**
+     * Checks if a service has fired an event recently (mx 100ms ago) since the docker api follows the create / update event
+     * with an additional update event.
+     * @param event
+     * @return
+     */
+    @SuppressWarnings("ConstantConditions")
+    private boolean hadEventRecently(Event event) {
+        recentEvents.removeIf(e -> System.currentTimeMillis() >= (e.getTimeNano() / 1_000_000) + EVENT_BLOCK_INTERVAL);
+
+        for (Event ev : recentEvents) {
+            if (ev.getActor().getId().equals(event.getActor().getId())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void onServiceCreated(String id) {
+        Service service = dockerClient.inspectServiceCmd(id)
+                .exec();
+
+        if (!isFromDockerMC(service)) {
+            logger.debug("Non DockerMC service {} started. Ignoring it.", id);
+            return;
+        }
+
+        new LocalSessionRunnable(sessionBuilder) {
+            @Override
+            public void exec(Session session) {
+
+                try {
+                    DBService dbService = new DBService(
+                            service.getId(),
+                            getName(service),
+                            getMemoryLimit(service),
+                            getCPULimit(service),
+                            getTypeLabel(service)
+                    );
+
+                    session.persist(dbService);
+
+                } catch (DockerAPIIncompleteException e) {
+                    logger.error(e);
+                }
+            }
+        }.run();
+
+        logger.info("Created service {}.", id);
+        for (IServiceObserver observer : this.observers) {
+            observer.onServiceStart(id);
+        }
+    }
+
+    private void onServiceUpdated(String id) {
+        Service service = dockerClient.inspectServiceCmd(id)
+                .exec();
+
+        if (!isFromDockerMC(service)) {
+            logger.debug("Non DockerMC service {} updated. Ignoring it.", id);
+            return;
+        }
+
+        new LocalSessionRunnable(sessionBuilder) {
+            @Override
+            protected void exec(Session session) {
+                DBService dbService = session.get(DBService.class, id);
+                if (dbService == null) {
+                    logger.warn("Stopped service {} not found.", id);
+                    return;
+                }
+
+                try {
+                    dbService.setMaxRam(getMemoryLimit(service));
+                    dbService.setMaxCpu(getCPULimit(service));
+
+                } catch (DockerAPIIncompleteException e) {
+                    logger.error(e);
+                }
+
+                session.update(dbService);
+            }
+        }.run();
+
+        logger.info("Updated service {}.", id);
+    }
+
+    private void onServiceRemoved(String id) {
+        new LocalSessionRunnable(sessionBuilder) {
+            @Override
+            protected void exec(Session session) {
+                DBService dbService = session.get(DBService.class, id);
+                if (dbService == null) {
+                    logger.warn("Stopped service {} not found. Maybe it's not from DockerMC?", id);
+                    return;
+                }
+
+                dbService.setActive(false);
+
+                session.update(dbService);
+            }
+        }.run();
+
+        logger.info("Finished service {}.", id);
+        for (IServiceObserver observer : this.observers) {
+            observer.onServiceStop(id);
+        }
+    }
+
+    // -----  Utility methods  -----
+
+    @SuppressWarnings("ConstantConditions")
+    private String getName(Service service) {
+        try {
+            ServiceSpec serviceSpec = service.getSpec();
+            return serviceSpec.getName();
+
+        } catch (NullPointerException e) {
+            throw new DockerMCException(e, "Service %s has no name. Service: %s.", service.getId(), service);
+        }
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    private int getMemoryLimit(Service service) {
+        try {
+            ServiceSpec serviceSpec = service.getSpec();
+            TaskSpec taskSpec = serviceSpec.getTaskTemplate();
+            ResourceRequirements resourceRequirements = taskSpec.getResources();
+            ResourceSpecs resourceSpecs = resourceRequirements.getLimits();
+            return new Long((long) (resourceSpecs.getMemoryBytes() / 1024.0 / 1024.0)).intValue();
+
+
+        } catch (NullPointerException e) {
+            throw new DockerMCException(e, "Service %s has no memory limit. Service: %s.", service.getId(), service);
+        }
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    private float getCPULimit(Service service) {
+        try {
+            ServiceSpec serviceSpec = service.getSpec();
+            TaskSpec taskSpec = serviceSpec.getTaskTemplate();
+            ResourceRequirements resourceRequirements = taskSpec.getResources();
+            ResourceSpecs resourceSpecs = resourceRequirements.getLimits();
+            return (float) (resourceSpecs.getNanoCPUs() / 1000000000.0);
+
+        } catch (NullPointerException e) {
+            throw new DockerMCException(e, "Service %s has no CPU limit. Service: %s.", service.getId(), service);
+        }
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @NotNull
+    private Map<String, String> getLabels(Service service) {
+        try {
+            ServiceSpec serviceSpec = service.getSpec();
+            Map<String, String> labels = serviceSpec.getLabels();
+            if (labels != null) {
+                return labels;
+
+            } else {
+                throw new NullPointerException("Labels not found.");
+            }
+
+        } catch (NullPointerException e) {
+            throw new DockerMCException(e, "Service %s has no Labels. Service: %s.", service.getId(), service);
+        }
+    }
+
+    private String getTypeLabel(Service service) {
+        Map<String, String> labels = getLabels(service);
+        return labels.get(Constants.CONTAINER_IDENTIFIER_KEY);
+    }
+
+    /**
+     * Checks if a service, which issues the event is actually an event from DockerMC
+     * @param service
+     * @return
+     */
+    private boolean isFromDockerMC(Service service) {
+        String type = getLabels(service).get(Constants.DOCKER_IDENTIFIER_KEY);
+        return type != null && type.equals(Constants.DOCKER_IDENTIFIER_VALUE);
+    }
+
+}

@@ -1,4 +1,4 @@
-package de.derteufelqwe.nodewatcher.misc;
+package de.derteufelqwe.nodewatcher.logger;
 
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.config.plugins.Plugin;
@@ -6,18 +6,18 @@ import org.apache.logging.log4j.core.pattern.ConverterKeys;
 import org.apache.logging.log4j.core.pattern.LogEventPatternConverter;
 
 /**
- * Slices the beginning of the message away.
+ * Returns the message without the prefix
  */
-@Plugin(name = "MyConverter", category = "Converter")
-@ConverterKeys("smsg")
-public class MyConverter extends LogEventPatternConverter {
+@Plugin(name = "DMCPostConverter", category = "Converter")
+@ConverterKeys("dmcpost")
+public class PostConverter extends LogEventPatternConverter {
 
-    protected MyConverter(String name, String style) {
+    protected PostConverter(String name, String style) {
         super(name, style);
     }
 
-    public static MyConverter newInstance(final String[] args) {
-        return new MyConverter("test", "test");
+    public static PostConverter newInstance(final String[] args) {
+        return new PostConverter("test", "test");
     }
 
     @Override

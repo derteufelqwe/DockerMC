@@ -268,4 +268,14 @@ public class ServiceCommands {
         return tasks.size();
     }
 
+    @ShellMethod(value = "asdölkfjasöldfkj", key = "serv")
+    private void test(@ShellOption(defaultValue = "stop") String arg) {
+        if (arg.equals("s")) {
+            stop(false, true, false, new ArrayList<>());
+
+        } else {
+            create(false, false, true, true, false, false);
+        }
+    }
+
 }

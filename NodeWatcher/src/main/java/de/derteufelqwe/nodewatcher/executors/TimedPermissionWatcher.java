@@ -3,10 +3,10 @@ package de.derteufelqwe.nodewatcher.executors;
 import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
-import de.derteufelqwe.nodewatcher.misc.LogPrefix;
+
 import lombok.SneakyThrows;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.checkerframework.checker.units.qual.A;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class TimedPermissionWatcher extends Thread {
 
-    private Logger logger = NodeWatcher.getLogger();
+    private Logger logger = LogManager.getLogger(getClass().getName());
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
 
     private AtomicBoolean doRun = new AtomicBoolean(true);
@@ -46,10 +46,10 @@ public class TimedPermissionWatcher extends Thread {
 
             } catch (InterruptedException e1) {
                 this.doRun.set(false);
-                logger.warn(LogPrefix.TPW + "Stopping TimedPermissionWatcher.");
+                logger.warn("Stopping TimedPermissionWatcher.");
 
             } catch (Exception e2) {
-                logger.error(LogPrefix.TPW + "Caught exception: {}.", e2.getMessage());
+                logger.error("Caught exception: {}.", e2.getMessage());
                 e2.printStackTrace(System.err);
                 CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e2, NodeWatcher.getMetaData());
             }
@@ -79,7 +79,7 @@ public class TimedPermissionWatcher extends Thread {
 
                 tx.commit();
 
-                logger.debug(LogPrefix.TPW + "Deleted {} timed out permission and {} permission group assignments.", permRows, permGroupRows);
+                logger.debug("Deleted {} timed out permission and {} permission group assignments.", permRows, permGroupRows);
 
             } catch (Exception e) {
                 tx.rollback();

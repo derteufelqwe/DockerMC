@@ -5,8 +5,9 @@ import com.github.dockerjava.api.DockerClient;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.nodewatcher.misc.INewContainerObserver;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
-import de.derteufelqwe.nodewatcher.misc.LogPrefix;
+
 import de.derteufelqwe.nodewatcher.misc.NWUtils;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Set;
@@ -16,7 +17,7 @@ import java.util.Set;
  */
 public class ContainerResourceWatcher implements INewContainerObserver {
 
-    private Logger logger = NodeWatcher.getLogger();
+    private Logger logger = LogManager.getLogger(getClass().getName());
     private final DockerClient dockerClient = NodeWatcher.getDockerClientFactory().forceNewDockerClient();
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
 
@@ -53,7 +54,7 @@ public class ContainerResourceWatcher implements INewContainerObserver {
             this.startContainerStat(id);
         }
 
-        logger.info(LogPrefix.CRW + "Initialized with {} containers.", runningContainers.size());
+        logger.info("Initialized with {} containers.", runningContainers.size());
     }
 
 

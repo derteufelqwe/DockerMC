@@ -1,4 +1,4 @@
-package de.derteufelqwe.nodewatcher.misc;
+package de.derteufelqwe.nodewatcher.exceptions;
 
 import de.derteufelqwe.commons.exceptions.DockerMCException;
 

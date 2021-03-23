@@ -36,6 +36,7 @@ public class ServerManager {
      *  - Automatic MC / BC plugin downloading
      *  - Tag DockerMC application and MC / MC plugins with a database schema version
      *  - Check that the plugins have correct names on image build
+     *  - Make sure that the NodeWatcher has created the service before containers get created
      */
 
     public static final boolean SKIP_STARTUP_CHECKS = true;

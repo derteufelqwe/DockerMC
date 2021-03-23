@@ -18,6 +18,10 @@ public class DockerMCException extends RuntimeException {
         super(cause);
     }
 
+    public DockerMCException(Throwable cause, String message, Object... args) {
+        super(String.format(message, args), cause);
+    }
+
     protected DockerMCException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }

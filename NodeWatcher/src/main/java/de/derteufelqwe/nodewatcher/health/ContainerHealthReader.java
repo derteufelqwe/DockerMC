@@ -10,9 +10,12 @@ import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.DBContainerHealth;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
+import de.derteufelqwe.nodewatcher.exceptions.DBContainerNotFoundException;
 import de.derteufelqwe.nodewatcher.executors.ContainerWatcher;
+
 import de.derteufelqwe.nodewatcher.logs.LogLoadCallback;
 import de.derteufelqwe.nodewatcher.misc.*;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -35,7 +38,7 @@ public class ContainerHealthReader extends Thread implements INewContainerObserv
     private final Pattern RE_CLEAN_CURL = Pattern.compile("(.+% Total +% Received +% Xferd +Average +Speed +Time +Time +Time +Current .+curl: \\(\\d+\\) )(.+)");
     private final int FETCH_INTERVAL = 12;  // in seconds
 
-    private Logger logger = NodeWatcher.getLogger();
+    private Logger logger = LogManager.getLogger(getClass().getName());
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
     private final DockerClient dockerClient = NodeWatcher.getDockerClientFactory().forceNewDockerClient();
 
@@ -67,7 +70,7 @@ public class ContainerHealthReader extends Thread implements INewContainerObserv
         while (this.doRun.get()) {
             try {
                 synchronized (this.runningContainers) {
-                    logger.info(LogPrefix.HEALTH + "Updating healths for {} containers.", this.runningContainers.size());
+                    logger.info("Updating healths for {} containers.", this.runningContainers.size());
                     for (String id : new HashSet<>(this.runningContainers)) {
 
                         try {
@@ -75,12 +78,12 @@ public class ContainerHealthReader extends Thread implements INewContainerObserv
 
                             // Container not found in DB
                         } catch (DBContainerNotFoundException e1) {
-                            logger.error(LogPrefix.HEALTH + e1.getMessage());
+                            logger.error(e1.getMessage());
                             this.runningContainers.remove(id);
 
                             // Container not found on host
                         } catch (NotFoundException e2) {
-                            logger.error(LogPrefix.HEALTH + "Container {} not found on host.", id);
+                            logger.error("Container {} not found on host.", id);
                             this.runningContainers.remove(id);
                         }
 
@@ -88,7 +91,7 @@ public class ContainerHealthReader extends Thread implements INewContainerObserv
                 }
 
             } catch (Exception e2) {
-                logger.error(LogPrefix.HEALTH + "Caught exception: {}.", e2.getMessage());
+                logger.error("Caught exception: {}.", e2.getMessage());
                 e2.printStackTrace(System.err);
                 CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e2, NodeWatcher.getMetaData());
 
@@ -98,7 +101,7 @@ public class ContainerHealthReader extends Thread implements INewContainerObserv
 
                 } catch (InterruptedException e1) {
                     this.doRun.set(false);
-                    logger.warn(LogPrefix.HEALTH + "Stopping ContainerHealthReader.");
+                    logger.warn("Stopping ContainerHealthReader.");
                 }
             }
         }
@@ -112,7 +115,7 @@ public class ContainerHealthReader extends Thread implements INewContainerObserv
                     .forEach(this::onNewContainer);
         }
 
-        logger.info(LogPrefix.HEALTH + "Initialized with {} containers.", runningContainers.size());
+        logger.info("Initialized with {} containers.", runningContainers.size());
     }
 
 

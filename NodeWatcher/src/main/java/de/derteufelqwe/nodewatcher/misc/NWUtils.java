@@ -1,24 +1,22 @@
 package de.derteufelqwe.nodewatcher.misc;
 
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.model.Container;
+import com.github.dockerjava.api.model.Service;
+import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
-import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.Node;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
+import de.derteufelqwe.nodewatcher.exceptions.InvalidSystemStateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import javax.annotation.CheckForNull;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class NWUtils {
 
@@ -61,7 +59,6 @@ public class NWUtils {
 
     }
 
-
     /**
      * Parses a docker timestamp string into a java timestamp object
      * @param timeString
@@ -79,6 +76,39 @@ public class NWUtils {
         } catch (ParseException e) {
             return null;
         }
+    }
+
+    /**
+     * Returns a list of Minecraft and BungeeCord containers currently running
+     * @param dockerClient
+     * @return
+     */
+    public static List<Container> getRunningMCBCContainers(DockerClient dockerClient) {
+        return dockerClient.listContainersCmd()
+                .withLabelFilter(Constants.DOCKER_IDENTIFIER_MAP)
+                .exec().stream()
+                .filter(c -> c.getLabels() != null)
+                .filter(c ->
+                        c.getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY).equals(Constants.ContainerType.BUNGEE.name()) ||
+                        c.getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY).equals(Constants.ContainerType.MINECRAFT.name()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns a list of Minecraft and BungeeCord services currently running.
+     * @param dockerClient
+     * @return
+     */
+    public static List<Service> getRunningMCBCServices(DockerClient dockerClient) {
+        return dockerClient.listServicesCmd()
+                .withLabelFilter(Constants.DOCKER_IDENTIFIER_MAP)
+                .exec().stream()
+                .filter(s -> s.getSpec() != null)
+                .filter(s -> s.getSpec().getLabels() != null)
+                .filter(s ->
+                        s.getSpec().getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY).equals(Constants.ContainerType.BUNGEE_POOL.name()) ||
+                        s.getSpec().getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY).equals(Constants.ContainerType.MINECRAFT_POOL.name()))
+                .collect(Collectors.toList());
     }
 
 }

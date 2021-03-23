@@ -5,12 +5,14 @@ import com.github.dockerjava.api.exception.NotFoundException;
 import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
+import de.derteufelqwe.nodewatcher.exceptions.DBContainerNotFoundException;
 import de.derteufelqwe.nodewatcher.executors.ContainerWatcher;
+
 import de.derteufelqwe.nodewatcher.misc.*;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import lombok.SneakyThrows;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.checkerframework.checker.units.qual.A;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
@@ -29,7 +31,7 @@ public class ContainerLogFetcher extends Thread implements INewContainerObserver
     private final int FETCH_INTERVAL = 10;  // in seconds
     private final int MAX_FAILS = 2;    // Number of fails until the log download gets stopped for a container
 
-    private Logger logger = NodeWatcher.getLogger();
+    private Logger logger = LogManager.getLogger(getClass().getName());
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
     private final DockerClient dockerClient = NodeWatcher.getDockerClientFactory().forceNewDockerClient();
 
@@ -74,18 +76,18 @@ public class ContainerLogFetcher extends Thread implements INewContainerObserver
                             // Container not found in DB
                         } catch (DBContainerNotFoundException e1) {
                             this.failureCounts.put(id, (short) (failureCount + 1));
-                            logger.error(LogPrefix.LOGS + e1.getMessage() + " ({}/{})", failureCount + 1, MAX_FAILS);
+                            logger.error(e1.getMessage() + " ({}/{})", failureCount + 1, MAX_FAILS);
 
                             // Container not found on host
                         } catch (NotFoundException e2) {
                             this.failureCounts.put(id, (short) (failureCount + 1));
-                            logger.error(LogPrefix.LOGS + "Container {} not found on host." + " ({}/{})", id, failureCount + 1, MAX_FAILS);
+                            logger.error("Container {} not found on host." + " ({}/{})", id, failureCount + 1, MAX_FAILS);
                         }
 
                         // Check if the container should be removed from log download
                         if (failureCount + 1 >= MAX_FAILS) {
                             this.onRemoveContainer(id);
-                            logger.warn(LogPrefix.LOGS + "Removed container {} from log download as it doesn't exist anymore.", id);
+                            logger.warn("Removed container {} from log download as it doesn't exist anymore.", id);
                         }
                     }
                 }
@@ -94,10 +96,10 @@ public class ContainerLogFetcher extends Thread implements INewContainerObserver
 
             } catch (InterruptedException e1) {
                 this.doRun.set(false);
-                logger.warn(LogPrefix.LOGS + "Stopping ContainerLogFetcher.");
+                logger.warn("Stopping ContainerLogFetcher.");
 
             } catch (Exception e2) {
-                logger.error(LogPrefix.LOGS + "Caught exception: {}.", e2.getMessage());
+                logger.error("Caught exception: {}.", e2.getMessage());
                 e2.printStackTrace(System.err);
                 CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e2, NodeWatcher.getMetaData());
             }
@@ -112,7 +114,7 @@ public class ContainerLogFetcher extends Thread implements INewContainerObserver
                     .forEach(this::onNewContainer);
         }
 
-        logger.info(LogPrefix.LOGS + "Initialized with {} containers.", runningContainers.size());
+        logger.info("Initialized with {} containers.", runningContainers.size());
     }
 
 

@@ -1,39 +1,32 @@
 package de.derteufelqwe.nodewatcher;
 
 import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.model.Info;
-import com.github.dockerjava.api.model.SwarmInfo;
-import com.github.dockerjava.api.model.SwarmNode;
-import com.github.dockerjava.api.model.SwarmNodeSpec;
-import com.google.common.cache.CacheLoader;
+import com.github.dockerjava.api.model.*;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.exceptions.DockerMCException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.Node;
-import de.derteufelqwe.commons.misc.MetaDataBase;
 import de.derteufelqwe.commons.misc.ServiceMetaData;
 import de.derteufelqwe.nodewatcher.executors.ContainerWatcher;
+import de.derteufelqwe.nodewatcher.executors.ServiceWatcher;
 import de.derteufelqwe.nodewatcher.executors.TimedPermissionWatcher;
 import de.derteufelqwe.nodewatcher.health.ContainerHealthReader;
 import de.derteufelqwe.nodewatcher.health.ServiceHealthReader;
 import de.derteufelqwe.nodewatcher.logs.ContainerLogFetcher;
 import de.derteufelqwe.nodewatcher.misc.DockerClientFactory;
-import de.derteufelqwe.nodewatcher.misc.InvalidSystemStateException;
-import de.derteufelqwe.nodewatcher.misc.LogPrefix;
+import de.derteufelqwe.nodewatcher.exceptions.InvalidSystemStateException;
+
 import de.derteufelqwe.nodewatcher.stats.ContainerResourceWatcher;
 import de.derteufelqwe.nodewatcher.stats.HostResourceWatcher;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.checkerframework.checker.units.qual.C;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import javax.annotation.CheckForNull;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +43,7 @@ public class NodeWatcher {
     private final Pattern RE_MEM_TOTAL = Pattern.compile("MemTotal:\\s+(\\d+).+");
 
     @Getter
-    private static Logger logger = LogManager.getLogger(NodeWatcher.class.getName() + "MyLogger");
+    private static Logger logger = LogManager.getLogger(NodeWatcher.class.getName());
 
     @Getter private static DockerClientFactory dockerClientFactory;
     @Getter private static SessionBuilder sessionBuilder;
@@ -66,6 +59,7 @@ public class NodeWatcher {
     private ContainerResourceWatcher containerResourceWatcher;
     private TimedPermissionWatcher timedPermissionWatcher;
     private ContainerHealthReader containerHealthReader;
+    private ServiceWatcher serviceWatcher;
     private ServiceHealthReader serviceHealthReader;
 
 
@@ -89,7 +83,7 @@ public class NodeWatcher {
 
                 // Node already known
                 if (node != null) {
-                    logger.info(LogPrefix.CW + "Local node already known.");
+                    logger.info("Local node already known.");
                     return;
                 }
 
@@ -101,7 +95,7 @@ public class NodeWatcher {
                 );
 
                 session.save(node);
-                logger.info(LogPrefix.CW + "Added new node {}.", node);
+                logger.info("Added new node {}.", node);
 
             } catch (Exception e) {
                 tx.rollback();
@@ -135,7 +129,8 @@ public class NodeWatcher {
         containerWatcher.addRemoveContainerObserver(this.containerHealthReader);
 
         dockerClient.eventsCmd()
-                .withLabelFilter("Owner=DockerMC")
+                .withLabelFilter(Constants.DOCKER_IDENTIFIER_MAP)
+                .withEventTypeFilter(EventType.CONTAINER)
                 .withEventFilter("start", "die")
                 .exec(this.containerWatcher);
     }
@@ -183,6 +178,17 @@ public class NodeWatcher {
     }
 
     /**
+     * Starts the watcher for service starts / stops
+     */
+    private void startServiceWatcher() {
+        this.serviceWatcher = new ServiceWatcher();
+
+        dockerClient.eventsCmd()
+                .withEventTypeFilter(EventType.SERVICE)
+                .exec(this.serviceWatcher);
+    }
+
+    /**
      * Starts the service health reader if the node is a master node and doesn't have the label 'FETCH_SERVICE_HEALTH=false'
      */
     private void startServiceHealthReader() {
@@ -210,14 +216,15 @@ public class NodeWatcher {
         dockerClient.pingCmd().exec();
 
         this.saveSwarmNode();
-        this.startHostResourceMonitor();
-        this.startContainerLogFetcher();
-        this.startContainerResourceWatcher();
-        this.startContainerHealthReader();
-        this.startContainerWatcher();   // Start last, since most watchers need its event
-        this.startTimedPermissionWatcher();
+//        this.startHostResourceMonitor();
+//        this.startContainerLogFetcher();
+//        this.startContainerResourceWatcher();
+//        this.startContainerHealthReader();
+//        this.startContainerWatcher();   // Start last, since most watchers need its events
+//        this.startTimedPermissionWatcher();
+        this.startServiceWatcher();
 
-        logger.info(LogPrefix.NW + "NodeWatcher started successfully.");
+        logger.info("NodeWatcher started successfully.");
     }
 
     @SneakyThrows

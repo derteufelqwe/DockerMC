@@ -10,14 +10,15 @@ import com.github.dockerjava.api.model.EventActor;
 import com.github.dockerjava.api.model.Service;
 import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.Constants;
-import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.DBService;
 import de.derteufelqwe.commons.hibernate.objects.Node;
-import de.derteufelqwe.commons.misc.ServiceMetaData;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
+import de.derteufelqwe.nodewatcher.exceptions.InvalidSystemStateException;
+
 import de.derteufelqwe.nodewatcher.misc.*;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -34,11 +35,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Watches for docker events.
+ * Watches for docker container events to update container in the database.
  */
 public class ContainerWatcher implements ResultCallback<Event> {
 
-    private Logger logger = NodeWatcher.getLogger();
+    private Logger logger = LogManager.getLogger(getClass().getName());
     private DockerClient dockerClient = NodeWatcher.getDockerClientFactory().forceNewDockerClient();
     private SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
 
@@ -57,7 +58,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
     @Override
     public void onStart(Closeable closeable) {
         try {
-            List<Container> containers = this.getRunningBungeeMinecraftContainers();
+            List<Container> containers = NWUtils.getRunningMCBCContainers(dockerClient);
             this.gatherStartedContainers(containers);
             this.completeStoppedContainers(containers);
 
@@ -80,12 +81,12 @@ public class ContainerWatcher implements ResultCallback<Event> {
                     break;
 
                 default:
-                    logger.error(LogPrefix.CW + "Got invalid event type " + object);
+                    logger.error("Got invalid event type " + object);
             }
 
         } catch (Exception e) {
-            logger.error(LogPrefix.CW + "Exception occurred in the ContainerWatcher.");
-            logger.error(LogPrefix.CW + e.getMessage());
+            logger.error("Exception occurred in the ContainerWatcher.");
+            logger.error(e.getMessage());
             e.printStackTrace(System.err);
             CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e, NodeWatcher.getMetaData());
         }
@@ -93,8 +94,8 @@ public class ContainerWatcher implements ResultCallback<Event> {
 
     @Override
     public void onError(Throwable throwable) {
-        logger.error(LogPrefix.CW + "Uncaught exception occurred in the ContainerWatcher.");
-        logger.error(LogPrefix.CW + throwable.getMessage());
+        logger.error("Uncaught exception occurred in the ContainerWatcher.");
+        logger.error(throwable.getMessage());
     }
 
     @Override
@@ -128,7 +129,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
                 try {
                     DBContainer dbContainer = session.get(DBContainer.class, containerId);
                     if (dbContainer == null) {
-                        logger.error(LogPrefix.CW + "Failed to find container object for {}.", containerId);
+                        logger.error("Failed to find container object for {}.", containerId);
                         continue;
                     }
 
@@ -209,28 +210,30 @@ public class ContainerWatcher implements ResultCallback<Event> {
         short taskSlot = this.getTaskSlot(cont);
 
         if (serviceId == null) {
-            throw new InvalidSystemStateException(LogPrefix.CW + "Container %s has no information about its service.", id);
+            throw new InvalidSystemStateException("Container %s has no information about its service.", id);
         }
         if (taskId == null) {
-            throw new InvalidSystemStateException(LogPrefix.CW + "Container %s has no information about its task id.", id);
+            throw new InvalidSystemStateException("Container %s has no information about its task id.", id);
+        }
+        if (nodeId == null) {
+            throw new InvalidSystemStateException("Container %s has no information about its node id.", id);
         }
         if (taskSlot < 0) {
-            throw new InvalidSystemStateException(LogPrefix.CW + "Container %s has not information about its task slot.", id);
+            throw new InvalidSystemStateException("Container %s has not information about its task slot.", id);
         }
-
-        DBService dbService = this.getOrCreateService(serviceId);
 
         try (Session session = this.sessionBuilder.openSession()) {
             Transaction tx = session.beginTransaction();
 
             try {
-                if (nodeId == null) {
-                    throw new InvalidSystemStateException(LogPrefix.CW + "OnContainerStart for %s failed to find node %s.", id, nodeId);
+                DBService dbService = session.get(DBService.class, serviceId);
+                if (dbService == null) {
+                    throw new InvalidSystemStateException("Service %s not found.", serviceId);
                 }
 
                 Node node = session.get(Node.class, nodeId);
                 if (node == null) {
-                    throw new InvalidSystemStateException(LogPrefix.CW + "Node %s not found.", nodeId);
+                    throw new InvalidSystemStateException("Node %s not found.", nodeId);
                 }
 
                 DBContainer container = new DBContainer(
@@ -247,7 +250,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
 
                 // SaveOrUpdate is required when restarting a stopped container. Otherwise a unique constraint violation would be thrown
                 session.saveOrUpdate(container);
-                logger.info(LogPrefix.CW + "Created container entry " + id + ".");
+                logger.info("Created container entry " + id + ".");
 
             } finally {
                 tx.commit();
@@ -287,7 +290,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
             try {
                 DBContainer container = session.get(DBContainer.class, id);
                 if (container == null) {
-                    logger.error(LogPrefix.CW + "Stopped Container with id {} not found!", id);
+                    logger.error("Stopped Container with id {} not found!", id);
                     return;
                 }
 
@@ -295,7 +298,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
                 container.setExitcode(exitCode);
 
                 session.update(container);
-                logger.info(LogPrefix.CW + "Finished container entry {}.", id);
+                logger.info("Finished container entry {}.", id);
 
             } finally {
                 tx.commit();
@@ -365,20 +368,6 @@ public class ContainerWatcher implements ResultCallback<Event> {
     }
 
     /**
-     * Returns all docker containers, which are currently running Minecraft or BungeeCord
-     *
-     * @return
-     */
-    private List<Container> getRunningBungeeMinecraftContainers() {
-        List<Container> bungeeContainers =    dockerClient.listContainersCmd().withLabelFilter(Utils.quickLabel(Constants.ContainerType.BUNGEE)).exec();
-        List<Container> minecraftContainers = dockerClient.listContainersCmd().withLabelFilter(Utils.quickLabel(Constants.ContainerType.MINECRAFT)).exec();
-
-        bungeeContainers.addAll(minecraftContainers);
-
-        return bungeeContainers;
-    }
-
-    /**
      * Tries to get the containers service id from its labels
      *
      * @param containerResponse
@@ -392,43 +381,6 @@ public class ContainerWatcher implements ResultCallback<Event> {
         }
 
         return null;
-    }
-
-    /**
-     * Gets or creates the service entry in the database
-     *
-     * @param serviceId
-     * @return
-     */
-    private DBService getOrCreateService(String serviceId) {
-        try (Session session = sessionBuilder.openSession()) {
-            Transaction tx = session.beginTransaction();
-
-            try {
-                DBService dbService = session.get(DBService.class, serviceId);
-                if (dbService != null) {
-                    return dbService;
-                }
-
-                Service service = dockerClient.inspectServiceCmd(serviceId).exec();
-
-                dbService = new DBService(
-                        service.getId(),
-                        service.getSpec().getName(),
-                        new Long(service.getSpec().getTaskTemplate().getResources().getLimits().getMemoryBytes() / 1024 / 1024).intValue(),
-                        (float) (service.getSpec().getTaskTemplate().getResources().getLimits().getNanoCPUs() / 1000000000.0),
-                        service.getSpec().getLabels().get("Type")
-                );
-
-                session.persist(dbService);
-
-                logger.info(LogPrefix.CW + "Added new Service {}.", dbService.getId());
-                return dbService;
-
-            } finally {
-                tx.commit();
-            }
-        }
     }
 
     /**

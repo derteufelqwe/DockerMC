@@ -8,12 +8,10 @@ import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.ContainerStats;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
-import de.derteufelqwe.nodewatcher.misc.ContainerNoLongerExistsException;
-import de.derteufelqwe.nodewatcher.misc.InvalidSystemStateException;
-import de.derteufelqwe.nodewatcher.misc.LogPrefix;
-import de.derteufelqwe.nodewatcher.misc.NWUtils;
+import de.derteufelqwe.nodewatcher.exceptions.ContainerNoLongerExistsException;
+
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.exception.ConstraintViolationException;
@@ -31,7 +29,7 @@ public class ContainerStatsCallback implements ResultCallback<Statistics> {
 
     private final int MAX_FAILS = 5;
 
-    private Logger logger = NodeWatcher.getLogger();
+    private Logger logger = LogManager.getLogger(getClass().getName());
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
     private String containerId;
     private int noResultCounter = 0;
@@ -46,7 +44,7 @@ public class ContainerStatsCallback implements ResultCallback<Statistics> {
 
     @Override
     public void onStart(Closeable closeable) {
-        logger.info(LogPrefix.STATS + "Added container " + this.containerId + ".");
+        logger.info("Added container " + this.containerId + ".");
     }
 
     @Override
@@ -96,7 +94,7 @@ public class ContainerStatsCallback implements ResultCallback<Statistics> {
                 throw new ContainerNoLongerExistsException(this.containerId);
             }
         } catch (Exception e2) {
-            logger.error(LogPrefix.LOGS + "Caught exception: {}.", e2.getMessage());
+            logger.error("Caught exception: {}.", e2.getMessage());
             e2.printStackTrace(System.err);
             CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e2, NodeWatcher.getMetaData());
         }
@@ -107,23 +105,23 @@ public class ContainerStatsCallback implements ResultCallback<Statistics> {
     public void onError(Throwable throwable) {
         // This exception is no error and just indicates that the container is stopped.
         if (throwable instanceof ContainerNoLongerExistsException) {
-            logger.info(LogPrefix.STATS + throwable.getMessage());
+            logger.info(throwable.getMessage());
 
         } else if (throwable instanceof PersistenceException) {
             Throwable cause = throwable.getCause();
             // Indicates that no DBContainer exists
             if (cause instanceof ConstraintViolationException) {
-                logger.error(LogPrefix.STATS + "DBContainer {} not found.", ((ConstraintViolationException) cause).getConstraintName());
+                logger.error("DBContainer {} not found.", ((ConstraintViolationException) cause).getConstraintName());
 
             } else {
-                logger.error(LogPrefix.STATS + throwable.getMessage());
+                logger.error(throwable.getMessage());
             }
 
         } else if (throwable instanceof NotFoundException) {
-            logger.error(LogPrefix.STATS + "Container {} not found on host.", containerId);
+            logger.error("Container {} not found on host.", containerId);
 
         } else {
-            logger.error(LogPrefix.STATS + throwable.getMessage());
+            logger.error(throwable.getMessage());
             throwable.printStackTrace();
             CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, throwable, NodeWatcher.getMetaData());
         }
@@ -131,7 +129,7 @@ public class ContainerStatsCallback implements ResultCallback<Statistics> {
 
     @Override
     public void onComplete() {
-        logger.info(LogPrefix.STATS + "Removed container " + this.containerId + ".");
+        logger.info("Removed container " + this.containerId + ".");
     }
 
     @Override
