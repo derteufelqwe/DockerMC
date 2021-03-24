@@ -12,6 +12,7 @@
         <module name="NodeWatcher" />
         <module name="BungeePlugin" />
         <module name="Commons" />
+        <module name="DockerLogDriver" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

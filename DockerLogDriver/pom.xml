@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>ServerManager</artifactId>
+        <groupId>de.derteufelqwe.ServerManager</groupId>
+        <version>1.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>DockerLogDriver</artifactId>
+
+    <properties>
+        <port>8080</port>
+        <junixsocket-version>2.3.2</junixsocket-version>
+        <outputDir>C:/Users/Arne/Desktop/ServerManager/DockerDriver</outputDir>
+    </properties>
+
+
+    <build>
+        <defaultGoal>clean package</defaultGoal>
+        <plugins>
+            <!--  Configure manifest of jar  -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>de.derteufelqwe.driver.Main</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <!--  Shade plugin  -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${outputDir}</outputDirectory>
+                            <finalName>LogDriver-1.0</finalName>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>de.derteufelqwe.ServerManager</groupId>
+            <artifactId>Commons</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/io.netty/netty-all -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.60.Final</version>
+        </dependency>
+
+
+        <!-- https://mvnrepository.com/artifact/com.kohlschutter.junixsocket/junixsocket-core -->
+        <dependency>
+            <groupId>com.kohlschutter.junixsocket</groupId>
+            <artifactId>junixsocket-core</artifactId>
+            <version>${junixsocket-version}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.kohlschutter.junixsocket/junixsocket-server -->
+        <dependency>
+            <groupId>com.kohlschutter.junixsocket</groupId>
+            <artifactId>junixsocket-server</artifactId>
+            <version>${junixsocket-version}</version>
+        </dependency>
+
+
+    </dependencies>
+
+
+</project>

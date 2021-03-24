@@ -15,6 +15,7 @@
         <module>Commons</module>
         <module>NodeWatcher</module>
         <module>MinecraftPlugin</module>
+        <module>DockerLogDriver</module>
     </modules>
 
     <properties>
