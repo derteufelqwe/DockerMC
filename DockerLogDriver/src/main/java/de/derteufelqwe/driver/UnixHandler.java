@@ -1,5 +1,6 @@
 package de.derteufelqwe.driver;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import de.derteufelqwe.driver.endpoints.*;
@@ -12,12 +13,11 @@ import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
 
 import java.io.Serializable;
+import java.util.concurrent.*;
 
 public class UnixHandler extends ChannelInboundHandlerAdapter {
 
     private final String ERROR_NOT_POST = "{\"error\": \"Method must be POST\"}";
-
-    private static final Gson gson = new GsonBuilder().create();
 
     private HttpRequest request;
     private StringBuilder requestData = new StringBuilder();
@@ -42,6 +42,12 @@ public class UnixHandler extends ChannelInboundHandlerAdapter {
     }
 
 
+    /**
+     * Called when a message gets send to the connection
+     * @param ctx
+     * @param msg
+     * @throws Exception
+     */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof HttpRequest) {
@@ -60,16 +66,30 @@ public class UnixHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-
+    /**
+     * Handles the basic request.
+     * Checks that the method was actually a POST method
+     * @param request
+     */
     private void onHttpRequest(HttpRequest request) {
         // Just continue if the client wants it
         if (HttpUtil.is100ContinueExpected(request)) {
-            writeResponse(ctx);
+            writeResponse(new StringBuilder());
         }
 
         System.out.printf("Request: URI=%s%n", request.uri());
+
+        if (!request.method().equals(HttpMethod.POST)) {
+            System.err.println("Got invalid method " + request.method());
+            writeResponse(new StringBuilder(ERROR_NOT_POST).append("\r\n"));
+            ctx.close();
+        }
     }
 
+    /**
+     * Handles content packages.
+     * Combines them into on request data buffer.
+     */
     private void onHttpContent(HttpContent content) {
         ByteBuf data = content.content();
         if (data.isReadable()) {
@@ -77,49 +97,33 @@ public class UnixHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
+    /**
+     * Responds to the request when it's finished.
+     * Returns the processed response to the request.
+     * @param trailer
+     */
     private void onLastHttpContent(LastHttpContent trailer) {
-        // Only allow POST method
-        if (!request.method().equals(HttpMethod.POST)) {
-            System.err.println("Got invalid method " + request.method());
-            writeResponse(ctx, trailer, new StringBuilder(ERROR_NOT_POST).append("\r\n"));
-            return;
-        }
-
-        this.dispatchData(trailer);
+        this.dispatchData();
     }
 
 
-    private void writeResponse(ChannelHandlerContext ctx) {
-        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE, Unpooled.EMPTY_BUFFER);
-        ctx.write(response);
+    /**
+     * Writes a string response to the client
+     * @param responseData
+     */
+    private void writeResponse(StringBuilder responseData) {
+        FullHttpResponse response = new DefaultFullHttpResponse(
+                HttpVersion.HTTP_1_1,
+                HttpResponseStatus.OK,
+                Unpooled.copiedBuffer(responseData.toString(), CharsetUtil.UTF_8));
+
+        ctx.writeAndFlush(response);
     }
 
-    private void writeResponse(ChannelHandlerContext ctx, LastHttpContent trailer, StringBuilder responseData) {
-        boolean keepAlive = HttpUtil.isKeepAlive(request);
-
-        FullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, ((HttpObject) trailer).decoderResult()
-                .isSuccess() ? HttpResponseStatus.OK : HttpResponseStatus.BAD_REQUEST, Unpooled.copiedBuffer(responseData.toString(), CharsetUtil.UTF_8));
-
-        httpResponse.headers()
-                .set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
-
-        if (keepAlive) {
-            httpResponse.headers()
-                    .setInt(HttpHeaderNames.CONTENT_LENGTH, httpResponse.content()
-                            .readableBytes());
-            httpResponse.headers()
-                    .set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-        }
-
-        ctx.write(httpResponse);
-
-        if (!keepAlive) {
-            ctx.writeAndFlush(Unpooled.EMPTY_BUFFER)
-                    .addListener(ChannelFutureListener.CLOSE);
-        }
-    }
-
-
+    /**
+     * Writes the result of an endpoint to the client
+     * @param endpoint
+     */
     private void writeResponse(Endpoint<? extends Serializable, ? extends Serializable> endpoint) {
         FullHttpResponse response = new DefaultFullHttpResponse(
                 HttpVersion.HTTP_1_1,
@@ -130,8 +134,11 @@ public class UnixHandler extends ChannelInboundHandlerAdapter {
     }
 
 
+    /**
+     * Dispatches the deserializes events from the client and answers them accordingly.
+     */
     @SuppressWarnings("unchecked")
-    private void dispatchData(LastHttpContent trailer) {
+    private void dispatchData() {
         String data = requestData.toString();
 
         switch (request.uri()) {
@@ -157,6 +164,5 @@ public class UnixHandler extends ChannelInboundHandlerAdapter {
 
         ctx.close();
     }
-
 
 }

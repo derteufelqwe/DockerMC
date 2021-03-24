@@ -102,6 +102,7 @@ public class SessionBuilder {
         annotatedClasses.add(PlayerToBank.class);
         annotatedClasses.add(BankTransaction.class);
         annotatedClasses.add(DBContainerHealth.class);
+        annotatedClasses.add(Log.class);
 
         return annotatedClasses;
     }
