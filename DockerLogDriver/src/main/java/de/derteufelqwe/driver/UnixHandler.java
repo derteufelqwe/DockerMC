@@ -77,7 +77,7 @@ public class UnixHandler extends ChannelInboundHandlerAdapter {
             writeResponse(new StringBuilder());
         }
 
-        System.out.printf("Request: URI=%s%n", request.uri());
+        System.out.printf("Request: %s%n", request.uri());
 
         if (!request.method().equals(HttpMethod.POST)) {
             System.err.println("Got invalid method " + request.method());

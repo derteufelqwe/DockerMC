@@ -32,7 +32,7 @@ public class SessionBuilder {
     protected String host;
     protected int port;
 
-    protected SessionFactory sessionFactory;
+    public SessionFactory sessionFactory;
 
 
     public SessionBuilder(String user, String password, String host, int port, boolean init) {
@@ -75,6 +75,13 @@ public class SessionBuilder {
         properties.setProperty(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread");
         properties.setProperty(Environment.PHYSICAL_NAMING_STRATEGY, "org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl");
         properties.setProperty(Environment.POOL_SIZE, "1024");
+
+        // Connection pool
+        properties.setProperty("hibernate.c3p0.min_size", "5");
+        properties.setProperty("hibernate.c3p0.max_size", "20");
+        properties.setProperty("hibernate.c3p0.timeout", "300");
+        properties.setProperty("hibernate.c3p0.max_statements", "50");
+        properties.setProperty("hibernate.c3p0.idle_test_period", "3000");
 
         return properties;
     }
@@ -131,7 +138,9 @@ public class SessionBuilder {
     }
 
     public void close() {
-        this.sessionFactory.close();
+        if (this.sessionFactory != null) {
+            this.sessionFactory.close();
+        }
     }
 
 }

@@ -30,11 +30,22 @@ public class Log {
     @Type(type = "text")
     private String container;
 
+    @Enumerated(EnumType.ORDINAL)
+    private Source source;
 
-    public Log(String log, Timestamp timestamp, String container) {
+
+    public Log(String log, Timestamp timestamp, String container, Source source) {
         this.log = log;
         this.timestamp = timestamp;
         this.container = container;
+        this.source = source;
+    }
+
+
+    public enum Source {
+        STDOUT,
+        STDERR,
+        UNKNOWN,
     }
 
 }

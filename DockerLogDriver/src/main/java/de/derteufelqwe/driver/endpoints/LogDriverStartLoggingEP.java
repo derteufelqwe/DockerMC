@@ -2,18 +2,19 @@ package de.derteufelqwe.driver.endpoints;
 
 import de.derteufelqwe.driver.DMCLogDriver;
 import de.derteufelqwe.driver.LogConsumer;
+import de.derteufelqwe.driver.LogDownloadEntry;
 import de.derteufelqwe.driver.messages.LogDriver;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class LogDriverStartLoggingEP extends Endpoint<LogDriver.RStartLogging, LogDriver.StartLogging> {
 
-    private ThreadPoolExecutor threadPool = DMCLogDriver.getThreadPool();
-    private Map<String, Future<?>> containerFutures = DMCLogDriver.getLogfileFutures();
+    private final ExecutorService threadPool = DMCLogDriver.getThreadPool();
+    private final Map<String, LogDownloadEntry> logfileConsumers = DMCLogDriver.getLogfileConsumers();
 
 
     public LogDriverStartLoggingEP(String data) {
@@ -27,7 +28,7 @@ public class LogDriverStartLoggingEP extends Endpoint<LogDriver.RStartLogging, L
 
         LogConsumer logConsumer = new LogConsumer(file, containerID);
         Future<?> future = threadPool.submit(logConsumer);
-        containerFutures.put(file, future);
+        logfileConsumers.put(file, new LogDownloadEntry(logConsumer, future));
 
         try {
             TimeUnit.MILLISECONDS.sleep(250);

@@ -21,50 +21,45 @@ import sun.misc.SignalHandler;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
 
 public class DMCLogDriver {
 
+    /**
+     * Path to the unix socket
+     */
     public static final String SOCKET_FILE_PATH = "/run/docker/plugins/dev.sock";
+    /**
+     * Time in ms for which the LogConsumer must have not read new data before the log download is considered complete
+     */
+    public static final int FINISH_LOG_READ_DELAY = 2000;
 
     @Getter
-    private static final ThreadPoolExecutor threadPool = createThreadPool();
+    private static ExecutorService threadPool;
     @Getter
     private static final DatabaseWriter databaseWriter = new DatabaseWriter();
     /**
      * Key:   Filename
-     * Value: Thread future
+     * Value: Task future
      */
     @Getter
-    private static final Map<String, Future<?>> logfileFutures = new HashMap<>();
+    private static final Map<String, LogDownloadEntry> logfileConsumers = new ConcurrentHashMap<>();
 
-    public AFUNIXServerSocket serverSocket;
     public EventLoopGroup bossGroup;
     public EventLoopGroup workerGroup;
 
 
-
     public DMCLogDriver() throws RuntimeException {
-        databaseWriter.start();
-        this.serverSocket = createSocket();
+        threadPool = createThreadPool();
         this.bossGroup = new EpollEventLoopGroup();
         this.workerGroup = new EpollEventLoopGroup();
+        databaseWriter.start();
     }
 
 
-    public AFUNIXServerSocket createSocket() throws RuntimeException {
-        try {
-            return AFUNIXServerSocket.newInstance();
-
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to create unix socket.", e);
-        }
-    }
-
-    private static ThreadPoolExecutor createThreadPool() {
-        return (ThreadPoolExecutor) MoreExecutors.getExitingExecutorService(
+    private static ExecutorService createThreadPool() {
+        return MoreExecutors.getExitingExecutorService(
                 (ThreadPoolExecutor) Executors.newCachedThreadPool(), 5, TimeUnit.SECONDS
         );
     }
@@ -81,7 +76,7 @@ public class DMCLogDriver {
 
         Signal.handle(new Signal("TERM"), signalHandler);
         Signal.handle(new Signal("INT"), signalHandler);
-        Signal.handle(new Signal("HUP"), signalHandler);
+//        Signal.handle(new Signal("HUP"), signalHandler);
     }
 
     public void startServer() {
@@ -99,40 +94,54 @@ public class DMCLogDriver {
                         }
                     });
 
-            File socketFile = new File(SOCKET_FILE_PATH);
-            serverSocket.bind(new AFUNIXSocketAddress(socketFile));
-            System.out.println("Server socket: " + serverSocket);
+            try (AFUNIXServerSocket socket = AFUNIXServerSocket.newInstance()) {
+                File socketFile = new File(SOCKET_FILE_PATH);
+                socket.bind(new AFUNIXSocketAddress(socketFile));
+                System.out.println("Server socket: " + socket);
 
-            ChannelFuture f = b.bind(new DomainSocketAddress(socketFile)).sync();
-            f.channel().closeFuture().sync();
+                ChannelFuture f = b.bind(new DomainSocketAddress(socketFile)).sync();
+                f.channel().closeFuture().sync();
+            }
+
 
         } catch (IOException e1) {
+            e1.printStackTrace(System.err);
             throw new RuntimeException("Failed to bind to unix socket.", e1);
 
         } catch (InterruptedException e2) {
             throw new RuntimeException("Webserver interrupted.", e2);
-
-        } finally {
-            shutdown();
         }
     }
 
+
     public void shutdown() throws RuntimeException {
+        System.err.println("Shutdown!");
+
         if (workerGroup != null) {
-            workerGroup.shutdownGracefully();
-        }
-        if (bossGroup != null) {
-            bossGroup.shutdownGracefully();
-        }
-
-        if (serverSocket != null) {
             try {
-                serverSocket.close();
+                workerGroup.shutdownGracefully().sync();
 
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to shutdown unix socket.", e);
+            } catch (InterruptedException e) {
+                System.err.println("Worker group shutdown interrupted");
             }
         }
+        if (bossGroup != null) {
+            try {
+                bossGroup.shutdownGracefully().sync();
+
+            } catch (InterruptedException e) {
+                System.err.println("Boss group shutdown interrupted");
+            }
+        }
+
+        if (threadPool != null) {
+            threadPool.shutdownNow();
+        }
+
+
+        databaseWriter.flushAll();
+        databaseWriter.interrupt();
+
     }
 
 }

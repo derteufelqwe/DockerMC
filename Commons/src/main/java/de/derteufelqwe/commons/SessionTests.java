@@ -1,6 +1,7 @@
 package de.derteufelqwe.commons;
 
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
+import de.derteufelqwe.commons.hibernate.objects.Log;
 import de.derteufelqwe.commons.hibernate.objects.permissions.Permission;
 import lombok.SneakyThrows;
 import org.apache.logging.log4j.Level;
@@ -26,10 +27,11 @@ public class SessionTests {
         try (Session session = sessionBuilder.openSession()) {
             Transaction tx = session.beginTransaction();
 
-            int rows = session.createNativeQuery(
-                    "DELETE FROM permissions AS p WHERE p.timeout <= now()").executeUpdate();
+            Log log = session.createNativeQuery(
+                    "select * from logs limit 1", Log.class
+            ).getSingleResult();
 
-            System.out.println(rows);
+            System.out.println(log);
 
             tx.commit();
         }
