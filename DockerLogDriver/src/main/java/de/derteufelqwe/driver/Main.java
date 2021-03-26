@@ -19,11 +19,12 @@ public class Main {
             driver = new DMCLogDriver();
             driver.addSignalHook();
             driver.startServer();
+            log.info("Shutdown complete. Goodbye.");
 
         } catch (Exception e) {
-            log.error("Failed to start LogDriver. Error: " + e.getMessage());
-            log.error(e);
+            log.error("Failed to start LogDriver. Error: ", e);
             driver.shutdown();
+            System.exit(2);
         }
     }
 

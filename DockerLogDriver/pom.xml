@@ -97,4 +97,13 @@
     </dependencies>
 
 
+    <profiles>
+        <profile>
+            <id>image</id>
+            <properties>
+                <outputDir>target</outputDir>
+            </properties>
+        </profile>
+    </profiles>
+
 </project>

@@ -24,3 +24,11 @@ Edit
 and add
 ``host    all             all             192.168.0.0/16          md5``
 
+
+# Linux
+
+### Show socket logs
+``journalctl -u service-name.service``
+
+### Start / stop / status of service
+``sudo service <service-name> [start, stop, status]``

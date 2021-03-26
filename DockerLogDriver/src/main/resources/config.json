@@ -1,0 +1,34 @@
+{
+  "description": "DockerMC logging plugin",
+  "documentation": "-",
+  "entrypoint": ["java", "-jar", "/plugin/LogDriver-1.0.jar"],
+  "interface": {
+    "types": ["docker.logdriver/1.0"],
+    "socket": "dev.sock"
+  },
+  "env": [
+    {
+      "name": "LOG_LEVEL",
+      "description": "Set log level to output for plugin logs",
+      "value": "info",
+      "settable": ["value"]
+    }
+  ],
+  "network": {
+    "type": "host"
+  },
+  "mounts": [
+    {
+      "destination": "/var/log/dmcdriver",
+      "options": [
+        "rbind"
+      ],
+      "name": "logfolder",
+      "source": "/var/log",
+      "settable": [
+        "source"
+      ],
+      "type": "bind"
+    }
+  ]
+}

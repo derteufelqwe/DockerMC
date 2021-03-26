@@ -1,6 +1,7 @@
 package de.derteufelqwe.driver;
 
 import com.google.common.util.concurrent.MoreExecutors;
+import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.driver.workers.DatabaseWriter;
 import de.derteufelqwe.driver.workers.LogDownloadEntry;
 import io.netty.bootstrap.ServerBootstrap;
@@ -11,11 +12,13 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerDomainSocketChannel;
 import io.netty.channel.unix.DomainSocketAddress;
+import io.netty.channel.unix.Errors;
 import io.netty.channel.unix.UnixChannel;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.newsclub.net.unix.AFUNIXServerSocket;
 import org.newsclub.net.unix.AFUNIXSocketAddress;
 import sun.misc.Signal;
@@ -82,7 +85,7 @@ public class DMCLogDriver {
 //        Signal.handle(new Signal("HUP"), signalHandler);
     }
 
-    public void startServer() {
+    public void startServer() throws DMCLogDriverException {
         try {
             ServerBootstrap b = new ServerBootstrap()
                     .group(bossGroup, workerGroup)
@@ -99,23 +102,54 @@ public class DMCLogDriver {
 
             try (AFUNIXServerSocket socket = AFUNIXServerSocket.newInstance()) {
                 File socketFile = new File(SOCKET_FILE_PATH);
-                socket.bind(new AFUNIXSocketAddress(socketFile));
+                log.info("Trying to bind to socket.");
+                this.bindToSocket(socket, socketFile);
                 log.info("Server socket: " + socket);
 
                 ChannelFuture f = b.bind(new DomainSocketAddress(socketFile)).sync();
+                log.info("Bound HTTP server to socket");
                 f.channel().closeFuture().sync();
             }
 
-
         } catch (IOException e1) {
-            log.error(e1);
-            throw new RuntimeException("Failed to bind to unix socket.", e1);
+            log.error(ExceptionUtils.getStackTrace(e1));
+            throw new DMCLogDriverException("Failed to bind to unix socket.", e1);
 
         } catch (InterruptedException e2) {
-            throw new RuntimeException("Webserver interrupted.", e2);
+            throw new DMCLogDriverException("Netty server got interrupted.", e2);
         }
     }
 
+    /**
+     * Tries to bind to the socket and removes any existing sockets while doing so.
+     *
+     * @param socket
+     * @param socketFile
+     * @throws IOException
+     */
+    private void bindToSocket(AFUNIXServerSocket socket, File socketFile) throws IOException {
+
+        try {
+            socket.bind(new AFUNIXSocketAddress(socketFile));
+            return;
+
+        } catch (IOException e) {
+            log.error("Initial bind error", e);
+            if (!e.getMessage().startsWith("Address already in use")) {
+                throw e;
+            }
+        }
+
+        log.warn("Socket '{}' already exists. Removing it.", SOCKET_FILE_PATH);
+        String result = Utils.executeCommandOnHost(new String[]{"unlink", SOCKET_FILE_PATH});
+        if (!result.equals("")) {
+            log.warn("Unlink returned: {}", result);
+        }
+
+        log.warn("Retrying to bind to socket.");
+        socket.bind(new AFUNIXSocketAddress(socketFile));
+        log.info("Rebind succeeded.");
+    }
 
     public void shutdown() throws RuntimeException {
         log.warn("LogDriver shutting down!");
