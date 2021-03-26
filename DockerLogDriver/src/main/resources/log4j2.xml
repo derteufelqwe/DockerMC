@@ -1,18 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
+    <Properties>
+        <Property name="logPath">.</Property>
+        <Property name="rollingFileName">dmcLogDriver</Property>
+    </Properties>
+
     <Appenders>
-<!--        Default logger for all logger -->
+<!--    Default logger for all logger -->
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%highlight{%d{HH:mm:ss.SSS} [%-5level] %msg%n}{WARN=yellow, INFO=def, TRACE=def, DEBUG=def}" disableAnsi="false"/>
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%-5level] %msg%n" disableAnsi="false"/>
         </Console>
+<!--    Save to a file -->
+        <RollingFile name="RollingFile" fileName="${logPath}/${rollingFileName}.log" filePattern="${logPath}/${rollingFileName}_%d{yyyy-MM-dd}.log">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%-5level] %msg%n" />
+            <Policies>
+                <!-- Causes a rollover if the log file is older than the current JVM's start time -->
+                <OnStartupTriggeringPolicy />
+                <!-- Causes a rollover once the date/time pattern no longer applies to the active file -->
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+            </Policies>
+        </RollingFile>
     </Appenders>
 
     <Loggers>
         <Root level="info">
             <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
         </Root>
-        <logger name="org.hibernate" level="error" additivity="false">
-            <AppenderRef ref="Console"/>
-        </logger>
+        <logger name="org.hibernate" level="error" additivity="true"/>
     </Loggers>
 </Configuration>

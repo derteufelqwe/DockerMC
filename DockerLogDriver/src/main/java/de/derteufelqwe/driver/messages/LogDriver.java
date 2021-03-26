@@ -24,7 +24,7 @@ public class LogDriver {
     public static class Capabilities implements Serializable {
 
         @SerializedName("ReadLogs")
-        private boolean readLogs = true;
+        private boolean readLogs = false;
 
     }
 

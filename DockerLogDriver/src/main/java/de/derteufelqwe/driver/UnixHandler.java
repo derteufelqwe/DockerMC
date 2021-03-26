@@ -11,10 +11,12 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
+import lombok.extern.log4j.Log4j2;
 
 import java.io.Serializable;
 import java.util.concurrent.*;
 
+@Log4j2
 public class UnixHandler extends ChannelInboundHandlerAdapter {
 
     private final String ERROR_NOT_POST = "{\"error\": \"Method must be POST\"}";
@@ -77,10 +79,10 @@ public class UnixHandler extends ChannelInboundHandlerAdapter {
             writeResponse(new StringBuilder());
         }
 
-        System.out.printf("Request: %s%n", request.uri());
+        log.info("Request: {}", request.uri());
 
         if (!request.method().equals(HttpMethod.POST)) {
-            System.err.println("Got invalid method " + request.method());
+            log.error("Got invalid method {}.", request.method());
             writeResponse(new StringBuilder(ERROR_NOT_POST).append("\r\n"));
             ctx.close();
         }
@@ -159,7 +161,7 @@ public class UnixHandler extends ChannelInboundHandlerAdapter {
                 break;
 
             default:
-                System.err.println("Received message on unknown uri " + request.uri());
+                log.error("Received message on unknown URI {}.", request.uri());
         }
 
         ctx.close();

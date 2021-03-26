@@ -1,17 +1,20 @@
-package de.derteufelqwe.driver;
+package de.derteufelqwe.driver.workers;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import de.derteufelqwe.commons.hibernate.objects.Log;
+import de.derteufelqwe.driver.DMCLogDriver;
 import de.derteufelqwe.driver.protobuf.Entry;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import org.checkerframework.checker.units.qual.A;
+import lombok.extern.log4j.Log4j2;
+import org.checkerframework.common.aliasing.qual.LeakedToResult;
 
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.sql.Timestamp;
 import java.util.concurrent.atomic.AtomicLong;
 
+@Log4j2
 public class LogConsumer implements Runnable {
 
     private final DatabaseWriter databaseWriter = DMCLogDriver.getDatabaseWriter();
@@ -49,8 +52,8 @@ public class LogConsumer implements Runnable {
                 this.lastLogReadTime.set(System.currentTimeMillis());
 
             } catch (IOException e) {
-                System.err.printf("Failed to read file %s. Error: %s.%n", fileName, e.getMessage());
-                e.printStackTrace();
+                log.error("Failed to read file {}. Error: {}.", fileName, e.getMessage());
+                log.error(e);
                 break;
             }
         }
@@ -70,7 +73,7 @@ public class LogConsumer implements Runnable {
                 is = new FileInputStream(file);
 
             } catch (FileNotFoundException e) {
-                System.err.printf("Failed to find file %s.%n", fileName);
+                log.error("Failed to find file {}.", fileName);
                 return;
             }
 
@@ -94,28 +97,28 @@ public class LogConsumer implements Runnable {
                     logEntry = Entry.LogEntry.parseFrom(buffer);
 
                 } catch (InvalidProtocolBufferException e) {
-                    System.err.printf("Failed to parse protobuf message. Error: %s.%n", e.getMessage());
+                    log.error("Failed to parse protobuf message. Error: {}.", e.getMessage());
                     continue;
                 }
 
-                Log log = new Log(
+                Log dbLog = new Log(
                         logEntry.getLine().toStringUtf8(),
                         new Timestamp(logEntry.getTimeNano() / 1_000_000),
                         container,
                         parseSource(logEntry.getSource())
                 );
 
-                databaseWriter.pushLog(log);
+                databaseWriter.pushLog(dbLog);
 
                 if (logEntry.hasPartialLogMetadata()) {
-                    System.err.println("Found partial log metadata");
-                    System.out.println(logEntry);
+                    log.error("Found partial log metadata");
+                    log.error(logEntry);
                 }
             }
 
         } catch (Exception e) {
-            System.err.printf("Exception occurred in LogConsumer. %s%n", e.getMessage());
-            e.printStackTrace(System.err);
+            log.error("Exception occurred in LogConsumer. {}", e.getMessage());
+            log.error(e);
         }
 
     }
@@ -126,7 +129,7 @@ public class LogConsumer implements Runnable {
             return Log.Source.valueOf(source.toUpperCase());
 
         } catch (IllegalArgumentException e) {
-            System.err.println("Found unknown log source " + source);
+            log.error("Found unknown log source {}.", source);
             return Log.Source.UNKNOWN;
         }
     }

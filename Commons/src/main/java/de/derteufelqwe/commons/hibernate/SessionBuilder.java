@@ -66,7 +66,7 @@ public class SessionBuilder {
         Properties properties = new Properties();
 
         properties.setProperty(Environment.DRIVER, "org.postgresql.Driver");
-        properties.setProperty(Environment.URL, "jdbc:postgresql://" + host + ":" + port + "/postgres?useSSL=false");
+        properties.setProperty(Environment.URL, "jdbc:postgresql://" + host + ":" + port + "/dockermc");
         properties.setProperty(Environment.USER, user);
         properties.setProperty(Environment.PASS, password);
         properties.setProperty(Environment.DIALECT, "org.hibernate.dialect.PostgreSQL10Dialect");

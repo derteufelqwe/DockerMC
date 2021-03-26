@@ -1,6 +1,8 @@
 package de.derteufelqwe.driver;
 
 import com.google.common.util.concurrent.MoreExecutors;
+import de.derteufelqwe.driver.workers.DatabaseWriter;
+import de.derteufelqwe.driver.workers.LogDownloadEntry;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -13,7 +15,7 @@ import io.netty.channel.unix.UnixChannel;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import lombok.Getter;
-import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import org.newsclub.net.unix.AFUNIXServerSocket;
 import org.newsclub.net.unix.AFUNIXSocketAddress;
 import sun.misc.Signal;
@@ -24,6 +26,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.*;
 
+@Log4j2
 public class DMCLogDriver {
 
     /**
@@ -41,7 +44,7 @@ public class DMCLogDriver {
     private static final DatabaseWriter databaseWriter = new DatabaseWriter();
     /**
      * Key:   Filename
-     * Value: Task future
+     * Value: Container with LogConsumer and its Future
      */
     @Getter
     private static final Map<String, LogDownloadEntry> logfileConsumers = new ConcurrentHashMap<>();
@@ -69,7 +72,7 @@ public class DMCLogDriver {
         SignalHandler signalHandler = new SignalHandler() {
             @Override
             public void handle(Signal signal) {
-                System.err.println("HANDLING SIGNAL " + signal);
+                log.warn("HANDLING SIGNAL " + signal);
                 shutdown();
             }
         };
@@ -97,7 +100,7 @@ public class DMCLogDriver {
             try (AFUNIXServerSocket socket = AFUNIXServerSocket.newInstance()) {
                 File socketFile = new File(SOCKET_FILE_PATH);
                 socket.bind(new AFUNIXSocketAddress(socketFile));
-                System.out.println("Server socket: " + socket);
+                log.info("Server socket: " + socket);
 
                 ChannelFuture f = b.bind(new DomainSocketAddress(socketFile)).sync();
                 f.channel().closeFuture().sync();
@@ -105,7 +108,7 @@ public class DMCLogDriver {
 
 
         } catch (IOException e1) {
-            e1.printStackTrace(System.err);
+            log.error(e1);
             throw new RuntimeException("Failed to bind to unix socket.", e1);
 
         } catch (InterruptedException e2) {
@@ -115,14 +118,14 @@ public class DMCLogDriver {
 
 
     public void shutdown() throws RuntimeException {
-        System.err.println("Shutdown!");
+        log.warn("LogDriver shutting down!");
 
         if (workerGroup != null) {
             try {
                 workerGroup.shutdownGracefully().sync();
 
             } catch (InterruptedException e) {
-                System.err.println("Worker group shutdown interrupted");
+                log.error("Worker group shutdown interrupted!");
             }
         }
         if (bossGroup != null) {
@@ -130,7 +133,7 @@ public class DMCLogDriver {
                 bossGroup.shutdownGracefully().sync();
 
             } catch (InterruptedException e) {
-                System.err.println("Boss group shutdown interrupted");
+                log.error("Boss group shutdown interrupted!");
             }
         }
 

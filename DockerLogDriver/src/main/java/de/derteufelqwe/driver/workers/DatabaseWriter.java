@@ -1,16 +1,18 @@
-package de.derteufelqwe.driver;
+package de.derteufelqwe.driver.workers;
 
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.LocalSessionRunnable;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.Log;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.units.qual.A;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.hibernate.engine.spi.SessionFactoryDelegatingImpl;
 import org.hibernate.internal.SessionFactoryImpl;
+import org.slf4j.event.Level;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -20,6 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  *
  */
+@Log4j2
 public class DatabaseWriter extends Thread {
 
     private SessionBuilder sessionBuilder;
@@ -32,7 +35,7 @@ public class DatabaseWriter extends Thread {
 
 
     public DatabaseWriter() {
-        this.sessionBuilder = new SessionBuilder("admin", "password", "ubuntu1", Constants.POSTGRESDB_PORT);
+        this.sessionBuilder = new SessionBuilder("dockermc", "admin", "ubuntu1", Constants.POSTGRESDB_PORT);
     }
 
 
@@ -72,7 +75,7 @@ public class DatabaseWriter extends Thread {
             try {
                 TimeUnit.SECONDS.sleep(5);
             } catch (InterruptedException e) {
-                System.err.println("Database writer sleep interrupted. Exiting.");
+                log.error("Database writer sleep interrupted. Exiting.");
             }
         }
     }
@@ -81,13 +84,13 @@ public class DatabaseWriter extends Thread {
         // Currently filling queue 1
         if (useQueue1.get()) {
             useQueue1.set(false);
-//            System.out.println("Flushing queue 1. " + logQueue1.size());
+            log.trace("Flushing queue 1. ({} Entries)", logQueue1.size());
             flush(logQueue1);
 
             // Currently filling queue 2
         } else {
             useQueue1.set(true);
-//            System.out.println("Flushing queue 2. " + logQueue2.size());
+            log.trace("Flushing queue 2. ({} Entries)", logQueue2.size());
             flush(logQueue2);
         }
     }
@@ -100,7 +103,7 @@ public class DatabaseWriter extends Thread {
     @Override
     public synchronized void start() {
         super.start();
-        System.out.println("Started DatabaseWriter thread.");
+        log.info("Started DatabaseWriter thread.");
     }
 
 

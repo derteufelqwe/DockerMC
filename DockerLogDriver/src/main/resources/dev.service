@@ -1,0 +1,11 @@
+[Unit]
+Description=Your plugin
+Before=docker.service
+After=network.target dev.socket
+Requires=dev.socket docker.service
+
+[Service]
+ExecStart=java -jar /home/arne/ServerManager/DockerDriver/LogDriver-1.0.jar
+
+[Install]
+WantedBy=multi-user.target

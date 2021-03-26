@@ -5,7 +5,7 @@
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://ubuntu1:5432/postgres</jdbc-url>
+      <jdbc-url>jdbc:postgresql://ubuntu1:5432/dockermc</jdbc-url>
     </data-source>
     <data-source source="LOCAL" name="H2 - test" uuid="1103f4a2-4841-44d0-b045-0f18eabc7feb">
       <driver-ref>h2.unified</driver-ref>

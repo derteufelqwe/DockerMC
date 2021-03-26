@@ -1,9 +1,10 @@
 package de.derteufelqwe.driver.endpoints;
 
 import de.derteufelqwe.driver.DMCLogDriver;
-import de.derteufelqwe.driver.LogConsumer;
-import de.derteufelqwe.driver.LogDownloadEntry;
+import de.derteufelqwe.driver.workers.LogConsumer;
+import de.derteufelqwe.driver.workers.LogDownloadEntry;
 import de.derteufelqwe.driver.messages.LogDriver;
+import lombok.extern.log4j.Log4j2;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -11,6 +12,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+@Log4j2
 public class LogDriverStartLoggingEP extends Endpoint<LogDriver.RStartLogging, LogDriver.StartLogging> {
 
     private final ExecutorService threadPool = DMCLogDriver.getThreadPool();
@@ -34,7 +36,7 @@ public class LogDriverStartLoggingEP extends Endpoint<LogDriver.RStartLogging, L
             TimeUnit.MILLISECONDS.sleep(250);
 
         } catch (InterruptedException e) {
-            System.err.println("StartLogging sleep interrupted.");
+            log.error("StartLogging sleep interrupted.");
         }
 
         return new LogDriver.StartLogging();

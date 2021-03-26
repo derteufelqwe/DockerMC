@@ -1,13 +1,15 @@
 package de.derteufelqwe.driver;
 
 import lombok.SneakyThrows;
-import org.newsclub.net.unix.AFUNIXServerSocket;
-import org.newsclub.net.unix.AFUNIXSocketAddress;
+import lombok.extern.log4j.Log4j2;
 
-import java.io.File;
-import java.util.concurrent.TimeUnit;
-
+@Log4j2
 public class Main {
+
+    /*
+     * ToDo:
+     *  - Try to get ReadLogs working (https://docs.docker.com/engine/extend/plugins_logging/#logdriverreadlogs)
+     */
 
     @SneakyThrows
     public static void main(String[] args) {
@@ -19,8 +21,8 @@ public class Main {
             driver.startServer();
 
         } catch (Exception e) {
-            System.err.println("Failed to start LogDriver. Error: " + e.getMessage());
-            e.printStackTrace(System.err);
+            log.error("Failed to start LogDriver. Error: " + e.getMessage());
+            log.error(e);
             driver.shutdown();
         }
     }

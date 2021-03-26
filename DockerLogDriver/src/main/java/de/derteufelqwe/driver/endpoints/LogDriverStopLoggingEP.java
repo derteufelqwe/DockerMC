@@ -1,13 +1,15 @@
 package de.derteufelqwe.driver.endpoints;
 
 import de.derteufelqwe.driver.DMCLogDriver;
-import de.derteufelqwe.driver.LogDownloadEntry;
+import de.derteufelqwe.driver.workers.LogDownloadEntry;
 import de.derteufelqwe.driver.messages.LogDriver;
+import lombok.extern.log4j.Log4j2;
 
 import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.*;
 
+@Log4j2
 public class LogDriverStopLoggingEP extends Endpoint<LogDriver.RStopLogging, LogDriver.StopLogging> {
 
     private final Map<String, LogDownloadEntry> logfileConsumers = DMCLogDriver.getLogfileConsumers();
@@ -26,7 +28,7 @@ public class LogDriverStopLoggingEP extends Endpoint<LogDriver.RStopLogging, Log
 
         if (entry == null) {
             error = String.format("Failed to find LogDownloadEntry for %s.%n", file);
-            System.err.println(error);
+            log.error(error);
 
         } else {
             // Wait until the last log read is 2000ms ago
