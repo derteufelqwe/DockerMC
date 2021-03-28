@@ -18,6 +18,7 @@
                 <OnStartupTriggeringPolicy />
                 <!-- Causes a rollover once the date/time pattern no longer applies to the active file -->
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="50 MB" />
             </Policies>
         </RollingFile>
     </Appenders>

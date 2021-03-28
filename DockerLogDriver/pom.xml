@@ -71,28 +71,12 @@
             <version>4.1.60.Final</version>
         </dependency>
 
-
-        <!-- https://mvnrepository.com/artifact/com.kohlschutter.junixsocket/junixsocket-core -->
-        <dependency>
-            <groupId>com.kohlschutter.junixsocket</groupId>
-            <artifactId>junixsocket-core</artifactId>
-            <version>${junixsocket-version}</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/com.kohlschutter.junixsocket/junixsocket-server -->
-        <dependency>
-            <groupId>com.kohlschutter.junixsocket</groupId>
-            <artifactId>junixsocket-server</artifactId>
-            <version>${junixsocket-version}</version>
-        </dependency>
-
         <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
             <version>2.14.0</version>
         </dependency>
-
 
     </dependencies>
 

@@ -2,6 +2,7 @@ package de.derteufelqwe.driver;
 
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.Queue;
 import java.util.concurrent.*;
@@ -29,7 +30,13 @@ public class ThreadPoolTests {
 ////        pool.shutdownNow();
 ////        TimeUnit.MINUTES.sleep(10);
 
+        try {
+            throw new RuntimeException("fuck off");
 
+        } catch (Exception e) {
+            System.out.println(ExceptionUtils.getStackTrace(e));
+            e.printStackTrace();
+        }
 
 
     }

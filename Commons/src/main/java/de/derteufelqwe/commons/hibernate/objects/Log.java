@@ -1,10 +1,13 @@
 package de.derteufelqwe.commons.hibernate.objects;
 
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -25,6 +28,9 @@ public class Log {
     @Type(type = "text")
     private String log;
 
+    /**
+     * Note: Postgresql only supports microseconds, therefore the last digit of the TS gets rounded
+     */
     private Timestamp timestamp;
 
     @Type(type = "text")
@@ -32,6 +38,25 @@ public class Log {
 
     @Enumerated(EnumType.ORDINAL)
     private Source source;
+
+    // -----  Exception infos  -----
+
+    @Enumerated(EnumType.ORDINAL)
+    private MsgType type = MsgType.LOG;     // Default required
+
+    @Type(type = "text")
+    private String exceptionType;
+
+    @Type(type = "text")
+    private String exceptionMessage;
+
+    @OneToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Log causedBy;
+
+    @OneToMany
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private List<Log> stacktrace = new ArrayList<>();   // Default required
 
 
     public Log(String log, Timestamp timestamp, String container, Source source) {
@@ -46,6 +71,13 @@ public class Log {
         STDOUT,
         STDERR,
         UNKNOWN,
+    }
+
+    public enum MsgType {
+        LOG,
+        EXCEPTION,
+        STACKTRACE,
+        UNKNOWN
     }
 
 }

@@ -1,4 +1,4 @@
-package de.derteufelqwe.driver;
+package de.derteufelqwe.driver.exceptions;
 
 /**
  * Custom exceptions

@@ -4,11 +4,13 @@ import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.LocalSessionRunnable;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.Log;
+import de.derteufelqwe.driver.DMCLogDriver;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.units.qual.A;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.hibernate.engine.spi.SessionFactoryDelegatingImpl;
 import org.hibernate.internal.SessionFactoryImpl;
@@ -25,7 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Log4j2
 public class DatabaseWriter extends Thread {
 
-    private SessionBuilder sessionBuilder;
+    private SessionBuilder sessionBuilder = DMCLogDriver.getSessionBuilder();
 
     private final AtomicBoolean useQueue1 = new AtomicBoolean(true);
     private AtomicBoolean doRun = new AtomicBoolean(true);
@@ -35,7 +37,7 @@ public class DatabaseWriter extends Thread {
 
 
     public DatabaseWriter() {
-        this.sessionBuilder = new SessionBuilder("dockermc", "admin", "ubuntu1", Constants.POSTGRESDB_PORT);
+
     }
 
 
@@ -52,6 +54,32 @@ public class DatabaseWriter extends Thread {
             this.logQueue2.add(log);
         }
     }
+
+    public void pushException(Log exceptionLog) {
+        try (Session session = sessionBuilder.openSession()) {
+            Transaction tx = session.beginTransaction();
+
+            try {
+                this.persistException(session, exceptionLog);
+
+            } finally {
+                tx.commit();
+            }
+        }
+    }
+
+    private void persistException(Session session, Log log) {
+        session.persist(log);
+
+        for (Log stacktrace : log.getStacktrace()) {
+            session.persist(stacktrace);
+        }
+
+        if (log.getCausedBy() != null) {
+            this.persistException(session, log.getCausedBy());
+        }
+    }
+
 
     private void flush(Queue<Log> queue) {
         new LocalSessionRunnable(sessionBuilder) {
