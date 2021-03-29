@@ -68,22 +68,23 @@ jobs:
         run: "mvn package -f BungeePlugin/pom.xml --quiet"
 
 
-      # Create the release (version)
-      - name: "Create release"
-        uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: ${{ env.VERSION }}
-          prerelease: false
-          files: |
-            MinecraftPlugin/target/MinecraftPlugin-${{ env.VERSION }}.jar
-            BungeePlugin/target/BungeePlugin-${{ env.VERSION }}.jar
       # Create the release (latest)
       - name: "Create release"
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: latest
+          prerelease: false
+          files: |
+            MinecraftPlugin/target/MinecraftPlugin-${{ env.VERSION }}.jar
+            BungeePlugin/target/BungeePlugin-${{ env.VERSION }}.jar
+
+      # Create the release (version)
+      - name: "Create release"
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: ${{ env.VERSION }}
           prerelease: false
           files: |
             MinecraftPlugin/target/MinecraftPlugin-${{ env.VERSION }}.jar
