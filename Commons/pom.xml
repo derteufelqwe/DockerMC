@@ -40,22 +40,22 @@
         </plugins>
     </build>
 
-    <dependencies>
 
-        <dependency>
-            <groupId>com.destroystokyo.paper</groupId>
-            <artifactId>paper-api</artifactId>
-            <version>1.12.2-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
+    <dependencies>
+<!--        <dependency>-->
+<!--            <groupId>com.destroystokyo.paper</groupId>-->
+<!--            <artifactId>paper-api</artifactId>-->
+<!--            <version>1.12.2-R0.1-SNAPSHOT</version>-->
+<!--            <scope>provided</scope>-->
+<!--        </dependency>-->
 
         <!-- https://mvnrepository.com/artifact/com.github.seeseemelk/MockBukkit-v1.13-spigot -->
-        <dependency>
-            <groupId>com.github.seeseemelk</groupId>
-            <artifactId>MockBukkit-v1.13-spigot</artifactId>
-            <version>0.2.0</version>
-            <scope>test</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.github.seeseemelk</groupId>-->
+<!--            <artifactId>MockBukkit-v1.13-spigot</artifactId>-->
+<!--            <version>0.2.0</version>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
 
         <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
         <dependency>
