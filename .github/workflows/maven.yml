@@ -10,7 +10,7 @@ on:
 
 
 jobs:
-  docker:
+  setup:
     runs-on: ubuntu-20.04
     steps:
       # Setup and compile the artifact
@@ -25,14 +25,42 @@ jobs:
         run: |
           version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
           echo "VERSION=$version" >> $GITHUB_ENV
+          echo "$version" >> version.txt
       - name: "Install ServerManager"
         run: "mvn install -N --quiet"
       - name: "Install Commons"
         run: "mvn install -f Commons/pom.xml --quiet"
-      - name: "Compile Log Driver"
-        run: "mvn package -f DockerLogDriver/pom.xml --quiet"
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: shared-data
+          path: |
+            ~/.m2/repository
+            version.txt
+
+
+  docker-plugin:
+    needs: setup
+    runs-on: ubuntu-20.04
+    steps:
+      # Setup
+      - name: "Clone Code"
+        uses: actions/checkout@v2
+      - name: "Setup JDK 8"
+        uses: actions/setup-java@v1
+        with:
+          java-version: 8
+      - uses: actions/download-artifact@v2
+        with:
+          name: my-artifact
+          path: ~/.m2/repository
+
+      - name: "Debug"
+        uses: lhotari/action-upterm@v1
 
       # Setup and push to docker
+      - name: "Compile Log Driver"
+        run: "mvn package -f DockerLogDriver/pom.xml --quiet"
       - name: "Setup docker Buildx"
         uses: docker/setup-buildx-action@v1
       - name: "Login to DockerHub"
@@ -47,3 +75,5 @@ jobs:
         run: |
           docker plugin push derteufelqwe/dockermc-log-driver:$VERSION
           docker plugin push derteufelqwe/dockermc-log-driver:latest
+
+workflow:
