@@ -25,7 +25,8 @@ jobs:
         run: |
           version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
           echo "VERSION=$version" >> $GITHUB_ENV
-          echo "$version" >> version.txt
+          mkdir sharedData
+          echo "$version" >> ~/sharedData/version.txt
       - name: "Install ServerManager"
         run: "mvn install -N --quiet"
       - name: "Install Commons"
@@ -36,7 +37,7 @@ jobs:
           name: shared-data
           path: |
             ~/.m2/repository
-            version.txt
+            ~/sharedData
 
 
   docker-plugin:
@@ -58,7 +59,7 @@ jobs:
         uses: lhotari/action-upterm@v1
       - name: "Load version"
         run: |
-          version=$(cat version.txt)
+          version=$(cat ~/sharedData/version.txt)
           echo "VERSION=$version" >> $GITHUB_ENV
 
       # Setup and push to docker
