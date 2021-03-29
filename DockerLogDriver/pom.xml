@@ -12,7 +12,6 @@
     <artifactId>DockerLogDriver</artifactId>
 
     <properties>
-        <junixsocket-version>2.3.2</junixsocket-version>
         <outputDir>target</outputDir>
     </properties>
 
