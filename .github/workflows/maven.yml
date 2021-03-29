@@ -48,9 +48,27 @@ jobs:
 #          docker plugin push derteufelqwe/dockermc-log-driver:$VERSION
 #          docker plugin push derteufelqwe/dockermc-log-driver:latest
 
-      # Build and publish Minecraft plugin
+      # Compile and push NodeWatcher image
+      - name: "Package NodeWatcher"
+        run: "mvn package -f NodeWatcher/pom.xml --quiet"
+      - name: "Build and push NodeWatcher image (version)"
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          context: NodeWatcher
+          tags: derteufelqwe/dockermc-nodewatcher:${{ env.VERSION }}
+      - name: "Push NodeWatcher image (latest)"
+        run: |
+          docker tag derteufelqwe/dockermc-nodewatcher:${{ env.VERSION }} derteufelqwe/dockermc-nodewatcher:latest
+          docker push derteufelqwe/dockermc-nodewatcher:latest
+
+
+      # Build binaries
       - name: "Package Minecraft plugin"
-        run: "mvn package -f MinecraftPlugin/pom.xml"
+        run: "mvn package -f MinecraftPlugin/pom.xml --quiet"
+      - name: "Package BungeeCord plugin"
+        run: "mvn package -f BungeePlugin/pom.xml --quiet"
 
       # Create the release
       - name: "Create release"
@@ -59,4 +77,6 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: test
           prerelease: false
-          files: MinecraftPlugin/target/MinecraftPlugin-${{ env.VERSION }}.jar
+          files: |
+            MinecraftPlugin/target/MinecraftPlugin-${{ env.VERSION }}.jar
+            BungeePlugin/target/BungeePlugin-${{ env.VERSION }}.jar
