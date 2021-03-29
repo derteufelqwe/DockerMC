@@ -12,7 +12,6 @@ docker rm -vf "$id"
 
 echo "Building plugin..."
 docker plugin create "derteufelqwe/dockermc-log-driver:latest" .
-docker plugin rm "derteufelqwe/dockermc-log-driver:latest"
 docker plugin create "derteufelqwe/dockermc-log-driver:$VERSION" .
 
 echo "Created dockermc-log plugin"
