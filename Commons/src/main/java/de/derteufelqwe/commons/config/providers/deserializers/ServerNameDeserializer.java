@@ -2,10 +2,8 @@ package de.derteufelqwe.commons.config.providers.deserializers;
 
 import com.google.gson.*;
 import de.derteufelqwe.commons.docker.ServerName;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.Type;
-import java.util.UUID;
 
 public class ServerNameDeserializer implements JsonDeserializer<ServerName> {
 

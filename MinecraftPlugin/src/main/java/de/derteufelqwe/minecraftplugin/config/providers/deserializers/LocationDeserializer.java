@@ -1,4 +1,4 @@
-package de.derteufelqwe.commons.config.providers.deserializers;
+package de.derteufelqwe.minecraftplugin.config.providers.deserializers;
 
 import com.google.gson.*;
 import org.bukkit.Location;

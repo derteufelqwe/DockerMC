@@ -1,29 +1,24 @@
-package de.derteufelqwe.commons.config.providers;
+package serialization;
 
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
-import be.seeseemelk.mockbukkit.block.BlockMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
-import be.seeseemelk.mockbukkit.inventory.meta.BookMetaMock;
 import com.google.gson.Gson;
+import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
+import de.derteufelqwe.commons.config.providers.DefaultYamlProvider;
+import de.derteufelqwe.commons.config.providers.YamlConverter;
+import de.derteufelqwe.minecraftplugin.config.providers.MinecraftGsonProvider;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SerializationTests {
@@ -58,7 +53,7 @@ class SerializationTests {
         String data = this.serialize(world);
         System.out.println(data);
 
-        assertEquals(data.trim(),  world.getUID().toString().trim());
+        assertEquals(data.trim(), world.getUID().toString().trim());
 
         World newWorld = this.deserialize(data, World.class);
 
@@ -101,7 +96,7 @@ class SerializationTests {
 
         LocationContainer newContainer = this.deserialize(data, LocationContainer.class);
 
-        assertEquals(container, newContainer);
+        Assertions.assertEquals(container, newContainer);
     }
 
     @Test

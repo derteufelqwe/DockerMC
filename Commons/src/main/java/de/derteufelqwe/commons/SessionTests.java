@@ -2,21 +2,9 @@ package de.derteufelqwe.commons;
 
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.Log;
-import de.derteufelqwe.commons.hibernate.objects.permissions.Permission;
 import lombok.SneakyThrows;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.appender.ConsoleAppender;
-import org.apache.logging.log4j.core.config.ConfigurationFactory;
-import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilder;
-import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration;
-import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-
-import java.sql.Timestamp;
-import java.util.List;
 
 public class SessionTests {
 

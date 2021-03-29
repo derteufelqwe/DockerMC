@@ -143,12 +143,6 @@
             <scope>provided</scope>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>de.derteufelqwe.SpigotHotswapPlugin</groupId>-->
-<!--            <artifactId>spigothotswap</artifactId>-->
-<!--            <version>1.1</version>-->
-<!--        </dependency>-->
-
         <dependency>
             <groupId>co.aikar</groupId>
             <artifactId>acf-paper</artifactId>
@@ -160,6 +154,15 @@
             <artifactId>VaultAPI</artifactId>
             <version>1.7</version>
             <scope>provided</scope>
+        </dependency>
+
+<!--        ##### Test dependencies #####-->
+        <!-- https://mvnrepository.com/artifact/com.github.seeseemelk/MockBukkit-v1.13-spigot-->
+        <dependency>
+            <groupId>com.github.seeseemelk</groupId>
+            <artifactId>MockBukkit-v1.13-spigot</artifactId>
+            <version>0.2.0</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

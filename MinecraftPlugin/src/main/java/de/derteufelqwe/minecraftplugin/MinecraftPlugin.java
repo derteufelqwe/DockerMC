@@ -7,7 +7,7 @@ import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
 import de.derteufelqwe.commons.config.providers.DefaultYamlProvider;
-import de.derteufelqwe.commons.config.providers.MinecraftGsonProvider;
+import de.derteufelqwe.minecraftplugin.config.providers.MinecraftGsonProvider;
 import de.derteufelqwe.commons.health.HealthCheck;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.logger.DMCLogger;

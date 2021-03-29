@@ -1,4 +1,4 @@
-package de.derteufelqwe.commons.config.providers;
+package serialization;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

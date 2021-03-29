@@ -1,7 +1,6 @@
 package de.derteufelqwe.commons.health;
 
 import com.sun.net.httpserver.HttpServer;
-import org.bukkit.Bukkit;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -24,7 +23,6 @@ public class HealthCheck {
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("[Fatal Error] Failed to start health check server.");
-            Bukkit.getServer().shutdown();
         }
     }
 

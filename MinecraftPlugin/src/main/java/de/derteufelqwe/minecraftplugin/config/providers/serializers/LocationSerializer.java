@@ -1,4 +1,4 @@
-package de.derteufelqwe.commons.config.providers.serializers;
+package de.derteufelqwe.minecraftplugin.config.providers.serializers;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

@@ -1,13 +1,14 @@
-package de.derteufelqwe.commons.config.providers;
+package de.derteufelqwe.minecraftplugin.config.providers;
 
-import de.derteufelqwe.commons.config.providers.deserializers.*;
-import de.derteufelqwe.commons.config.providers.serializers.*;
+import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
+import de.derteufelqwe.commons.config.providers.GsonProvider;
+import de.derteufelqwe.commons.config.providers.TypeAdapterContainer;
+import de.derteufelqwe.minecraftplugin.config.providers.deserializers.*;
+import de.derteufelqwe.minecraftplugin.config.providers.serializers.*;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.List;
 

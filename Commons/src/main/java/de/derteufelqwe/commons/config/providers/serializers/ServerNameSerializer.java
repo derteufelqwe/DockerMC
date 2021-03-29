@@ -5,7 +5,6 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import de.derteufelqwe.commons.docker.ServerName;
-import org.bukkit.World;
 
 import java.lang.reflect.Type;
 
