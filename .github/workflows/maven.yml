@@ -21,6 +21,10 @@ jobs:
         with:
           java-version: 8
 
+      - name: "Get project version"
+        run: |
+          version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+          echo "VERSION=$version" >> $GITHUB_ENV
       - name: "Install ServerManager"
         run: "mvn install -N --quiet"
       - name: "Install Commons"
@@ -40,4 +44,6 @@ jobs:
       - name: "Build driver image"
         run: "cd DockerLogDriver && sh buildImage.sh"
       - name: "Push the image"
-        run: "docker plugin push derteufelqwe/dockermc-log-driver:latest"
+        run: |
+          docker plugin push derteufelqwe/dockermc-log-driver:$VERSION
+          docker plugin push derteufelqwe/dockermc-log-driver:latest

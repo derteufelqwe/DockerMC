@@ -1411,7 +1411,7 @@ true posixrules
     <database id="2" parent="1" name="dockermc">
       <ObjectId>16385</ObjectId>
       <Owner>postgres</Owner>
-      <IntrospectionStateNumber>1007</IntrospectionStateNumber>
+      <IntrospectionStateNumber>1019</IntrospectionStateNumber>
       <Current>1</Current>
       <Relations>sequence|table|16757|16759|1
 sequence|table|16769|16771|1
@@ -1508,7 +1508,7 @@ UC/10
 </Acl>
       <StateNumber>275</StateNumber>
       <Owner>postgres</Owner>
-      <IntrospectionStateNumber>1008</IntrospectionStateNumber>
+      <IntrospectionStateNumber>1020</IntrospectionStateNumber>
       <Current>1</Current>
     </schema>
     <extension id="19" parent="2" name="plpgsql">
