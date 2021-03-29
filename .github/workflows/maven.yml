@@ -26,7 +26,7 @@ jobs:
           version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
           echo "VERSION=$version" >> $GITHUB_ENV
           mkdir sharedData
-          echo "$version" >> ~/sharedData/version.txt
+          echo "$version" >> sharedData/version.txt
       - name: "Install ServerManager"
         run: "mvn install -N --quiet"
       - name: "Install Commons"
@@ -37,7 +37,7 @@ jobs:
           name: shared-data
           path: |
             ~/.m2/repository
-            ~/sharedData
+            sharedData
 
 
   docker-plugin:
