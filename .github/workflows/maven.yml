@@ -51,18 +51,15 @@ jobs:
       # Compile and push NodeWatcher image
       - name: "Package NodeWatcher"
         run: "mvn package -f NodeWatcher/pom.xml --quiet"
-      - name: "Build and push NodeWatcher image (version)"
+      - name: "Build and push NodeWatcher image"
         id: docker_build
         uses: docker/build-push-action@v2
         with:
           push: true
           context: NodeWatcher
-          tags: derteufelqwe/dockermc-nodewatcher:${{ env.VERSION }}
-      - name: "Push NodeWatcher image (latest)"
-        run: |
-          docker tag derteufelqwe/dockermc-nodewatcher:${{ env.VERSION }} derteufelqwe/dockermc-nodewatcher:latest
-          docker push derteufelqwe/dockermc-nodewatcher:latest
-
+          tags: |
+            derteufelqwe/dockermc-nodewatcher:${{ env.VERSION }}
+            derteufelqwe/dockermc-nodewatcher:latest
 
       # Build binaries
       - name: "Package Minecraft plugin"
