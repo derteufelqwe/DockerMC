@@ -1,5 +1,8 @@
 name: DockerMC CI Pipeline
 
+#  - name: "Debug"
+#    uses: lhotari/action-upterm@v1
+
 on:
   push:
     branches: [ "master" ]
@@ -16,6 +19,8 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 8
+      - name: "Install Server"
+        run: "mvn install -f Server/pom.xml --quiet"
       - name: "Install Commons"
         run: "mvn install -f Commons/pom.xml --quiet"
       - name: "Debug"
