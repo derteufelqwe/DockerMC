@@ -18,8 +18,8 @@ jobs:
           java-version: 8
       - name: "Install Commons"
         run: "mvn install -f Commons/pom.xml --quiet"
-      - name: "Test"
-        run: "ls ~/.m2/repository/de/derteufelqwe/Commons"
+      - name: "Debug"
+        uses: lhotari/action-upterm@v1
       - name: "Compile Log Driver"
         run: "mvn package -f DockerLogDriver/pom.xml --quiet"
 
