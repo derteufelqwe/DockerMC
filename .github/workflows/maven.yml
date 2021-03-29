@@ -45,7 +45,7 @@ jobs:
         run: "cd DockerLogDriver && sh buildImage.sh"
       - name: "Push the image"
         run: |
-          docker plugin push derteufelqwe/dockermc-log-driver:{{ env.VERSION }}
+          docker plugin push derteufelqwe/dockermc-log-driver:${{ env.VERSION }}
           docker plugin push derteufelqwe/dockermc-log-driver:latest
 
       # Compile and push NodeWatcher image
