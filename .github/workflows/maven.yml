@@ -75,5 +75,3 @@ jobs:
         run: |
           docker plugin push derteufelqwe/dockermc-log-driver:$VERSION
           docker plugin push derteufelqwe/dockermc-log-driver:latest
-
-workflow:
