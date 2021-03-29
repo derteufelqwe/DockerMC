@@ -36,6 +36,7 @@ jobs:
           name: shared-data
           path: |
             ~/.m2/repository
+            version.txt
 
 
   docker-plugin:
@@ -53,9 +54,12 @@ jobs:
         with:
           name: shared-data
           path: ~/.m2/repository
-
       - name: "Debug"
         uses: lhotari/action-upterm@v1
+      - name: "Load version"
+        run: |
+          version=$(cat version.txt)
+          echo "VERSION=$version" >> $GITHUB_ENV
 
       # Setup and push to docker
       - name: "Compile Log Driver"
