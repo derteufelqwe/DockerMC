@@ -38,15 +38,15 @@ jobs:
       - name: "Install Commons"
         run: "mvn install -f Commons/pom.xml --quiet"
 
-#      # Compile and push docker log driver plugin
-#      - name: "Compile Log Driver"
-#        run: "mvn package -f DockerLogDriver/pom.xml --quiet"
-#      - name: "Build driver image"
-#        run: "cd DockerLogDriver && sh buildImage.sh"
-#      - name: "Push the image"
-#        run: |
-#          docker plugin push derteufelqwe/dockermc-log-driver:$VERSION
-#          docker plugin push derteufelqwe/dockermc-log-driver:latest
+      # Compile and push docker log driver plugin
+      - name: "Package LogDriver"
+        run: "mvn package -f DockerLogDriver/pom.xml --quiet"
+      - name: "Build driver image"
+        run: "cd DockerLogDriver && sh buildImage.sh"
+      - name: "Push the image"
+        run: |
+          docker plugin push derteufelqwe/dockermc-log-driver:{{ env.VERSION }}
+          docker plugin push derteufelqwe/dockermc-log-driver:latest
 
       # Compile and push NodeWatcher image
       - name: "Package NodeWatcher"
@@ -61,18 +61,29 @@ jobs:
             derteufelqwe/dockermc-nodewatcher:${{ env.VERSION }}
             derteufelqwe/dockermc-nodewatcher:latest
 
-      # Build binaries
+      # Build release binaries
       - name: "Package Minecraft plugin"
         run: "mvn package -f MinecraftPlugin/pom.xml --quiet"
       - name: "Package BungeeCord plugin"
         run: "mvn package -f BungeePlugin/pom.xml --quiet"
 
-      # Create the release
+
+      # Create the release (version)
       - name: "Create release"
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: test
+          automatic_release_tag: ${{ env.VERSION }}
+          prerelease: false
+          files: |
+            MinecraftPlugin/target/MinecraftPlugin-${{ env.VERSION }}.jar
+            BungeePlugin/target/BungeePlugin-${{ env.VERSION }}.jar
+      # Create the release (latest)
+      - name: "Create release"
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: latest
           prerelease: false
           files: |
             MinecraftPlugin/target/MinecraftPlugin-${{ env.VERSION }}.jar
