@@ -25,12 +25,15 @@ jobs:
         run: |
           version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
           echo "VERSION=$version" >> $GITHUB_ENV
+          pwd
           mkdir sharedData
+          ls
           echo "$version" >> sharedData/version.txt
-      - name: "Install ServerManager"
-        run: "mvn install -N --quiet"
-      - name: "Install Commons"
-        run: "mvn install -f Commons/pom.xml --quiet"
+          cat sharedData/version.txt
+#      - name: "Install ServerManager"
+#        run: "mvn install -N --quiet"
+#      - name: "Install Commons"
+#        run: "mvn install -f Commons/pom.xml --quiet"
 
       - uses: actions/upload-artifact@v2
         with:
