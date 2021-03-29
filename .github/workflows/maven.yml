@@ -10,7 +10,7 @@ on:
 
 
 jobs:
-  setup:
+  CI-CD-Pipeline:
     runs-on: ubuntu-20.04
     steps:
       # Setup and compile the artifact
@@ -50,12 +50,13 @@ jobs:
 
       # Build and publish Minecraft plugin
       - name: "Package Minecraft plugin"
-        run: "mvn package -f MinecraftPlugin/pom.xml --quiet"
+        run: "mvn package -f MinecraftPlugin/pom.xml"
 
       # Create the release
       - name: "Create release"
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: test
           prerelease: false
           files: MinecraftPlugin/target/MinecraftPlugin-$VERSION.jar
