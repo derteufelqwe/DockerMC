@@ -79,7 +79,7 @@ public class UnixHandler extends ChannelInboundHandlerAdapter {
             writeResponse(new StringBuilder());
         }
 
-        log.info("Request: {}", request.uri());
+        log.debug("Request: {}", request.uri());
 
         if (!request.method().equals(HttpMethod.POST)) {
             log.error("Got invalid method {}.", request.method());

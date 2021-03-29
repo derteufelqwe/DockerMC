@@ -17,7 +17,7 @@ public class DatabaseDebugEntries {
 
     private final String DEBUG_SERVICE_ID = "debugserviceid";
 
-    private SessionBuilder sessionBuilder = new SessionBuilder("admin", "password", "ubuntu1", Constants.POSTGRESDB_PORT);
+    private SessionBuilder sessionBuilder = new SessionBuilder("dockermc", "admin", "ubuntu1", Constants.POSTGRESDB_PORT);
 
 
     public void addDebugService() {

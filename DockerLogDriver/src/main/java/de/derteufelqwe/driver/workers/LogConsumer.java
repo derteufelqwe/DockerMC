@@ -223,7 +223,7 @@ public class LogConsumer implements Runnable {
             if (rootExceptionLog != null) {
                 Matcher mCaused = RE_EXCEPTION_CAUSED.matcher(message);
                 if (mCaused.matches()) {
-                    dbLog.setType(Log.MsgType.EXCEPTION);
+                    dbLog.setType(Log.MsgType.CAUSED_EXCEPTION);
                     dbLog.setExceptionType(mCaused.group(1));
                     dbLog.setExceptionMessage(mCaused.group(3));
                     exceptionLog.setCausedBy(dbLog);

@@ -12,12 +12,13 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString()
+@ToString(exclude = {"stacktrace"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "logs")
 @Table(name = "logs", indexes = {
         @Index(name = "ID_IDX", columnList = "id"),
+        @Index(name = "TIMESTAMP_IDX", columnList = "timestamp"),
 })
 public class Log {
 
@@ -55,6 +56,8 @@ public class Log {
     private Log causedBy;
 
     @OneToMany
+    @JoinColumn(name = "exception_id")     // Required
+    @OrderBy("timestamp asc")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Log> stacktrace = new ArrayList<>();   // Default required
 
@@ -76,6 +79,7 @@ public class Log {
     public enum MsgType {
         LOG,
         EXCEPTION,
+        CAUSED_EXCEPTION,
         STACKTRACE,
         UNKNOWN
     }

@@ -1411,7 +1411,7 @@ true posixrules
     <database id="2" parent="1" name="dockermc">
       <ObjectId>16385</ObjectId>
       <Owner>postgres</Owner>
-      <IntrospectionStateNumber>816</IntrospectionStateNumber>
+      <IntrospectionStateNumber>1007</IntrospectionStateNumber>
       <Current>1</Current>
       <Relations>sequence|table|16757|16759|1
 sequence|table|16769|16771|1
@@ -1428,7 +1428,7 @@ sequence|table|16892|16894|1
 sequence|table|16907|16909|1
 sequence|table|16917|16919|1
 sequence|table|16927|16929|1
-sequence|table|17221|17223|1
+sequence|table|17274|17276|1
 </Relations>
     </database>
     <database id="3" parent="1" name="postgres">
@@ -1508,7 +1508,7 @@ UC/10
 </Acl>
       <StateNumber>275</StateNumber>
       <Owner>postgres</Owner>
-      <IntrospectionStateNumber>817</IntrospectionStateNumber>
+      <IntrospectionStateNumber>1008</IntrospectionStateNumber>
       <Current>1</Current>
     </schema>
     <extension id="19" parent="2" name="plpgsql">
@@ -1633,9 +1633,9 @@ UC/10
       <DataType>bigint|0s</DataType>
     </sequence>
     <sequence id="35" parent="18" name="logs_id_seq">
-      <ObjectId>17221</ObjectId>
+      <ObjectId>17274</ObjectId>
       <Owner>dockermc</Owner>
-      <StateNumber>808</StateNumber>
+      <StateNumber>1004</StateNumber>
       <DataType>bigint|0s</DataType>
     </sequence>
     <sequence id="36" parent="18" name="node_stats_id_seq">
@@ -1735,86 +1735,81 @@ UC/10
       <StateNumber>638</StateNumber>
     </table>
     <table id="53" parent="18" name="logs">
-      <ObjectId>17223</ObjectId>
+      <ObjectId>17276</ObjectId>
       <Owner>dockermc</Owner>
-      <StateNumber>812</StateNumber>
+      <StateNumber>1005</StateNumber>
     </table>
-    <table id="54" parent="18" name="logs_logs">
-      <ObjectId>17231</ObjectId>
-      <Owner>dockermc</Owner>
-      <StateNumber>813</StateNumber>
-    </table>
-    <table id="55" parent="18" name="node_stats">
+    <table id="54" parent="18" name="node_stats">
       <ObjectId>16819</ObjectId>
       <Owner>dockermc</Owner>
       <StateNumber>640</StateNumber>
     </table>
-    <table id="56" parent="18" name="nodes">
+    <table id="55" parent="18" name="nodes">
       <ObjectId>16827</ObjectId>
       <Owner>dockermc</Owner>
       <StateNumber>636</StateNumber>
     </table>
-    <table id="57" parent="18" name="notifications">
+    <table id="56" parent="18" name="notifications">
       <ObjectId>16837</ObjectId>
       <Owner>dockermc</Owner>
       <StateNumber>593</StateNumber>
     </table>
-    <table id="58" parent="18" name="permission_groups">
+    <table id="57" parent="18" name="permission_groups">
       <ObjectId>16847</ObjectId>
       <Owner>dockermc</Owner>
       <StateNumber>641</StateNumber>
     </table>
-    <table id="59" parent="18" name="permissions">
+    <table id="58" parent="18" name="permissions">
       <ObjectId>16857</ObjectId>
       <Owner>dockermc</Owner>
       <StateNumber>642</StateNumber>
     </table>
-    <table id="60" parent="18" name="player_banks">
+    <table id="59" parent="18" name="player_banks">
       <ObjectId>16867</ObjectId>
       <Owner>dockermc</Owner>
       <StateNumber>645</StateNumber>
     </table>
-    <table id="61" parent="18" name="player_bans">
+    <table id="60" parent="18" name="player_bans">
       <ObjectId>16874</ObjectId>
       <Owner>dockermc</Owner>
       <StateNumber>647</StateNumber>
     </table>
-    <table id="62" parent="18" name="player_logins">
+    <table id="61" parent="18" name="player_logins">
       <ObjectId>16884</ObjectId>
       <Owner>dockermc</Owner>
       <StateNumber>650</StateNumber>
     </table>
-    <table id="63" parent="18" name="player_transactions">
+    <table id="62" parent="18" name="player_transactions">
       <ObjectId>16894</ObjectId>
       <Owner>dockermc</Owner>
       <StateNumber>652</StateNumber>
     </table>
-    <table id="64" parent="18" name="players">
+    <table id="63" parent="18" name="players">
       <ObjectId>16899</ObjectId>
       <Owner>dockermc</Owner>
       <StateNumber>632</StateNumber>
     </table>
-    <table id="65" parent="18" name="players_permission_groups">
+    <table id="64" parent="18" name="players_permission_groups">
       <ObjectId>16909</ObjectId>
       <Owner>dockermc</Owner>
       <StateNumber>654</StateNumber>
     </table>
-    <table id="66" parent="18" name="service_balance">
+    <table id="65" parent="18" name="service_balance">
       <ObjectId>16919</ObjectId>
       <Owner>dockermc</Owner>
       <StateNumber>657</StateNumber>
     </table>
-    <table id="67" parent="18" name="service_transactions">
+    <table id="66" parent="18" name="service_transactions">
       <ObjectId>16929</ObjectId>
       <Owner>dockermc</Owner>
       <StateNumber>659</StateNumber>
     </table>
-    <table id="68" parent="18" name="services">
+    <table id="67" parent="18" name="services">
       <ObjectId>16937</ObjectId>
       <Owner>dockermc</Owner>
       <StateNumber>637</StateNumber>
     </table>
-    <column id="69" parent="47" name="id">
+    <column id="68" parent="47" name="id">
       <Position>1</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
@@ -1822,39 +1817,39 @@ UC/10
       <TypeId>20</TypeId>
       <IdentityKind>by-default</IdentityKind>
     </column>
-    <column id="70" parent="47" name="amount">
+    <column id="69" parent="47" name="amount">
       <Position>2</Position>
       <DataType>double precision|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>584</StateNumber>
       <TypeId>701</TypeId>
     </column>
-    <column id="71" parent="47" name="deposit">
+    <column id="70" parent="47" name="deposit">
       <Position>3</Position>
       <DataType>boolean|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>584</StateNumber>
       <TypeId>16</TypeId>
     </column>
-    <column id="72" parent="47" name="timestamp">
+    <column id="71" parent="47" name="timestamp">
       <Position>4</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>584</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="73" parent="47" name="bank_name">
+    <column id="72" parent="47" name="bank_name">
       <Position>5</Position>
       <DataType>varchar(255)|0s</DataType>
       <StateNumber>584</StateNumber>
       <TypeId>1043</TypeId>
     </column>
-    <column id="74" parent="47" name="player_uuid">
+    <column id="73" parent="47" name="player_uuid">
       <Position>6</Position>
       <DataType>uuid|0s</DataType>
       <StateNumber>584</StateNumber>
       <TypeId>2950</TypeId>
     </column>
-    <index id="75" parent="47" name="bank_transactions_pkey">
+    <index id="74" parent="47" name="bank_transactions_pkey">
       <ObjectId>16762</ObjectId>
       <StateNumber>584</StateNumber>
       <ColNames>id</ColNames>
@@ -1864,7 +1859,7 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>3124</ClassIds>
     </index>
-    <index id="76" parent="47" name="id_idx">
+    <index id="75" parent="47" name="id_idx">
       <ObjectId>16945</ObjectId>
       <StateNumber>605</StateNumber>
       <ColNames>id</ColNames>
@@ -1872,7 +1867,7 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>3124</ClassIds>
     </index>
-    <index id="77" parent="47" name="bank_idx">
+    <index id="76" parent="47" name="bank_idx">
       <ObjectId>16946</ObjectId>
       <StateNumber>606</StateNumber>
       <ColNames>bank_name</ColNames>
@@ -1881,7 +1876,7 @@ UC/10
       <CollationNames>default</CollationNames>
       <ClassIds>3126</ClassIds>
     </index>
-    <index id="78" parent="47" name="player_idx">
+    <index id="77" parent="47" name="player_idx">
       <ObjectId>16947</ObjectId>
       <StateNumber>607</StateNumber>
       <ColNames>player_uuid</ColNames>
@@ -1889,14 +1884,14 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>10062</ClassIds>
     </index>
-    <key id="79" parent="47" name="bank_transactions_pkey">
+    <key id="78" parent="47" name="bank_transactions_pkey">
       <ObjectId>16763</ObjectId>
       <StateNumber>584</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>bank_transactions_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="80" parent="47" name="fktrrncasnodbgxiw3mm6jnoe6h">
+    <foreign-key id="79" parent="47" name="fktrrncasnodbgxiw3mm6jnoe6h">
       <ObjectId>16971</ObjectId>
       <StateNumber>631</StateNumber>
       <ColNames>bank_name</ColNames>
@@ -1906,7 +1901,7 @@ UC/10
       <RefKeyName>banks_pkey</RefKeyName>
       <RefColNames>name</RefColNames>
     </foreign-key>
-    <foreign-key id="81" parent="47" name="fk7evrh5l2u5seel675wig5iqt2">
+    <foreign-key id="80" parent="47" name="fk7evrh5l2u5seel675wig5iqt2">
       <ObjectId>16976</ObjectId>
       <StateNumber>632</StateNumber>
       <ColNames>player_uuid</ColNames>
@@ -1917,27 +1912,27 @@ UC/10
       <RefColNames>uuid</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <column id="82" parent="48" name="name">
+    <column id="81" parent="48" name="name">
       <Position>1</Position>
       <DataType>varchar(255)|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>585</StateNumber>
       <TypeId>1043</TypeId>
     </column>
-    <column id="83" parent="48" name="moneybalance">
+    <column id="82" parent="48" name="moneybalance">
       <Position>2</Position>
       <DataType>double precision|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>585</StateNumber>
       <TypeId>701</TypeId>
     </column>
-    <column id="84" parent="48" name="owner_uuid">
+    <column id="83" parent="48" name="owner_uuid">
       <Position>3</Position>
       <DataType>uuid|0s</DataType>
       <StateNumber>585</StateNumber>
       <TypeId>2950</TypeId>
     </column>
-    <index id="85" parent="48" name="banks_pkey">
+    <index id="84" parent="48" name="banks_pkey">
       <ObjectId>16767</ObjectId>
       <StateNumber>585</StateNumber>
       <ColNames>name</ColNames>
@@ -1948,7 +1943,7 @@ UC/10
       <CollationNames>default</CollationNames>
       <ClassIds>3126</ClassIds>
     </index>
-    <index id="86" parent="48" name="name_idx">
+    <index id="85" parent="48" name="name_idx">
       <ObjectId>16948</ObjectId>
       <StateNumber>608</StateNumber>
       <ColNames>name</ColNames>
@@ -1957,7 +1952,7 @@ UC/10
       <CollationNames>default</CollationNames>
       <ClassIds>3126</ClassIds>
     </index>
-    <index id="87" parent="48" name="owner_idx">
+    <index id="86" parent="48" name="owner_idx">
       <ObjectId>16949</ObjectId>
       <StateNumber>609</StateNumber>
       <ColNames>owner_uuid</ColNames>
@@ -1965,14 +1960,14 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>10062</ClassIds>
     </index>
-    <key id="88" parent="48" name="banks_pkey">
+    <key id="87" parent="48" name="banks_pkey">
       <ObjectId>16768</ObjectId>
       <StateNumber>585</StateNumber>
       <ColNames>name</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>banks_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="89" parent="48" name="fk70dk7onewarcdlpjbs8fthlep">
+    <foreign-key id="88" parent="48" name="fk70dk7onewarcdlpjbs8fthlep">
       <ObjectId>16981</ObjectId>
       <StateNumber>633</StateNumber>
       <ColNames>owner_uuid</ColNames>
@@ -1983,7 +1978,7 @@ UC/10
       <RefColNames>uuid</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <column id="90" parent="49" name="id">
+    <column id="89" parent="49" name="id">
       <Position>1</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
@@ -1991,32 +1986,32 @@ UC/10
       <TypeId>20</TypeId>
       <IdentityKind>by-default</IdentityKind>
     </column>
-    <column id="91" parent="49" name="exitcode">
+    <column id="90" parent="49" name="exitcode">
       <Position>2</Position>
       <DataType>smallint|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>586</StateNumber>
       <TypeId>21</TypeId>
     </column>
-    <column id="92" parent="49" name="message">
+    <column id="91" parent="49" name="message">
       <Position>3</Position>
       <DataType>text|0s</DataType>
       <StateNumber>586</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="93" parent="49" name="timestamp">
+    <column id="92" parent="49" name="timestamp">
       <Position>4</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>586</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="94" parent="49" name="container_id">
+    <column id="93" parent="49" name="container_id">
       <Position>5</Position>
       <DataType>text|0s</DataType>
       <StateNumber>586</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <index id="95" parent="49" name="container_healths_pkey">
+    <index id="94" parent="49" name="container_healths_pkey">
       <ObjectId>16777</ObjectId>
       <StateNumber>586</StateNumber>
       <ColNames>id</ColNames>
@@ -2026,7 +2021,7 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>3124</ClassIds>
     </index>
-    <index id="96" parent="49" name="timestamp_idx">
+    <index id="95" parent="49" name="timestamp_idx">
       <ObjectId>16951</ObjectId>
       <StateNumber>611</StateNumber>
       <ColNames>timestamp</ColNames>
@@ -2034,7 +2029,7 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>3128</ClassIds>
     </index>
-    <index id="97" parent="49" name="container_id">
+    <index id="96" parent="49" name="container_id">
       <ObjectId>16950</ObjectId>
       <StateNumber>610</StateNumber>
       <ColNames>container_id</ColNames>
@@ -2043,14 +2038,14 @@ UC/10
       <CollationNames>default</CollationNames>
       <ClassIds>3126</ClassIds>
     </index>
-    <key id="98" parent="49" name="container_healths_pkey">
+    <key id="97" parent="49" name="container_healths_pkey">
       <ObjectId>16778</ObjectId>
       <StateNumber>586</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>container_healths_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="99" parent="49" name="fk9cu03ddg4v72o7ax5mhpxeip8">
+    <foreign-key id="98" parent="49" name="fk9cu03ddg4v72o7ax5mhpxeip8">
       <ObjectId>16986</ObjectId>
       <StateNumber>634</StateNumber>
       <ColNames>container_id</ColNames>
@@ -2061,7 +2056,7 @@ UC/10
       <RefColNames>id</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <column id="100" parent="50" name="id">
+    <column id="99" parent="50" name="id">
       <Position>1</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
@@ -2069,31 +2064,31 @@ UC/10
       <TypeId>20</TypeId>
       <IdentityKind>by-default</IdentityKind>
     </column>
-    <column id="101" parent="50" name="cpuperc">
+    <column id="100" parent="50" name="cpuperc">
       <Position>2</Position>
       <DataType>real|0s</DataType>
       <StateNumber>587</StateNumber>
       <TypeId>700</TypeId>
     </column>
-    <column id="102" parent="50" name="memcurr">
+    <column id="101" parent="50" name="memcurr">
       <Position>3</Position>
       <DataType>real|0s</DataType>
       <StateNumber>587</StateNumber>
       <TypeId>700</TypeId>
     </column>
-    <column id="103" parent="50" name="timestamp">
+    <column id="102" parent="50" name="timestamp">
       <Position>4</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>587</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="104" parent="50" name="container_id">
+    <column id="103" parent="50" name="container_id">
       <Position>5</Position>
       <DataType>text|0s</DataType>
       <StateNumber>587</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <index id="105" parent="50" name="container_stats_pkey">
+    <index id="104" parent="50" name="container_stats_pkey">
       <ObjectId>16787</ObjectId>
       <StateNumber>587</StateNumber>
       <ColNames>id</ColNames>
@@ -2103,7 +2098,7 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>3124</ClassIds>
     </index>
-    <index id="106" parent="50" name="container_idx">
+    <index id="105" parent="50" name="container_idx">
       <ObjectId>16952</ObjectId>
       <StateNumber>612</StateNumber>
       <ColNames>container_id</ColNames>
@@ -2112,14 +2107,14 @@ UC/10
       <CollationNames>default</CollationNames>
       <ClassIds>3126</ClassIds>
     </index>
-    <key id="107" parent="50" name="container_stats_pkey">
+    <key id="106" parent="50" name="container_stats_pkey">
       <ObjectId>16788</ObjectId>
       <StateNumber>587</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>container_stats_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="108" parent="50" name="fk2bufnspt3utr6eypbaw5lyf6">
+    <foreign-key id="107" parent="50" name="fk2bufnspt3utr6eypbaw5lyf6">
       <ObjectId>16991</ObjectId>
       <StateNumber>635</StateNumber>
       <ColNames>container_id</ColNames>
@@ -2130,87 +2125,87 @@ UC/10
       <RefColNames>id</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <column id="109" parent="51" name="id">
+    <column id="108" parent="51" name="id">
       <Position>1</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>588</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="110" parent="51" name="exitcode">
+    <column id="109" parent="51" name="exitcode">
       <Position>2</Position>
       <DataType>smallint|0s</DataType>
       <StateNumber>588</StateNumber>
       <TypeId>21</TypeId>
     </column>
-    <column id="111" parent="51" name="image">
+    <column id="110" parent="51" name="image">
       <Position>3</Position>
       <DataType>text|0s</DataType>
       <StateNumber>588</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="112" parent="51" name="ip">
+    <column id="111" parent="51" name="ip">
       <Position>4</Position>
       <DataType>varchar(255)|0s</DataType>
       <StateNumber>588</StateNumber>
       <TypeId>1043</TypeId>
     </column>
-    <column id="113" parent="51" name="lastlogtimestamp">
+    <column id="112" parent="51" name="lastlogtimestamp">
       <Position>5</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>588</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="114" parent="51" name="log">
+    <column id="113" parent="51" name="log">
       <Position>6</Position>
       <DataType>text|0s</DataType>
       <StateNumber>588</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="115" parent="51" name="name">
+    <column id="114" parent="51" name="name">
       <Position>7</Position>
       <DataType>text|0s</DataType>
       <StateNumber>588</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="116" parent="51" name="starttime">
+    <column id="115" parent="51" name="starttime">
       <Position>8</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>588</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="117" parent="51" name="stoptime">
+    <column id="116" parent="51" name="stoptime">
       <Position>9</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>588</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="118" parent="51" name="taskid">
+    <column id="117" parent="51" name="taskid">
       <Position>10</Position>
       <DataType>text|0s</DataType>
       <StateNumber>588</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="119" parent="51" name="taskslot">
+    <column id="118" parent="51" name="taskslot">
       <Position>11</Position>
       <DataType>smallint|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>588</StateNumber>
       <TypeId>21</TypeId>
     </column>
-    <column id="120" parent="51" name="node_id">
+    <column id="119" parent="51" name="node_id">
       <Position>12</Position>
       <DataType>text|0s</DataType>
       <StateNumber>588</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="121" parent="51" name="service_id">
+    <column id="120" parent="51" name="service_id">
       <Position>13</Position>
       <DataType>text|0s</DataType>
       <StateNumber>588</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <index id="122" parent="51" name="containers_pkey">
+    <index id="121" parent="51" name="containers_pkey">
       <ObjectId>16795</ObjectId>
       <StateNumber>588</StateNumber>
       <ColNames>id</ColNames>
@@ -2221,7 +2216,7 @@ UC/10
       <CollationNames>default</CollationNames>
       <ClassIds>3126</ClassIds>
     </index>
-    <index id="123" parent="51" name="node_idx">
+    <index id="122" parent="51" name="node_idx">
       <ObjectId>16953</ObjectId>
       <StateNumber>613</StateNumber>
       <ColNames>node_id</ColNames>
@@ -2230,7 +2225,7 @@ UC/10
       <CollationNames>default</CollationNames>
       <ClassIds>3126</ClassIds>
     </index>
-    <index id="124" parent="51" name="service_idx">
+    <index id="123" parent="51" name="service_idx">
       <ObjectId>16954</ObjectId>
       <StateNumber>614</StateNumber>
       <ColNames>service_id</ColNames>
@@ -2239,14 +2234,14 @@ UC/10
       <CollationNames>default</CollationNames>
       <ClassIds>3126</ClassIds>
     </index>
-    <key id="125" parent="51" name="containers_pkey">
+    <key id="124" parent="51" name="containers_pkey">
       <ObjectId>16796</ObjectId>
       <StateNumber>588</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>containers_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="126" parent="51" name="fkkt5suxo36wt3trcdq04sj8nk6">
+    <foreign-key id="125" parent="51" name="fkkt5suxo36wt3trcdq04sj8nk6">
       <ObjectId>16996</ObjectId>
       <StateNumber>636</StateNumber>
       <ColNames>node_id</ColNames>
@@ -2256,7 +2251,7 @@ UC/10
       <RefKeyName>nodes_pkey</RefKeyName>
       <RefColNames>id</RefColNames>
     </foreign-key>
-    <foreign-key id="127" parent="51" name="fk1aa007ptj4egjma9o3cbrf4qw">
+    <foreign-key id="126" parent="51" name="fk1aa007ptj4egjma9o3cbrf4qw">
       <ObjectId>17001</ObjectId>
       <StateNumber>637</StateNumber>
       <ColNames>service_id</ColNames>
@@ -2267,7 +2262,7 @@ UC/10
       <RefColNames>id</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <column id="128" parent="52" name="id">
+    <column id="127" parent="52" name="id">
       <Position>1</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
@@ -2275,49 +2270,49 @@ UC/10
       <TypeId>20</TypeId>
       <IdentityKind>by-default</IdentityKind>
     </column>
-    <column id="129" parent="52" name="banmessage">
+    <column id="128" parent="52" name="banmessage">
       <Position>2</Position>
       <DataType>text|0s</DataType>
       <StateNumber>589</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="130" parent="52" name="bannedat">
+    <column id="129" parent="52" name="bannedat">
       <Position>3</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>589</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="131" parent="52" name="bannedip">
+    <column id="130" parent="52" name="bannedip">
       <Position>4</Position>
       <DataType>text|0s</DataType>
       <StateNumber>589</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="132" parent="52" name="banneduntil">
+    <column id="131" parent="52" name="banneduntil">
       <Position>5</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>589</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="133" parent="52" name="unbantime">
+    <column id="132" parent="52" name="unbantime">
       <Position>6</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>589</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="134" parent="52" name="bannedby_uuid">
+    <column id="133" parent="52" name="bannedby_uuid">
       <Position>7</Position>
       <DataType>uuid|0s</DataType>
       <StateNumber>589</StateNumber>
       <TypeId>2950</TypeId>
     </column>
-    <column id="135" parent="52" name="unbannedby_uuid">
+    <column id="134" parent="52" name="unbannedby_uuid">
       <Position>8</Position>
       <DataType>uuid|0s</DataType>
       <StateNumber>589</StateNumber>
       <TypeId>2950</TypeId>
     </column>
-    <index id="136" parent="52" name="ip_bans_pkey">
+    <index id="135" parent="52" name="ip_bans_pkey">
       <ObjectId>16805</ObjectId>
       <StateNumber>589</StateNumber>
       <ColNames>id</ColNames>
@@ -2327,7 +2322,7 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>3124</ClassIds>
     </index>
-    <index id="137" parent="52" name="banned_until_idx">
+    <index id="136" parent="52" name="banned_until_idx">
       <ObjectId>16957</ObjectId>
       <StateNumber>617</StateNumber>
       <ColNames>banneduntil</ColNames>
@@ -2335,7 +2330,7 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>3128</ClassIds>
     </index>
-    <index id="138" parent="52" name="banned_by_idx">
+    <index id="137" parent="52" name="banned_by_idx">
       <ObjectId>16955</ObjectId>
       <StateNumber>615</StateNumber>
       <ColNames>bannedby_uuid</ColNames>
@@ -2343,7 +2338,7 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>10062</ClassIds>
     </index>
-    <index id="139" parent="52" name="unbanned_by_idx">
+    <index id="138" parent="52" name="unbanned_by_idx">
       <ObjectId>16956</ObjectId>
       <StateNumber>616</StateNumber>
       <ColNames>unbannedby_uuid</ColNames>
@@ -2351,14 +2346,14 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>10062</ClassIds>
     </index>
-    <key id="140" parent="52" name="ip_bans_pkey">
+    <key id="139" parent="52" name="ip_bans_pkey">
       <ObjectId>16806</ObjectId>
       <StateNumber>589</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>ip_bans_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="141" parent="52" name="fkte6kg0wne7lo7nnuovp2sryue">
+    <foreign-key id="140" parent="52" name="fkte6kg0wne7lo7nnuovp2sryue">
       <ObjectId>17006</ObjectId>
       <StateNumber>638</StateNumber>
       <ColNames>bannedby_uuid</ColNames>
@@ -2369,7 +2364,7 @@ UC/10
       <RefColNames>uuid</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <foreign-key id="142" parent="52" name="fkqdfbiybkuqyhdg6ponu6f7sq9">
+    <foreign-key id="141" parent="52" name="fkqdfbiybkuqyhdg6ponu6f7sq9">
       <ObjectId>17011</ObjectId>
       <StateNumber>639</StateNumber>
       <ColNames>unbannedby_uuid</ColNames>
@@ -2380,65 +2375,71 @@ UC/10
       <RefColNames>uuid</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <column id="143" parent="53" name="id">
+    <column id="142" parent="53" name="id">
       <Position>1</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>808</StateNumber>
+      <StateNumber>1004</StateNumber>
       <TypeId>20</TypeId>
       <IdentityKind>by-default</IdentityKind>
     </column>
-    <column id="144" parent="53" name="container">
+    <column id="143" parent="53" name="container">
       <Position>2</Position>
       <DataType>text|0s</DataType>
-      <StateNumber>808</StateNumber>
+      <StateNumber>1004</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="145" parent="53" name="exceptionmessage">
+    <column id="144" parent="53" name="exceptionmessage">
       <Position>3</Position>
       <DataType>text|0s</DataType>
-      <StateNumber>808</StateNumber>
+      <StateNumber>1004</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="146" parent="53" name="exceptiontype">
+    <column id="145" parent="53" name="exceptiontype">
       <Position>4</Position>
       <DataType>text|0s</DataType>
-      <StateNumber>808</StateNumber>
+      <StateNumber>1004</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="147" parent="53" name="log">
+    <column id="146" parent="53" name="log">
       <Position>5</Position>
       <DataType>text|0s</DataType>
-      <StateNumber>808</StateNumber>
+      <StateNumber>1004</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="148" parent="53" name="source">
+    <column id="147" parent="53" name="source">
       <Position>6</Position>
       <DataType>integer|0s</DataType>
-      <StateNumber>808</StateNumber>
+      <StateNumber>1004</StateNumber>
       <TypeId>23</TypeId>
     </column>
-    <column id="149" parent="53" name="timestamp">
+    <column id="148" parent="53" name="timestamp">
       <Position>7</Position>
       <DataType>timestamp|0s</DataType>
-      <StateNumber>808</StateNumber>
+      <StateNumber>1004</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="150" parent="53" name="type">
+    <column id="149" parent="53" name="type">
       <Position>8</Position>
       <DataType>integer|0s</DataType>
-      <StateNumber>808</StateNumber>
+      <StateNumber>1004</StateNumber>
       <TypeId>23</TypeId>
     </column>
-    <column id="151" parent="53" name="causedby_id">
+    <column id="150" parent="53" name="causedby_id">
       <Position>9</Position>
       <DataType>bigint|0s</DataType>
-      <StateNumber>808</StateNumber>
+      <StateNumber>1004</StateNumber>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="151" parent="53" name="exception_id">
+      <Position>10</Position>
+      <DataType>bigint|0s</DataType>
+      <StateNumber>1004</StateNumber>
       <TypeId>20</TypeId>
     </column>
     <index id="152" parent="53" name="logs_pkey">
-      <ObjectId>17229</ObjectId>
-      <StateNumber>808</StateNumber>
+      <ObjectId>17282</ObjectId>
+      <StateNumber>1004</StateNumber>
       <ColNames>id</ColNames>
       <Unique>1</Unique>
       <Primary>1</Primary>
@@ -2447,73 +2448,35 @@ UC/10
       <ClassIds>3124</ClassIds>
     </index>
     <key id="153" parent="53" name="logs_pkey">
-      <ObjectId>17230</ObjectId>
-      <StateNumber>808</StateNumber>
+      <ObjectId>17283</ObjectId>
+      <StateNumber>1004</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>logs_pkey</UnderlyingIndexName>
     </key>
     <foreign-key id="154" parent="53" name="fk7v8d53uuxjpnvkdt6vjy5l8fm">
-      <ObjectId>17236</ObjectId>
-      <StateNumber>812</StateNumber>
+      <ObjectId>17284</ObjectId>
+      <StateNumber>1005</StateNumber>
       <ColNames>causedby_id</ColNames>
-      <RefTableId>17223</RefTableId>
+      <RefTableId>17276</RefTableId>
       <RefColPositions>1</RefColPositions>
       <RefTableName>logs</RefTableName>
       <RefKeyName>logs_pkey</RefKeyName>
       <RefColNames>id</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <column id="155" parent="54" name="logs_id">
-      <Position>1</Position>
-      <DataType>bigint|0s</DataType>
-      <NotNull>1</NotNull>
-      <StateNumber>809</StateNumber>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="156" parent="54" name="stacktrace_id">
-      <Position>2</Position>
-      <DataType>bigint|0s</DataType>
-      <NotNull>1</NotNull>
-      <StateNumber>809</StateNumber>
-      <TypeId>20</TypeId>
-    </column>
-    <index id="157" parent="54" name="uk_46ij08gf2doyroymvl6txjev2">
-      <ObjectId>17234</ObjectId>
-      <StateNumber>811</StateNumber>
-      <ColNames>stacktrace_id</ColNames>
-      <Unique>1</Unique>
-      <AccessMethodId>403</AccessMethodId>
-      <CollationIds>0</CollationIds>
-      <ClassIds>3124</ClassIds>
-    </index>
-    <key id="158" parent="54" name="uk_46ij08gf2doyroymvl6txjev2">
-      <ObjectId>17235</ObjectId>
-      <StateNumber>811</StateNumber>
-      <ColNames>stacktrace_id</ColNames>
-      <UnderlyingIndexName>uk_46ij08gf2doyroymvl6txjev2</UnderlyingIndexName>
-    </key>
-    <foreign-key id="159" parent="54" name="fktdfiq2gjinu10b9w167fvjevk">
-      <ObjectId>17246</ObjectId>
-      <StateNumber>814</StateNumber>
-      <ColNames>logs_id</ColNames>
-      <RefTableId>17223</RefTableId>
+    <foreign-key id="155" parent="53" name="fk9c4hxh56pufxuuxnc70f6buu">
+      <ObjectId>17289</ObjectId>
+      <StateNumber>1006</StateNumber>
+      <ColNames>exception_id</ColNames>
+      <RefTableId>17276</RefTableId>
       <RefColPositions>1</RefColPositions>
       <RefTableName>logs</RefTableName>
       <RefKeyName>logs_pkey</RefKeyName>
       <RefColNames>id</RefColNames>
+      <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <foreign-key id="160" parent="54" name="fktktbsegf6cordjliwb7hwdjm4">
-      <ObjectId>17241</ObjectId>
-      <StateNumber>813</StateNumber>
-      <ColNames>stacktrace_id</ColNames>
-      <RefTableId>17223</RefTableId>
-      <RefColPositions>1</RefColPositions>
-      <RefTableName>logs</RefTableName>
-      <RefKeyName>logs_pkey</RefKeyName>
-      <RefColNames>id</RefColNames>
-    </foreign-key>
-    <column id="161" parent="55" name="id">
+    <column id="156" parent="54" name="id">
       <Position>1</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
@@ -2521,32 +2484,32 @@ UC/10
       <TypeId>20</TypeId>
       <IdentityKind>by-default</IdentityKind>
     </column>
-    <column id="162" parent="55" name="cpuperc">
+    <column id="157" parent="54" name="cpuperc">
       <Position>2</Position>
       <DataType>real|0s</DataType>
       <StateNumber>591</StateNumber>
       <TypeId>700</TypeId>
     </column>
-    <column id="163" parent="55" name="memcurr">
+    <column id="158" parent="54" name="memcurr">
       <Position>3</Position>
       <DataType>integer|0s</DataType>
       <StateNumber>591</StateNumber>
       <TypeId>23</TypeId>
     </column>
-    <column id="164" parent="55" name="timestamp">
+    <column id="159" parent="54" name="timestamp">
       <Position>4</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>591</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="165" parent="55" name="node_id">
+    <column id="160" parent="54" name="node_id">
       <Position>5</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>591</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <index id="166" parent="55" name="node_stats_pkey">
+    <index id="161" parent="54" name="node_stats_pkey">
       <ObjectId>16825</ObjectId>
       <StateNumber>591</StateNumber>
       <ColNames>id</ColNames>
@@ -2556,14 +2519,14 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>3124</ClassIds>
     </index>
-    <key id="167" parent="55" name="node_stats_pkey">
+    <key id="162" parent="54" name="node_stats_pkey">
       <ObjectId>16826</ObjectId>
       <StateNumber>591</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>node_stats_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="168" parent="55" name="fkpj6rrlufy6rsnohgcikt3mk7u">
+    <foreign-key id="163" parent="54" name="fkpj6rrlufy6rsnohgcikt3mk7u">
       <ObjectId>17016</ObjectId>
       <StateNumber>640</StateNumber>
       <ColNames>node_id</ColNames>
@@ -2573,26 +2536,26 @@ UC/10
       <RefKeyName>nodes_pkey</RefKeyName>
       <RefColNames>id</RefColNames>
     </foreign-key>
-    <column id="169" parent="56" name="id">
+    <column id="164" parent="55" name="id">
       <Position>1</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>592</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="170" parent="56" name="maxram">
+    <column id="165" parent="55" name="maxram">
       <Position>2</Position>
       <DataType>integer|0s</DataType>
       <StateNumber>592</StateNumber>
       <TypeId>23</TypeId>
     </column>
-    <column id="171" parent="56" name="name">
+    <column id="166" parent="55" name="name">
       <Position>3</Position>
       <DataType>text|0s</DataType>
       <StateNumber>592</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <index id="172" parent="56" name="nodes_pkey">
+    <index id="167" parent="55" name="nodes_pkey">
       <ObjectId>16833</ObjectId>
       <StateNumber>592</StateNumber>
       <ColNames>id</ColNames>
@@ -2603,14 +2566,14 @@ UC/10
       <CollationNames>default</CollationNames>
       <ClassIds>3126</ClassIds>
     </index>
-    <key id="173" parent="56" name="nodes_pkey">
+    <key id="168" parent="55" name="nodes_pkey">
       <ObjectId>16834</ObjectId>
       <StateNumber>592</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>nodes_pkey</UnderlyingIndexName>
     </key>
-    <column id="174" parent="57" name="id">
+    <column id="169" parent="56" name="id">
       <Position>1</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
@@ -2618,38 +2581,38 @@ UC/10
       <TypeId>20</TypeId>
       <IdentityKind>by-default</IdentityKind>
     </column>
-    <column id="175" parent="57" name="data">
+    <column id="170" parent="56" name="data">
       <Position>2</Position>
       <DataType>jsonb|0s</DataType>
       <StateNumber>593</StateNumber>
       <TypeId>3802</TypeId>
     </column>
-    <column id="176" parent="57" name="message">
+    <column id="171" parent="56" name="message">
       <Position>3</Position>
       <DataType>text|0s</DataType>
       <StateNumber>593</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="177" parent="57" name="read">
+    <column id="172" parent="56" name="read">
       <Position>4</Position>
       <DataType>boolean|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>593</StateNumber>
       <TypeId>16</TypeId>
     </column>
-    <column id="178" parent="57" name="timestamp">
+    <column id="173" parent="56" name="timestamp">
       <Position>5</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>593</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="179" parent="57" name="type">
+    <column id="174" parent="56" name="type">
       <Position>6</Position>
       <DataType>text|0s</DataType>
       <StateNumber>593</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <index id="180" parent="57" name="notifications_pkey">
+    <index id="175" parent="56" name="notifications_pkey">
       <ObjectId>16843</ObjectId>
       <StateNumber>593</StateNumber>
       <ColNames>id</ColNames>
@@ -2659,7 +2622,7 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>3124</ClassIds>
     </index>
-    <index id="181" parent="57" name="type_idx">
+    <index id="176" parent="56" name="type_idx">
       <ObjectId>16958</ObjectId>
       <StateNumber>618</StateNumber>
       <ColNames>type</ColNames>
@@ -2668,14 +2631,14 @@ UC/10
       <CollationNames>default</CollationNames>
       <ClassIds>3126</ClassIds>
     </index>
-    <key id="182" parent="57" name="notifications_pkey">
+    <key id="177" parent="56" name="notifications_pkey">
       <ObjectId>16844</ObjectId>
       <StateNumber>593</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>notifications_pkey</UnderlyingIndexName>
     </key>
-    <column id="183" parent="58" name="id">
+    <column id="178" parent="57" name="id">
       <Position>1</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
@@ -2683,26 +2646,26 @@ UC/10
       <TypeId>20</TypeId>
       <IdentityKind>by-default</IdentityKind>
     </column>
-    <column id="184" parent="58" name="name">
+    <column id="179" parent="57" name="name">
       <Position>2</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>594</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="185" parent="58" name="prefix">
+    <column id="180" parent="57" name="prefix">
       <Position>3</Position>
       <DataType>text|0s</DataType>
       <StateNumber>594</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="186" parent="58" name="parent_id">
+    <column id="181" parent="57" name="parent_id">
       <Position>4</Position>
       <DataType>bigint|0s</DataType>
       <StateNumber>594</StateNumber>
       <TypeId>20</TypeId>
     </column>
-    <index id="187" parent="58" name="permission_groups_pkey">
+    <index id="182" parent="57" name="permission_groups_pkey">
       <ObjectId>16853</ObjectId>
       <StateNumber>594</StateNumber>
       <ColNames>id</ColNames>
@@ -2712,7 +2675,7 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>3124</ClassIds>
     </index>
-    <index id="188" parent="58" name="parent_idx">
+    <index id="183" parent="57" name="parent_idx">
       <ObjectId>16959</ObjectId>
       <StateNumber>619</StateNumber>
       <ColNames>parent_id</ColNames>
@@ -2720,14 +2683,14 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>3124</ClassIds>
     </index>
-    <key id="189" parent="58" name="permission_groups_pkey">
+    <key id="184" parent="57" name="permission_groups_pkey">
       <ObjectId>16854</ObjectId>
       <StateNumber>594</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>permission_groups_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="190" parent="58" name="fkenbh7aw9ufmvv5aql4248o6wx">
+    <foreign-key id="185" parent="57" name="fkenbh7aw9ufmvv5aql4248o6wx">
       <ObjectId>17021</ObjectId>
       <StateNumber>641</StateNumber>
       <ColNames>parent_id</ColNames>
@@ -2737,7 +2700,7 @@ UC/10
       <RefKeyName>permission_groups_pkey</RefKeyName>
       <RefColNames>id</RefColNames>
     </foreign-key>
-    <column id="191" parent="59" name="id">
+    <column id="186" parent="58" name="id">
       <Position>1</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
@@ -2745,38 +2708,38 @@ UC/10
       <TypeId>20</TypeId>
       <IdentityKind>by-default</IdentityKind>
     </column>
-    <column id="192" parent="59" name="permission_text">
+    <column id="187" parent="58" name="permission_text">
       <Position>2</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>595</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="193" parent="59" name="timeout">
+    <column id="188" parent="58" name="timeout">
       <Position>3</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>595</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="194" parent="59" name="group_id">
+    <column id="189" parent="58" name="group_id">
       <Position>4</Position>
       <DataType>bigint|0s</DataType>
       <StateNumber>595</StateNumber>
       <TypeId>20</TypeId>
     </column>
-    <column id="195" parent="59" name="player_uuid">
+    <column id="190" parent="58" name="player_uuid">
       <Position>5</Position>
       <DataType>uuid|0s</DataType>
       <StateNumber>595</StateNumber>
       <TypeId>2950</TypeId>
     </column>
-    <column id="196" parent="59" name="service_id">
+    <column id="191" parent="58" name="service_id">
       <Position>6</Position>
       <DataType>text|0s</DataType>
       <StateNumber>595</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <index id="197" parent="59" name="permissions_pkey">
+    <index id="192" parent="58" name="permissions_pkey">
       <ObjectId>16863</ObjectId>
       <StateNumber>595</StateNumber>
       <ColNames>id</ColNames>
@@ -2786,7 +2749,7 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>3124</ClassIds>
     </index>
-    <index id="198" parent="59" name="text_idx">
+    <index id="193" parent="58" name="text_idx">
       <ObjectId>16960</ObjectId>
       <StateNumber>620</StateNumber>
       <ColNames>permission_text</ColNames>
@@ -2795,7 +2758,7 @@ UC/10
       <CollationNames>default</CollationNames>
       <ClassIds>3126</ClassIds>
     </index>
-    <index id="199" parent="59" name="group_idx">
+    <index id="194" parent="58" name="group_idx">
       <ObjectId>16961</ObjectId>
       <StateNumber>621</StateNumber>
       <ColNames>group_id</ColNames>
@@ -2803,14 +2766,14 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>3124</ClassIds>
     </index>
-    <key id="200" parent="59" name="permissions_pkey">
+    <key id="195" parent="58" name="permissions_pkey">
       <ObjectId>16864</ObjectId>
       <StateNumber>595</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>permissions_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="201" parent="59" name="fk8x2y1lngvikyd3o96y7fmsh88">
+    <foreign-key id="196" parent="58" name="fk8x2y1lngvikyd3o96y7fmsh88">
       <ObjectId>17026</ObjectId>
       <StateNumber>642</StateNumber>
       <ColNames>group_id</ColNames>
@@ -2821,7 +2784,7 @@ UC/10
       <RefColNames>id</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <foreign-key id="202" parent="59" name="fkmc4mc7gtdm3owxqqbr6qgn558">
+    <foreign-key id="197" parent="58" name="fkmc4mc7gtdm3owxqqbr6qgn558">
       <ObjectId>17031</ObjectId>
       <StateNumber>643</StateNumber>
       <ColNames>player_uuid</ColNames>
@@ -2832,7 +2795,7 @@ UC/10
       <RefColNames>uuid</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <foreign-key id="203" parent="59" name="fkkv254el9pd6s44j778esbbhvy">
+    <foreign-key id="198" parent="58" name="fkkv254el9pd6s44j778esbbhvy">
       <ObjectId>17036</ObjectId>
       <StateNumber>644</StateNumber>
       <ColNames>service_id</ColNames>
@@ -2843,7 +2806,7 @@ UC/10
       <RefColNames>id</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <column id="204" parent="60" name="id">
+    <column id="199" parent="59" name="id">
       <Position>1</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
@@ -2851,19 +2814,19 @@ UC/10
       <TypeId>20</TypeId>
       <IdentityKind>by-default</IdentityKind>
     </column>
-    <column id="205" parent="60" name="bank_name">
+    <column id="200" parent="59" name="bank_name">
       <Position>2</Position>
       <DataType>varchar(255)|0s</DataType>
       <StateNumber>596</StateNumber>
       <TypeId>1043</TypeId>
     </column>
-    <column id="206" parent="60" name="player_uuid">
+    <column id="201" parent="59" name="player_uuid">
       <Position>3</Position>
       <DataType>uuid|0s</DataType>
       <StateNumber>596</StateNumber>
       <TypeId>2950</TypeId>
     </column>
-    <index id="207" parent="60" name="player_banks_pkey">
+    <index id="202" parent="59" name="player_banks_pkey">
       <ObjectId>16870</ObjectId>
       <StateNumber>596</StateNumber>
       <ColNames>id</ColNames>
@@ -2873,7 +2836,7 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>3124</ClassIds>
     </index>
-    <index id="208" parent="60" name="uk52c04ai27xb2eptts5iclt7tv">
+    <index id="203" parent="59" name="uk52c04ai27xb2eptts5iclt7tv">
       <ObjectId>16962</ObjectId>
       <StateNumber>623</StateNumber>
       <ColNames>player_uuid
@@ -2884,21 +2847,21 @@ bank_name</ColNames>
       <CollationNames>default</CollationNames>
       <ClassIds>10062,3126</ClassIds>
     </index>
-    <key id="209" parent="60" name="player_banks_pkey">
+    <key id="204" parent="59" name="player_banks_pkey">
       <ObjectId>16871</ObjectId>
       <StateNumber>596</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>player_banks_pkey</UnderlyingIndexName>
     </key>
-    <key id="210" parent="60" name="uk52c04ai27xb2eptts5iclt7tv">
+    <key id="205" parent="59" name="uk52c04ai27xb2eptts5iclt7tv">
       <ObjectId>16963</ObjectId>
       <StateNumber>623</StateNumber>
       <ColNames>player_uuid
 bank_name</ColNames>
       <UnderlyingIndexName>uk52c04ai27xb2eptts5iclt7tv</UnderlyingIndexName>
     </key>
-    <foreign-key id="211" parent="60" name="fkiwid98wrqxcmt2562jw4wvo53">
+    <foreign-key id="206" parent="59" name="fkiwid98wrqxcmt2562jw4wvo53">
       <ObjectId>17041</ObjectId>
       <StateNumber>645</StateNumber>
       <ColNames>bank_name</ColNames>
@@ -2908,7 +2871,7 @@ bank_name</ColNames>
       <RefKeyName>banks_pkey</RefKeyName>
       <RefColNames>name</RefColNames>
     </foreign-key>
-    <foreign-key id="212" parent="60" name="fk2xvjav7esjhpyhvp6a52ueg43">
+    <foreign-key id="207" parent="59" name="fk2xvjav7esjhpyhvp6a52ueg43">
       <ObjectId>17046</ObjectId>
       <StateNumber>646</StateNumber>
       <ColNames>player_uuid</ColNames>
@@ -2919,7 +2882,7 @@ bank_name</ColNames>
       <RefColNames>uuid</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <column id="213" parent="61" name="id">
+    <column id="208" parent="60" name="id">
       <Position>1</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
@@ -2927,49 +2890,49 @@ bank_name</ColNames>
       <TypeId>20</TypeId>
       <IdentityKind>by-default</IdentityKind>
     </column>
-    <column id="214" parent="61" name="banmessage">
+    <column id="209" parent="60" name="banmessage">
       <Position>2</Position>
       <DataType>text|0s</DataType>
       <StateNumber>597</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="215" parent="61" name="bannedat">
+    <column id="210" parent="60" name="bannedat">
       <Position>3</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>597</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="216" parent="61" name="banneduntil">
+    <column id="211" parent="60" name="banneduntil">
       <Position>4</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>597</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="217" parent="61" name="unbantime">
+    <column id="212" parent="60" name="unbantime">
       <Position>5</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>597</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="218" parent="61" name="bannedby_uuid">
+    <column id="213" parent="60" name="bannedby_uuid">
       <Position>6</Position>
       <DataType>uuid|0s</DataType>
       <StateNumber>597</StateNumber>
       <TypeId>2950</TypeId>
     </column>
-    <column id="219" parent="61" name="bannedplayer_uuid">
+    <column id="214" parent="60" name="bannedplayer_uuid">
       <Position>7</Position>
       <DataType>uuid|0s</DataType>
       <StateNumber>597</StateNumber>
       <TypeId>2950</TypeId>
     </column>
-    <column id="220" parent="61" name="unbannedby_uuid">
+    <column id="215" parent="60" name="unbannedby_uuid">
       <Position>8</Position>
       <DataType>uuid|0s</DataType>
       <StateNumber>597</StateNumber>
       <TypeId>2950</TypeId>
     </column>
-    <index id="221" parent="61" name="player_bans_pkey">
+    <index id="216" parent="60" name="player_bans_pkey">
       <ObjectId>16880</ObjectId>
       <StateNumber>597</StateNumber>
       <ColNames>id</ColNames>
@@ -2979,7 +2942,7 @@ bank_name</ColNames>
       <CollationIds>0</CollationIds>
       <ClassIds>3124</ClassIds>
     </index>
-    <index id="222" parent="61" name="banned_player_idx">
+    <index id="217" parent="60" name="banned_player_idx">
       <ObjectId>16964</ObjectId>
       <StateNumber>624</StateNumber>
       <ColNames>bannedplayer_uuid</ColNames>
@@ -2987,14 +2950,14 @@ bank_name</ColNames>
       <CollationIds>0</CollationIds>
       <ClassIds>10062</ClassIds>
     </index>
-    <key id="223" parent="61" name="player_bans_pkey">
+    <key id="218" parent="60" name="player_bans_pkey">
       <ObjectId>16881</ObjectId>
       <StateNumber>597</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>player_bans_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="224" parent="61" name="fk7dgd1vah0l28ssk4x5ufcl277">
+    <foreign-key id="219" parent="60" name="fk7dgd1vah0l28ssk4x5ufcl277">
       <ObjectId>17051</ObjectId>
       <StateNumber>647</StateNumber>
       <ColNames>bannedby_uuid</ColNames>
@@ -3005,7 +2968,7 @@ bank_name</ColNames>
       <RefColNames>uuid</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <foreign-key id="225" parent="61" name="fkqx0hx67p0gth1r9qmh1p4oh7v">
+    <foreign-key id="220" parent="60" name="fkqx0hx67p0gth1r9qmh1p4oh7v">
       <ObjectId>17056</ObjectId>
       <StateNumber>648</StateNumber>
       <ColNames>bannedplayer_uuid</ColNames>
@@ -3016,7 +2979,7 @@ bank_name</ColNames>
       <RefColNames>uuid</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <foreign-key id="226" parent="61" name="fk25jwsu0kx2rp6rrsdextffw7i">
+    <foreign-key id="221" parent="60" name="fk25jwsu0kx2rp6rrsdextffw7i">
       <ObjectId>17061</ObjectId>
       <StateNumber>649</StateNumber>
       <ColNames>unbannedby_uuid</ColNames>
@@ -3027,7 +2990,7 @@ bank_name</ColNames>
       <RefColNames>uuid</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <column id="227" parent="62" name="id">
+    <column id="222" parent="61" name="id">
       <Position>1</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
@@ -3035,31 +2998,31 @@ bank_name</ColNames>
       <TypeId>20</TypeId>
       <IdentityKind>by-default</IdentityKind>
     </column>
-    <column id="228" parent="62" name="jointime">
+    <column id="223" parent="61" name="jointime">
       <Position>2</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>598</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="229" parent="62" name="leavetime">
+    <column id="224" parent="61" name="leavetime">
       <Position>3</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>598</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="230" parent="62" name="player_uuid">
+    <column id="225" parent="61" name="player_uuid">
       <Position>4</Position>
       <DataType>uuid|0s</DataType>
       <StateNumber>598</StateNumber>
       <TypeId>2950</TypeId>
     </column>
-    <column id="231" parent="62" name="service_id">
+    <column id="226" parent="61" name="service_id">
       <Position>5</Position>
       <DataType>text|0s</DataType>
       <StateNumber>598</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <index id="232" parent="62" name="player_logins_pkey">
+    <index id="227" parent="61" name="player_logins_pkey">
       <ObjectId>16890</ObjectId>
       <StateNumber>598</StateNumber>
       <ColNames>id</ColNames>
@@ -3069,14 +3032,14 @@ bank_name</ColNames>
       <CollationIds>0</CollationIds>
       <ClassIds>3124</ClassIds>
     </index>
-    <key id="233" parent="62" name="player_logins_pkey">
+    <key id="228" parent="61" name="player_logins_pkey">
       <ObjectId>16891</ObjectId>
       <StateNumber>598</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>player_logins_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="234" parent="62" name="fkm5gbj7sv7hvw08j01u87n9pra">
+    <foreign-key id="229" parent="61" name="fkm5gbj7sv7hvw08j01u87n9pra">
       <ObjectId>17066</ObjectId>
       <StateNumber>650</StateNumber>
       <ColNames>player_uuid</ColNames>
@@ -3087,7 +3050,7 @@ bank_name</ColNames>
       <RefColNames>uuid</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <foreign-key id="235" parent="62" name="fkki9yltt5py41lwt8v062vbpg4">
+    <foreign-key id="230" parent="61" name="fkki9yltt5py41lwt8v062vbpg4">
       <ObjectId>17071</ObjectId>
       <StateNumber>651</StateNumber>
       <ColNames>service_id</ColNames>
@@ -3098,7 +3061,7 @@ bank_name</ColNames>
       <RefColNames>id</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <column id="236" parent="63" name="id">
+    <column id="231" parent="62" name="id">
       <Position>1</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
@@ -3106,32 +3069,32 @@ bank_name</ColNames>
       <TypeId>20</TypeId>
       <IdentityKind>by-default</IdentityKind>
     </column>
-    <column id="237" parent="63" name="amount">
+    <column id="232" parent="62" name="amount">
       <Position>2</Position>
       <DataType>double precision|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>599</StateNumber>
       <TypeId>701</TypeId>
     </column>
-    <column id="238" parent="63" name="timestamp">
+    <column id="233" parent="62" name="timestamp">
       <Position>3</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>599</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="239" parent="63" name="from_uuid">
+    <column id="234" parent="62" name="from_uuid">
       <Position>4</Position>
       <DataType>uuid|0s</DataType>
       <StateNumber>599</StateNumber>
       <TypeId>2950</TypeId>
     </column>
-    <column id="240" parent="63" name="to_uuid">
+    <column id="235" parent="62" name="to_uuid">
       <Position>5</Position>
       <DataType>uuid|0s</DataType>
       <StateNumber>599</StateNumber>
       <TypeId>2950</TypeId>
     </column>
-    <index id="241" parent="63" name="player_transactions_pkey">
+    <index id="236" parent="62" name="player_transactions_pkey">
       <ObjectId>16897</ObjectId>
       <StateNumber>599</StateNumber>
       <ColNames>id</ColNames>
@@ -3141,7 +3104,7 @@ bank_name</ColNames>
       <CollationIds>0</CollationIds>
       <ClassIds>3124</ClassIds>
     </index>
-    <index id="242" parent="63" name="from_idx">
+    <index id="237" parent="62" name="from_idx">
       <ObjectId>16965</ObjectId>
       <StateNumber>625</StateNumber>
       <ColNames>from_uuid</ColNames>
@@ -3149,7 +3112,7 @@ bank_name</ColNames>
       <CollationIds>0</CollationIds>
       <ClassIds>10062</ClassIds>
     </index>
-    <index id="243" parent="63" name="to_idx">
+    <index id="238" parent="62" name="to_idx">
       <ObjectId>16966</ObjectId>
       <StateNumber>626</StateNumber>
       <ColNames>to_uuid</ColNames>
@@ -3157,14 +3120,14 @@ bank_name</ColNames>
       <CollationIds>0</CollationIds>
       <ClassIds>10062</ClassIds>
     </index>
-    <key id="244" parent="63" name="player_transactions_pkey">
+    <key id="239" parent="62" name="player_transactions_pkey">
       <ObjectId>16898</ObjectId>
       <StateNumber>599</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>player_transactions_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="245" parent="63" name="fkm6ubeqhmo65hcy3xleallrt22">
+    <foreign-key id="240" parent="62" name="fkm6ubeqhmo65hcy3xleallrt22">
       <ObjectId>17076</ObjectId>
       <StateNumber>652</StateNumber>
       <ColNames>from_uuid</ColNames>
@@ -3175,7 +3138,7 @@ bank_name</ColNames>
       <RefColNames>uuid</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <foreign-key id="246" parent="63" name="fkctm5hfvthiwocgit3y1l8rpj5">
+    <foreign-key id="241" parent="62" name="fkctm5hfvthiwocgit3y1l8rpj5">
       <ObjectId>17081</ObjectId>
       <StateNumber>653</StateNumber>
       <ColNames>to_uuid</ColNames>
@@ -3186,51 +3149,51 @@ bank_name</ColNames>
       <RefColNames>uuid</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <column id="247" parent="64" name="uuid">
+    <column id="242" parent="63" name="uuid">
       <Position>1</Position>
       <DataType>uuid|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>600</StateNumber>
       <TypeId>2950</TypeId>
     </column>
-    <column id="248" parent="64" name="firstjoindate">
+    <column id="243" parent="63" name="firstjoindate">
       <Position>2</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>600</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="249" parent="64" name="lastonline">
+    <column id="244" parent="63" name="lastonline">
       <Position>3</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>600</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="250" parent="64" name="lastskinupdate">
+    <column id="245" parent="63" name="lastskinupdate">
       <Position>4</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>600</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="251" parent="64" name="moneybalance">
+    <column id="246" parent="63" name="moneybalance">
       <Position>5</Position>
       <DataType>double precision|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>600</StateNumber>
       <TypeId>701</TypeId>
     </column>
-    <column id="252" parent="64" name="name">
+    <column id="247" parent="63" name="name">
       <Position>6</Position>
       <DataType>text|0s</DataType>
       <StateNumber>600</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="253" parent="64" name="skindata">
+    <column id="248" parent="63" name="skindata">
       <Position>7</Position>
       <DataType>bytea|0s</DataType>
       <StateNumber>600</StateNumber>
       <TypeId>17</TypeId>
     </column>
-    <index id="254" parent="64" name="players_pkey">
+    <index id="249" parent="63" name="players_pkey">
       <ObjectId>16905</ObjectId>
       <StateNumber>600</StateNumber>
       <ColNames>uuid</ColNames>
@@ -3240,7 +3203,7 @@ bank_name</ColNames>
       <CollationIds>0</CollationIds>
       <ClassIds>10062</ClassIds>
     </index>
-    <index id="255" parent="64" name="id_index">
+    <index id="250" parent="63" name="id_index">
       <ObjectId>16967</ObjectId>
       <StateNumber>627</StateNumber>
       <ColNames>uuid</ColNames>
@@ -3248,7 +3211,7 @@ bank_name</ColNames>
       <CollationIds>0</CollationIds>
       <ClassIds>10062</ClassIds>
     </index>
-    <index id="256" parent="64" name="name_index">
+    <index id="251" parent="63" name="name_index">
       <ObjectId>16968</ObjectId>
       <StateNumber>628</StateNumber>
       <ColNames>name</ColNames>
@@ -3257,14 +3220,14 @@ bank_name</ColNames>
       <CollationNames>default</CollationNames>
       <ClassIds>3126</ClassIds>
     </index>
-    <key id="257" parent="64" name="players_pkey">
+    <key id="252" parent="63" name="players_pkey">
       <ObjectId>16906</ObjectId>
       <StateNumber>600</StateNumber>
       <ColNames>uuid</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>players_pkey</UnderlyingIndexName>
     </key>
-    <column id="258" parent="65" name="id">
+    <column id="253" parent="64" name="id">
       <Position>1</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
@@ -3272,33 +3235,33 @@ bank_name</ColNames>
       <TypeId>20</TypeId>
       <IdentityKind>by-default</IdentityKind>
     </column>
-    <column id="259" parent="65" name="timeout">
+    <column id="254" parent="64" name="timeout">
       <Position>2</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>601</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="260" parent="65" name="permissiongroup_id">
+    <column id="255" parent="64" name="permissiongroup_id">
       <Position>3</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>601</StateNumber>
       <TypeId>20</TypeId>
     </column>
-    <column id="261" parent="65" name="player_uuid">
+    <column id="256" parent="64" name="player_uuid">
       <Position>4</Position>
       <DataType>uuid|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>601</StateNumber>
       <TypeId>2950</TypeId>
     </column>
-    <column id="262" parent="65" name="service_id">
+    <column id="257" parent="64" name="service_id">
       <Position>5</Position>
       <DataType>text|0s</DataType>
       <StateNumber>601</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <index id="263" parent="65" name="players_permission_groups_pkey">
+    <index id="258" parent="64" name="players_permission_groups_pkey">
       <ObjectId>16915</ObjectId>
       <StateNumber>601</StateNumber>
       <ColNames>id</ColNames>
@@ -3308,7 +3271,7 @@ bank_name</ColNames>
       <CollationIds>0</CollationIds>
       <ClassIds>3124</ClassIds>
     </index>
-    <index id="264" parent="65" name="timeout_idx">
+    <index id="259" parent="64" name="timeout_idx">
       <ObjectId>16969</ObjectId>
       <StateNumber>629</StateNumber>
       <ColNames>timeout</ColNames>
@@ -3316,7 +3279,7 @@ bank_name</ColNames>
       <CollationIds>0</CollationIds>
       <ClassIds>3128</ClassIds>
     </index>
-    <index id="265" parent="65" name="permissiongroup_idx">
+    <index id="260" parent="64" name="permissiongroup_idx">
       <ObjectId>16970</ObjectId>
       <StateNumber>630</StateNumber>
       <ColNames>permissiongroup_id</ColNames>
@@ -3324,14 +3287,14 @@ bank_name</ColNames>
       <CollationIds>0</CollationIds>
       <ClassIds>3124</ClassIds>
     </index>
-    <key id="266" parent="65" name="players_permission_groups_pkey">
+    <key id="261" parent="64" name="players_permission_groups_pkey">
       <ObjectId>16916</ObjectId>
       <StateNumber>601</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>players_permission_groups_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="267" parent="65" name="fkbbc5vcxiqs8a4ylh67oor3tu7">
+    <foreign-key id="262" parent="64" name="fkbbc5vcxiqs8a4ylh67oor3tu7">
       <ObjectId>17086</ObjectId>
       <StateNumber>654</StateNumber>
       <ColNames>permissiongroup_id</ColNames>
@@ -3342,7 +3305,7 @@ bank_name</ColNames>
       <RefColNames>id</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <foreign-key id="268" parent="65" name="fkd37459ucafd1h5gwfl3y14jl1">
+    <foreign-key id="263" parent="64" name="fkd37459ucafd1h5gwfl3y14jl1">
       <ObjectId>17091</ObjectId>
       <StateNumber>655</StateNumber>
       <ColNames>player_uuid</ColNames>
@@ -3353,7 +3316,7 @@ bank_name</ColNames>
       <RefColNames>uuid</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <foreign-key id="269" parent="65" name="fkp58yq80idd4lcsm6jf7gpw9hs">
+    <foreign-key id="264" parent="64" name="fkp58yq80idd4lcsm6jf7gpw9hs">
       <ObjectId>17096</ObjectId>
       <StateNumber>656</StateNumber>
       <ColNames>service_id</ColNames>
@@ -3363,7 +3326,7 @@ bank_name</ColNames>
       <RefKeyName>services_pkey</RefKeyName>
       <RefColNames>id</RefColNames>
     </foreign-key>
-    <column id="270" parent="66" name="id">
+    <column id="265" parent="65" name="id">
       <Position>1</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
@@ -3371,26 +3334,26 @@ bank_name</ColNames>
       <TypeId>20</TypeId>
       <IdentityKind>by-default</IdentityKind>
     </column>
-    <column id="271" parent="66" name="moneybalance">
+    <column id="266" parent="65" name="moneybalance">
       <Position>2</Position>
       <DataType>double precision|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>602</StateNumber>
       <TypeId>701</TypeId>
     </column>
-    <column id="272" parent="66" name="player_uuid">
+    <column id="267" parent="65" name="player_uuid">
       <Position>3</Position>
       <DataType>uuid|0s</DataType>
       <StateNumber>602</StateNumber>
       <TypeId>2950</TypeId>
     </column>
-    <column id="273" parent="66" name="service_id">
+    <column id="268" parent="65" name="service_id">
       <Position>4</Position>
       <DataType>text|0s</DataType>
       <StateNumber>602</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <index id="274" parent="66" name="service_balance_pkey">
+    <index id="269" parent="65" name="service_balance_pkey">
       <ObjectId>16925</ObjectId>
       <StateNumber>602</StateNumber>
       <ColNames>id</ColNames>
@@ -3400,14 +3363,14 @@ bank_name</ColNames>
       <CollationIds>0</CollationIds>
       <ClassIds>3124</ClassIds>
     </index>
-    <key id="275" parent="66" name="service_balance_pkey">
+    <key id="270" parent="65" name="service_balance_pkey">
       <ObjectId>16926</ObjectId>
       <StateNumber>602</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>service_balance_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="276" parent="66" name="fkkcmcv7rqebihf6llek9nwp1pg">
+    <foreign-key id="271" parent="65" name="fkkcmcv7rqebihf6llek9nwp1pg">
       <ObjectId>17101</ObjectId>
       <StateNumber>657</StateNumber>
       <ColNames>player_uuid</ColNames>
@@ -3418,7 +3381,7 @@ bank_name</ColNames>
       <RefColNames>uuid</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <foreign-key id="277" parent="66" name="fkko5x0qmva6ruq1oq96tc4l8o2">
+    <foreign-key id="272" parent="65" name="fkko5x0qmva6ruq1oq96tc4l8o2">
       <ObjectId>17106</ObjectId>
       <StateNumber>658</StateNumber>
       <ColNames>service_id</ColNames>
@@ -3429,7 +3392,7 @@ bank_name</ColNames>
       <RefColNames>id</RefColNames>
       <OnDelete>cascade</OnDelete>
     </foreign-key>
-    <column id="278" parent="67" name="id">
+    <column id="273" parent="66" name="id">
       <Position>1</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
@@ -3437,38 +3400,38 @@ bank_name</ColNames>
       <TypeId>20</TypeId>
       <IdentityKind>by-default</IdentityKind>
     </column>
-    <column id="279" parent="67" name="amount">
+    <column id="274" parent="66" name="amount">
       <Position>2</Position>
       <DataType>double precision|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>603</StateNumber>
       <TypeId>701</TypeId>
     </column>
-    <column id="280" parent="67" name="timestamp">
+    <column id="275" parent="66" name="timestamp">
       <Position>3</Position>
       <DataType>timestamp|0s</DataType>
       <StateNumber>603</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="281" parent="67" name="from_uuid">
+    <column id="276" parent="66" name="from_uuid">
       <Position>4</Position>
       <DataType>uuid|0s</DataType>
       <StateNumber>603</StateNumber>
       <TypeId>2950</TypeId>
     </column>
-    <column id="282" parent="67" name="service_id">
+    <column id="277" parent="66" name="service_id">
       <Position>5</Position>
       <DataType>text|0s</DataType>
       <StateNumber>603</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="283" parent="67" name="to_uuid">
+    <column id="278" parent="66" name="to_uuid">
       <Position>6</Position>
       <DataType>uuid|0s</DataType>
       <StateNumber>603</StateNumber>
       <TypeId>2950</TypeId>
     </column>
-    <index id="284" parent="67" name="service_transactions_pkey">
+    <index id="279" parent="66" name="service_transactions_pkey">
       <ObjectId>16935</ObjectId>
       <StateNumber>603</StateNumber>
       <ColNames>id</ColNames>
@@ -3478,14 +3441,14 @@ bank_name</ColNames>
       <CollationIds>0</CollationIds>
       <ClassIds>3124</ClassIds>
     </index>
-    <key id="285" parent="67" name="service_transactions_pkey">
+    <key id="280" parent="66" name="service_transactions_pkey">
       <ObjectId>16936</ObjectId>
       <StateNumber>603</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>service_transactions_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="286" parent="67" name="fkdkpvo70jl11j5occkrc6ds67i">
+    <foreign-key id="281" parent="66" name="fkdkpvo70jl11j5occkrc6ds67i">
       <ObjectId>17111</ObjectId>
       <StateNumber>659</StateNumber>
       <ColNames>from_uuid</ColNames>
@@ -3495,7 +3458,7 @@ bank_name</ColNames>
       <RefKeyName>players_pkey</RefKeyName>
       <RefColNames>uuid</RefColNames>
     </foreign-key>
-    <foreign-key id="287" parent="67" name="fk8jgbofixgwtsiowjvbg8ihnaj">
+    <foreign-key id="282" parent="66" name="fk8jgbofixgwtsiowjvbg8ihnaj">
       <ObjectId>17116</ObjectId>
       <StateNumber>660</StateNumber>
       <ColNames>service_id</ColNames>
@@ -3505,7 +3468,7 @@ bank_name</ColNames>
       <RefKeyName>services_pkey</RefKeyName>
       <RefColNames>id</RefColNames>
     </foreign-key>
-    <foreign-key id="288" parent="67" name="fkf783g9ylo4gha9g4dag3gef9o">
+    <foreign-key id="283" parent="66" name="fkf783g9ylo4gha9g4dag3gef9o">
       <ObjectId>17121</ObjectId>
       <StateNumber>661</StateNumber>
       <ColNames>to_uuid</ColNames>
@@ -3515,45 +3478,45 @@ bank_name</ColNames>
       <RefKeyName>players_pkey</RefKeyName>
       <RefColNames>uuid</RefColNames>
     </foreign-key>
-    <column id="289" parent="68" name="id">
+    <column id="284" parent="67" name="id">
       <Position>1</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>604</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="290" parent="68" name="active">
+    <column id="285" parent="67" name="active">
       <Position>2</Position>
       <DataType>boolean|0s</DataType>
       <NotNull>1</NotNull>
       <StateNumber>604</StateNumber>
       <TypeId>16</TypeId>
     </column>
-    <column id="291" parent="68" name="maxcpu">
+    <column id="286" parent="67" name="maxcpu">
       <Position>3</Position>
       <DataType>real|0s</DataType>
       <StateNumber>604</StateNumber>
       <TypeId>700</TypeId>
     </column>
-    <column id="292" parent="68" name="maxram">
+    <column id="287" parent="67" name="maxram">
       <Position>4</Position>
       <DataType>integer|0s</DataType>
       <StateNumber>604</StateNumber>
       <TypeId>23</TypeId>
     </column>
-    <column id="293" parent="68" name="name">
+    <column id="288" parent="67" name="name">
       <Position>5</Position>
       <DataType>text|0s</DataType>
       <StateNumber>604</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="294" parent="68" name="type">
+    <column id="289" parent="67" name="type">
       <Position>6</Position>
       <DataType>text|0s</DataType>
       <StateNumber>604</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <index id="295" parent="68" name="services_pkey">
+    <index id="290" parent="67" name="services_pkey">
       <ObjectId>16943</ObjectId>
       <StateNumber>604</StateNumber>
       <ColNames>id</ColNames>
@@ -3564,7 +3527,7 @@ bank_name</ColNames>
       <CollationNames>default</CollationNames>
       <ClassIds>3126</ClassIds>
     </index>
-    <key id="296" parent="68" name="services_pkey">
+    <key id="291" parent="67" name="services_pkey">
       <ObjectId>16944</ObjectId>
       <StateNumber>604</StateNumber>
       <ColNames>id</ColNames>
