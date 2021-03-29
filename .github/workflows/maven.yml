@@ -19,6 +19,8 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 8
+      - name: "Install ServerManager"
+        run: "mvn install -N --quiet"
       - name: "Install Commons"
         run: "mvn install -f Commons/pom.xml --quiet"
       - name: "Debug"
