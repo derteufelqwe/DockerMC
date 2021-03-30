@@ -41,12 +41,8 @@ jobs:
       # Compile and push docker log driver plugin
       - name: "Package LogDriver"
         run: "mvn package -f DockerLogDriver/pom.xml --quiet"
-      - name: "Build driver image"
+      - name: "Build and push driver image"
         run: "cd DockerLogDriver && sh buildImage.sh"
-      - name: "Push the image"
-        run: |
-          docker plugin push derteufelqwe/dockermc-log-driver:${{ env.VERSION }}
-          docker plugin push derteufelqwe/dockermc-log-driver:latest
 
       # Compile and push NodeWatcher image
       - name: "Package NodeWatcher"
