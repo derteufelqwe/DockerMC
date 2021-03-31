@@ -7,11 +7,12 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
-@ToString(exclude = {"log", "containerStats"})
+@ToString(exclude = {"logs", "containerStats"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "containers")
@@ -53,12 +54,8 @@ public class DBContainer {
 
     private String ip;
 
-    @Type(type = "text")
-    private String log;
-
-    private Timestamp lastLogTimestamp;
-
     @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Node node;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -69,6 +66,12 @@ public class DBContainer {
     private Timestamp stopTime;
 
     private Short exitcode;
+
+    @OneToMany(mappedBy = "container", fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OrderBy("timestamp asc")
+    private List<Log> logs = new ArrayList<>();
+
 
     @OneToMany(mappedBy = "container", cascade = CascadeType.ALL)
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -84,30 +87,15 @@ public class DBContainer {
         this.id = id;
     }
 
-    public DBContainer(String id, String image, Timestamp startTime, String name, String taskId, String ip, short taskSlot,
+    public DBContainer(String id, String image, String name, String taskId, short taskSlot,
                        Node node, DBService service) {
         this.id = id;
         this.image = image;
-        this.startTime = startTime;
         this.name = name;
         this.taskId = taskId;
-        this.ip = ip;
         this.taskSlot = taskSlot;
         this.node = node;
         this.service = service;
-    }
-
-    /**
-     * Appends to the log
-     * @param toAdd
-     */
-    public void appendToLog(String toAdd) {
-        if (this.log == null) {
-            this.log = toAdd;
-
-        } else {
-            this.log += toAdd;
-        }
     }
 
     /**

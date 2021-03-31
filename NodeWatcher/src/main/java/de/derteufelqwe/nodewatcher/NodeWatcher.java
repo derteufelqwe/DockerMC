@@ -6,56 +6,52 @@ import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.exceptions.DockerMCException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
-import de.derteufelqwe.commons.hibernate.objects.Node;
 import de.derteufelqwe.commons.misc.ServiceMetaData;
+import de.derteufelqwe.nodewatcher.exceptions.InvalidSystemStateException;
 import de.derteufelqwe.nodewatcher.executors.ContainerWatcher;
+import de.derteufelqwe.nodewatcher.executors.NodeEventHandler;
 import de.derteufelqwe.nodewatcher.executors.ServiceWatcher;
 import de.derteufelqwe.nodewatcher.executors.TimedPermissionWatcher;
 import de.derteufelqwe.nodewatcher.health.ContainerHealthReader;
 import de.derteufelqwe.nodewatcher.health.ServiceHealthReader;
-import de.derteufelqwe.nodewatcher.logs.ContainerLogFetcher;
 import de.derteufelqwe.nodewatcher.misc.DockerClientFactory;
-import de.derteufelqwe.nodewatcher.exceptions.InvalidSystemStateException;
-
 import de.derteufelqwe.nodewatcher.stats.ContainerResourceWatcher;
 import de.derteufelqwe.nodewatcher.stats.HostResourceWatcher;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
+import lombok.extern.log4j.Log4j2;
 
 import javax.annotation.CheckForNull;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Docker nodes should have a name label
  */
+@Log4j2
 public class NodeWatcher {
 
     // ToDo: solve the docker client / thread problems
 
     private final Pattern RE_MEM_TOTAL = Pattern.compile("MemTotal:\\s+(\\d+).+");
 
-    @Getter
-    private static Logger logger = LogManager.getLogger(NodeWatcher.class.getName());
-
     @Getter private static DockerClientFactory dockerClientFactory;
     @Getter private static SessionBuilder sessionBuilder;
     @Getter private static String swarmNodeId;
+    @Getter private static boolean dockerMaster;
+    @Getter private static boolean nodeWatcherMaster;
     @Getter private static ServiceMetaData metaData = new ServiceMetaData();
 
     private DockerClient dockerClient;
 
     // --- Executors ---
+    private NodeEventHandler nodeEventHandler;
     private HostResourceWatcher hostResourceWatcherThread;
     private ContainerWatcher containerWatcher;
-    private ContainerLogFetcher logFetcher;
     private ContainerResourceWatcher containerResourceWatcher;
     private TimedPermissionWatcher timedPermissionWatcher;
     private ContainerHealthReader containerHealthReader;
@@ -67,54 +63,40 @@ public class NodeWatcher {
         NodeWatcher.dockerClientFactory = new DockerClientFactory(dockerHost);
         NodeWatcher.sessionBuilder = sessionBuilder;
         this.dockerClient = dockerClientFactory.getDockerClient();
-        swarmNodeId = this.getLocalSwarmNodeId();
+
+        swarmNodeId = this.getLocalSwarmNodeId();   // Must be the first value set
+        dockerMaster = this.getDockerMasterData();
+        nodeWatcherMaster = this.getNodeWatcherMasterLabel();
     }
 
 
     /**
-     * Saves the docker swarm nodes in the database
+     * Starts the NodeEventHandler and waits until it finished its setup
      */
-    private void saveSwarmNode() {
-        try (Session session = sessionBuilder.openSession()) {
-            Transaction tx = session.beginTransaction();
+    private void startNodeEventHandler() {
+        if (!NodeWatcher.isDockerMaster()) {
+            log.error("This node is no master. Skipping NodeEventHandler.");
+            return;
 
-            try {
-                Node node = session.get(Node.class, swarmNodeId);
-
-                // Node already known
-                if (node != null) {
-                    logger.info("Local node already known.");
-                    return;
-                }
-
-                // Node needs to be added
-                node = new Node(
-                        swarmNodeId,
-                        getHostname(),
-                        this.getMaxHostMemory()
-                );
-
-                session.save(node);
-                logger.info("Added new node {}.", node);
-
-            } catch (Exception e) {
-                tx.rollback();
-                throw e;
-
-            } finally {
-                tx.commit();
-            }
-
+        } else if (!NodeWatcher.isNodeWatcherMaster()) {
+            log.warn("This node is no NodeWatcher master. Skipping NodeEventHandler.");
+            return;
         }
 
-    }
+        this.nodeEventHandler = new NodeEventHandler();
+        dockerClient.eventsCmd()
+                .withEventTypeFilter(EventType.NODE)
+                .withEventFilter("create", "update", "remove")
+                .exec(this.nodeEventHandler);
 
-    /**
-     * Reads the hostname of the nodes host
-     * @return
-     */
-    private String getHostname() {
-        return System.getProperty("HOSTNAME");
+        try {
+            if (!this.nodeEventHandler.awaitStarted(60, TimeUnit.SECONDS)) {
+                log.error("NodeEventHandler failed to start withing 60 seconds.");
+            }
+
+        } catch (InterruptedException e) {
+            log.error("NodeEventHandler awaiting start interrupted.");
+        }
     }
 
     /**
@@ -122,8 +104,6 @@ public class NodeWatcher {
      */
     private void startContainerWatcher() {
         this.containerWatcher = new ContainerWatcher();
-        containerWatcher.addNewContainerObserver(this.logFetcher);
-        containerWatcher.addRemoveContainerObserver(this.logFetcher);
         containerWatcher.addNewContainerObserver(this.containerResourceWatcher);
         containerWatcher.addNewContainerObserver(this.containerHealthReader);
         containerWatcher.addRemoveContainerObserver(this.containerHealthReader);
@@ -131,7 +111,7 @@ public class NodeWatcher {
         dockerClient.eventsCmd()
                 .withLabelFilter(Constants.DOCKER_IDENTIFIER_MAP)
                 .withEventTypeFilter(EventType.CONTAINER)
-                .withEventFilter("start", "die")
+                .withEventFilter("create", "start", "die")
                 .exec(this.containerWatcher);
     }
 
@@ -141,15 +121,6 @@ public class NodeWatcher {
     private void startHostResourceMonitor() {
         this.hostResourceWatcherThread = new HostResourceWatcher();
         this.hostResourceWatcherThread.start();
-    }
-
-    /**
-     * Starts the container log fetcher, which periodically fetches the containers new logs
-     */
-    private void startContainerLogFetcher() {
-        this.logFetcher = new ContainerLogFetcher();
-        this.logFetcher.init();
-        this.logFetcher.start();
     }
 
     /**
@@ -192,17 +163,12 @@ public class NodeWatcher {
      * Starts the service health reader if the node is a master node and doesn't have the label 'FETCH_SERVICE_HEALTH=false'
      */
     private void startServiceHealthReader() {
-        List<SwarmNode> nodes = dockerClient.listSwarmNodesCmd()
-                .withIdFilter(Collections.singletonList(swarmNodeId))
-                .exec();
-        if (nodes.size() != 1) {
-            throw new DockerMCException("Docker swarm node %s not found. Found %s nodes.", swarmNodeId, nodes.size());
-        }
-        SwarmNode node = nodes.get(0);
+        if (!NodeWatcher.isDockerMaster()) {
+            log.error("This node is no master. Skipping ServiceHealthReader.");
+            return;
 
-        Map<String, String> labels = node.getSpec().getLabels();
-        if (labels.getOrDefault(Constants.FETCH_SERVICE_HEALTH_NODE_LABEL, "true").equals("false")) {
-            logger.warn("Local node {} has label {}=true. Preventing service health readings from this node.", swarmNodeId, Constants.FETCH_SERVICE_HEALTH_NODE_LABEL);
+        } else if (!NodeWatcher.isNodeWatcherMaster()) {
+            log.warn("This node is no NodeWatcher master. Skipping ServiceHealthReader.");
             return;
         }
 
@@ -215,25 +181,23 @@ public class NodeWatcher {
     public void start() {
         dockerClient.pingCmd().exec();
 
-        this.saveSwarmNode();
+        this.startNodeEventHandler();
 //        this.startHostResourceMonitor();
-//        this.startContainerLogFetcher();
 //        this.startContainerResourceWatcher();
 //        this.startContainerHealthReader();
 //        this.startContainerWatcher();   // Start last, since most watchers need its events
 //        this.startTimedPermissionWatcher();
-        this.startServiceWatcher();
+//        this.startServiceWatcher();
+//        this.startServiceHealthReader();
 
-        logger.info("NodeWatcher started successfully.");
+        log.info("NodeWatcher started successfully.");
     }
+
 
     @SneakyThrows
     public void stop() {
         if (hostResourceWatcherThread != null) {
             hostResourceWatcherThread.interrupt();
-        }
-        if (logFetcher != null) {
-            logFetcher.interrupt();
         }
         if (containerWatcher != null) {
             containerWatcher.close();
@@ -255,9 +219,41 @@ public class NodeWatcher {
 
     // -----  Utility methods  -----
 
+    /**
+     * Analyzes the current nodes labels to determine if this node is a master node that is allowed to read master data
+     * like service events, service health or node events
+     * @return
+     */
+    private boolean getNodeWatcherMasterLabel() {
+        List<SwarmNode> nodes = dockerClient.listSwarmNodesCmd()
+                .withIdFilter(Collections.singletonList(swarmNodeId))
+                .exec();
+        if (nodes.size() != 1) {
+            throw new DockerMCException("Docker swarm node %s not found. Found %s nodes.", swarmNodeId, nodes.size());
+        }
+        SwarmNode node = nodes.get(0);
+
+        Map<String, String> labels = node.getSpec().getLabels();
+        if (labels.getOrDefault(Constants.NODEWATCHER_MASTER, "true").equals("false")) {
+            log.warn("Local node {} has label {}=false. This permits certain features of this NodeWatcher instance.",
+                    swarmNodeId, Constants.NODEWATCHER_MASTER);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Checks if the current node is a docker master node
+     * @return
+     */
+    private boolean getDockerMasterData() {
+        return true;
+    }
 
     /**
      * Tries to get the name of a swarm node from its labels
+     *
      * @param swarmNode
      * @return
      */
@@ -279,6 +275,7 @@ public class NodeWatcher {
 
     /**
      * Returns the hosts max amount of available RAM
+     *
      * @return
      */
     private Integer getMaxHostMemory() throws InvalidSystemStateException {
@@ -299,6 +296,7 @@ public class NodeWatcher {
 
     /**
      * Returns the id of the docker swarm node, where this application runs on
+     *
      * @return
      */
     private String getLocalSwarmNodeId() throws InvalidSystemStateException {

@@ -12,9 +12,9 @@ import de.derteufelqwe.commons.hibernate.objects.DBContainerHealth;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.exceptions.DBContainerNotFoundException;
 import de.derteufelqwe.nodewatcher.executors.ContainerWatcher;
-
-import de.derteufelqwe.nodewatcher.logs.LogLoadCallback;
-import de.derteufelqwe.nodewatcher.misc.*;
+import de.derteufelqwe.nodewatcher.misc.INewContainerObserver;
+import de.derteufelqwe.nodewatcher.misc.IRemoveContainerObserver;
+import de.derteufelqwe.nodewatcher.misc.NWUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 
 /**
  * Responsible for periodically downloading the new logs for a container.
- * Containers are added by {@link ContainerWatcher} and removed by {@link LogLoadCallback}
+ * Containers are added by {@link ContainerWatcher}
  */
 public class ContainerHealthReader extends Thread implements INewContainerObserver, IRemoveContainerObserver {
 
@@ -138,6 +138,9 @@ public class ContainerHealthReader extends Thread implements INewContainerObserv
     private void fetchContainerHealth(String containerID) {
         InspectContainerResponse response = dockerClient.inspectContainerCmd(containerID).exec();
         HealthState healthState = response.getState().getHealth();
+        if (healthState == null) {  // Container not started yet
+            return;
+        }
 
         try (Session session = sessionBuilder.openSession()) {
             DBContainer container = session.get(DBContainer.class, containerID);
@@ -175,6 +178,7 @@ public class ContainerHealthReader extends Thread implements INewContainerObserv
 
     /**
      * Used to clean common error log messages.
+     *
      * @param message Message to stream.
      * @return
      */

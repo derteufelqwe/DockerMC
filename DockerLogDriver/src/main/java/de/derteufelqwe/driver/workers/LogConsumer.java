@@ -1,13 +1,15 @@
 package de.derteufelqwe.driver.workers;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import de.derteufelqwe.commons.hibernate.SessionBuilder;
+import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.Log;
 import de.derteufelqwe.driver.DMCLogDriver;
 import de.derteufelqwe.driver.exceptions.StreamClosedException;
 import de.derteufelqwe.driver.protobuf.Entry;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import org.hibernate.Session;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -23,16 +25,17 @@ public class LogConsumer implements Runnable {
     private final Pattern RE_EXCEPTION_CAUSED = Pattern.compile("^Caused by: ([\\w|\\d|\\.|\\_]+(Exception|Error)): ([^\\n]+)");
     private final Pattern RE_STACKTRACE = Pattern.compile("^\\s+(at .+|\\.\\.\\. \\d+ more)");
 
+    private final SessionBuilder sessionBuilder = DMCLogDriver.getSessionBuilder();
     private final DatabaseWriter databaseWriter = DMCLogDriver.getDatabaseWriter();
 
     private final String fileName;
-    private final String container;
+    private final String containerID;
 
     /**
      * The timestamp, when the last data from the FIFO stream was read
      */
     @Getter
-    private AtomicLong lastLogReadTime = new AtomicLong(0);
+    private final AtomicLong lastLogReadTime = new AtomicLong(0);
 
     private Log rootExceptionLog = null;
     private Log exceptionLog = null;
@@ -41,10 +44,14 @@ public class LogConsumer implements Runnable {
 
     public LogConsumer(String fileName, String container) {
         this.fileName = fileName;
-        this.container = container;
+        this.containerID = container;
     }
 
-
+    /**
+     * Important note:
+     *  The Log-entry gets populated with a fake DBContainer instance, which must be replaced with a database reference
+     *  before saving to the database.
+     */
     @Override
     public void run() {
         try {
@@ -65,7 +72,7 @@ public class LogConsumer implements Runnable {
                     Log dbLog = new Log(
                             message,
                             this.getPatchedLogTimestamp(logEntry.getTimeNano(), message),
-                            container,
+                            new DBContainer(containerID),
                             parseSource(logEntry.getSource())
                     );
 

@@ -10,7 +10,7 @@ WORKDIR /server
 VOLUME ["/server", "/plugins"]
 
 
-HEALTHCHECK --interval=10s --start-period=20s --retries=2 --timeout=5s CMD curl -f http://localhost:8001/health || exit 101
+HEALTHCHECK --interval=10s --start-period=60s --retries=3 --timeout=10s CMD curl -f http://localhost:8001/health || exit 101
 
 ADD docker/startup.sh /server/startup.sh
 RUN chmod +x startup.sh

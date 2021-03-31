@@ -34,8 +34,9 @@ public class Log {
      */
     private Timestamp timestamp;
 
-    @Type(type = "text")
-    private String container;
+    @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private DBContainer container;
 
     @Enumerated(EnumType.ORDINAL)
     private Source source;
@@ -52,17 +53,15 @@ public class Log {
     private String exceptionMessage;
 
     @OneToOne
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private Log causedBy;
 
     @OneToMany
     @JoinColumn(name = "exception_id")     // Required
     @OrderBy("timestamp asc")
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Log> stacktrace = new ArrayList<>();   // Default required
 
 
-    public Log(String log, Timestamp timestamp, String container, Source source) {
+    public Log(String log, Timestamp timestamp, DBContainer container, Source source) {
         this.log = log;
         this.timestamp = timestamp;
         this.container = container;

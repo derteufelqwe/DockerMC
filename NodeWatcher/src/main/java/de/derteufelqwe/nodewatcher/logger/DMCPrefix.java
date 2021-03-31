@@ -2,12 +2,11 @@ package de.derteufelqwe.nodewatcher.logger;
 
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.executors.ContainerWatcher;
+import de.derteufelqwe.nodewatcher.executors.NodeEventHandler;
 import de.derteufelqwe.nodewatcher.executors.ServiceWatcher;
 import de.derteufelqwe.nodewatcher.executors.TimedPermissionWatcher;
 import de.derteufelqwe.nodewatcher.health.ContainerHealthReader;
 import de.derteufelqwe.nodewatcher.health.ServiceHealthReader;
-import de.derteufelqwe.nodewatcher.logs.ContainerLogFetcher;
-import de.derteufelqwe.nodewatcher.logs.LogLoadCallback;
 import de.derteufelqwe.nodewatcher.stats.ContainerResourceWatcher;
 import de.derteufelqwe.nodewatcher.stats.ContainerStatsCallback;
 import de.derteufelqwe.nodewatcher.stats.HostResourceWatcher;
@@ -31,17 +30,16 @@ public class DMCPrefix extends LogEventPatternConverter {
     private static final Map<String, String> prefixMap = new HashMap<>();
 
     static {
-        prefixMap.put(NodeWatcher.class.getName(),              "NodeW");
-        prefixMap.put(ContainerWatcher.class.getName(),         "CW");
-        prefixMap.put(ServiceWatcher.class.getName(),           "SW");
-        prefixMap.put(TimedPermissionWatcher.class.getName(),   "TPW");
-        prefixMap.put(ContainerHealthReader.class.getName(),    "CHealth");
-        prefixMap.put(ServiceHealthReader.class.getName(),      "SHealth");
-        prefixMap.put(ContainerLogFetcher.class.getName(),      "Logs");
-        prefixMap.put(LogLoadCallback.class.getName(),          "Logs");
+        prefixMap.put(NodeWatcher.class.getName(), "NodeW");
+        prefixMap.put(ContainerWatcher.class.getName(), "CW");
+        prefixMap.put(ServiceWatcher.class.getName(), "SW");
+        prefixMap.put(TimedPermissionWatcher.class.getName(), "TPW");
+        prefixMap.put(ContainerHealthReader.class.getName(), "CHealth");
+        prefixMap.put(ServiceHealthReader.class.getName(), "SHealth");
         prefixMap.put(ContainerResourceWatcher.class.getName(), "CRW");
-        prefixMap.put(ContainerStatsCallback.class.getName(),   "Stats");
-        prefixMap.put(HostResourceWatcher.class.getName(),      "Stats");
+        prefixMap.put(ContainerStatsCallback.class.getName(), "Stats");
+        prefixMap.put(HostResourceWatcher.class.getName(), "Stats");
+        prefixMap.put(NodeEventHandler.class.getName(), "NodeEH");
     }
 
     public static int getMaxPrefixLength() {

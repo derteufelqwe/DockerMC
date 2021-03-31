@@ -253,7 +253,8 @@ public class ServiceTemplate extends DockerObjTemplate {
         TaskSpec taskSpec = new TaskSpec()
                 .withContainerSpec(this.getContainerSpec())
                 .withResources(new ResourceRequirements().withLimits(this.getResourceSpecs()))
-                .withPlacement(this.getServicePlacement());
+                .withPlacement(this.getServicePlacement())
+                .withLogDriver(this.getLogDriver());
 
         return taskSpec;
     }
@@ -330,6 +331,13 @@ public class ServiceTemplate extends DockerObjTemplate {
                 .withEndpointSpec(this.getEndpointSpec());
 
         return serviceSpec;
+    }
+
+    /**
+     * Returns the log driver configuration
+     */
+    protected Driver getLogDriver() {
+        return null;
     }
 
     /**

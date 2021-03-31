@@ -11,7 +11,7 @@
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%-5level] %msg%n%throwable" disableAnsi="false"/>
         </Console>
 <!--    Save to a file -->
-        <RollingFile name="RollingFile" fileName="${logPath}/${rollingFileName}.log" filePattern="${logPath}/${rollingFileName}_%d{yyyy-MM-dd}.log">
+        <RollingFile name="RollingFile" fileName="${logPath}/${rollingFileName}.log" immediateFlush="true" filePattern="${logPath}/${rollingFileName}_%d{yyyy-MM-dd}.log">
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%-5level] %msg%n%throwable" />
             <Policies>
                 <!-- Causes a rollover if the log file is older than the current JVM's start time -->
@@ -29,5 +29,6 @@
             <AppenderRef ref="RollingFile"/>
         </Root>
         <logger name="org.hibernate" level="error" additivity="true"/>
+        <logger name="de.derteufelqwe" level="debug" additivity="true"/>
     </Loggers>
 </Configuration>

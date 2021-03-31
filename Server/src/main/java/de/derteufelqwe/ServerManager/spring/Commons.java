@@ -74,8 +74,6 @@ public class Commons {
             return false;
         if (!this.createRegistryContainer())
             return false;
-        if (!this.createPostgresContainer())
-            return false;
         if (!this.createRedisContainer())
             return false;
         if (!this.createNodeWatcherService())
@@ -151,35 +149,6 @@ public class Commons {
         return true;
     }
 
-    public boolean createPostgresContainer() {
-        InfrastructureSetup setup = new InfrastructureSetup(docker);
-        ServiceCreateResponse response = setup.createPostgresContainer();
-
-        switch (response.getResult()) {
-            case OK:
-                log.info("Created Postgres DB container successfully.");
-                Utils.sleep(TimeUnit.SECONDS, 5);
-                try {
-                    sessionBuilder.init();
-
-                } catch (ServiceException e) {
-                    log.error("Failed to connect to postgres database after database setup.");
-                }
-                break;
-            case RUNNING:
-                log.info("Postgres DB container already running.");
-                break;
-            case FAILED_GENERIC:
-                log.error("Failed to create the Postgres DB container! ID: {}, Message: {}.",
-                        response.getServiceId(), response.getAdditionalInfos());
-                return false;
-
-            default:
-                throw new NotImplementedException("Result " + response.getResult() + " not implemented.");
-        }
-
-        return true;
-    }
 
     public boolean createRedisContainer() {
         InfrastructureSetup setup = new InfrastructureSetup(docker);

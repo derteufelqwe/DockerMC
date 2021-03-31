@@ -6,12 +6,16 @@ import de.derteufelqwe.ServerManager.Docker;
 import lombok.Getter;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
  * Class to retrieve health information of services
  */
 public class ServiceHealthReader {
+
+    private final Pattern RE_LOGDRIVER_CONTAINER_ID = Pattern.compile("(error creating logger: Failed to find container) .+ (in the DB)");
 
     private Docker docker;
 
@@ -34,7 +38,6 @@ public class ServiceHealthReader {
         Service service = docker.getDocker().inspectServiceCmd(serviceID).exec();
         List<Task> tasks = docker.getDocker().listTasksCmd()
                 .withServiceFilter(service.getId())
-                .withStateFilter(TaskState.RUNNING, TaskState.ACCEPTED)
                 .exec();
 
         List<Task> runningTasks = tasks.stream()
@@ -60,6 +63,7 @@ public class ServiceHealthReader {
                 .filter(Objects::nonNull)
                 .map(TaskStatus::getErr)
                 .filter(Objects::nonNull)
+                .map(this::sanitizeLogMessage)
                 .map(t -> "T: " + t)
                 .collect(Collectors.toSet());
     }
@@ -98,6 +102,15 @@ public class ServiceHealthReader {
         return logs;
     }
 
+    private String sanitizeLogMessage(String message) {
+        Matcher m1 = RE_LOGDRIVER_CONTAINER_ID.matcher(message);
+        if (m1.find()) {
+            message = m1.replaceFirst("$1 $2");
+        }
+
+        return message;
+    }
+
 
     public static class ServiceHealth {
 
@@ -127,4 +140,5 @@ public class ServiceHealthReader {
         }
 
     }
+
 }

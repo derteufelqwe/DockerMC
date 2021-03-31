@@ -79,11 +79,11 @@ public class NWUtils {
     }
 
     /**
-     * Returns a list of Minecraft and BungeeCord containers currently running
+     * Returns a list of Minecraft and BungeeCord containers currently running or created
      * @param dockerClient
      * @return
      */
-    public static List<Container> getRunningMCBCContainers(DockerClient dockerClient) {
+    public static List<Container> getRelevantMCBCContainers(DockerClient dockerClient) {
         return dockerClient.listContainersCmd()
                 .withLabelFilter(Constants.DOCKER_IDENTIFIER_MAP)
                 .exec().stream()

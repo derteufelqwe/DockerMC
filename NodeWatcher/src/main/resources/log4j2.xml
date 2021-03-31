@@ -9,22 +9,17 @@
         <Console name="DMCConsole" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{HH:mm:ss.SSS} %style{[%-5level]}{magenta} %style{%dmcprefix}{blue} %highlight{%msg}{WARN=yellow, INFO=def, TRACE=def, DEBUG=def} %n" disableAnsi="false"/>
         </Console>
-
-        <Rewrite name="Rewrite">
-            <LogPrefixRewritePolicy/>
-            <AppenderRef ref="DMCConsole"/>
-        </Rewrite>
     </Appenders>
 
     <Loggers>
-        <Root level="all">
+        <Root level="info">
             <AppenderRef ref="Console"/>
         </Root>
         <logger name="org.hibernate" level="error" additivity="false">
             <AppenderRef ref="Console"/>
         </logger>
         <logger name="de.derteufelqwe.nodewatcher" level="all" additivity="false">
-            <AppenderRef ref="Rewrite"/>
+            <AppenderRef ref="DMCConsole"/>
         </logger>
     </Loggers>
 </Configuration>

@@ -42,6 +42,8 @@ public class LogDriverStartLoggingEP extends Endpoint<LogDriver.RStartLogging, L
         String file = request.getFile();
         String containerID = request.getInfo().getContainerID();
 
+//        this.injectContainerToDB(request.getInfo());
+
         if (!this.awaitContainerInDB(containerID)) {
             return new LogDriver.StartLogging(String.format("Failed to find container %s in the DB after %s ms.", containerID, CONTAINER_DB_AWAIT_TIMEOUT));
         }
@@ -130,6 +132,7 @@ public class LogDriverStartLoggingEP extends Endpoint<LogDriver.RStartLogging, L
                 dbContainer.setService(dbService);
 
                 session.persist(dbContainer);
+                log.warn("DEBUG FEATURE: Injected container to DB.");
 
             }
         }.run();

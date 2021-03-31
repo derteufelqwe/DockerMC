@@ -25,9 +25,9 @@ public class Main {
         NodeWatcher nodeWatcher;
 
         if (Utils.isWindows())
-            nodeWatcher = new NodeWatcher("tcp://ubuntu1:2375", new SessionBuilder("admin", "password", "ubuntu1", 5432));
+            nodeWatcher = new NodeWatcher("tcp://ubuntu1:2375", new SessionBuilder("dockermc", "admin", "ubuntu1", Constants.POSTGRESDB_PORT));
         else
-            nodeWatcher = new NodeWatcher("unix:///var/run/docker.sock", new SessionBuilder("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT));
+            nodeWatcher = new NodeWatcher("unix:///var/run/docker.sock", new SessionBuilder("dockermc", "admin", "ubuntu1", Constants.POSTGRESDB_PORT));
 
         nodeWatcher.start();
 

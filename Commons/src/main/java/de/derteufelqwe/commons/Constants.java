@@ -23,8 +23,15 @@ public class Constants {
         }
     }
 
+    // Miscellaneous values
     public static final String CONFIG_PATH = WORKDIR + "server/configs/";
     public static final String DATA_PATH = WORKDIR + "/server/internal/data/";
+    public static final String LOG_DRIVER_PLUGIN_NAME = "derteufelqwe/dockermc-log-driver:latest";
+    /**
+     * Possible values: "true", "false"
+     * Indicates that a master node should (not) be responsible for reading nodes and service events
+     */
+    public static final String NODEWATCHER_MASTER = "NODEWATCHER_MASTER";
 
     // Networking
     public static final String NETW_OVERNET_NAME = "overnet";
@@ -63,13 +70,8 @@ public class Constants {
     // Tag Key to identify types of Containers
     public static final String CONTAINER_IDENTIFIER_KEY = "Type";
     public static final Map<String, String> DOCKER_IDENTIFIER_MAP = Collections.singletonMap(DOCKER_IDENTIFIER_KEY, DOCKER_IDENTIFIER_VALUE);
-    // Must be set to false to prevent it
-    public static final String FETCH_SERVICE_HEALTH_NODE_LABEL = "FETCH_SERVICE_HEALTH";
 
     // -----  Timings  -----
-    // Time in seconds which containers have to get up and running
-    public static final int CONTAINER_STARTUP_TIME = 10;
-    public static final int SERVICE_STARTUP_TIME = 20;
     public static final int LOG_FETCH_TIME = 20;
 
     // -----  Postgres  -----

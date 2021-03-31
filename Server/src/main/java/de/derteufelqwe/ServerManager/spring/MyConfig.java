@@ -75,7 +75,7 @@ public class MyConfig {
 
     @Bean
     SessionBuilder sessionBuilderBean() {
-        sessionBuilder = new SessionBuilder("admin", "password", "ubuntu1", Constants.POSTGRESDB_PORT, false);
+        sessionBuilder = new SessionBuilder("dockermc", "admin", "ubuntu1", Constants.POSTGRESDB_PORT, false);
 
         try {
             sessionBuilder.init();

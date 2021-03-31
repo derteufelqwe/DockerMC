@@ -76,12 +76,16 @@ public class SessionBuilder {
         properties.setProperty(Environment.PHYSICAL_NAMING_STRATEGY, "org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl");
         properties.setProperty(Environment.POOL_SIZE, "1024");
 
-        // Connection pool
+        // --- Connection pool ---
         properties.setProperty("hibernate.c3p0.min_size", "5");
         properties.setProperty("hibernate.c3p0.max_size", "20");
         properties.setProperty("hibernate.c3p0.timeout", "300");
         properties.setProperty("hibernate.c3p0.max_statements", "50");
-        properties.setProperty("hibernate.c3p0.idle_test_period", "3000");
+        // Check connection integrity
+        properties.setProperty("hibernate.c3p0.idleConnectionTestPeriod", "10");    // in seconds
+        properties.setProperty("hibernate.c3p0.testConnectionOnCheckin", "true");
+        properties.setProperty("hibernate.c3p0.testConnectionOnCheckout", "true");
+        properties.setProperty("hibernate.c3p0.preferredTestQuery", "SELECT 1");
 
         return properties;
     }
@@ -110,6 +114,7 @@ public class SessionBuilder {
         annotatedClasses.add(BankTransaction.class);
         annotatedClasses.add(DBContainerHealth.class);
         annotatedClasses.add(Log.class);
+        annotatedClasses.add(DBServiceHealth.class);
 
         return annotatedClasses;
     }

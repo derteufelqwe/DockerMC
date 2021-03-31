@@ -122,7 +122,7 @@ public class HostResourceWatcher extends Thread {
                     return -1;
                 }
 
-                return node.getMaxRam();
+                return node.getMaxRAM();
 
             } finally {
                 tx.commit();

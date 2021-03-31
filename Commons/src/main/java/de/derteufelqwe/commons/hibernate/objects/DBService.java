@@ -40,6 +40,10 @@ public class DBService {
     private boolean active = true;
 
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL)
+    @OrderBy("timestamp desc")
+    private List<DBServiceHealth> healths;
+
+    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private List<DBContainer> containers;
 

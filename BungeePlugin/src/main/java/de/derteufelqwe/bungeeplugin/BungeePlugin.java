@@ -51,7 +51,7 @@ public final class BungeePlugin extends Plugin {
     @Getter
     public static RedisPool redisPool = new RedisPool("redis");
     @Getter
-    public static SessionBuilder sessionBuilder = new SessionBuilder("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT);
+    public static SessionBuilder sessionBuilder = new SessionBuilder("dockermc", "admin", "ubuntu1", Constants.POSTGRESDB_PORT);
     @Getter
     private static RedisDataManager redisDataManager;   // Manage data from and to redis
     private final RedisPublishListener redisPublishListener = new RedisPublishListener();

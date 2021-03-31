@@ -1,22 +1,16 @@
 package de.derteufelqwe.driver.workers;
 
-import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.LocalSessionRunnable;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
+import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.Log;
 import de.derteufelqwe.driver.DMCLogDriver;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
-import org.checkerframework.checker.units.qual.A;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
-import org.hibernate.engine.spi.SessionFactoryDelegatingImpl;
-import org.hibernate.internal.SessionFactoryImpl;
-import org.slf4j.event.Level;
+import org.hibernate.TransactionException;
 
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -80,21 +74,40 @@ public class DatabaseWriter extends Thread {
         }
     }
 
-
+    /**
+     * Flushes the current queue.
+     * If the transaction commit fails the lost log entries get re-added to the queue
+     *
+     * @param queue
+     */
     private void flush(Queue<Log> queue) {
-        new LocalSessionRunnable(sessionBuilder) {
-            @Override
-            protected void exec(Session session) {
-                Log log = queue.poll();
-                while (log != null) {
-                    session.persist(log);
-                    log = queue.poll();
+        List<Log> backup = new LinkedList<>(queue);
+
+        try {
+            new LocalSessionRunnable(sessionBuilder) {
+                @Override
+                protected void exec(Session session) {
+                    Map<String, DBContainer> containerCache = new HashMap<>();
+                    Log log = queue.poll();
+
+                    while (log != null) {
+                        // Replace the dummy container instance with an actual hibernate reference object
+                        String containerID = log.getContainer().getId();
+                        DBContainer dbContainer = containerCache.putIfAbsent(containerID, session.getReference(DBContainer.class, containerID));
+                        log.setContainer(dbContainer);
+
+                        session.persist(log);
+                        log = queue.poll();
+                    }
                 }
-            }
-        }.run();
+            }.run();
+
+            // Re-add the entries to the queue if the transaction commit failed
+        } catch (TransactionException e1) {
+            queue.addAll(backup);
+        }
     }
 
-    @SneakyThrows
     @Override
     public void run() {
         while (doRun.get() && !this.isInterrupted()) {
@@ -102,7 +115,8 @@ public class DatabaseWriter extends Thread {
 
             try {
                 TimeUnit.SECONDS.sleep(5);
-            } catch (InterruptedException e) {
+
+            } catch (InterruptedException e1) {
                 log.error("Database writer sleep interrupted. Exiting.");
             }
         }

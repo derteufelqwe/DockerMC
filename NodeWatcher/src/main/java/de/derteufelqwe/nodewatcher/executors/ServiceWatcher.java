@@ -13,6 +13,7 @@ import de.derteufelqwe.commons.hibernate.objects.DBService;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 
 import de.derteufelqwe.nodewatcher.misc.*;
+import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 /**
  * Watches for docker service events to update the services in the database.
  */
+@Log4j2
 public class ServiceWatcher implements ResultCallback<Event> {
 
     /**
@@ -33,7 +35,6 @@ public class ServiceWatcher implements ResultCallback<Event> {
      */
     public final int EVENT_BLOCK_INTERVAL = 200;
 
-    private final Logger logger = LogManager.getLogger(getClass().getName());
     private final DockerClient dockerClient = NodeWatcher.getDockerClientFactory().forceNewDockerClient();
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
 
@@ -70,11 +71,11 @@ public class ServiceWatcher implements ResultCallback<Event> {
             EventActor actor = object.getActor();
 
             if (object.getAction() == null) {
-                logger.warn("Got event without action: {}.", object);
+                log.warn("Got event without action: {}.", object);
                 return;
             }
             if (actor == null) {
-                logger.warn("Got event without actor: {}.", object);
+                log.warn("Got event without actor: {}.", object);
                 return;
             }
             if (hadEventRecently(object)) {
@@ -95,14 +96,14 @@ public class ServiceWatcher implements ResultCallback<Event> {
                     break;
 
                 default:
-                    logger.error("Got invalid event type " + object);
+                    log.error("Got invalid event type " + object);
             }
 
             this.recentEvents.add(object);
 
         } catch (Exception e) {
-            logger.error("Exception occurred in the ContainerWatcher.");
-            logger.error(e.getMessage());
+            log.error("Exception occurred in the ContainerWatcher.");
+            log.error(e.getMessage());
             e.printStackTrace(System.err);
             CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e, NodeWatcher.getMetaData());
         }
@@ -110,8 +111,8 @@ public class ServiceWatcher implements ResultCallback<Event> {
 
     @Override
     public void onError(Throwable throwable) {
-        logger.error("Uncaught exception occurred in the ContainerWatcher.");
-        logger.error(throwable.getMessage());
+        log.error("Uncaught exception occurred in the ContainerWatcher.");
+        log.error(throwable.getMessage());
     }
 
     @Override
@@ -232,7 +233,7 @@ public class ServiceWatcher implements ResultCallback<Event> {
 
     /**
      * Checks if a service has fired an event recently (mx 100ms ago) since the docker api follows the create / update event
-     * with an additional update event.
+     * with an additional update event which is irrelevant for this
      * @param event
      * @return
      */
@@ -254,7 +255,7 @@ public class ServiceWatcher implements ResultCallback<Event> {
                 .exec();
 
         if (!isFromDockerMC(service)) {
-            logger.debug("Non DockerMC service {} started. Ignoring it.", id);
+            log.debug("Non DockerMC service {} started. Ignoring it.", id);
             return;
         }
 
@@ -274,12 +275,12 @@ public class ServiceWatcher implements ResultCallback<Event> {
                     session.persist(dbService);
 
                 } catch (DockerAPIIncompleteException e) {
-                    logger.error(e);
+                    log.error(e);
                 }
             }
         }.run();
 
-        logger.info("Created service {}.", id);
+        log.info("Created service {}.", id);
         for (IServiceObserver observer : this.observers) {
             observer.onServiceStart(id);
         }
@@ -290,7 +291,7 @@ public class ServiceWatcher implements ResultCallback<Event> {
                 .exec();
 
         if (!isFromDockerMC(service)) {
-            logger.debug("Non DockerMC service {} updated. Ignoring it.", id);
+            log.debug("Non DockerMC service {} updated. Ignoring it.", id);
             return;
         }
 
@@ -299,7 +300,7 @@ public class ServiceWatcher implements ResultCallback<Event> {
             protected void exec(Session session) {
                 DBService dbService = session.get(DBService.class, id);
                 if (dbService == null) {
-                    logger.warn("Stopped service {} not found.", id);
+                    log.warn("Stopped service {} not found.", id);
                     return;
                 }
 
@@ -308,14 +309,14 @@ public class ServiceWatcher implements ResultCallback<Event> {
                     dbService.setMaxCpu(getCPULimit(service));
 
                 } catch (DockerAPIIncompleteException e) {
-                    logger.error(e);
+                    log.error(e);
                 }
 
                 session.update(dbService);
             }
         }.run();
 
-        logger.info("Updated service {}.", id);
+        log.info("Updated service {}.", id);
     }
 
     private void onServiceRemoved(String id) {
@@ -324,7 +325,7 @@ public class ServiceWatcher implements ResultCallback<Event> {
             protected void exec(Session session) {
                 DBService dbService = session.get(DBService.class, id);
                 if (dbService == null) {
-                    logger.warn("Stopped service {} not found. Maybe it's not from DockerMC?", id);
+                    log.warn("Stopped service {} not found. Maybe it's not from DockerMC?", id);
                     return;
                 }
 
@@ -334,7 +335,7 @@ public class ServiceWatcher implements ResultCallback<Event> {
             }
         }.run();
 
-        logger.info("Finished service {}.", id);
+        log.info("Finished service {}.", id);
         for (IServiceObserver observer : this.observers) {
             observer.onServiceStop(id);
         }

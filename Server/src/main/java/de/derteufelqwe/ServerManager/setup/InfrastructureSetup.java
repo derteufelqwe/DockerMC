@@ -101,28 +101,6 @@ public class InfrastructureSetup {
         return response;
     }
 
-    public ServiceCreateResponse createPostgresContainer() {
-        ServiceCreateResponse response = new ServiceCreateResponse("PostgresDatabase", Constants.ContainerType.POSTGRES_DB);
-
-        if (!this.postgresDBContainer.find().isFound()) {
-            DockerObjTemplate.CreateResponse createResponse = this.postgresDBContainer.create();
-            response.setServiceId(createResponse.getServiceID());
-
-            if (createResponse.isCreated()) {
-                response.setResult(ServiceStart.OK);
-
-            } else {
-                response.setResult(ServiceStart.FAILED_GENERIC);
-                response.setAdditionalInfos(createResponse.getMessage());
-            }
-
-        } else {
-            response.setResult(ServiceStart.RUNNING);
-        }
-
-        return response;
-    }
-
     public ServiceCreateResponse createNodeWatcherService() {
         ServiceCreateResponse response = new ServiceCreateResponse("NodeWatcher", Constants.ContainerType.NODE_WATCHER);
 

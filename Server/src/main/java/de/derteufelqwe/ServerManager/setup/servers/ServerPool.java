@@ -1,5 +1,7 @@
 package de.derteufelqwe.ServerManager.setup.servers;
 
+import com.github.dockerjava.api.model.Driver;
+import com.github.dockerjava.api.model.Mount;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceTemplate;
 import de.derteufelqwe.commons.Constants;
@@ -62,6 +64,25 @@ public class ServerPool extends ServiceTemplate {
         envs.add("SOFT_PLAYER_LIMIT=" + this.softPlayerLimit);
 
         return envs;
+    }
+
+    @Override
+    protected Driver getLogDriver() {
+        return new Driver()
+                .withName(Constants.LOG_DRIVER_PLUGIN_NAME);
+    }
+
+    @Override
+    protected List<Mount> getMountVolumes() {
+        List<Mount> mounts = super.getMountVolumes();
+
+        mounts.add(new Mount()
+                .withSource("/etc/hosts")
+                .withTarget("/etc/hosts")
+                .withReadOnly(true)
+        );
+
+        return mounts;
     }
 
 }
