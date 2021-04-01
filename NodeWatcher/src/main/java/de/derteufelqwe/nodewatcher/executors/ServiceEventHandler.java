@@ -22,13 +22,15 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
  * Watches for docker service events to update the services in the database.
  */
 @Log4j2
-public class ServiceWatcher implements ResultCallback<Event> {
+public class ServiceEventHandler implements ResultCallback<Event> {
 
     /**
      * Time in ms in which the second event for the same service gets blocked
@@ -38,11 +40,15 @@ public class ServiceWatcher implements ResultCallback<Event> {
     private final DockerClient dockerClient = NodeWatcher.getDockerClientFactory().forceNewDockerClient();
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
 
+    /**
+     * Indicates that the NodeEventHandler was started and all nodes are present in the DB
+     */
+    private final CountDownLatch hasStartedLatch = new CountDownLatch(1);
     private Set<Event> recentEvents = new HashSet<>();
     private Set<IServiceObserver> observers = new HashSet<>();
 
 
-    public ServiceWatcher() {
+    public ServiceEventHandler() {
 
     }
 
@@ -58,6 +64,8 @@ public class ServiceWatcher implements ResultCallback<Event> {
             this.finishStoppedServices(runningServices);
             this.updateRunningServices(runningServices);
             this.createNewServices(runningServices);
+
+            this.hasStartedLatch.countDown();
 
         } catch (Exception e) {
             CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e, NodeWatcher.getMetaData());
@@ -342,6 +350,10 @@ public class ServiceWatcher implements ResultCallback<Event> {
     }
 
     // -----  Utility methods  -----
+
+    public boolean awaitStarted(long timeout, TimeUnit unit) throws InterruptedException {
+        return this.hasStartedLatch.await(timeout, unit);
+    }
 
     @SuppressWarnings("ConstantConditions")
     private String getName(Service service) {

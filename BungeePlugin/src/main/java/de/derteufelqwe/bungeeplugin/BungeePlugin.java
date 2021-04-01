@@ -33,6 +33,7 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import sun.misc.Signal;
@@ -51,7 +52,7 @@ public final class BungeePlugin extends Plugin {
     @Getter
     public static RedisPool redisPool = new RedisPool("redis");
     @Getter
-    public static SessionBuilder sessionBuilder = new SessionBuilder("dockermc", "admin", "ubuntu1", Constants.POSTGRESDB_PORT);
+    public static SessionBuilder sessionBuilder;
     @Getter
     private static RedisDataManager redisDataManager;   // Manage data from and to redis
     private final RedisPublishListener redisPublishListener = new RedisPublishListener();
@@ -76,12 +77,14 @@ public final class BungeePlugin extends Plugin {
 
     @Override
     public void onEnable() {
-        System.out.println("### Enabling DockerMC BungeeCord plugin ###we");
+        System.out.println("### Enabling DockerMC BungeeCord plugin ###");
 
         // --- Setup ---
         this.addSignalHandlers();
         BungeePlugin.PLUGIN = this;
         CONFIG.load();
+        Configurator.setAllLevels("org.hibernate", org.apache.logging.log4j.Level.ERROR);
+        sessionBuilder = new SessionBuilder("dockermc", "admin", "ubuntu1", Constants.POSTGRESDB_PORT);
 
         // --- Logger ---
         dmcLogger = new DMCLogger("DMCLogger", Level.WARNING, getLogger());

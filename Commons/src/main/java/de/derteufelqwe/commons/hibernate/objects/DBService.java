@@ -10,7 +10,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString(exclude = {"containers", "logins"})
+@ToString(exclude = {"healths", "containers", "logins"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -40,7 +40,8 @@ public class DBService {
     private boolean active = true;
 
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL)
-    @OrderBy("timestamp desc")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OrderBy("createdTimestamp desc")
     private List<DBServiceHealth> healths;
 
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL)

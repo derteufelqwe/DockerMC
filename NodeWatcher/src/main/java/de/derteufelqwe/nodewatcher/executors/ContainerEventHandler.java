@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * Watches for docker container events to update container in the database.
  */
 @Log4j2
-public class ContainerWatcher implements ResultCallback<Event> {
+public class ContainerEventHandler implements ResultCallback<Event> {
 
     private DockerClient dockerClient = NodeWatcher.getDockerClientFactory().forceNewDockerClient();
     private SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
@@ -46,7 +46,7 @@ public class ContainerWatcher implements ResultCallback<Event> {
     private final List<IRemoveContainerObserver> removeContainerObservers = new ArrayList<>();
 
 
-    public ContainerWatcher() {
+    public ContainerEventHandler() {
     }
 
 

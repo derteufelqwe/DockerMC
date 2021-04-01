@@ -3,31 +3,44 @@ package de.derteufelqwe.nodewatcher.health;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.Service;
 import com.github.dockerjava.api.model.Task;
+import com.github.dockerjava.api.model.TaskState;
 import de.derteufelqwe.commons.CommonsAPI;
-import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.hibernate.LocalSessionRunnable;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
+import de.derteufelqwe.commons.hibernate.objects.DBService;
+import de.derteufelqwe.commons.hibernate.objects.DBServiceHealth;
+import de.derteufelqwe.commons.hibernate.objects.Node;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
-import de.derteufelqwe.nodewatcher.executors.ContainerWatcher;
+import de.derteufelqwe.nodewatcher.executors.ContainerEventHandler;
+import de.derteufelqwe.nodewatcher.misc.NWUtils;
 import de.derteufelqwe.nodewatcher.misc.RepeatingThread;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.persistence.EntityNotFoundException;
 import javax.persistence.NoResultException;
 import java.sql.Timestamp;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
 /**
  * Responsible for periodically downloading the new logs for a container.
- * Containers are added by {@link ContainerWatcher}
+ * Containers are added by {@link ContainerEventHandler}
  */
+@Log4j2
 public class ServiceHealthReader extends RepeatingThread {
 
-    private Logger logger = LogManager.getLogger(getClass().getName());
+    private final Pattern RE_LOGDRIVER_CONTAINER_ID = Pattern.compile("(error creating logger: Failed to find container) .+ (in the DB)");
+    /**
+     * A set of task states that are valid to be stored in the database
+     */
+    private final Set<TaskState> ALLOWED_TASK_STATES = new HashSet<>(Arrays.asList(TaskState.RUNNING, TaskState.COMPLETE, TaskState.SHUTDOWN, TaskState.FAILED, TaskState.REJECTED, TaskState.REMOVE, TaskState.ORPHANED));
+
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
     private final DockerClient dockerClient = NodeWatcher.getDockerClientFactory().forceNewDockerClient();
 
@@ -41,69 +54,142 @@ public class ServiceHealthReader extends RepeatingThread {
         try {
             // Find all relevant services
             List<String> serviceIDs = this.getRelevantServiceIDs();
-            logger.info("Updating healths for {} services.", serviceIDs.size());
+            log.info("Updating healths for {} services.", serviceIDs.size());
 
             for (String serviceID : serviceIDs) {
-                this.fetchServiceHealth(serviceID);
+                List<Task> tasks = dockerClient.listTasksCmd()
+                        .withServiceFilter(serviceID)
+                        .exec();
+
+                this.fetchServiceHealth(serviceID, tasks);
+                this.completeCompletedTasks(serviceID, tasks);
             }
 
         } catch (Exception e) {
-            logger.error("ServiceHealthReader caught exception.", e);
+            log.error("ServiceHealthReader caught exception.", e);
             CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e, NodeWatcher.getMetaData());
         }
     }
 
+    // -----  Utility methods  -----
 
     private List<String> getRelevantServiceIDs() {
-        List<String> services = dockerClient.listServicesCmd()
-                .exec().stream()
-                .filter(s -> s.getSpec() != null)
-                .filter(s -> s.getSpec().getLabels() != null)
-                .filter(s ->
-                        s.getSpec().getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY).equals(Constants.ContainerType.MINECRAFT_POOL.name()) ||
-                                s.getSpec().getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY).equals(Constants.ContainerType.BUNGEE_POOL.name())
-                )
-                .map(Service::getId)
-                .collect(Collectors.toList());
+        List<String> serviceIDs = new ArrayList<>();
 
-        return services;
+        new LocalSessionRunnable(sessionBuilder) {
+            @SuppressWarnings("unchecked")
+            @Override
+            protected void exec(Session session) {
+                List<String> dbServices = (List<String>) session.createNativeQuery(
+                        "SELECT id FROM services AS s WHERE s.active"
+                ).getResultList();
+
+                serviceIDs.addAll(dbServices);
+            }
+        }.run();
+
+        return serviceIDs;
     }
-
-    // ToDo: Create all nodes in the db if the node is a manager
-
-    private void fetchServiceHealth(String serviceID) {
-        Service service = dockerClient.inspectServiceCmd(serviceID).exec();
-        List<Task> tasks = dockerClient.listTasksCmd()
-                .withServiceFilter(service.getId())
-                .exec();
-
-        this.getLatestServiceHealthLog(serviceID);
-
-        System.out.println("");
-    }
-
 
     /**
-     * Returns the timestamp of the latest service health log from the container
-     * @return
+     * Fetches the running tasks and creates a database entry for these
+     * @param serviceID
      */
-    @NotNull
-    private Timestamp getLatestServiceHealthLog(String serviceID) {
-        try (Session session = sessionBuilder.openSession()) {
+    private void fetchServiceHealth(String serviceID, List<Task> tasks) {
 
-            try {
-                Object res = session.createNativeQuery(
-                        "SELECT sh.timestamp FROM service_healths AS sh WHERE sh.service_id = :sid ORDER BY sh.timestamp desc LIMIT 1"
-                ).setParameter("sid", serviceID).getSingleResult();
+        new LocalSessionRunnable(sessionBuilder) {
+            @Override
+            protected void exec(Session session) {
+                try {
+                    Map<String, Node> nodeCache = new HashMap<>();
+                    DBService dbService = session.getReference(DBService.class, serviceID);
 
-                return (Timestamp) res;
+                    for (Task task : tasks) {
+                        try {
+                            Timestamp timestamp = NWUtils.parseDockerTimestamp(task.getCreatedAt());
+                            TaskState taskState = task.getStatus().getState();
 
-            } catch (NoResultException e) {
-                return new Timestamp(0);
+                            // Only save tasks that are mature enough
+                            if (!ALLOWED_TASK_STATES.contains(taskState)) {
+                                continue;
+                            }
+
+                            DBServiceHealth dbServiceHealth = new DBServiceHealth(
+                                    task.getId(),
+                                    dbService,
+                                    nodeCache.getOrDefault(task.getNodeId(), session.getReference(Node.class, task.getNodeId())),
+                                    timestamp,
+                                    sanitizeLogMessage(task.getStatus().getErr()),
+                                    parseTaskState(taskState)
+                            );
+
+                            session.saveOrUpdate(dbServiceHealth);
+
+                        } catch (EntityNotFoundException e) {
+                            log.error("Failed to save health {}. Node {} not found.", task.getId(), task.getNodeId());
+                        }
+                    }
+
+                } catch (EntityNotFoundException e) {
+                    log.error("Service health fetch failed. Service {} not found.", serviceID);
+                }
             }
-
-        }
+        }.run();
     }
 
+    /**
+     * Sets the taskstates of all DBServiceHealths to completed if they are not present in the tasks anymore
+     * @param serviceID
+     * @param tasks
+     */
+    private void completeCompletedTasks(String serviceID, List<Task> tasks) {
+        List<String> availableTaskIDs = tasks.stream()
+                .map(Task::getId)
+                .collect(Collectors.toList());
+
+        new LocalSessionRunnable(sessionBuilder) {
+            @SuppressWarnings("unchecked")
+            @Override
+            protected void exec(Session session) {
+                List<DBServiceHealth> runningTasks = session.createNativeQuery(
+                        "SELECT * FROM service_healths AS sh WHERE sh.taskstate = :tstate AND sh.service_id = :sid",
+                DBServiceHealth.class)
+                        .setParameter("tstate", DBServiceHealth.TaskState.RUNNING.name())
+                        .setParameter("sid", serviceID)
+                        .getResultList();
+
+                for (DBServiceHealth task : runningTasks) {
+                    if (!availableTaskIDs.contains(task.getTaskID())) {
+                        task.setTaskState(DBServiceHealth.TaskState.COMPLETE);
+                        session.update(task);
+                    }
+                }
+
+            }
+        }.run();
+    }
+
+    @NotNull
+    private String sanitizeLogMessage(@Nullable String message) {
+        if (message == null) {
+            return "";
+        }
+
+        Matcher m1 = RE_LOGDRIVER_CONTAINER_ID.matcher(message);
+        if (m1.find()) {
+            message = m1.replaceFirst("$1 $2");
+        }
+
+        return message;
+    }
+
+    private DBServiceHealth.TaskState parseTaskState(TaskState state) {
+        try {
+            return DBServiceHealth.TaskState.valueOf(state.getValue().toUpperCase());
+
+        } catch (IllegalArgumentException e) {
+            return DBServiceHealth.TaskState.UNKNOWN;
+        }
+    }
 
 }

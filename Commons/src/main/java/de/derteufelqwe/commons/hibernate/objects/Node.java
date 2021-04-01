@@ -11,7 +11,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString(exclude = {"containers", "nodeStats"})
+@ToString(exclude = {"containers", "nodeStats", "serviceHealths"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "nodes")

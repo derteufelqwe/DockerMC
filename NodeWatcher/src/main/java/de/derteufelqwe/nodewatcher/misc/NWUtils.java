@@ -4,12 +4,14 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Service;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.exceptions.DockerAPIIncompleteException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.Node;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.exceptions.InvalidSystemStateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.CheckForNull;
 import java.sql.Timestamp;
@@ -64,8 +66,8 @@ public class NWUtils {
      * @param timeString
      * @return
      */
-    @CheckForNull
-    public static Timestamp parseDockerTimestamp(String timeString) {
+    @NotNull
+    public static Timestamp parseDockerTimestamp(String timeString) throws DockerAPIIncompleteException {
         String rightLength = timeString.substring(0, 23);
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
 //        format.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -74,7 +76,7 @@ public class NWUtils {
             return new Timestamp(format.parse(rightLength).getTime());
 
         } catch (ParseException e) {
-            return null;
+            throw new DockerAPIIncompleteException(e, "Docker object returned unparsable timestamp '%s'.", timeString);
         }
     }
 

@@ -1,9 +1,9 @@
 package de.derteufelqwe.nodewatcher.logger;
 
 import de.derteufelqwe.nodewatcher.NodeWatcher;
-import de.derteufelqwe.nodewatcher.executors.ContainerWatcher;
+import de.derteufelqwe.nodewatcher.executors.ContainerEventHandler;
 import de.derteufelqwe.nodewatcher.executors.NodeEventHandler;
-import de.derteufelqwe.nodewatcher.executors.ServiceWatcher;
+import de.derteufelqwe.nodewatcher.executors.ServiceEventHandler;
 import de.derteufelqwe.nodewatcher.executors.TimedPermissionWatcher;
 import de.derteufelqwe.nodewatcher.health.ContainerHealthReader;
 import de.derteufelqwe.nodewatcher.health.ServiceHealthReader;
@@ -31,8 +31,8 @@ public class DMCPrefix extends LogEventPatternConverter {
 
     static {
         prefixMap.put(NodeWatcher.class.getName(), "NodeW");
-        prefixMap.put(ContainerWatcher.class.getName(), "CW");
-        prefixMap.put(ServiceWatcher.class.getName(), "SW");
+        prefixMap.put(ContainerEventHandler.class.getName(), "CW");
+        prefixMap.put(ServiceEventHandler.class.getName(), "SW");
         prefixMap.put(TimedPermissionWatcher.class.getName(), "TPW");
         prefixMap.put(ContainerHealthReader.class.getName(), "CHealth");
         prefixMap.put(ServiceHealthReader.class.getName(), "SHealth");

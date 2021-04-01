@@ -8,9 +8,9 @@ import de.derteufelqwe.commons.exceptions.DockerMCException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.misc.ServiceMetaData;
 import de.derteufelqwe.nodewatcher.exceptions.InvalidSystemStateException;
-import de.derteufelqwe.nodewatcher.executors.ContainerWatcher;
+import de.derteufelqwe.nodewatcher.executors.ContainerEventHandler;
 import de.derteufelqwe.nodewatcher.executors.NodeEventHandler;
-import de.derteufelqwe.nodewatcher.executors.ServiceWatcher;
+import de.derteufelqwe.nodewatcher.executors.ServiceEventHandler;
 import de.derteufelqwe.nodewatcher.executors.TimedPermissionWatcher;
 import de.derteufelqwe.nodewatcher.health.ContainerHealthReader;
 import de.derteufelqwe.nodewatcher.health.ServiceHealthReader;
@@ -51,11 +51,11 @@ public class NodeWatcher {
     // --- Executors ---
     private NodeEventHandler nodeEventHandler;
     private HostResourceWatcher hostResourceWatcherThread;
-    private ContainerWatcher containerWatcher;
+    private ContainerEventHandler containerEventHandler;
     private ContainerResourceWatcher containerResourceWatcher;
     private TimedPermissionWatcher timedPermissionWatcher;
     private ContainerHealthReader containerHealthReader;
-    private ServiceWatcher serviceWatcher;
+    private ServiceEventHandler serviceEventHandler;
     private ServiceHealthReader serviceHealthReader;
 
 
@@ -65,8 +65,8 @@ public class NodeWatcher {
         this.dockerClient = dockerClientFactory.getDockerClient();
 
         swarmNodeId = this.getLocalSwarmNodeId();   // Must be the first value set
-        dockerMaster = this.getDockerMasterData();
-        nodeWatcherMaster = this.getNodeWatcherMasterLabel();
+        dockerMaster = this.checkForDockerMaster();
+        nodeWatcherMaster = this.checkForNodeWatcherMasterLabel();
     }
 
 
@@ -91,7 +91,7 @@ public class NodeWatcher {
 
         try {
             if (!this.nodeEventHandler.awaitStarted(60, TimeUnit.SECONDS)) {
-                log.error("NodeEventHandler failed to start withing 60 seconds.");
+                log.error("NodeEventHandler failed to start within 60 seconds.");
             }
 
         } catch (InterruptedException e) {
@@ -103,16 +103,16 @@ public class NodeWatcher {
      * Starts the watcher for container starts / deaths
      */
     private void startContainerWatcher() {
-        this.containerWatcher = new ContainerWatcher();
-        containerWatcher.addNewContainerObserver(this.containerResourceWatcher);
-        containerWatcher.addNewContainerObserver(this.containerHealthReader);
-        containerWatcher.addRemoveContainerObserver(this.containerHealthReader);
+        this.containerEventHandler = new ContainerEventHandler();
+        containerEventHandler.addNewContainerObserver(this.containerResourceWatcher);
+        containerEventHandler.addNewContainerObserver(this.containerHealthReader);
+        containerEventHandler.addRemoveContainerObserver(this.containerHealthReader);
 
         dockerClient.eventsCmd()
                 .withLabelFilter(Constants.DOCKER_IDENTIFIER_MAP)
                 .withEventTypeFilter(EventType.CONTAINER)
                 .withEventFilter("create", "start", "die")
-                .exec(this.containerWatcher);
+                .exec(this.containerEventHandler);
     }
 
     /**
@@ -152,11 +152,20 @@ public class NodeWatcher {
      * Starts the watcher for service starts / stops
      */
     private void startServiceWatcher() {
-        this.serviceWatcher = new ServiceWatcher();
+        this.serviceEventHandler = new ServiceEventHandler();
 
         dockerClient.eventsCmd()
                 .withEventTypeFilter(EventType.SERVICE)
-                .exec(this.serviceWatcher);
+                .exec(this.serviceEventHandler);
+
+        try {
+            if (!this.serviceEventHandler.awaitStarted(60, TimeUnit.SECONDS)) {
+                log.error("ServiceEventHandler failed to start within 60 seconds.");
+            }
+
+        } catch (InterruptedException e) {
+            log.error("ServiceEventHandler awaiting start interrupted.");
+        }
     }
 
     /**
@@ -182,13 +191,13 @@ public class NodeWatcher {
         dockerClient.pingCmd().exec();
 
         this.startNodeEventHandler();
-//        this.startHostResourceMonitor();
-//        this.startContainerResourceWatcher();
-//        this.startContainerHealthReader();
-//        this.startContainerWatcher();   // Start last, since most watchers need its events
-//        this.startTimedPermissionWatcher();
-//        this.startServiceWatcher();
-//        this.startServiceHealthReader();
+        this.startHostResourceMonitor();
+        this.startServiceWatcher();
+        this.startServiceHealthReader();
+        this.startContainerResourceWatcher();
+        this.startContainerHealthReader();
+        this.startContainerWatcher();   // Start last, since most watchers need its events
+        this.startTimedPermissionWatcher();
 
         log.info("NodeWatcher started successfully.");
     }
@@ -199,8 +208,8 @@ public class NodeWatcher {
         if (hostResourceWatcherThread != null) {
             hostResourceWatcherThread.interrupt();
         }
-        if (containerWatcher != null) {
-            containerWatcher.close();
+        if (containerEventHandler != null) {
+            containerEventHandler.close();
         }
         if (this.timedPermissionWatcher != null) {
             this.timedPermissionWatcher.interrupt();
@@ -220,11 +229,15 @@ public class NodeWatcher {
     // -----  Utility methods  -----
 
     /**
-     * Analyzes the current nodes labels to determine if this node is a master node that is allowed to read master data
+     * Analyzes the current nodes labels to determine if this node is allowed to read master data
      * like service events, service health or node events
      * @return
      */
-    private boolean getNodeWatcherMasterLabel() {
+    private boolean checkForNodeWatcherMasterLabel() {
+        if (!NodeWatcher.isDockerMaster()) {
+            return false;
+        }
+
         List<SwarmNode> nodes = dockerClient.listSwarmNodesCmd()
                 .withIdFilter(Collections.singletonList(swarmNodeId))
                 .exec();
@@ -247,8 +260,9 @@ public class NodeWatcher {
      * Checks if the current node is a docker master node
      * @return
      */
-    private boolean getDockerMasterData() {
-        return true;
+    private boolean checkForDockerMaster() {
+        SwarmInfo swarmInfo = dockerClient.infoCmd().exec().getSwarm();
+        return swarmInfo.getControlAvailable();
     }
 
     /**

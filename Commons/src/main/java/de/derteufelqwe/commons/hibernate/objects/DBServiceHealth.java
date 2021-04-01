@@ -11,47 +11,68 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString(exclude = {"service"})
+@ToString(exclude = {"service", "node"})
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity(name = "service_healths")
 @Table(name = "service_healths", indexes = {
-        @Index(name = "ID_IDX", columnList = "id"),
-        @Index(name = "TIMESTAMP_IDX", columnList = "timestamp"),
+        @Index(name = "TASK_IDX", columnList = "taskid"),
+        @Index(name = "TIMESTAMP_IDX", columnList = "createdtimestamp"),
+        @Index(name = "SERVICE_IDX", columnList = "service_id"),
+        @Index(name = "NODE_IDX", columnList = "node_id"),
 })
 public class DBServiceHealth {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
-    private long id;
-
-    @ManyToOne
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private DBService service;
-
-    @ManyToOne
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private Node node;
-
     @Type(type = "text")
     private String taskID;
 
-    private Timestamp timestamp;
+    @ManyToOne
+    private DBService service;
+
+    @ManyToOne
+    private Node node;
+
+    private Timestamp createdTimestamp;
 
     @Type(type = "text")
     private String error;
 
-    @Type(type = "text")
-    private String taskState;
+    @Enumerated(EnumType.STRING)
+    private TaskState taskState;
 
 
-    public DBServiceHealth(String taskID, DBService dbService, Node node, Timestamp timestamp, String error, String taskState) {
+    public DBServiceHealth(String taskID, DBService dbService, Node node, Timestamp createdTimestamp, String error, TaskState taskState) {
         this.taskID = taskID;
         this.service = dbService;
         this.node = node;
-        this.timestamp = timestamp;
+        this.createdTimestamp = createdTimestamp;
         this.error = error;
         this.taskState = taskState;
+    }
+
+
+    /**
+     * A mirror of the docker swarm task states and an additional state if an invalid state was found.
+     * (See: https://docs.docker.com/engine/swarm/how-swarm-mode-works/swarm-task-states/)
+     */
+    public enum TaskState {
+        NEW,
+        ALLOCATED,
+        PENDING,
+        ASSIGNED,
+        ACCEPTED,
+        PREPARING,
+        READY,
+        STARTING,
+        RUNNING,
+        COMPLETE,
+        SHUTDOWN,
+        FAILED,
+        REJECTED,
+        REMOVE,
+        ORPHANED,
+
+        UNKNOWN;    // Used if an unknown state was found eg. when the engine modifies its states
     }
 
 }
