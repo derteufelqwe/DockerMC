@@ -1,24 +1,29 @@
 package de.derteufelqwe.ServerManager.cli;
 
-import de.derteufelqwe.ServerManager.spring.commands.SystemCommands;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
+import org.jline.reader.LineReader;
 import picocli.CommandLine;
 import picocli.shell.jline3.PicocliCommands;
 
 /**
  * Top-level command that just prints help.
  */
-@CommandLine.Command(name = "", subcommands = {PicocliCommands.ClearScreen.class, CommandLine.HelpCommand.class,
+@CommandLine.Command(name = "", subcommands = {PicocliCommands.ClearScreen.class, HelpCommand.class,
         SystemCmd.class
 })
 @Log4j2
 public class CliCommands implements Runnable {
 
+    @Getter
+    @Setter
+    private LineReader lineReader;
+
     public CliCommands() {
     }
 
     public void run() {
-//        out.println(new CommandLine(this).getUsageMessage());
         log.error("This shouldn't be called!");
     }
 }

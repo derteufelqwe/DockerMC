@@ -19,6 +19,7 @@ import org.jline.console.impl.SystemRegistryImpl;
 import org.jline.keymap.KeyMap;
 import org.jline.reader.*;
 import org.jline.reader.impl.DefaultParser;
+import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.widget.TailTipWidgets;
@@ -48,6 +49,7 @@ public class ServerManager {
      *  - Tag DockerMC application and MC / MC plugins with a database schema version
      *  - Check that the plugins have correct names on image build
      *  - Make sure that the NodeWatcher has created the service before containers get created
+     *  - Encrypt Registry SSL certificate
      */
 
     public static final boolean SKIP_STARTUP_CHECKS = true;
@@ -122,7 +124,7 @@ public class ServerManager {
             PicocliCommands picocliCommands = new PicocliCommands(cmd);
 
             Parser parser = new DefaultParser();
-            try (Terminal terminal = TerminalBuilder.builder().build()) {
+            try (Terminal terminal = TerminalBuilder.builder().size(new Size(10, 20)).build()) {
                 SystemRegistry systemRegistry = new SystemRegistryImpl(parser, terminal, workDir, null);
                 systemRegistry.setCommandRegistries(builtins, picocliCommands);
                 systemRegistry.register("help", picocliCommands);
@@ -134,6 +136,7 @@ public class ServerManager {
                         .variable(LineReader.LIST_MAX, 50)   // max tab completion candidates
                         .build();
                 builtins.setLineReader(reader);
+                commands.setLineReader(reader);
                 factory.setTerminal(terminal);
 
                 TailTipWidgets widgets = new TailTipWidgets(reader, systemRegistry::commandDescription, 5, TailTipWidgets.TipType.COMPLETER);
