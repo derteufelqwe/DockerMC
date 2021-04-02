@@ -150,7 +150,8 @@ public class ServiceTemplate extends DockerObjTemplate {
     protected List<NetworkAttachmentConfig> getNetworks() {
         List<NetworkAttachmentConfig> networks = new ArrayList<>();
 
-        networks.add(new NetworkAttachmentConfig().withTarget(Constants.NETW_OVERNET_NAME));
+        networks.add(new NetworkAttachmentConfig()
+                .withTarget(Constants.NETW_OVERNET_NAME));
 
         return networks;
     }
@@ -208,6 +209,7 @@ public class ServiceTemplate extends DockerObjTemplate {
                 .withMounts(this.getMountVolumes())
                 .withImage(this.getImageName())
                 .withEnv(this.getEnvs())
+                .withHosts(this.getAdditionalHosts())
                 .withArgs(this.getCommandArgs());
 
         return containerSpec;
@@ -338,6 +340,20 @@ public class ServiceTemplate extends DockerObjTemplate {
      */
     protected Driver getLogDriver() {
         return null;
+    }
+
+    /**
+     * Returns a list of "ip hostname [aliases...]" which get added to the container /etc/hosts file as additional
+     * DNS entries.
+     * @return
+     */
+    private List<String> getAdditionalHosts() {
+        List<String> hosts = new ArrayList<>();
+
+        // The real IP of the master node of DockerMC, which is used to access the DB
+        hosts.add(String.format("%s %s", ServerManager.MAIN_CONFIG.get().getDockerMasterIP(), Constants.DMC_MASTER_DNS_NAME));
+
+        return hosts;
     }
 
     /**

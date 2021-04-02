@@ -32,7 +32,7 @@ public class DMCLogDriver {
     /**
      * Path to the unix socket
      */
-    public static final String SOCKET_FILE_PATH = "/run/docker/plugins/dev.sock";
+    public static final String SOCKET_FILE_PATH = "/run/docker/plugins/dmcdriver.sock";
     /**
      * Time in ms for which the LogConsumer must have not read new data before the log download is considered complete
      */
@@ -125,6 +125,7 @@ public class DMCLogDriver {
                 log.error("Worker group shutdown interrupted!");
             }
         }
+
         if (bossGroup != null) {
             try {
                 bossGroup.shutdownGracefully().sync();
@@ -138,10 +139,10 @@ public class DMCLogDriver {
             threadPool.shutdownNow();
         }
 
-
         databaseWriter.flushAll();
         databaseWriter.interrupt();
 
+        log.info("Shutdown complete. Goodbye.");
     }
 
 }

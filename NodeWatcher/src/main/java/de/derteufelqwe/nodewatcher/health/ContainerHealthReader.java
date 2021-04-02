@@ -12,8 +12,7 @@ import de.derteufelqwe.commons.hibernate.objects.DBContainerHealth;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.exceptions.DBContainerNotFoundException;
 import de.derteufelqwe.nodewatcher.executors.ContainerEventHandler;
-import de.derteufelqwe.nodewatcher.misc.INewContainerObserver;
-import de.derteufelqwe.nodewatcher.misc.IRemoveContainerObserver;
+import de.derteufelqwe.nodewatcher.misc.IContainerObserver;
 import de.derteufelqwe.nodewatcher.misc.NWUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,7 +32,7 @@ import java.util.regex.Pattern;
  * Responsible for periodically downloading the new logs for a container.
  * Containers are added by {@link ContainerEventHandler}
  */
-public class ContainerHealthReader extends Thread implements INewContainerObserver, IRemoveContainerObserver {
+public class ContainerHealthReader extends Thread implements IContainerObserver {
 
     private final Pattern RE_CLEAN_CURL = Pattern.compile("(.+% Total +% Received +% Xferd +Average +Speed +Time +Time +Time +Current .+curl: \\(\\d+\\) )(.+)");
     private final int FETCH_INTERVAL = 12;  // in seconds

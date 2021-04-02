@@ -1806,6 +1806,7 @@ UC/10
     </table>
     <table id="67" parent="18" name="service_healths">
       <ObjectId>18801</ObjectId>
+      <Outdated>1</Outdated>
       <Owner>dockermc</Owner>
       <StateNumber>30682</StateNumber>
     </table>

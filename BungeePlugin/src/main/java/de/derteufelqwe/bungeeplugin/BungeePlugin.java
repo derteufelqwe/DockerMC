@@ -84,7 +84,7 @@ public final class BungeePlugin extends Plugin {
         BungeePlugin.PLUGIN = this;
         CONFIG.load();
         Configurator.setAllLevels("org.hibernate", org.apache.logging.log4j.Level.ERROR);
-        sessionBuilder = new SessionBuilder("dockermc", "admin", "ubuntu1", Constants.POSTGRESDB_PORT);
+        sessionBuilder = new SessionBuilder("dockermc", "admin", "dmcmaster", Constants.POSTGRESDB_PORT);
 
         // --- Logger ---
         dmcLogger = new DMCLogger("DMCLogger", Level.WARNING, getLogger());

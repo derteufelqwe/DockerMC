@@ -93,6 +93,7 @@ public class ContainerStatsCallback implements ResultCallback<Statistics> {
             if (noResultCounter >= MAX_FAILS) {
                 throw new ContainerNoLongerExistsException(this.containerId);
             }
+
         } catch (Exception e2) {
             logger.error("Caught exception: {}.", e2.getMessage());
             e2.printStackTrace(System.err);

@@ -42,8 +42,7 @@ public class ContainerEventHandler implements ResultCallback<Event> {
     private DockerClient dockerClient = NodeWatcher.getDockerClientFactory().forceNewDockerClient();
     private SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
 
-    private final List<INewContainerObserver> newContainerObservers = new ArrayList<>();
-    private final List<IRemoveContainerObserver> removeContainerObservers = new ArrayList<>();
+    private final List<IContainerObserver> observers = new ArrayList<>();
 
 
     public ContainerEventHandler() {
@@ -180,14 +179,8 @@ public class ContainerEventHandler implements ResultCallback<Event> {
 
     }
 
-    public void addNewContainerObserver(INewContainerObserver newContainerObserver) {
-        if (newContainerObserver != null) {
-            this.newContainerObservers.add(newContainerObserver);
-        }
-    }
-
-    public void addRemoveContainerObserver(IRemoveContainerObserver removeContainerObserver) {
-        this.removeContainerObservers.add(removeContainerObserver);
+    public void addOberserv(IContainerObserver observer) {
+        this.observers.add(observer);
     }
 
     // -----  Event handler methods  -----
@@ -268,7 +261,7 @@ public class ContainerEventHandler implements ResultCallback<Event> {
         }
 
         // Notify observers
-        for (INewContainerObserver observer : this.newContainerObservers) {
+        for (IContainerObserver observer : this.observers) {
             observer.onNewContainer(id);
         }
     }
@@ -327,7 +320,7 @@ public class ContainerEventHandler implements ResultCallback<Event> {
         }
 
         // Notify observers
-        for (IRemoveContainerObserver observer : this.removeContainerObservers) {
+        for (IContainerObserver observer : this.observers) {
             observer.onRemoveContainer(id);
         }
     }

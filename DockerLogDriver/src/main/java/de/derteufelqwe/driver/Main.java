@@ -14,6 +14,11 @@ public class Main {
      *  - Try to get ReadLogs working (https://docs.docker.com/engine/extend/plugins_logging/#logdriverreadlogs)
      */
 
+    /*
+     * Notes:
+     *  - Docker will restart the plugin if it stops.
+     */
+
     @SneakyThrows
     public static void main(String[] args) {
         String logLevel = System.getProperty("LOG_LEVEL");
@@ -33,12 +38,13 @@ public class Main {
             driver = new DMCLogDriver();
             driver.addSignalHook();
             driver.startServer();
-            log.info("Shutdown complete. Goodbye.");
+            driver.shutdown();
 
         } catch (Exception e) {
-            log.error("Failed to start LogDriver. Error:");
-            log.error(ExceptionUtils.getMessage(e));
-            driver.shutdown();
+            log.error("Failed to start LogDriver. ", e);
+            if (driver != null) {
+                driver.shutdown();
+            }
             System.exit(2);
         }
     }

@@ -1,7 +1,7 @@
 package de.derteufelqwe.nodewatcher.health;
 
 import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.model.Service;
+import com.github.dockerjava.api.model.ContainerNetwork;
 import com.github.dockerjava.api.model.Task;
 import com.github.dockerjava.api.model.TaskState;
 import de.derteufelqwe.commons.CommonsAPI;
@@ -20,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.persistence.EntityNotFoundException;
-import javax.persistence.NoResultException;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -93,6 +92,7 @@ public class ServiceHealthReader extends RepeatingThread {
 
     /**
      * Fetches the running tasks and creates a database entry for these
+     *
      * @param serviceID
      */
     private void fetchServiceHealth(String serviceID, List<Task> tasks) {
@@ -139,6 +139,7 @@ public class ServiceHealthReader extends RepeatingThread {
 
     /**
      * Sets the taskstates of all DBServiceHealths to completed if they are not present in the tasks anymore
+     *
      * @param serviceID
      * @param tasks
      */
@@ -153,7 +154,7 @@ public class ServiceHealthReader extends RepeatingThread {
             protected void exec(Session session) {
                 List<DBServiceHealth> runningTasks = session.createNativeQuery(
                         "SELECT * FROM service_healths AS sh WHERE sh.taskstate = :tstate AND sh.service_id = :sid",
-                DBServiceHealth.class)
+                        DBServiceHealth.class)
                         .setParameter("tstate", DBServiceHealth.TaskState.RUNNING.name())
                         .setParameter("sid", serviceID)
                         .getResultList();

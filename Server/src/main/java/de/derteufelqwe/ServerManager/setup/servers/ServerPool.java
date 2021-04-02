@@ -72,17 +72,5 @@ public class ServerPool extends ServiceTemplate {
                 .withName(Constants.LOG_DRIVER_PLUGIN_NAME);
     }
 
-    @Override
-    protected List<Mount> getMountVolumes() {
-        List<Mount> mounts = super.getMountVolumes();
-
-        mounts.add(new Mount()
-                .withSource("/etc/hosts")
-                .withTarget("/etc/hosts")
-                .withReadOnly(true)
-        );
-
-        return mounts;
-    }
 
 }

@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 public class MainConfig {
 
     @Comment("IP for the Docker-Daemon")
-    private String dockerIP = "localhost";  // host.docker.internal to access the docker API
+    private String dockerIP = "localhost";
     @Comment("Port of the Docker-daemon. 2375 for insecure and 2376 for TLS.")
     private int dockerPort = 2375;
     @Comment("Protocol to connect to Docker-daemon. Dont' change!")
@@ -37,6 +37,9 @@ public class MainConfig {
 
     @Comment("Forces DMC to stop the containers before starting a new one on a service update.")
     private boolean forceStopFirst = false;
+
+    @Comment("The IP of the server, which acts as the DockerMC master node")
+    private String dockerMasterIP = "";
 }
 
 

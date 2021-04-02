@@ -47,7 +47,7 @@ public final class MinecraftPlugin extends JavaPlugin {
 
     // --- Infrastructure ---
     @Getter
-    private static SessionBuilder sessionBuilder = new SessionBuilder("dockermc", "admin", "ubuntu1", Constants.POSTGRESDB_PORT);
+    private static SessionBuilder sessionBuilder = new SessionBuilder("dockermc", "admin", Constants.DMC_MASTER_DNS_NAME, Constants.POSTGRESDB_PORT);
     @Getter
     private static RedisPool redisPool = new RedisPool("redis");
     @Getter

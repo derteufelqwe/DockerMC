@@ -2,6 +2,7 @@ package de.derteufelqwe.ServerManager.setup.servers;
 
 import com.github.dockerjava.api.model.Driver;
 import com.github.dockerjava.api.model.Mount;
+import com.github.dockerjava.api.model.NetworkAttachmentConfig;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.setup.templates.ExposableServiceTemplate;
@@ -68,16 +69,4 @@ public class BungeePool extends ExposableServiceTemplate {
                 .withName(Constants.LOG_DRIVER_PLUGIN_NAME);
     }
 
-    @Override
-    protected List<Mount> getMountVolumes() {
-        List<Mount> mounts = super.getMountVolumes();
-
-        mounts.add(new Mount()
-                .withSource("/etc/hosts")
-                .withTarget("/etc/hosts")
-                .withReadOnly(true)
-        );
-
-        return mounts;
-    }
 }

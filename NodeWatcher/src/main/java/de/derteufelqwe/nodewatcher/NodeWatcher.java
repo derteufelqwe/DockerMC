@@ -104,9 +104,8 @@ public class NodeWatcher {
      */
     private void startContainerWatcher() {
         this.containerEventHandler = new ContainerEventHandler();
-        containerEventHandler.addNewContainerObserver(this.containerResourceWatcher);
-        containerEventHandler.addNewContainerObserver(this.containerHealthReader);
-        containerEventHandler.addRemoveContainerObserver(this.containerHealthReader);
+        containerEventHandler.addOberserv(this.containerResourceWatcher);
+        containerEventHandler.addOberserv(this.containerHealthReader);
 
         dockerClient.eventsCmd()
                 .withLabelFilter(Constants.DOCKER_IDENTIFIER_MAP)
