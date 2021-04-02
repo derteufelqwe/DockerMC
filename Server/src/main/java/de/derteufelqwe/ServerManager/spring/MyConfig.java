@@ -45,17 +45,17 @@ public class MyConfig {
 
     @Bean
     public Config<MainConfig> getMainConfig() {
-        return ServerManager.MAIN_CONFIG;
+        return ServerManager.mainConfig;
     }
 
     @Bean
     public Config<OldServersConfig> getSystemConfig() {
-        return ServerManager.SERVERS_CONFIG_OLD;
+        return ServerManager.serverConfigOld;
     }
 
     @Bean
     public Config<ServersConfig> getServersConfig() {
-        return ServerManager.SERVERS_CONFIG;
+        return ServerManager.serverConfig;
     }
 
     @Bean

@@ -223,31 +223,33 @@ public class ServiceCommands {
             @ShellOption({"-l", "--lobby"}) boolean stopLobby,
             @ShellOption(value = {"-p", "--pool"}, defaultValue = "") List<String> poolNames
     ) {
+        System.out.println(poolNames);
+        return;
         // Default action
-        if (all) {
-            log.warn("You are about to stop ALL Minecraft and BungeeCord server, kicking all players in the process. Are you sure? (Y/N)");
-            String input = lineReader.readLine("> ").toUpperCase();
-
-            if (!input.equals("Y")) {
-                log.info("Server shutdown cancelled.");
-                return;
-            }
-
-            commons.stopAllMCServers();
-            log.info("Successfully stopped all Minecraft and BungeeCord services.");
-            return;
-        }
-
-        // Specific actions
-        if (stopBungee)
-            commons.stopBungeeServer();
-
-        if (stopLobby)
-            commons.stopLobbyServer();
-
-        for (String poolName : poolNames) {
-            commons.stopPoolServer(poolName);
-        }
+//        if (all) {
+//            log.warn("You are about to stop ALL Minecraft and BungeeCord server, kicking all players in the process. Are you sure? (Y/N)");
+//            String input = lineReader.readLine("> ").toUpperCase();
+//
+//            if (!input.equals("Y")) {
+//                log.info("Server shutdown cancelled.");
+//                return;
+//            }
+//
+//            commons.stopAllMCServers();
+//            log.info("Successfully stopped all Minecraft and BungeeCord services.");
+//            return;
+//        }
+//
+//        // Specific actions
+//        if (stopBungee)
+//            commons.stopBungeeServer();
+//
+//        if (stopLobby)
+//            commons.stopLobbyServer();
+//
+//        for (String poolName : poolNames) {
+//            commons.stopPoolServer(poolName);
+//        }
 
     }
 

@@ -49,8 +49,16 @@ public class SessionBuilder {
         this(user, password, host, port, true);
     }
 
-    public SessionBuilder() {
-        this("admin", "password", Constants.POSTGRESDB_CONTAINER_NAME, Constants.POSTGRESDB_PORT);
+    public SessionBuilder(String user, String password, String host) {
+        this(user, password, host, Constants.POSTGRESDB_PORT);
+    }
+
+    public SessionBuilder(String password, String host) {
+        this(Constants.DB_DMC_USER, password, host);
+    }
+
+    public SessionBuilder(String password) {
+        this(password, Constants.DMC_MASTER_DNS_NAME);
     }
 
 

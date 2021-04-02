@@ -11,7 +11,6 @@ import de.derteufelqwe.ServerManager.spring.Commons;
 import de.derteufelqwe.ServerManager.tablebuilder.Column;
 import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
 import de.derteufelqwe.ServerManager.utils.HelpBuilder;
-import de.derteufelqwe.ServerManager.utils.Utils;
 import de.derteufelqwe.commons.Constants;
 import lombok.extern.log4j.Log4j2;
 import org.jline.reader.LineReader;
@@ -74,8 +73,8 @@ public class SystemCommands {
 
     @ShellMethod(value = "Reloads all config files", key = "system reloadConfig")
     public void reloadConfig() {
-        ServerManager.MAIN_CONFIG.load();
-        ServerManager.SERVERS_CONFIG.load();
+        ServerManager.mainConfig.load();
+        ServerManager.serverConfig.load();
         log.info("Reloaded config files.");
     }
 
@@ -146,9 +145,6 @@ public class SystemCommands {
 
         if (stopRedis)
             this.commons.stopRedisContainer();
-
-        if (stopPostgres)
-            this.commons.stopPostgresContainer();
 
         if (stopNodeWatcher)
             this.commons.stopNodeWatcherService();

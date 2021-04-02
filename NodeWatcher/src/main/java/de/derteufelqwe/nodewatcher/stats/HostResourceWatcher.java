@@ -7,7 +7,10 @@ import de.derteufelqwe.commons.hibernate.objects.Node;
 import de.derteufelqwe.commons.hibernate.objects.NodeStats;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 
+import de.derteufelqwe.nodewatcher.exceptions.InvalidHostResourcesException;
+import de.derteufelqwe.nodewatcher.misc.RepeatingThread;
 import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
@@ -17,8 +20,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.CheckReturnValue;
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,130 +27,88 @@ import java.util.regex.Pattern;
 /**
  * Monitors the resource usage of the swarm node host
  */
-public class HostResourceWatcher extends Thread {
+@Log4j2
+public class HostResourceWatcher extends RepeatingThread {
 
     private final Pattern RE_MEM_FREE = Pattern.compile("MemAvailable:\\s+(\\d+).+");
     private final Pattern RE_CPU_USAGE = Pattern.compile("cpu\\s+(\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+)");
 
-    private Logger logger = LogManager.getLogger(getClass().getName());
     private SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
 
     private final String swarmNodeId = NodeWatcher.getSwarmNodeId();
-    private AtomicBoolean doRun = new AtomicBoolean(true);
-    private Integer maxRam;
     private CpuLoadData oldData;
     // Debug
-    private boolean isWindows = Utils.isWindows();
+    private final boolean isWindows = Utils.isWindows();
 
 
     public HostResourceWatcher() {
-        this.maxRam = this.getHostsMaxRam();
+        super(1);
     }
 
     @Override
     public void run() {
         this.oldData = getCpuData();
-
-        try (Session session = sessionBuilder.openSession()) {
-            while (this.doRun.get()) {
-                try {
-                    TimeUnit.SECONDS.sleep(1);
-
-                    Transaction tx = session.beginTransaction();
-                    try {
-                        int ramUsage = this.getRamUsage();
-                        double cpuUsage = this.getCpuUsagePercent();
-
-                        if (ramUsage < 0) {
-                            if (!isWindows)
-                                logger.error("Read invalid host RAM usage.");
-                            continue;
-                        }
-
-                        if (cpuUsage < 0) {
-                            logger.error("Read invalid host CPU usage.");
-                            continue;
-                        }
-
-                        Node node = session.get(Node.class, swarmNodeId);
-                        if (node == null) {
-                            logger.error("Failed to get node for id '{}' .", swarmNodeId);
-                            continue;
-                        }
-
-                        NodeStats nodeStats = new NodeStats(node, new Timestamp(new Date().getTime()), (float) cpuUsage, ramUsage);
-                        session.persist(nodeStats);
-
-                    } finally {
-                        tx.commit();
-                    }
-
-                } catch (InterruptedException e1) {
-                    this.doRun.set(false);
-                    logger.warn("Stopping ContainerLogFetcher.");
-
-                } catch (Exception e2) {
-                    logger.error("Caught exception: {}.", e2.getMessage());
-                    e2.printStackTrace(System.err);
-                    CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e2, NodeWatcher.getMetaData());
-                }
-            }
-        }
-
+        super.run();
     }
 
-    public void interrupt() {
-        this.doRun.set(false);
+    @Override
+    public void repeatedRun() {
+        try (Session session = sessionBuilder.openSession()) {
+            try {
+                Transaction tx = session.beginTransaction();
+
+                try {
+                    Node node = session.get(Node.class, swarmNodeId);
+                    if (node == null) {
+                        log.error("Failed to get node for id '{}' .", swarmNodeId);
+                        return;
+                    }
+
+                    int ramUsage = this.getRamUsage(node.getMaxRAM());
+                    double cpuUsage = this.getCpuUsagePercent();
+
+                    NodeStats nodeStats = new NodeStats(node, new Timestamp(new Date().getTime()), (float) cpuUsage, ramUsage);
+                    session.persist(nodeStats);
+
+                } catch (InvalidHostResourcesException e1) {
+                    if (!isWindows) {
+                        log.error("Reading hosts hardware resources failed with: {}", e1.getMessage());
+                    }
+
+                } finally {
+                    tx.commit();
+                }
+
+            } catch (Exception e2) {
+                log.error("HostResourceWatcher caught exception.", e2);
+                CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e2, NodeWatcher.getMetaData());
+            }
+        }
     }
 
 
     // -----  Utility methods  -----
 
-    /**
-     * Returns the max amount of ram of the local swarm node
-     *
-     * @return
-     */
-    @CheckReturnValue
-    private Integer getHostsMaxRam() {
-        try (Session session = sessionBuilder.openSession()) {
-            Transaction tx = session.beginTransaction();
-
-            try {
-                Node node = session.get(Node.class, NodeWatcher.getSwarmNodeId());
-                if (node == null) {
-                    logger.error("Failed to find node {} in database.", swarmNodeId);
-                    return -1;
-                }
-
-                return node.getMaxRAM();
-
-            } finally {
-                tx.commit();
-            }
-        }
-    }
 
     /**
      * Returns the current ram usage of the host.
      * @return
      */
-    @CheckReturnValue
-    private int getRamUsage() {
+    private int getRamUsage(int maxRam) throws InvalidHostResourcesException {
         String output = Utils.executeCommandOnHost(new String[]{"cat", "/proc/meminfo"});
         Matcher m = RE_MEM_FREE.matcher(output);
 
         if (m.find()) {
             try {
                 int freeRam = Integer.parseInt(m.group(1));
-                return this.maxRam - freeRam;
+                return maxRam - freeRam;
 
             } catch (NumberFormatException e) {
-                e.printStackTrace();
+                throw new InvalidHostResourcesException("Read invalid free RAM value '%s' (no integer).", m.group(1));
             }
         }
 
-        return -1;
+        throw new InvalidHostResourcesException("Failed to read meminfo property 'MemAvailable'");
     }
 
     /**

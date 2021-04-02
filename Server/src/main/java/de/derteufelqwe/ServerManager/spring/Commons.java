@@ -11,20 +11,16 @@ import de.derteufelqwe.ServerManager.setup.configUpdate.BungeePoolUpdater;
 import de.derteufelqwe.ServerManager.setup.configUpdate.LobbyPoolUpdater;
 import de.derteufelqwe.ServerManager.setup.configUpdate.MinecraftPoolUpdater;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
-import de.derteufelqwe.ServerManager.spring.commands.ImageCommands;
-import de.derteufelqwe.ServerManager.utils.Utils;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.NotImplementedException;
-import org.hibernate.service.spi.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Gathers methods, that might be used in different places
@@ -34,12 +30,9 @@ public class Commons {
 
     @Autowired
     private StringRedisTemplate redisTemplate;
-    @Autowired
-    private Docker docker;
-    @Autowired
-    private Config<ServersConfig> serversConfig;
-    @Autowired
-    private SessionBuilder sessionBuilder;
+    private final Docker docker = ServerManager.getDocker();
+    private final Config<ServersConfig> serversConfig = ServerManager.getServerConfig();
+    private final SessionBuilder sessionBuilder = ServerManager.getSessionBuilder();
 
 
     /**
@@ -47,7 +40,8 @@ public class Commons {
      * @return
      */
     public boolean reloadServerConfig() {
-        ServerManager.SERVERS_CONFIG.load();
+        ServersConfig backup = serversConfig.get();
+        serversConfig.load();
 
         // Servers config check
         try {
@@ -55,7 +49,8 @@ public class Commons {
             checker.validateInfrastructureConfig(serversConfig.get());
 
         } catch (InvalidConfigException e) {
-            log.error("Invalid servers config file. Error: {}.", e.getMessage());
+            log.error("Invalid servers config file. Config didn't update.", e);
+            serversConfig.set(backup);
             return false;
         }
 
@@ -149,7 +144,6 @@ public class Commons {
         return true;
     }
 
-
     public boolean createRedisContainer() {
         InfrastructureSetup setup = new InfrastructureSetup(docker);
         ServiceCreateResponse response = setup.createRedisContainer();
@@ -203,8 +197,6 @@ public class Commons {
             return false;
         if (!this.stopRedisContainer())
             return false;
-        if (!this.stopPostgresContainer())
-            return false;
 
         return true;
     }
@@ -220,27 +212,6 @@ public class Commons {
                 log.info("Registry container not running."); break;
             case FAILED_GENERIC:
                 log.error("Failed to stop the registry container! ID: {}, Message: {}.",
-                        response.getServiceId(), response.getAdditionalInfos());
-                return false;
-
-            default:
-                throw new NotImplementedException("Result " + response.getResult() + " not implemented.");
-        }
-
-        return true;
-    }
-
-    public boolean stopPostgresContainer() {
-        InfrastructureSetup setup = new InfrastructureSetup(docker);
-        ServiceStopResponse response = setup.stopPostgresContainer();
-
-        switch (response.getResult()) {
-            case OK:
-                log.info("Stopped postres container successfully."); break;
-            case NOT_RUNNING:
-                log.info("Postgres container not running."); break;
-            case FAILED_GENERIC:
-                log.error("Failed to stop the postgres container! ID: {}, Message: {}.",
                         response.getServiceId(), response.getAdditionalInfos());
                 return false;
 

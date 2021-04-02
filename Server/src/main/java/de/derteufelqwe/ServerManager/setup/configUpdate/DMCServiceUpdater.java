@@ -29,9 +29,9 @@ import javax.annotation.Nullable;
  */
 abstract class DMCServiceUpdater<CFG extends ServiceTemplate> {
 
-    protected ServersConfig serversConfig = ServerManager.SERVERS_CONFIG.get();
-    protected OldServersConfig oldServersConfig = ServerManager.SERVERS_CONFIG_OLD.get();
-    protected Config<MainConfig> mainConfig = ServerManager.MAIN_CONFIG;
+    protected ServersConfig serversConfig = ServerManager.serverConfig.get();
+    protected OldServersConfig oldServersConfig = ServerManager.serverConfigOld.get();
+    protected Config<MainConfig> mainConfig = ServerManager.mainConfig;
 
     protected Docker docker;
 

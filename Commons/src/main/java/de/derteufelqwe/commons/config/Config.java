@@ -28,6 +28,10 @@ public class Config<A> {
         return this.instance;
     }
 
+    public void set(A instance) {
+        this.instance = instance;
+    }
+
     private File getFile() {
         File file = new File(fileName);
         if (file.getParentFile() != null)

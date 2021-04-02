@@ -7,12 +7,23 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="Server" />
         <module name="MinecraftPlugin" />
         <module name="NodeWatcher" />
         <module name="BungeePlugin" />
         <module name="Commons" />
         <module name="DockerLogDriver" />
+      </profile>
+      <profile name="Annotation profile for ServerManager" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <option name="project" value="de.derteufelqwe.ServerManager/Server" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/info/picocli/picocli-codegen/4.6.1/picocli-codegen-4.6.1.jar" />
+          <entry name="$MAVEN_REPOSITORY$/info/picocli/picocli/4.6.1/picocli-4.6.1.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.16.12/lombok-1.16.12.jar" />
+        </processorPath>
+        <module name="Server" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -23,6 +34,7 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="BungeePlugin" options="-parameters" />
       <module name="MinecraftPlugin" options="-parameters" />
+      <module name="Server" options="-Aproject=de.derteufelqwe.ServerManager/Server" />
     </option>
   </component>
 </project>

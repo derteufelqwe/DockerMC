@@ -5,7 +5,6 @@ import com.github.dockerjava.api.command.WaitContainerResultCallback;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Volume;
-import org.jetbrains.annotations.NotNull;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.config.MainConfig;
@@ -13,18 +12,11 @@ import de.derteufelqwe.ServerManager.config.objects.CertificateCfg;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.setup.templates.DockerObjTemplate;
 import de.derteufelqwe.commons.Constants;
-import de.derteufelqwe.commons.Utils;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
-import javax.annotation.CheckForNull;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -35,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 @Log4j2
 public class RegistryCertificates {
 
-    private MainConfig mainConfig = ServerManager.MAIN_CONFIG.get();
+    private MainConfig mainConfig = ServerManager.mainConfig.get();
     private Docker docker;
 
 

@@ -51,7 +51,7 @@ public class NodeEventHandler implements ResultCallback<Event> {
         try {
             List<String> runningNodesDB = this.getRunningNodesFromDB();
             List<String> runningNodesDocker = this.getRunningNodesFromDocker();
-            this.addNewNodes(runningNodesDB, runningNodesDocker);
+            this.addOrUpdateDockerNodes(runningNodesDocker);
             this.stopRemovedNodes(runningNodesDB, runningNodesDocker);
 
             this.hasStartedLatch.countDown();
@@ -119,20 +119,15 @@ public class NodeEventHandler implements ResultCallback<Event> {
     // -----  Setup methods  -----
 
     /**
-     * Compares the running nodes with the existing nodes and adds all nodes to the DB that are missing
+     * Adds or updates the values for the existing docker nodes
      */
-    private void addNewNodes(List<String> dbNodes, List<String> dockerNodes) {
-        List<String> nodeIDsToAdd = dockerNodes.stream()
-                .filter(n -> !dbNodes.contains(n))
-                .collect(Collectors.toList());
-
-        if (nodeIDsToAdd.size() > 0) {
-            log.info("{} nodes were added during downtime.", nodeIDsToAdd.size());
-        }
+    private void addOrUpdateDockerNodes(List<String> dockerNodes) {
         // Add the new nodes to the DB
-        for (String nodeID : nodeIDsToAdd) {
+        for (String nodeID : dockerNodes) {
             this.createOrUpdateNode(nodeID, "create");
         }
+
+        log.info("Updated {} nodes.", dockerNodes.size());
     }
 
     /**
@@ -184,7 +179,7 @@ public class NodeEventHandler implements ResultCallback<Event> {
                 @SuppressWarnings("ConstantConditions")
                 @Override
                 protected void exec(Session session) {
-                    int maxRAM = (int) (swarmNode.getDescription().getResources().getMemoryBytes() / 1024 / 1024);
+                    int maxRAM = (int) (swarmNode.getDescription().getResources().getMemoryBytes() / 1000); // Not 1024 as MB is more common than MeB
                     float availableCPU = (float) (swarmNode.getDescription().getResources().getNanoCPUs() / 1_000_000_000.0);
 
                     Node node = new Node(

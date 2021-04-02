@@ -126,7 +126,7 @@ public class ServiceTemplate extends DockerObjTemplate {
         super.init(docker);
 
         // Authconfig must be set here so the deserialized class has this information too
-        MainConfig mainConfig = ServerManager.MAIN_CONFIG.get();
+        MainConfig mainConfig = ServerManager.mainConfig.get();
         this.authConfig = new AuthConfig()
                 .withUsername(mainConfig.getRegistryUsername())
                 .withPassword(mainConfig.getRegistryPassword());
@@ -351,7 +351,7 @@ public class ServiceTemplate extends DockerObjTemplate {
         List<String> hosts = new ArrayList<>();
 
         // The real IP of the master node of DockerMC, which is used to access the DB
-        hosts.add(String.format("%s %s", ServerManager.MAIN_CONFIG.get().getDockerMasterIP(), Constants.DMC_MASTER_DNS_NAME));
+        hosts.add(String.format("%s %s", ServerManager.mainConfig.get().getDockerMasterIP(), Constants.DMC_MASTER_DNS_NAME));
 
         return hosts;
     }

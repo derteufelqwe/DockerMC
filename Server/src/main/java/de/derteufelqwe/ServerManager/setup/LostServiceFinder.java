@@ -20,7 +20,7 @@ import java.util.Map;
 public class LostServiceFinder {
 
     private Docker docker;
-    private ServersConfig serversConfig = ServerManager.SERVERS_CONFIG.get();
+    private ServersConfig serversConfig = ServerManager.serverConfig.get();
 
     public LostServiceFinder(Docker docker) {
         this.docker = docker;

@@ -32,6 +32,7 @@ public class Constants {
      * Indicates that a master node should (not) be responsible for reading nodes and service events
      */
     public static final String NODEWATCHER_MASTER = "NODEWATCHER_MASTER";
+    public static final String DB_DMC_USER = "dockermc";
     /**
      * DNS name of the DockerMC master node, which hosts the DB.
      */

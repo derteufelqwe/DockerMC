@@ -23,6 +23,7 @@ import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -34,8 +35,6 @@ import java.util.regex.Pattern;
 public class Docker {
 
     private Pattern STD_REMOVE = Pattern.compile("^STDOUT: |STDERR: ");
-    private int PULL_INTERVAL = 5;      // Pause between Pull checks
-    private int PULL_REPETITIONS = 25;  // Amount of times the interval gets waited
 
     private MainConfig mainConfig;
 
@@ -233,6 +232,11 @@ public class Docker {
     public void waitService(String serviceID, int timeout) throws TimeoutException {
         Service service = this.getDocker().inspectServiceCmd(serviceID).exec();
         this.waitService(service, timeout);
+    }
+
+
+    public void close() throws IOException {
+        docker.close();
     }
 
 }

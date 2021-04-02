@@ -2,7 +2,6 @@ package de.derteufelqwe.ServerManager.setup.configUpdate;
 
 import com.github.dockerjava.api.model.UpdateConfig;
 import com.github.dockerjava.api.model.UpdateFailureAction;
-import com.github.dockerjava.api.model.UpdateOrder;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.setup.ServiceCreateResponse;
@@ -74,7 +73,7 @@ public class MinecraftPoolUpdater extends DMCServiceUpdater<ServerPool> {
             }
         }
 
-        ServerManager.SERVERS_CONFIG_OLD.save();
+        ServerManager.serverConfigOld.save();
 
         return response;
     }

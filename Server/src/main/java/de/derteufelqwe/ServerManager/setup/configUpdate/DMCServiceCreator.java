@@ -18,8 +18,8 @@ import de.derteufelqwe.commons.Constants;
  */
 abstract class DMCServiceCreator<CFG extends ServiceTemplate> {
 
-    protected ServersConfig serversConfig = ServerManager.SERVERS_CONFIG.get();
-    protected OldServersConfig oldServersConfig = ServerManager.SERVERS_CONFIG_OLD.get();
+    protected ServersConfig serversConfig = ServerManager.serverConfig.get();
+    protected OldServersConfig oldServersConfig = ServerManager.serverConfigOld.get();
 
     protected Docker docker;
 
