@@ -79,7 +79,7 @@ public class SessionBuilder {
         properties.setProperty(Environment.PASS, password);
         properties.setProperty(Environment.DIALECT, "org.hibernate.dialect.PostgreSQL10Dialect");
         properties.setProperty(Environment.SHOW_SQL, "false");
-        properties.setProperty(Environment.HBM2DDL_AUTO, "update"); // create / update
+        properties.setProperty(Environment.HBM2DDL_AUTO, "update"); // none / update
         properties.setProperty(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread");
         properties.setProperty(Environment.PHYSICAL_NAMING_STRATEGY, "org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl");
         properties.setProperty(Environment.POOL_SIZE, "1024");

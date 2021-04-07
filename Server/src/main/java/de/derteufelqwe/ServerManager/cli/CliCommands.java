@@ -11,7 +11,7 @@ import picocli.shell.jline3.PicocliCommands;
  * Top-level command that just prints help.
  */
 @CommandLine.Command(name = "", subcommands = {PicocliCommands.ClearScreen.class, HelpCommand.class,
-        SystemCmd.class
+        SystemCmd.class, ServiceCmd.class
 })
 @Log4j2
 public class CliCommands implements Runnable {

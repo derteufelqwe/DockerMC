@@ -13,7 +13,7 @@ import java.util.List;
 @Setter
 @ToString(exclude = {"service", "node"})
 @NoArgsConstructor
-@Entity(name = "service_healths")
+@Entity
 @Table(name = "service_healths", indexes = {
         @Index(name = "TASK_IDX", columnList = "taskid"),
         @Index(name = "TIMESTAMP_IDX", columnList = "createdtimestamp"),

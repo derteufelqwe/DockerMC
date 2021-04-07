@@ -1,7 +1,5 @@
 package de.derteufelqwe.ServerManager.spring.commands;
 
-import com.github.dockerjava.api.command.HealthStateLog;
-import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.*;
 import de.derteufelqwe.ServerManager.Docker;
@@ -10,7 +8,6 @@ import de.derteufelqwe.ServerManager.tablebuilder.Column;
 import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
 import de.derteufelqwe.ServerManager.utils.HelpBuilder;
 import de.derteufelqwe.ServerManager.utils.ServiceHealthReader;
-import de.derteufelqwe.ServerManager.utils.Utils;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import lombok.extern.log4j.Log4j2;
@@ -23,8 +20,6 @@ import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @ShellComponent
@@ -212,7 +207,7 @@ public class ServiceCommands {
             commons.createLobbyServer(force);
 
         if (updatePool)
-            commons.createPoolServers(force);
+            commons.createAllPoolServers(force);
 
     }
 

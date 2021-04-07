@@ -31,7 +31,8 @@ public class DatabaseDebugEntries {
                         "DebugService",
                         1024,
                         2.0f,
-                        "MINECRAFT_POOL"
+                        "MINECRAFT_POOL",
+                        2
                 );
 
                 session.persist(service);

@@ -292,7 +292,7 @@ public class Commons {
         if (!createLobbyServer(force))
             return false;
 
-        if (!createPoolServers(force))
+        if (!createAllPoolServers(force))
             return false;
 
         return true;
@@ -378,33 +378,56 @@ public class Commons {
         return true;
     }
 
-    public boolean createPoolServers(boolean force) {
+    public boolean createAllPoolServers(boolean force) {
         ServersConfig serversConfig = this.serversConfig.get();
 
         for (ServerPool pool : serversConfig.getPoolServers()) {
-            ServiceUpdateResponse response = new MinecraftPoolUpdater(docker, pool).update(force);
+            this.createPoolServer(pool, force);
+        }
 
-            switch (response.getResult()) {
-                case CREATED:
-                    log.info("Minecraft-Pool {} created successfully.", pool.getName());
-                    break;
-                case NOT_REQUIRED:
-                    log.info("Minecraft-Pool {} already running and up-to-date.", pool.getName());
-                    break;
-                case NOT_CONFIGURED:
-                    log.error("Minecraft-Pool {} not configured.", pool.getName());
-                    break;
-                case UPDATED:
-                    log.info("Minecraft-Pool {} updating.", pool.getName());
-                    break;
-                case FAILED_GENERIC:
-                    log.error("Failed to create the Minecraft-Pool {}. ServiceId: {}",
-                            pool.getName(), response.getServiceId());
-                    return false;
+        return true;
+    }
 
-                default:
-                    throw new NotImplementedException("Result " + response.getResult() + " not implemented.");
+    public boolean createPoolServer(String serverName, boolean force) {
+        ServerPool serverPool = null;
+        for (ServerPool pool : serversConfig.get().getPoolServers()) {
+            if (pool.getName().equals(serverName)) {
+                serverPool = pool;
+                break;
             }
+        }
+
+        if (serverPool == null) {
+            log.warn("Pool server {} not found.", serverName);
+            return false;
+        }
+
+        return this.createPoolServer(serverPool, force);
+    }
+
+    public boolean createPoolServer(ServerPool pool, boolean force) {
+        ServiceUpdateResponse response = new MinecraftPoolUpdater(docker, pool).update(force);
+
+        switch (response.getResult()) {
+            case CREATED:
+                log.info("Minecraft-Pool {} created successfully.", pool.getName());
+                break;
+            case NOT_REQUIRED:
+                log.info("Minecraft-Pool {} already running and up-to-date.", pool.getName());
+                break;
+            case NOT_CONFIGURED:
+                log.error("Minecraft-Pool {} not configured.", pool.getName());
+                break;
+            case UPDATED:
+                log.info("Minecraft-Pool {} updating.", pool.getName());
+                break;
+            case FAILED_GENERIC:
+                log.error("Failed to create the Minecraft-Pool {}. ServiceId: {}",
+                        pool.getName(), response.getServiceId());
+                return false;
+
+            default:
+                throw new NotImplementedException("Result " + response.getResult() + " not implemented.");
         }
 
         return true;

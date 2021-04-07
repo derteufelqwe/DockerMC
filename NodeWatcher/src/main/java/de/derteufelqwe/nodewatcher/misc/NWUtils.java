@@ -6,6 +6,7 @@ import com.github.dockerjava.api.model.Service;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.exceptions.DockerAPIIncompleteException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
+import de.derteufelqwe.commons.hibernate.objects.DBService;
 import de.derteufelqwe.commons.hibernate.objects.Node;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.exceptions.InvalidSystemStateException;

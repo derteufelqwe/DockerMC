@@ -75,7 +75,7 @@ public class NodeWatcher {
      */
     private void startNodeEventHandler() {
         if (!NodeWatcher.isDockerMaster()) {
-            log.error("This node is no master. Skipping NodeEventHandler.");
+            log.warn("This node is no swarm master. Skipping NodeEventHandler.");
             return;
 
         } else if (!NodeWatcher.isNodeWatcherMaster()) {
@@ -96,6 +96,35 @@ public class NodeWatcher {
 
         } catch (InterruptedException e) {
             log.error("NodeEventHandler awaiting start interrupted.");
+        }
+    }
+
+    /**
+     * Starts the watcher for service starts / stops
+     */
+    private void startServiceEventHandler() {
+        if (!NodeWatcher.isDockerMaster()) {
+            log.warn("This node is no swarm master. Skipping ServiceEventHandler.");
+            return;
+
+        } else if (!NodeWatcher.isNodeWatcherMaster()) {
+            log.warn("This node is no NodeWatcher master. Skipping ServiceEventHandler.");
+            return;
+        }
+
+        this.serviceEventHandler = new ServiceEventHandler();
+
+        dockerClient.eventsCmd()
+                .withEventTypeFilter(EventType.SERVICE)
+                .exec(this.serviceEventHandler);
+
+        try {
+            if (!this.serviceEventHandler.awaitStarted(60, TimeUnit.SECONDS)) {
+                log.error("ServiceEventHandler failed to start within 60 seconds.");
+            }
+
+        } catch (InterruptedException e) {
+            log.error("ServiceEventHandler awaiting start interrupted.");
         }
     }
 
@@ -148,31 +177,11 @@ public class NodeWatcher {
     }
 
     /**
-     * Starts the watcher for service starts / stops
-     */
-    private void startServiceWatcher() {
-        this.serviceEventHandler = new ServiceEventHandler();
-
-        dockerClient.eventsCmd()
-                .withEventTypeFilter(EventType.SERVICE)
-                .exec(this.serviceEventHandler);
-
-        try {
-            if (!this.serviceEventHandler.awaitStarted(60, TimeUnit.SECONDS)) {
-                log.error("ServiceEventHandler failed to start within 60 seconds.");
-            }
-
-        } catch (InterruptedException e) {
-            log.error("ServiceEventHandler awaiting start interrupted.");
-        }
-    }
-
-    /**
      * Starts the service health reader if the node is a master node and doesn't have the label 'FETCH_SERVICE_HEALTH=false'
      */
     private void startServiceHealthReader() {
         if (!NodeWatcher.isDockerMaster()) {
-            log.error("This node is no master. Skipping ServiceHealthReader.");
+            log.warn("This node is no swarm master. Skipping ServiceHealthReader.");
             return;
 
         } else if (!NodeWatcher.isNodeWatcherMaster()) {
@@ -190,8 +199,8 @@ public class NodeWatcher {
         dockerClient.pingCmd().exec();
 
         this.startNodeEventHandler();
+        this.startServiceEventHandler();
         this.startHostResourceMonitor();
-        this.startServiceWatcher();
         this.startServiceHealthReader();
         this.startContainerResourceWatcher();
         this.startContainerHealthReader();
@@ -224,6 +233,12 @@ public class NodeWatcher {
         sessionBuilder.close();
     }
 
+    /**
+     * Makes non-master node containers wait for the master node container to create the required entries
+     */
+    private void awaitNodeWatcherMasterStarted() {
+
+    }
 
     // -----  Utility methods  -----
 

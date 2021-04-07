@@ -35,17 +35,12 @@ import java.util.stream.Collectors;
 public class ServiceHealthReader extends RepeatingThread {
 
     private final Pattern RE_LOGDRIVER_CONTAINER_ID = Pattern.compile("(error creating logger: Failed to find container) .+ (in the DB)");
-    /**
-     * A set of task states that are valid to be stored in the database
-     */
-    private final Set<TaskState> ALLOWED_TASK_STATES = new HashSet<>(Arrays.asList(TaskState.RUNNING, TaskState.COMPLETE, TaskState.SHUTDOWN, TaskState.FAILED, TaskState.REJECTED, TaskState.REMOVE, TaskState.ORPHANED));
-
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
     private final DockerClient dockerClient = NodeWatcher.getDockerClientFactory().forceNewDockerClient();
 
 
     public ServiceHealthReader() {
-        super(20);
+        super(10);
     }
 
     @Override
@@ -79,8 +74,8 @@ public class ServiceHealthReader extends RepeatingThread {
             @SuppressWarnings("unchecked")
             @Override
             protected void exec(Session session) {
-                List<String> dbServices = (List<String>) session.createNativeQuery(
-                        "SELECT id FROM services AS s WHERE s.active"
+                List<String> dbServices = (List<String>) session.createQuery(
+                        "SELECT s.id FROM DBService AS s WHERE s.active=true"
                 ).getResultList();
 
                 serviceIDs.addAll(dbServices);
@@ -101,23 +96,21 @@ public class ServiceHealthReader extends RepeatingThread {
             @Override
             protected void exec(Session session) {
                 try {
-                    Map<String, Node> nodeCache = new HashMap<>();
                     DBService dbService = session.getReference(DBService.class, serviceID);
 
                     for (Task task : tasks) {
                         try {
                             Timestamp timestamp = NWUtils.parseDockerTimestamp(task.getCreatedAt());
                             TaskState taskState = task.getStatus().getState();
+                            String nodeID = task.getNodeId();
 
-                            // Only save tasks that are mature enough
-                            if (!ALLOWED_TASK_STATES.contains(taskState)) {
-                                continue;
-                            }
+                            // Node can be null when a task can't even be scheduled on a node due to placement constraints
+                            Node node = nodeID == null ? null : session.getReference(Node.class, nodeID);
 
                             DBServiceHealth dbServiceHealth = new DBServiceHealth(
                                     task.getId(),
                                     dbService,
-                                    nodeCache.getOrDefault(task.getNodeId(), session.getReference(Node.class, task.getNodeId())),
+                                    node,
                                     timestamp,
                                     sanitizeLogMessage(task.getStatus().getErr()),
                                     parseTaskState(taskState)
@@ -152,10 +145,10 @@ public class ServiceHealthReader extends RepeatingThread {
             @SuppressWarnings("unchecked")
             @Override
             protected void exec(Session session) {
-                List<DBServiceHealth> runningTasks = session.createNativeQuery(
-                        "SELECT * FROM service_healths AS sh WHERE sh.taskstate = :tstate AND sh.service_id = :sid",
+                List<DBServiceHealth> runningTasks = session.createQuery(
+                        "SELECT sh FROM DBServiceHealth AS sh WHERE sh.taskState = :tstate AND sh.service.id = :sid",
                         DBServiceHealth.class)
-                        .setParameter("tstate", DBServiceHealth.TaskState.RUNNING.name())
+                        .setParameter("tstate", DBServiceHealth.TaskState.RUNNING)
                         .setParameter("sid", serviceID)
                         .getResultList();
 

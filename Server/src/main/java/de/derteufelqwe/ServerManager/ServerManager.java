@@ -1,6 +1,7 @@
 package de.derteufelqwe.ServerManager;
 
 import de.derteufelqwe.ServerManager.cli.CliCommands;
+import de.derteufelqwe.ServerManager.cli.converters.DurationConverter;
 import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.config.ServersConfig;
 import de.derteufelqwe.ServerManager.config.OldServersConfig;
@@ -32,6 +33,7 @@ import picocli.shell.jline3.PicocliCommands;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.function.Supplier;
 
 
@@ -121,6 +123,7 @@ public class ServerManager {
             // PicocliCommandsFactory factory = new PicocliCommandsFactory(customFactory); // chain the factories
 
             CommandLine cmd = new CommandLine(commands, factory);
+            cmd.registerConverter(Duration.class, new DurationConverter());
             PicocliCommands picocliCommands = new PicocliCommands(cmd);
 
             Parser parser = new DefaultParser();

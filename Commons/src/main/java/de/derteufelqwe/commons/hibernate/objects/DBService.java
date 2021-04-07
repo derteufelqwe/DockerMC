@@ -1,11 +1,14 @@
 package de.derteufelqwe.commons.hibernate.objects;
 
 import lombok.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Index;
+import javax.persistence.OrderBy;
+import javax.persistence.Table;
 import java.util.List;
 
 @Getter
@@ -31,6 +34,8 @@ public class DBService {
 
     private Float maxCpu;
 
+    private int replicas;
+
     @Type(type = "text")
     private String type;
 
@@ -52,12 +57,27 @@ public class DBService {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private List<PlayerLogin> logins;
 
-    public DBService(String id, String name, int maxRam, float maxCpu, String type) {
+    public DBService(String id, String name, int maxRam, float maxCpu, String type, int replicas) {
         this.id = id;
         this.name = name;
         this.maxRam = maxRam;
         this.maxCpu = maxCpu;
         this.type = type;
+        this.replicas = replicas;
+    }
+
+    // --- Custom query parameters ---
+
+    /**
+     * Number of containers that are running for this service
+     */
+    @Formula("(SELECT COUNT(*) FROM containers AS c WHERE c.service_id = id AND c.stoptime IS NULL AND c.starttime IS NOT NULL)")
+    @Basic(fetch = FetchType.LAZY)
+    private int runningContainersCount;
+
+
+    public boolean isHealthy() {
+        return this.replicas == runningContainersCount;
     }
 
 

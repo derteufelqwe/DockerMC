@@ -119,8 +119,7 @@ public class ServiceEventHandler implements ResultCallback<Event> {
 
     @Override
     public void onError(Throwable throwable) {
-        log.error("Uncaught exception occurred in the ContainerWatcher.");
-        log.error(throwable.getMessage());
+        log.error("Uncaught exception occurred in the ServiceEventHandler.", throwable);
     }
 
     @Override
@@ -154,8 +153,8 @@ public class ServiceEventHandler implements ResultCallback<Event> {
         new LocalSessionRunnable(sessionBuilder) {
             @Override
             protected void exec(Session session) {
-                List<DBService> dbServices = session.createNativeQuery(
-                        "SELECT * FROM services AS s WHERE s.active",
+                List<DBService> dbServices = session.createQuery(
+                        "SELECT s FROM DBService AS s WHERE s.active=true",
                         DBService.class).getResultList();
 
                 for (DBService dbService : dbServices) {
@@ -187,8 +186,8 @@ public class ServiceEventHandler implements ResultCallback<Event> {
         new LocalSessionRunnable(sessionBuilder) {
             @Override
             protected void exec(Session session) {
-                List<DBService> dbServices = session.createNativeQuery(
-                        "SELECT * FROM services AS s WHERE s.active",
+                List<DBService> dbServices = session.createQuery(
+                        "SELECT s FROM DBService AS s WHERE s.active=true",
                         DBService.class).getResultList();
 
                 for (DBService dbService : dbServices) {
@@ -221,8 +220,8 @@ public class ServiceEventHandler implements ResultCallback<Event> {
         new LocalSessionRunnable(sessionBuilder) {
             @Override
             protected void exec(Session session) {
-                List<DBService> dbServices = session.createNativeQuery(
-                        "SELECT * FROM services AS s WHERE s.active",
+                List<DBService> dbServices = session.createQuery(
+                        "SELECT s FROM DBService AS s WHERE s.active=true",
                         DBService.class).getResultList();
 
                 for (DBService dbService : dbServices) {
@@ -259,72 +258,11 @@ public class ServiceEventHandler implements ResultCallback<Event> {
     }
 
     private void onServiceCreated(String id) {
-        Service service = dockerClient.inspectServiceCmd(id)
-                .exec();
-
-        if (!isFromDockerMC(service)) {
-            log.debug("Non DockerMC service {} started. Ignoring it.", id);
-            return;
-        }
-
-        new LocalSessionRunnable(sessionBuilder) {
-            @Override
-            public void exec(Session session) {
-
-                try {
-                    DBService dbService = new DBService(
-                            service.getId(),
-                            getName(service),
-                            getMemoryLimit(service),
-                            getCPULimit(service),
-                            getTypeLabel(service)
-                    );
-
-                    session.persist(dbService);
-
-                } catch (DockerAPIIncompleteException e) {
-                    log.error(e);
-                }
-            }
-        }.run();
-
-        log.info("Created service {}.", id);
-        for (IServiceObserver observer : this.observers) {
-            observer.onServiceStart(id);
-        }
+        this.createOrUpdateService(id, true);
     }
 
     private void onServiceUpdated(String id) {
-        Service service = dockerClient.inspectServiceCmd(id)
-                .exec();
-
-        if (!isFromDockerMC(service)) {
-            log.debug("Non DockerMC service {} updated. Ignoring it.", id);
-            return;
-        }
-
-        new LocalSessionRunnable(sessionBuilder) {
-            @Override
-            protected void exec(Session session) {
-                DBService dbService = session.get(DBService.class, id);
-                if (dbService == null) {
-                    log.warn("Stopped service {} not found.", id);
-                    return;
-                }
-
-                try {
-                    dbService.setMaxRam(getMemoryLimit(service));
-                    dbService.setMaxCpu(getCPULimit(service));
-
-                } catch (DockerAPIIncompleteException e) {
-                    log.error(e);
-                }
-
-                session.update(dbService);
-            }
-        }.run();
-
-        log.info("Updated service {}.", id);
+        this.createOrUpdateService(id, false);
     }
 
     private void onServiceRemoved(String id) {
@@ -346,6 +284,53 @@ public class ServiceEventHandler implements ResultCallback<Event> {
         log.info("Finished service {}.", id);
         for (IServiceObserver observer : this.observers) {
             observer.onServiceStop(id);
+        }
+    }
+
+    /**
+     *
+     * @param id
+     * @param created true = service created, false = service updated
+     */
+    private void createOrUpdateService(String id, boolean created) {
+        Service service = dockerClient.inspectServiceCmd(id)
+                .exec();
+
+        if (!isFromDockerMC(service)) {
+            log.debug("Handling non DockerMC service {}. Ignoring it.", id);
+            return;
+        }
+
+        new LocalSessionRunnable(sessionBuilder) {
+            @Override
+            public void exec(Session session) {
+
+                try {
+                    DBService dbService = new DBService(
+                            service.getId(),
+                            getName(service),
+                            getMemoryLimit(service),
+                            getCPULimit(service),
+                            getTypeLabel(service),
+                            getReplicaCount(service)
+                    );
+
+                    session.saveOrUpdate(dbService);
+
+                } catch (DockerAPIIncompleteException e) {
+                    log.error("Docker API returned incomplete data.", e);
+                }
+            }
+        }.run();
+
+        if (created) {
+            log.info("Created service {}.", id);
+            for (IServiceObserver observer : this.observers) {
+                observer.onServiceStart(id);
+            }
+
+        } else {
+            log.debug("Updated service {}.", id);
         }
     }
 
@@ -426,6 +411,20 @@ public class ServiceEventHandler implements ResultCallback<Event> {
     private boolean isFromDockerMC(Service service) {
         String type = getLabels(service).get(Constants.DOCKER_IDENTIFIER_KEY);
         return type != null && type.equals(Constants.DOCKER_IDENTIFIER_VALUE);
+    }
+
+    private int getReplicaCount(Service service) {
+        try {
+            return (int) service.getSpec()
+                    .getMode()
+                    .getReplicated()
+                    .getReplicas();
+
+        } catch (NullPointerException e) {
+            log.error("Service {} is not in replicated mode.", service.getId(), e);
+        }
+
+        return -1;
     }
 
 }
