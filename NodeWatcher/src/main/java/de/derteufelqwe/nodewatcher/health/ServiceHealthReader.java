@@ -7,9 +7,11 @@ import com.github.dockerjava.api.model.TaskState;
 import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.hibernate.LocalSessionRunnable;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
+import de.derteufelqwe.commons.hibernate.TypedSessionRunnable;
 import de.derteufelqwe.commons.hibernate.objects.DBService;
 import de.derteufelqwe.commons.hibernate.objects.DBServiceHealth;
 import de.derteufelqwe.commons.hibernate.objects.Node;
+import de.derteufelqwe.nodewatcher.DBQueries;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.executors.ContainerEventHandler;
 import de.derteufelqwe.nodewatcher.misc.NWUtils;
@@ -68,21 +70,12 @@ public class ServiceHealthReader extends RepeatingThread {
     // -----  Utility methods  -----
 
     private List<String> getRelevantServiceIDs() {
-        List<String> serviceIDs = new ArrayList<>();
-
-        new LocalSessionRunnable(sessionBuilder) {
-            @SuppressWarnings("unchecked")
+        return new TypedSessionRunnable<List<String>>(sessionBuilder) {
             @Override
-            protected void exec(Session session) {
-                List<String> dbServices = (List<String>) session.createQuery(
-                        "SELECT s.id FROM DBService AS s WHERE s.active=true"
-                ).getResultList();
-
-                serviceIDs.addAll(dbServices);
+            protected List<String> exec(Session session) {
+                return DBQueries.getActiveServicesIDs(session);
             }
         }.run();
-
-        return serviceIDs;
     }
 
     /**
@@ -142,15 +135,9 @@ public class ServiceHealthReader extends RepeatingThread {
                 .collect(Collectors.toList());
 
         new LocalSessionRunnable(sessionBuilder) {
-            @SuppressWarnings("unchecked")
             @Override
             protected void exec(Session session) {
-                List<DBServiceHealth> runningTasks = session.createQuery(
-                        "SELECT sh FROM DBServiceHealth AS sh WHERE sh.taskState = :tstate AND sh.service.id = :sid",
-                        DBServiceHealth.class)
-                        .setParameter("tstate", DBServiceHealth.TaskState.RUNNING)
-                        .setParameter("sid", serviceID)
-                        .getResultList();
+                List<DBServiceHealth> runningTasks = DBQueries.getAllRunningTasks(session, serviceID);
 
                 for (DBServiceHealth task : runningTasks) {
                     if (!availableTaskIDs.contains(task.getTaskID())) {

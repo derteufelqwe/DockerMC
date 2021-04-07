@@ -4,6 +4,7 @@ import com.github.dockerjava.api.model.Service;
 import com.github.dockerjava.api.model.ServiceModeConfig;
 import com.github.dockerjava.api.model.Task;
 import com.github.dockerjava.api.model.TaskState;
+import de.derteufelqwe.ServerManager.DBQueries;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.spring.Commons;
@@ -12,6 +13,7 @@ import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
 import de.derteufelqwe.ServerManager.utils.ServiceHealthAnalyzer;
 import de.derteufelqwe.ServerManager.utils.ServiceHealthReader;
 import de.derteufelqwe.ServerManager.utils.Utils;
+import de.derteufelqwe.commons.CommonDBQueries;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.LocalSessionRunnable;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
@@ -74,14 +76,10 @@ public class ListServicesCmd implements Runnable {
             protected void exec(Session session) {
                 List<DBService> services = new ArrayList<>();
                 if (all) {
-                    services = session.createQuery(
-                            "SELECT s FROM DBService s ORDER BY s.active DESC , s.name",
-                            DBService.class).getResultList();
+                    services = DBQueries.getAllServices(session);
 
                 } else {
-                    services = session.createQuery(
-                            "SELECT s FROM DBService AS s WHERE s.active=true ORDER BY s.active DESC, s.name",
-                            DBService.class).getResultList();
+                    services = CommonDBQueries.getActiveServices(session);
                 }
 
                 for (DBService service : services) {

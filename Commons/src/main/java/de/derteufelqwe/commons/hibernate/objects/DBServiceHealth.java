@@ -73,6 +73,16 @@ public class DBServiceHealth {
         ORPHANED,
 
         UNKNOWN;    // Used if an unknown state was found eg. when the engine modifies its states
+
+        /**
+         * Returns all states that mark a task as stopped
+         * @return
+         */
+        public static TaskState[] getStoppedStates() {
+            return new TaskState[]{
+                    COMPLETE, SHUTDOWN, FAILED, REJECTED, REMOVE, ORPHANED
+            };
+        }
     }
 
 }
