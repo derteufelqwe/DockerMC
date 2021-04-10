@@ -50,7 +50,7 @@ public final class BungeePlugin extends Plugin {
     // --- Infrastructure ---
     private final HealthCheck healthCheck = new HealthCheck();
     @Getter
-    public static RedisPool redisPool = new RedisPool("redis");
+    public static RedisPool redisPool = new RedisPool();
     @Getter
     public static SessionBuilder sessionBuilder;
     @Getter

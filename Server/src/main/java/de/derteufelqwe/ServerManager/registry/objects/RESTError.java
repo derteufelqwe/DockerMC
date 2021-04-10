@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.annotation.Nullable;
-import javax.validation.constraints.Null;
 
 @AllArgsConstructor
 @NoArgsConstructor

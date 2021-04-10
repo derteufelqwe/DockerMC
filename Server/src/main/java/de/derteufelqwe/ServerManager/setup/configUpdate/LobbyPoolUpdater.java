@@ -2,22 +2,21 @@ package de.derteufelqwe.ServerManager.setup.configUpdate;
 
 import com.github.dockerjava.api.model.UpdateConfig;
 import com.github.dockerjava.api.model.UpdateFailureAction;
-import com.github.dockerjava.api.model.UpdateOrder;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.setup.ServiceCreateResponse;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import de.derteufelqwe.commons.Constants;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import redis.clients.jedis.JedisPool;
 
 import javax.annotation.Nullable;
 
 public class LobbyPoolUpdater extends DMCServiceUpdater<ServerPool> {
 
-    private StringRedisTemplate redisTemplate;
+    private JedisPool jedisPool;
 
-    public LobbyPoolUpdater(Docker docker, StringRedisTemplate redisTemplate) {
+    public LobbyPoolUpdater(Docker docker, JedisPool jedisPool) {
         super(docker);
-        this.redisTemplate = redisTemplate;
+        this.jedisPool = jedisPool;
     }
 
     @Override
@@ -42,7 +41,7 @@ public class LobbyPoolUpdater extends DMCServiceUpdater<ServerPool> {
 
     @Override
     protected ServiceCreateResponse createNewService() {
-        return new LobbyPoolCreator(this.docker, this.redisTemplate).create();
+        return new LobbyPoolCreator(this.docker, this.jedisPool).create();
     }
 
     @Override

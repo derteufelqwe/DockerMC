@@ -69,7 +69,7 @@ public class ContainerHealthReader extends Thread implements IContainerObserver 
         while (this.doRun.get()) {
             try {
                 synchronized (this.runningContainers) {
-                    logger.info("Updating healths for {} containers.", this.runningContainers.size());
+                    logger.debug("Updating healths for {} containers.", this.runningContainers.size());
                     for (String id : new HashSet<>(this.runningContainers)) {
 
                         try {

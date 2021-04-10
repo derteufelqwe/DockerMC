@@ -1,8 +1,11 @@
 package de.derteufelqwe.commons.redis;
 
+import de.derteufelqwe.commons.Constants;
 import lombok.Getter;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
+
+import java.util.ConcurrentModificationException;
 
 /**
  * Manages the redis pool
@@ -26,6 +29,11 @@ public class RedisPool {
         this(host, 6379);
     }
 
+    public RedisPool() {
+        this(Constants.REDIS_CONTAINER_NAME);
+    }
+
+
     private JedisPoolConfig getJedisPoolConfig() {
         JedisPoolConfig config = new JedisPoolConfig();
 
@@ -44,6 +52,5 @@ public class RedisPool {
     public void destroy() {
         this.jedisPool.destroy();
     }
-
 
 }

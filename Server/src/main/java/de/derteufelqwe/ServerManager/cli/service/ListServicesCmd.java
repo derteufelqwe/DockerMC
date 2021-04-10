@@ -7,13 +7,18 @@ import de.derteufelqwe.ServerManager.tablebuilder.Column;
 import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
 import de.derteufelqwe.ServerManager.utils.ServiceHealthAnalyzer;
 import de.derteufelqwe.commons.CommonDBQueries;
+import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.LocalSessionRunnable;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBService;
 import de.derteufelqwe.commons.hibernate.objects.DBServiceHealth;
+import de.derteufelqwe.commons.redis.RedisPool;
 import lombok.extern.log4j.Log4j2;
 import org.hibernate.Session;
 import picocli.CommandLine;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +29,7 @@ public class ListServicesCmd implements Runnable {
 
     private Docker docker = ServerManager.getDocker();
     private SessionBuilder sessionBuilder = ServerManager.getSessionBuilder();
+    private JedisPool jedisPool = ServerManager.getRedisPool().getJedisPool();
 
 
     @CommandLine.Option(names = {"-a", "--all"}, description = "Also show removed services")
@@ -32,7 +38,7 @@ public class ListServicesCmd implements Runnable {
 
     @Override
     public void run() {
-        String lobbyServerName = "LobbyServer";
+        String lobbyServerName = getLobbyServerNameFromRedis();
 
         TableBuilder tableBuilder = new TableBuilder()
                 .withNoRowSeparation()
@@ -96,6 +102,16 @@ public class ListServicesCmd implements Runnable {
 
 
         tableBuilder.build(log);
+    }
+
+    private String getLobbyServerNameFromRedis() {
+        try (Jedis jedis = jedisPool.getResource()) {
+            return jedis.get(Constants.REDIS_KEY_LOBBYSERVER);
+
+        } catch (JedisConnectionException e) {
+            log.warn("Failed to connect to redis server. Is it started?");
+            return "";
+        }
     }
 
 }

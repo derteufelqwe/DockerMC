@@ -1737,6 +1737,7 @@ UC/10
     </table>
     <table id="53" parent="18" name="logs">
       <ObjectId>20632</ObjectId>
+      <Outdated>1</Outdated>
       <Owner>dockermc</Owner>
       <StateNumber>284513</StateNumber>
     </table>

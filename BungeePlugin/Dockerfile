@@ -7,8 +7,6 @@ EXPOSE 25577
 EXPOSE 8001
 
 WORKDIR /server
-VOLUME ["/server", "/plugins"]
-
 
 HEALTHCHECK --interval=10s --start-period=60s --retries=3 --timeout=10s CMD curl -f http://localhost:8001/health || exit 101
 

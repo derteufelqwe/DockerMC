@@ -3,8 +3,8 @@ package de.derteufelqwe.ServerManager;
 import de.derteufelqwe.ServerManager.cli.CliCommands;
 import de.derteufelqwe.ServerManager.cli.converters.DurationConverter;
 import de.derteufelqwe.ServerManager.config.MainConfig;
-import de.derteufelqwe.ServerManager.config.ServersConfig;
 import de.derteufelqwe.ServerManager.config.OldServersConfig;
+import de.derteufelqwe.ServerManager.config.ServersConfig;
 import de.derteufelqwe.ServerManager.registry.DockerRegistryAPI;
 import de.derteufelqwe.ServerManager.utils.Commons;
 import de.derteufelqwe.commons.Constants;
@@ -12,6 +12,7 @@ import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
 import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
+import de.derteufelqwe.commons.redis.RedisPool;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.fusesource.jansi.AnsiConsole;
@@ -25,8 +26,6 @@ import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.widget.TailTipWidgets;
-import org.springframework.boot.SpringApplication;
-import org.springframework.util.StringUtils;
 import picocli.CommandLine;
 import picocli.shell.jline3.PicocliCommands;
 
@@ -37,7 +36,6 @@ import java.time.Duration;
 import java.util.function.Supplier;
 
 
-//@SpringBootApplication
 @Log4j2
 public class ServerManager {
 
@@ -48,10 +46,12 @@ public class ServerManager {
      *  - Clean database layouts
      *  - Switch overlay network driver
      *  - Automatic MC / BC plugin downloading
-     *  - Tag DockerMC application and MC / MC plugins with a database schema version
+     *  - Tag DockerMC application and BC / MC plugins with a database schema version
      *  - Check that the plugins have correct names on image build
      *  - Make sure that the NodeWatcher has created the service before containers get created
      *  - Encrypt Registry SSL certificate
+     *  - Track Registry ssl certificate age
+     *  - Refactor the server creation / update methods
      */
 
     public static final boolean SKIP_STARTUP_CHECKS = true;
@@ -63,13 +63,18 @@ public class ServerManager {
      *  102: Invalid server config file
      */
 
-    @Getter public static final Config<MainConfig> mainConfig = new Config<>(new DefaultYamlConverter(), new DefaultGsonProvider(), Constants.CONFIG_PATH + "/main.yml", new MainConfig());
-    @Getter public static final Config<ServersConfig> serverConfig = new Config<>(new DefaultYamlConverter(), new DefaultGsonProvider(), Constants.CONFIG_PATH + "/servers.yml", new ServersConfig());
-    @Getter public static final Config<OldServersConfig> serverConfigOld = new Config<>(new DefaultYamlConverter(), new DefaultGsonProvider(), Constants.DATA_PATH + "/servers_old.yml", new OldServersConfig());
+    @Getter
+    public static final Config<MainConfig> mainConfig = new Config<>(new DefaultYamlConverter(), new DefaultGsonProvider(), Constants.CONFIG_PATH + "/main.yml", new MainConfig());
+    @Getter
+    public static final Config<ServersConfig> serverConfig = new Config<>(new DefaultYamlConverter(), new DefaultGsonProvider(), Constants.CONFIG_PATH + "/servers.yml", new ServersConfig());
+    @Getter
+    public static final Config<OldServersConfig> serverConfigOld = new Config<>(new DefaultYamlConverter(), new DefaultGsonProvider(), Constants.DATA_PATH + "/servers_old.yml", new OldServersConfig());
+
     @Getter private static SessionBuilder sessionBuilder;
     @Getter private static Docker docker;
     @Getter private static Commons commons;
     @Getter private static DockerRegistryAPI registryAPI;
+    @Getter private static RedisPool redisPool;
 
 
     public static void main(String[] args) {
@@ -80,8 +85,9 @@ public class ServerManager {
         sessionBuilder = new SessionBuilder(Constants.DB_DMC_USER, "admin", Constants.DMC_MASTER_DNS_NAME);
         log.info("Connecting to the docker engine...");
         docker = new Docker("tcp", "ubuntu1", 2375, mainConfig.get());
-        commons = new Commons();
         registryAPI = new DockerRegistryAPI("https://" + Constants.REGISTRY_URL, mainConfig.get().getRegistryUsername(), mainConfig.get().getRegistryPassword());
+        redisPool = new RedisPool("ubuntu1");
+        commons = new Commons();
 
         try {
             startCLI();
@@ -95,15 +101,6 @@ public class ServerManager {
             }
             sessionBuilder.close();
         }
-    }
-
-    private static void startSprint(String[] args) {
-        String[] disabledCommands = {
-                "--spring.shell.command.script.enabled=false"
-        };
-        String[] fullArgs = StringUtils.concatenateStringArrays(args, disabledCommands);
-
-        SpringApplication.run(ServerManager.class, fullArgs);
     }
 
     private static void startCLI() {

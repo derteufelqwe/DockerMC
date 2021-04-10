@@ -4,15 +4,16 @@ import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import de.derteufelqwe.ServerManager.setup.templates.DockerObjTemplate;
 import de.derteufelqwe.commons.Constants;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 class LobbyPoolCreator extends DMCServiceCreator<ServerPool> {
 
-    protected StringRedisTemplate redisTemplate;
+    protected JedisPool jedisPool;
 
-    public LobbyPoolCreator(Docker docker, StringRedisTemplate redisTemplate) {
+    public LobbyPoolCreator(Docker docker, JedisPool jedisPool) {
         super(docker);
-        this.redisTemplate = redisTemplate;
+        this.jedisPool = jedisPool;
     }
 
 
@@ -37,7 +38,9 @@ class LobbyPoolCreator extends DMCServiceCreator<ServerPool> {
      * @param serverName Name to set
      */
     private void addToRedis(String serverName) {
-        this.redisTemplate.opsForValue().set(Constants.REDIS_KEY_LOBBYSERVER, serverName);
+        try (Jedis jedis = jedisPool.getResource()) {
+            jedis.set(Constants.REDIS_KEY_LOBBYSERVER, serverName);
+        }
     }
 
     @Override

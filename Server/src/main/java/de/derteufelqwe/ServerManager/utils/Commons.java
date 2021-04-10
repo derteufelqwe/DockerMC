@@ -16,8 +16,7 @@ import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.NotImplementedException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import redis.clients.jedis.JedisPool;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,15 +27,15 @@ import java.util.List;
 @Log4j2
 public class Commons {
 
-    @Autowired
-    private StringRedisTemplate redisTemplate;
     private final Docker docker = ServerManager.getDocker();
     private final Config<ServersConfig> serversConfig = ServerManager.getServerConfig();
     private final SessionBuilder sessionBuilder = ServerManager.getSessionBuilder();
+    private final JedisPool jedisPool = ServerManager.getRedisPool().getJedisPool();
 
 
     /**
      * Reloads the minecraft servers
+     *
      * @return
      */
     public boolean reloadServerConfig() {
@@ -173,9 +172,11 @@ public class Commons {
 
         switch (response.getResult()) {
             case OK:
-                log.info("Created NodeWatcher service successfully."); break;
+                log.info("Created NodeWatcher service successfully.");
+                break;
             case RUNNING:
-                log.info("NodeWatcher service already running."); break;
+                log.info("NodeWatcher service already running.");
+                break;
             case FAILED_GENERIC:
                 log.error("Failed to create the NodeWatcher service! ID: {}, Message: {}.",
                         response.getServiceId(), response.getAdditionalInfos());
@@ -207,9 +208,11 @@ public class Commons {
 
         switch (response.getResult()) {
             case OK:
-                log.info("Stopped registry container successfully."); break;
+                log.info("Stopped registry container successfully.");
+                break;
             case NOT_RUNNING:
-                log.info("Registry container not running."); break;
+                log.info("Registry container not running.");
+                break;
             case FAILED_GENERIC:
                 log.error("Failed to stop the registry container! ID: {}, Message: {}.",
                         response.getServiceId(), response.getAdditionalInfos());
@@ -228,9 +231,11 @@ public class Commons {
 
         switch (response.getResult()) {
             case OK:
-                log.info("Stopped NodeWatcher service successfully."); break;
+                log.info("Stopped NodeWatcher service successfully.");
+                break;
             case NOT_RUNNING:
-                log.info("NodeWatcher service not running."); break;
+                log.info("NodeWatcher service not running.");
+                break;
             case FAILED_GENERIC:
                 log.error("Failed to stop the NodeWatcher service! ID: {}, Message: {}.",
                         response.getServiceId(), response.getAdditionalInfos());
@@ -249,9 +254,11 @@ public class Commons {
 
         switch (response.getResult()) {
             case OK:
-                log.info("Stopped redis container successfully."); break;
+                log.info("Stopped redis container successfully.");
+                break;
             case NOT_RUNNING:
-                log.info("Redis container not running."); break;
+                log.info("Redis container not running.");
+                break;
             case FAILED_GENERIC:
                 log.error("Failed to stop the redis container! ID: {}, Message: {}.",
                         response.getServiceId(), response.getAdditionalInfos());
@@ -300,6 +307,7 @@ public class Commons {
 
     /**
      * Default server creation method
+     *
      * @return
      */
     public boolean createAllMCServers() {
@@ -308,6 +316,7 @@ public class Commons {
 
     /**
      * Creates or updates the BungeeCord service
+     *
      * @param force
      * @return
      */
@@ -344,11 +353,12 @@ public class Commons {
 
     /**
      * Creates or updates the LobbyServer service
+     *
      * @param force
      * @return
      */
     public boolean createLobbyServer(boolean force) {
-        ServiceUpdateResponse response = new LobbyPoolUpdater(docker, redisTemplate).update(force);
+        ServiceUpdateResponse response = new LobbyPoolUpdater(docker, jedisPool).update(force);
 
         switch (response.getResult()) {
             case CREATED:
