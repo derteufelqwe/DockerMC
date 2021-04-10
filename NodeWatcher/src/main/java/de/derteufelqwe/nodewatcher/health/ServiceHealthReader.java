@@ -1,13 +1,11 @@
 package de.derteufelqwe.nodewatcher.health;
 
 import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.model.ContainerNetwork;
 import com.github.dockerjava.api.model.Task;
 import com.github.dockerjava.api.model.TaskState;
 import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.hibernate.LocalSessionRunnable;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
-import de.derteufelqwe.commons.hibernate.TypedSessionRunnable;
 import de.derteufelqwe.commons.hibernate.objects.DBService;
 import de.derteufelqwe.commons.hibernate.objects.DBServiceHealth;
 import de.derteufelqwe.commons.hibernate.objects.Node;
@@ -23,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.persistence.EntityNotFoundException;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -49,7 +47,7 @@ public class ServiceHealthReader extends RepeatingThread {
     public void repeatedRun() {
         try {
             // Find all relevant services
-            List<String> serviceIDs = this.getRelevantServiceIDs();
+            List<String> serviceIDs = sessionBuilder.execute(DBQueries::getActiveServicesIDs);
             log.info("Updating healths for {} services.", serviceIDs.size());
 
             for (String serviceID : serviceIDs) {
@@ -68,15 +66,6 @@ public class ServiceHealthReader extends RepeatingThread {
     }
 
     // -----  Utility methods  -----
-
-    private List<String> getRelevantServiceIDs() {
-        return new TypedSessionRunnable<List<String>>(sessionBuilder) {
-            @Override
-            protected List<String> exec(Session session) {
-                return DBQueries.getActiveServicesIDs(session);
-            }
-        }.run();
-    }
 
     /**
      * Fetches the running tasks and creates a database entry for these
@@ -134,20 +123,16 @@ public class ServiceHealthReader extends RepeatingThread {
                 .map(Task::getId)
                 .collect(Collectors.toList());
 
-        new LocalSessionRunnable(sessionBuilder) {
-            @Override
-            protected void exec(Session session) {
-                List<DBServiceHealth> runningTasks = DBQueries.getAllRunningTasks(session, serviceID);
+        sessionBuilder.execute(session -> {
+            List<DBServiceHealth> runningTasks = DBQueries.getAllRunningTasks(session, serviceID);
 
-                for (DBServiceHealth task : runningTasks) {
-                    if (!availableTaskIDs.contains(task.getTaskID())) {
-                        task.setTaskState(DBServiceHealth.TaskState.COMPLETE);
-                        session.update(task);
-                    }
+            for (DBServiceHealth task : runningTasks) {
+                if (!availableTaskIDs.contains(task.getTaskID())) {
+                    task.setTaskState(DBServiceHealth.TaskState.COMPLETE);
+                    session.update(task);
                 }
-
             }
-        }.run();
+        });
     }
 
     @NotNull

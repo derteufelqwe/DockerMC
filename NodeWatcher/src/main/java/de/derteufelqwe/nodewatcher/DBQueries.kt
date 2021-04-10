@@ -1,6 +1,5 @@
 package de.derteufelqwe.nodewatcher
 
-import de.derteufelqwe.commons.hibernate.objects.DBService
 import de.derteufelqwe.commons.hibernate.objects.DBServiceHealth
 import org.hibernate.Session
 
@@ -11,7 +10,7 @@ object DBQueries {
      */
     @Suppress("UNCHECKED_CAST")
     @JvmStatic
-    fun getActiveServicesIDs(session: Session) : List<String> {
+    fun getActiveServicesIDs(session: Session): List<String> {
         // language=HQL
         val query = """
             SELECT 
@@ -29,7 +28,7 @@ object DBQueries {
      * Returns a list of all running DBServiceHealths
      */
     @JvmStatic
-    fun getAllRunningTasks(session: Session, serviceID : String) : List<DBServiceHealth> {
+    fun getAllRunningTasks(session: Session, serviceID: String): List<DBServiceHealth> {
         // language=HQL
         val query = """
             SELECT 

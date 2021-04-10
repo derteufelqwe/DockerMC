@@ -68,7 +68,7 @@ public class ServiceDetailsCmd implements Runnable {
                 tableBuilder.addToColumn(0, "Health");
                 if (dbService.isActive()) {
                     List<DBServiceHealth> healths = new ServiceHealthAnalyzer(session, dbService.getId()).analyze(errorDuration.getSeconds() * 1000);
-                    if (healths.size() == 0 || dbService.isHealthy()) {
+                    if (healths.size() == 0) {
                         tableBuilder.addToColumn(1, "(Healthy)");
 
                     } else {

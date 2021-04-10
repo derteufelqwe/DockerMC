@@ -1,10 +1,8 @@
 package de.derteufelqwe.ServerManager.cli.system;
 
 import com.github.dockerjava.api.model.Info;
-import com.github.dockerjava.api.model.SwarmNode;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
-import de.derteufelqwe.ServerManager.spring.Commons;
 import de.derteufelqwe.ServerManager.tablebuilder.Column;
 import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
 import de.derteufelqwe.commons.hibernate.LocalSessionRunnable;
@@ -12,12 +10,10 @@ import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.Node;
 import lombok.extern.log4j.Log4j2;
 import org.hibernate.Session;
-import org.hibernate.query.criteria.internal.CriteriaQueryImpl;
 import picocli.CommandLine;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @CommandLine.Command(name = "listNodes", description = "Lists docker nodes")
 @Log4j2

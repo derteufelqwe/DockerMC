@@ -29,7 +29,7 @@ public class RegistryContainer extends ExposableContainerTemplate {
     }
 
     public RegistryContainer() {
-        super("Registry", Constants.Images.REGISTRY.image(), "1G", 2.0F, 443);
+        super(Constants.REGISTRY_CONTAINER_NAME, Constants.Images.REGISTRY.image(), "1G", 2.0F, 443);
     }
 
     // -----  Creation methods  -----
@@ -76,7 +76,7 @@ public class RegistryContainer extends ExposableContainerTemplate {
 
     @Override
     protected int getContainerPort() {
-        return 5000;
+        return Constants.REGISTY_CONTAINER_DEFAULT_PORT;
     }
 
 

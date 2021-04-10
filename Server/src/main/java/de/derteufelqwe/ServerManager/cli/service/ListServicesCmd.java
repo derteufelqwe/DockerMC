@@ -1,34 +1,22 @@
 package de.derteufelqwe.ServerManager.cli.service;
 
-import com.github.dockerjava.api.model.Service;
-import com.github.dockerjava.api.model.ServiceModeConfig;
-import com.github.dockerjava.api.model.Task;
-import com.github.dockerjava.api.model.TaskState;
 import de.derteufelqwe.ServerManager.DBQueries;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
-import de.derteufelqwe.ServerManager.spring.Commons;
 import de.derteufelqwe.ServerManager.tablebuilder.Column;
 import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
 import de.derteufelqwe.ServerManager.utils.ServiceHealthAnalyzer;
-import de.derteufelqwe.ServerManager.utils.ServiceHealthReader;
-import de.derteufelqwe.ServerManager.utils.Utils;
 import de.derteufelqwe.commons.CommonDBQueries;
-import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.LocalSessionRunnable;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
-import de.derteufelqwe.commons.hibernate.TypedSessionRunnable;
 import de.derteufelqwe.commons.hibernate.objects.DBService;
 import de.derteufelqwe.commons.hibernate.objects.DBServiceHealth;
-import de.derteufelqwe.commons.hibernate.objects.Node;
 import lombok.extern.log4j.Log4j2;
 import org.hibernate.Session;
 import picocli.CommandLine;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @CommandLine.Command(name = "list", description = "Lists all running services")
 @Log4j2

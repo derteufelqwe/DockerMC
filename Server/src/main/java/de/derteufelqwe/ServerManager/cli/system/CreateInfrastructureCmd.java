@@ -1,12 +1,12 @@
 package de.derteufelqwe.ServerManager.cli.system;
 
 import de.derteufelqwe.ServerManager.ServerManager;
-import de.derteufelqwe.ServerManager.spring.Commons;
+import de.derteufelqwe.ServerManager.utils.Commons;
 import de.derteufelqwe.ServerManager.utils.Utils;
 import lombok.extern.log4j.Log4j2;
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "createInfrastructure", description = "Creates the required infrastructure for DockerMC")
+@CommandLine.Command(name = "createInfrastructure", aliases = {"createInfra"}, description = "Creates the required infrastructure for DockerMC")
 @Log4j2
 public class CreateInfrastructureCmd implements Runnable {
 

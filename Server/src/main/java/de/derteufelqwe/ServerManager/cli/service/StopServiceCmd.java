@@ -3,7 +3,7 @@ package de.derteufelqwe.ServerManager.cli.service;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.cli.ServiceCmd;
-import de.derteufelqwe.ServerManager.spring.Commons;
+import de.derteufelqwe.ServerManager.utils.Commons;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import lombok.extern.log4j.Log4j2;
 import picocli.CommandLine;

@@ -5,7 +5,8 @@ import de.derteufelqwe.ServerManager.cli.converters.DurationConverter;
 import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.config.ServersConfig;
 import de.derteufelqwe.ServerManager.config.OldServersConfig;
-import de.derteufelqwe.ServerManager.spring.Commons;
+import de.derteufelqwe.ServerManager.registry.DockerRegistryAPI;
+import de.derteufelqwe.ServerManager.utils.Commons;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
@@ -25,7 +26,6 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.widget.TailTipWidgets;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.util.StringUtils;
 import picocli.CommandLine;
 import picocli.shell.jline3.PicocliCommands;
@@ -69,6 +69,7 @@ public class ServerManager {
     @Getter private static SessionBuilder sessionBuilder;
     @Getter private static Docker docker;
     @Getter private static Commons commons;
+    @Getter private static DockerRegistryAPI registryAPI;
 
 
     public static void main(String[] args) {
@@ -80,6 +81,7 @@ public class ServerManager {
         log.info("Connecting to the docker engine...");
         docker = new Docker("tcp", "ubuntu1", 2375, mainConfig.get());
         commons = new Commons();
+        registryAPI = new DockerRegistryAPI("https://" + Constants.REGISTRY_URL, mainConfig.get().getRegistryUsername(), mainConfig.get().getRegistryPassword());
 
         try {
             startCLI();

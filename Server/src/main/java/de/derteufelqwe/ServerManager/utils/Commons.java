@@ -1,4 +1,4 @@
-package de.derteufelqwe.ServerManager.spring;
+package de.derteufelqwe.ServerManager.utils;
 
 import com.github.dockerjava.api.model.Service;
 import de.derteufelqwe.ServerManager.Docker;

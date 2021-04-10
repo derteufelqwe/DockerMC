@@ -15,7 +15,7 @@ import java.util.List;
 @ToString(exclude = {"logs", "containerStats"})
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "containers")
+@Entity
 @Table(name = "containers", indexes = {
         @Index(name = "ID_IDX", columnList = "id"),
         @Index(name = "NAME_IDX", columnList = "name"),
@@ -115,6 +115,14 @@ public class DBContainer {
 
         DBContainerHealth health = this.containerHealths.get(0);
         return health.isHealthy();
+    }
+
+    /**
+     * Returns if the container is currently running
+     * @return
+     */
+    public boolean isActive() {
+        return this.stopTime == null;
     }
 
 }

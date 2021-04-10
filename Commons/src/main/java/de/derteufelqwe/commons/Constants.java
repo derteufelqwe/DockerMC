@@ -50,6 +50,8 @@ public class Constants {
     public static final String DOCKER_IMAGE_TYPE_TAG = "DockerMCImageType";
 
     // -----  Registry  -----
+    public static final String REGISTRY_CONTAINER_NAME = "Registry";
+    public static final int REGISTY_CONTAINER_DEFAULT_PORT = 5000;
     // Path to the Registry Certificate and key
     private static final String REGISTRY_CERT_PATH = "server/internal/security/registry-certs/";
     /**

@@ -1,5 +1,6 @@
 package de.derteufelqwe.ServerManager
 
+import de.derteufelqwe.commons.hibernate.objects.DBContainer
 import de.derteufelqwe.commons.hibernate.objects.DBService
 import de.derteufelqwe.commons.hibernate.objects.DBServiceHealth
 import org.hibernate.Session
@@ -92,6 +93,38 @@ object DBQueries {
         """.trimIndent()
 
         return session.createQuery(query, DBService::class.java).resultList;
+    }
+
+    /**
+     * Returns a list of DBContainers
+     */
+    @JvmStatic
+    fun getContainers(session: Session, all : Boolean?, serviceID: String?) : List<DBContainer> {
+        var allQuery = ""
+        if (all == false) {
+            allQuery = "AND c.exitcode IS NULL";
+        }
+
+        var serviceQuery = ""
+        if (serviceID != null) {
+            serviceQuery = "AND c.service.id = '${serviceID}'"
+        }
+
+        // language=HQL
+        val query = """
+            SELECT 
+                c 
+            FROM 
+                DBContainer c 
+            WHERE 
+                c IS NOT NULL
+                ${allQuery}
+                ${serviceQuery}
+            ORDER BY 
+                c.service.id DESC , c.startTime
+        """.trimIndent().format()
+
+        return session.createQuery(query, DBContainer::class.java).resultList;
     }
 
 }
