@@ -14,7 +14,7 @@ import java.util.List;
 @ToString(exclude = {"containers", "nodeStats", "serviceHealths"})
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "nodes")
+@Entity
 @Table(name = "nodes", indexes = {
         @Index(name = "ID_IDX", columnList = "id"),
 })

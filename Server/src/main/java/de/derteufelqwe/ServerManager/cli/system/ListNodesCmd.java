@@ -1,6 +1,7 @@
 package de.derteufelqwe.ServerManager.cli.system;
 
 import com.github.dockerjava.api.model.Info;
+import de.derteufelqwe.ServerManager.DBQueries;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.tablebuilder.Column;
@@ -50,26 +51,15 @@ public class ListNodesCmd implements Runnable {
                         .build())
                 ;
 
-        List<Node> nodes = new ArrayList<>();
+        List<Node> nodes = sessionBuilder.execute(session -> {
+            if (all) {
+                return DBQueries.getAllNodes(session);
 
-        new LocalSessionRunnable(sessionBuilder) {
-            @Override
-            protected void exec(Session session) {
-                List<Node> nodeList = new ArrayList<>();
-                if (all) {
-                    nodeList = session.createNativeQuery(
-                            "SELECT * FROM nodes AS n ORDER BY leavetime DESC, jointime ASC",
-                    Node.class).getResultList();
-
-                } else {
-                    nodeList = session.createNativeQuery(
-                            "SELECT * FROM nodes AS n WHERE n.leavetime ISNULL ORDER BY leavetime DESC, jointime ASC",
-                    Node.class).getResultList();
-                }
-
-                nodes.addAll(nodeList);
+            } else {
+                return DBQueries.getAllActiveNodes(session);
             }
-        }.run();
+        });
+
 
         for (Node node : nodes) {
             String idPrefix = node.getId().equals(currentNodeId) ? "> " : "";

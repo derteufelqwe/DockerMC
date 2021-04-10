@@ -69,12 +69,12 @@ public class TimedPermissionWatcher extends Thread {
             Transaction tx = session.beginTransaction();
 
             try {
-                int permRows = session.createNativeQuery(
-                        "DELETE FROM permissions AS p WHERE p.timeout <= now()"
+                int permRows = session.createQuery(
+                        "DELETE FROM Permission AS p WHERE p.timeout <= current_timestamp()"
                 ).executeUpdate();
 
-                int permGroupRows = session.createNativeQuery(
-                        ""
+                int permGroupRows = session.createQuery(
+                        "DELETE FROM PlayerToPermissionGroup AS p WHERE p.timeout <= current_timestamp()"
                 ).executeUpdate();
 
                 tx.commit();

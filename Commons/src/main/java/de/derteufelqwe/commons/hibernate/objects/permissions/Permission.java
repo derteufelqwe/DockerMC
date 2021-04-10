@@ -15,7 +15,7 @@ import java.sql.Timestamp;
 
 @Getter
 @Setter
-@Entity(name = "permissions")
+@Entity
 @Table(name = "permissions", indexes = {
         @Index(name = "ID_IDX", columnList = "id"),
         @Index(name = "TEXT_IDX", columnList = "permission_text"),

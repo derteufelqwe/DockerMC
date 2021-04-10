@@ -3,6 +3,7 @@ package de.derteufelqwe.ServerManager
 import de.derteufelqwe.commons.hibernate.objects.DBContainer
 import de.derteufelqwe.commons.hibernate.objects.DBService
 import de.derteufelqwe.commons.hibernate.objects.DBServiceHealth
+import de.derteufelqwe.commons.hibernate.objects.Node
 import org.hibernate.Session
 import org.intellij.lang.annotations.Language
 import java.sql.Timestamp
@@ -96,7 +97,7 @@ object DBQueries {
     }
 
     /**
-     * Returns a list of DBContainers
+     * Returns a list of DBContainers with some filters
      */
     @JvmStatic
     fun getContainers(session: Session, all : Boolean?, serviceID: String?) : List<DBContainer> {
@@ -125,6 +126,44 @@ object DBQueries {
         """.trimIndent().format()
 
         return session.createQuery(query, DBContainer::class.java).resultList;
+    }
+
+    /**
+     * Returns all nodes from the DB
+     */
+    @JvmStatic
+    fun getAllNodes(session: Session): List<Node> {
+        // language=HQL
+        val query = """
+            SELECT 
+                n
+            FROM 
+                Node AS n 
+            ORDER BY 
+                n.leaveTime DESC, n.joinTime ASC
+        """.trimIndent()
+
+        return session.createQuery(query, Node::class.java).resultList;
+    }
+
+    /**
+     * Returns all active nodes from the DB
+     */
+    @JvmStatic
+    fun getAllActiveNodes(session: Session): List<Node> {
+        // language=HQL
+        val query = """
+            SELECT 
+                n
+            FROM 
+                Node AS n 
+            WHERE 
+                n.leaveTime IS NULL
+            ORDER BY 
+                n.leaveTime DESC, n.joinTime ASC
+        """.trimIndent()
+
+        return session.createQuery(query, Node::class.java).resultList;
     }
 
 }

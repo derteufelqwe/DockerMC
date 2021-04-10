@@ -1,5 +1,6 @@
 package de.derteufelqwe.bungeeplugin.eventhandlers;
 
+import de.derteufelqwe.bungeeplugin.DBQueries;
 import org.jetbrains.annotations.Nullable;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.events.BungeePlayerJoinEvent;
@@ -436,11 +437,7 @@ public class EventsDispatcher implements Listener {
             Transaction tx = session.beginTransaction();
 
             try {
-                List<PlayerLogin> logins = session.createNativeQuery(
-                        "SELECT * FROM player_logins AS pl WHERE pl.player_uuid = :playerid AND pl.leavetime IS NULL",
-                        PlayerLogin.class)
-                        .setParameter("playerid", player.getUniqueId())
-                        .getResultList();
+                List<PlayerLogin> logins = DBQueries.getPlayerLogins(session, player.getUniqueId());
 
                 for (PlayerLogin login : logins) {
                     login.setLeaveTime(new Timestamp(System.currentTimeMillis()));

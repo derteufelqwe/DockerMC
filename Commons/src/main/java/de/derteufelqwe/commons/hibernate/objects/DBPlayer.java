@@ -28,7 +28,7 @@ import java.util.UUID;
         "liftedIpBans", "ownedBanks", "banks"})
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "players")
+@Entity
 @Table(name = "players", indexes = {
         @Index(name = "ID_INDEX", columnList = "uuid"),
         @Index(name = "NAME_INDEX", columnList = "name"),

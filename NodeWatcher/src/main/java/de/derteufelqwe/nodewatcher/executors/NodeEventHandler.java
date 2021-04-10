@@ -7,6 +7,7 @@ import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.hibernate.LocalSessionRunnable;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.Node;
+import de.derteufelqwe.nodewatcher.DBQueries;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
@@ -49,7 +50,7 @@ public class NodeEventHandler implements ResultCallback<Event> {
     @Override
     public void onStart(Closeable closeable) {
         try {
-            List<String> runningNodesDB = this.getRunningNodesFromDB();
+            List<String> runningNodesDB = sessionBuilder.execute(DBQueries::getAllActiveNodeIDs);
             List<String> runningNodesDocker = this.getRunningNodesFromDocker();
             this.addOrUpdateDockerNodes(runningNodesDocker);
             this.stopRemovedNodes(runningNodesDB, runningNodesDocker);
@@ -238,29 +239,6 @@ public class NodeEventHandler implements ResultCallback<Event> {
 
     public boolean awaitStarted(long timeout, TimeUnit unit) throws InterruptedException {
         return this.hasStartedLatch.await(timeout, unit);
-    }
-
-    /**
-     * Returns a list of running Node IDs, from the DB.
-     * @return
-     */
-    @NotNull
-    private List<String> getRunningNodesFromDB() {
-        final List<String> nodeIDs = new ArrayList<>();
-
-        new LocalSessionRunnable(sessionBuilder) {
-            @SuppressWarnings("unchecked")
-            @Override
-            protected void exec(Session session) {
-                List<String> existingNodeIDs = (List<String>) session.createNativeQuery(
-                        "SELECT n.id FROM nodes AS n WHERE n.leavetime IS NULL"
-                ).getResultList();
-
-                nodeIDs.addAll(existingNodeIDs);
-            }
-        }.run();
-
-        return nodeIDs;
     }
 
     /**

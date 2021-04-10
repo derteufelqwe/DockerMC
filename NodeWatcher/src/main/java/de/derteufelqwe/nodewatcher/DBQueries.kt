@@ -1,7 +1,10 @@
 package de.derteufelqwe.nodewatcher
 
 import de.derteufelqwe.commons.hibernate.objects.DBServiceHealth
+import de.derteufelqwe.commons.hibernate.objects.Node
+import de.derteufelqwe.commons.hibernate.objects.PlayerLogin
 import org.hibernate.Session
+import java.util.*
 
 object DBQueries {
 
@@ -44,6 +47,47 @@ object DBQueries {
                 .setParameterList("tstates", DBServiceHealth.TaskState.getStoppedStates())
                 .setParameter("sid", serviceID)
                 .resultList;
+    }
+
+    /**
+     * Returns a list of containers, that are running on a certain swarm node
+     */
+    @Suppress("UNCHECKED_CAST")
+    @JvmStatic
+    fun getRunningContainersOnNode(session: Session, nodeID: String): List<String> {
+        // language=HQL
+        val query = """
+            SELECT 
+                c.id 
+            FROM 
+                DBContainer AS c
+            WHERE 
+                c.stopTime IS NULL 
+                AND c.node.id = :nodeid
+        """.trimIndent()
+
+        return session.createQuery(query)
+            .setParameter("nodeid", nodeID)
+            .resultList as List<String>
+    }
+
+    /**
+     * Returns the IDs of all active nodes from the DB
+     */
+    @Suppress("UNCHECKED_CAST")
+    @JvmStatic
+    fun getAllActiveNodeIDs(session: Session): List<String> {
+        // language=HQL
+        val query = """
+            SELECT 
+                n.id
+            FROM 
+                Node AS n 
+            WHERE 
+                n.leaveTime IS NULL
+        """.trimIndent()
+
+        return session.createQuery(query).resultList as List<String>
     }
 
 }

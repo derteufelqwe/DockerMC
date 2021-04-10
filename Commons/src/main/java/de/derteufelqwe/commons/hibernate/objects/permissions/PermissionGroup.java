@@ -17,7 +17,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(exclude = {"permissions"})
-@Entity(name = "permission_groups")
+@Entity
 @Table(name = "permission_groups", indexes = {
         @Index(name = "ID_IDX", columnList = "id"),
         @Index(name = "NAME_IDX", columnList = "name"),

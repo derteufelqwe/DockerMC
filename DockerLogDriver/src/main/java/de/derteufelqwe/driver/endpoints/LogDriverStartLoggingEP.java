@@ -86,13 +86,11 @@ public class LogDriverStartLoggingEP extends Endpoint<LogDriver.RStartLogging, L
             try {
                 while ((System.currentTimeMillis() - tStart) < CONTAINER_DB_AWAIT_TIMEOUT) {
                     try {
-                        String res = (String) session.createNativeQuery(
-                                "SELECT id FROM containers AS c WHERE c.id = :id"
-                        ).setParameter("id", containerID)
-                                .getSingleResult();
+                        session.getReference(DBContainer.class, containerID);
                         return true;
 
                     } catch (NoResultException ignored) {
+
                     }
 
                     try {

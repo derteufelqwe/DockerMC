@@ -25,4 +25,7 @@ object CommonDBQueries {
         return session.createQuery(query, DBService::class.java).resultList;
     }
 
+
+
+
 }

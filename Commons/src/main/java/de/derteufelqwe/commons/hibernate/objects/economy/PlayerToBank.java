@@ -14,7 +14,7 @@ import javax.persistence.*;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "player_banks")
+@Entity
 @Table(name = "player_banks", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"player_uuid", "bank_name"})
 }, indexes = {

@@ -7,6 +7,7 @@ import de.derteufelqwe.commons.hibernate.objects.DBService;
 import de.derteufelqwe.commons.hibernate.objects.economy.Bank;
 import de.derteufelqwe.commons.hibernate.objects.economy.PlayerToBank;
 import de.derteufelqwe.commons.hibernate.objects.economy.ServiceBalance;
+import de.derteufelqwe.minecraftplugin.DBQueries;
 import de.derteufelqwe.minecraftplugin.MinecraftPlugin;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.OfflinePlayer;
@@ -517,12 +518,9 @@ public class DMCEconomyImpl implements DMCEconomy {
 
 
     private EconomyResponse isBankMember(Session session, DBPlayer dbPlayer, String bankName) {
-        BigInteger count = (BigInteger) session.createNativeQuery("SELECT COUNT(*) FROM player_banks as pb WHERE pb.player_uuid = :pid and pb.bank_name = :bn")
-                .setParameter("pid", dbPlayer.getUuid())
-                .setParameter("bn", bankName)
-                .getSingleResult();
+        boolean isMember = DBQueries.checkPlayerIsBankMember(session, dbPlayer.getUuid(), bankName);
 
-        if (count.equals(BigInteger.valueOf(1))) {
+        if (isMember) {
             return new EconomyResponse(0, 0, EconomyResponse.ResponseType.SUCCESS, "Success.");
 
         } else {
@@ -555,13 +553,7 @@ public class DMCEconomyImpl implements DMCEconomy {
 
     @Override
     public List<String> getBanks() {
-        try (Session session = sessionBuilder.openSession()) {
-            List<String> banks = session.createNativeQuery("SELECT name from banks", String.class).getResultList();
-            if (banks == null)
-                return new ArrayList<>();
-
-            return new ArrayList<>(banks);
-        }
+        return sessionBuilder.execute(DBQueries::getAllBankNames);
     }
 
     // --- Create normal account ---

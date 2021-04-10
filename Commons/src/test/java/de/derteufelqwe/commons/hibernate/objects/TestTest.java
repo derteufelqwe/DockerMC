@@ -44,7 +44,7 @@ public class TestTest {
 
         for (int i = 0; i < COUNTER; i++) {
             EntityManager m = factory.createEntityManager();
-            m.createNativeQuery("SELECT * FROM players WHERE name = 'Arne'", DBPlayer.class).getSingleResult();
+            m.createQuery("SELECT p FROM DBPlayer AS p WHERE p.name = 'Arne'", DBPlayer.class).getSingleResult();
             m.close();
         }
 
@@ -58,7 +58,7 @@ public class TestTest {
 
         for (int i = 0; i < COUNTER; i++) {
             try (Session session = sessionBuilder.openSession()) {
-                session.createNativeQuery("SELECT * FROM players WHERE name = 'Arne'", DBPlayer.class).getSingleResult();
+                session.createQuery("SELECT p FROM DBPlayer AS p WHERE p.name = 'Arne'", DBPlayer.class).getSingleResult();
 //                session.get(DBPlayer.class, playerId);
             }
         }

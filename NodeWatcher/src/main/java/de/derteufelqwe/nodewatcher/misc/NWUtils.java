@@ -8,6 +8,7 @@ import de.derteufelqwe.commons.exceptions.DockerAPIIncompleteException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBService;
 import de.derteufelqwe.commons.hibernate.objects.Node;
+import de.derteufelqwe.nodewatcher.DBQueries;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.exceptions.InvalidSystemStateException;
 import org.hibernate.Session;
@@ -42,14 +43,7 @@ public class NWUtils {
                     throw new InvalidSystemStateException("Failed to find node object for %s!", NodeWatcher.getSwarmNodeId());
                 }
 
-                List<String> res = (List<String>) session.createNativeQuery(
-                        "SELECT id FROM containers WHERE stoptime IS NULL and node_id = :nodeid")
-                        .setParameter("nodeid", node.getId())
-                        .getResultList();
-
-                if (res == null)
-                    return resSet;
-
+                List<String> res = DBQueries.getRunningContainersOnNode(session, node.getId());
                 resSet.addAll(res);
 
                 return resSet;

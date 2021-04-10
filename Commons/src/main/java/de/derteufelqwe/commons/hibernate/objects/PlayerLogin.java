@@ -17,7 +17,7 @@ import java.sql.Timestamp;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "player_logins")
+@Entity
 @Table(name = "player_logins", indexes = {
         @Index(name = "ID_IDX", columnList = "id"),
         @Index(name = "PLAYER_IDX", columnList = "player_uuid"),
