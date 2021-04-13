@@ -54,8 +54,6 @@ public class ServerManager {
      *  - Refactor the server creation / update methods
      */
 
-    public static final boolean SKIP_STARTUP_CHECKS = true;
-
     /*
      * Exit codes:
      *  100: Infrastructure setup failed

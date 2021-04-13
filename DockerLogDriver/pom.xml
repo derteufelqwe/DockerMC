@@ -77,6 +77,14 @@
             <version>2.14.0</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/com.github.luben/zstd-jni -->
+        <dependency>
+            <groupId>com.github.luben</groupId>
+            <artifactId>zstd-jni</artifactId>
+            <version>1.4.9-4</version>
+        </dependency>
+
+
     </dependencies>
 
 

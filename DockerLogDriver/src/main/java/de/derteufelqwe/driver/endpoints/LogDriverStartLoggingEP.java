@@ -5,6 +5,7 @@ import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.DBService;
 import de.derteufelqwe.commons.hibernate.objects.Node;
+import de.derteufelqwe.driver.DBQueries;
 import de.derteufelqwe.driver.DMCLogDriver;
 import de.derteufelqwe.driver.messages.LogDriver;
 import de.derteufelqwe.driver.workers.LogConsumer;
@@ -42,7 +43,7 @@ public class LogDriverStartLoggingEP extends Endpoint<LogDriver.RStartLogging, L
         String file = request.getFile();
         String containerID = request.getInfo().getContainerID();
 
-//        this.injectContainerToDB(request.getInfo());
+        this.injectContainerToDB(request.getInfo());
 
         if (!this.awaitContainerInDB(containerID)) {
             return new LogDriver.StartLogging(String.format("Failed to find container %s in the DB after %s ms.", containerID, CONTAINER_DB_AWAIT_TIMEOUT));
@@ -80,34 +81,22 @@ public class LogDriverStartLoggingEP extends Endpoint<LogDriver.RStartLogging, L
     private boolean awaitContainerInDB(String containerID) {
         long tStart = System.currentTimeMillis();
 
-        try (Session session = sessionBuilder.openSession()) {
-            Transaction tx = session.beginTransaction();
-
-            try {
-                while ((System.currentTimeMillis() - tStart) < CONTAINER_DB_AWAIT_TIMEOUT) {
-                    try {
-                        session.getReference(DBContainer.class, containerID);
-                        return true;
-
-                    } catch (NoResultException ignored) {
-
-                    }
-
-                    try {
-                        TimeUnit.MILLISECONDS.sleep(250);
-
-                    } catch (InterruptedException e) {
-                        return false;
-                    }
+        return sessionBuilder.execute(session -> {
+            while ((System.currentTimeMillis() - tStart) < CONTAINER_DB_AWAIT_TIMEOUT) {
+                if (DBQueries.checkIfContainerExists(session, containerID)) {
+                    return true;
                 }
 
-            } finally {
-                tx.commit();
+                try {
+                    TimeUnit.MILLISECONDS.sleep(250);
+
+                } catch (InterruptedException e) {
+                    return false;
+                }
             }
 
-        }
-
-        return false;
+            return false;
+        });
     }
 
     /**

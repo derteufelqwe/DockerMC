@@ -14,6 +14,7 @@ import de.derteufelqwe.nodewatcher.exceptions.DBContainerNotFoundException;
 import de.derteufelqwe.nodewatcher.executors.ContainerEventHandler;
 import de.derteufelqwe.nodewatcher.misc.IContainerObserver;
 import de.derteufelqwe.nodewatcher.misc.NWUtils;
+import de.derteufelqwe.nodewatcher.misc.RepeatingThread;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
@@ -32,7 +33,7 @@ import java.util.regex.Pattern;
  * Responsible for periodically downloading the new logs for a container.
  * Containers are added by {@link ContainerEventHandler}
  */
-public class ContainerHealthReader extends Thread implements IContainerObserver {
+public class ContainerHealthReader extends RepeatingThread implements IContainerObserver {
 
     private final Pattern RE_CLEAN_CURL = Pattern.compile("(.+% Total +% Received +% Xferd +Average +Speed +Time +Time +Time +Current .+curl: \\(\\d+\\) )(.+)");
     private final int FETCH_INTERVAL = 12;  // in seconds
@@ -46,7 +47,7 @@ public class ContainerHealthReader extends Thread implements IContainerObserver 
 
 
     public ContainerHealthReader() {
-
+        super(10);
     }
 
 
@@ -62,47 +63,40 @@ public class ContainerHealthReader extends Thread implements IContainerObserver 
         synchronized (this.runningContainers) {
             this.runningContainers.remove(containerId);
         }
+
+        // Do one last round to make sure even the last health log was fetched
+        this.fetchContainerHealth(containerId);
     }
 
     @Override
-    public void run() {
-        while (this.doRun.get()) {
-            try {
-                synchronized (this.runningContainers) {
-                    logger.debug("Updating healths for {} containers.", this.runningContainers.size());
-                    for (String id : new HashSet<>(this.runningContainers)) {
+    public void repeatedRun() {
+        try {
+            synchronized (this.runningContainers) {
+                logger.debug("Updating healths for {} containers.", this.runningContainers.size());
+                for (String id : new HashSet<>(this.runningContainers)) {
 
-                        try {
-                            this.fetchContainerHealth(id);
+                    try {
+                        this.fetchContainerHealth(id);
 
-                            // Container not found in DB
-                        } catch (DBContainerNotFoundException e1) {
-                            logger.error(e1.getMessage());
-                            this.runningContainers.remove(id);
+                        // Container not found in DB
+                    } catch (DBContainerNotFoundException e1) {
+                        logger.error(e1.getMessage());
+                        this.runningContainers.remove(id);
 
-                            // Container not found on host
-                        } catch (NotFoundException e2) {
-                            logger.error("Container {} not found on host.", id);
-                            this.runningContainers.remove(id);
-                        }
-
+                        // Container not found on host
+                    } catch (NotFoundException e2) {
+                        logger.error("Container {} not found on host.", id);
+                        this.runningContainers.remove(id);
                     }
-                }
 
-            } catch (Exception e2) {
-                logger.error("Caught exception: {}.", e2.getMessage());
-                e2.printStackTrace(System.err);
-                CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e2, NodeWatcher.getMetaData());
-
-            } finally {
-                try {
-                    this.interpretableSleep(FETCH_INTERVAL);
-
-                } catch (InterruptedException e1) {
-                    this.doRun.set(false);
-                    logger.warn("Stopping ContainerHealthReader.");
                 }
             }
+
+        } catch (Exception e2) {
+            logger.error("Caught exception: {}.", e2.getMessage());
+            e2.printStackTrace(System.err);
+            CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e2, NodeWatcher.getMetaData());
+
         }
     }
 
@@ -120,18 +114,6 @@ public class ContainerHealthReader extends Thread implements IContainerObserver 
 
     public void interrupt() {
         this.doRun.set(false);
-    }
-
-
-    /**
-     * A custom sleep function, which checks every second if the program should still run and exits if not
-     *
-     * @param duration
-     */
-    private void interpretableSleep(long duration) throws InterruptedException {
-        for (long i = 0; i < duration; i++) {
-            TimeUnit.SECONDS.sleep(1);
-        }
     }
 
     private void fetchContainerHealth(String containerID) {

@@ -1,6 +1,5 @@
 package de.derteufelqwe.driver.endpoints;
 
-import com.google.common.cache.CacheBuilder;
 import de.derteufelqwe.driver.messages.LogDriver;
 
 import java.io.Serializable;

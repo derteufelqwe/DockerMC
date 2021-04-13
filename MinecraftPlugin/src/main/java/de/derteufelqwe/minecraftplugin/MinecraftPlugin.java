@@ -25,6 +25,7 @@ import de.derteufelqwe.minecraftplugin.eventhandlers.MiscEventHandler;
 import de.derteufelqwe.minecraftplugin.eventhandlers.TeleportSignEvents;
 import lombok.Getter;
 import net.milkbowl.vault.economy.Economy;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -47,7 +48,7 @@ public final class MinecraftPlugin extends JavaPlugin {
 
     // --- Infrastructure ---
     @Getter
-    private static SessionBuilder sessionBuilder = new SessionBuilder("dockermc", "admin", Constants.DMC_MASTER_DNS_NAME, Constants.POSTGRESDB_PORT);
+    private static SessionBuilder sessionBuilder;
     @Getter
     private static RedisPool redisPool = new RedisPool("redis");
     @Getter
@@ -72,6 +73,8 @@ public final class MinecraftPlugin extends JavaPlugin {
         INSTANCE = this;
         CONFIG.load();
         commandManager = new PaperCommandManager(this);
+        Configurator.setAllLevels("org.hibernate", org.apache.logging.log4j.Level.ERROR);
+        sessionBuilder = new SessionBuilder("dockermc", "admin", Constants.DMC_MASTER_DNS_NAME, Constants.POSTGRESDB_PORT);
 
         // --- Logger ---
         dmcLogger = new DMCLogger("DMCLogger", Level.WARNING, getLogger());

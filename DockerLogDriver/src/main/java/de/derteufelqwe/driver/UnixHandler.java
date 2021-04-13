@@ -160,6 +160,41 @@ public class UnixHandler extends ChannelInboundHandlerAdapter {
                 writeResponse(new LogDriverStopLoggingEP(data));
                 break;
 
+            // --- Volume driver ---
+
+            case "/VolumeDriver.Capabilities":
+                writeResponse(new VolumeDriverCapabilitiesEP(data));
+                break;
+
+            case "/VolumeDriver.Get":
+                writeResponse(new VolumeDriverGetEP(data));
+                break;
+
+            case "/VolumeDriver.Create":
+                writeResponse(new VolumeDriverCreateEP(data));
+                break;
+
+            case "/VolumeDriver.Remove":
+                writeResponse(new VolumeDriverRemoveEP(data));
+                break;
+
+            case "/VolumeDriver.Mount":
+                writeResponse(new VolumeDriverMountEP(data));
+                break;
+
+            case "/VolumeDriver.Unmount":
+                writeResponse(new VolumeDriverUnmountEP(data));
+                break;
+
+            case "/VolumeDriver.Path":
+                writeResponse(new VolumeDriverPathEP(data));
+                break;
+
+            case "/VolumeDriver.List":
+                writeResponse(new VolumeDriverListEP(data));
+                break;
+
+
             default:
                 log.error("Received message on unknown URI {}.", request.uri());
         }

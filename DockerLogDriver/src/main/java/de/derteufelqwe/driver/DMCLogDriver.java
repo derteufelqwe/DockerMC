@@ -32,7 +32,7 @@ public class DMCLogDriver {
     /**
      * Path to the unix socket
      */
-    public static final String SOCKET_FILE_PATH = "/run/docker/plugins/dmcdriver.sock";
+    public static final String SOCKET_FILE_PATH = "/run/docker/plugins/dev.sock";
     /**
      * Time in ms for which the LogConsumer must have not read new data before the log download is considered complete
      */
@@ -84,7 +84,6 @@ public class DMCLogDriver {
 
         Signal.handle(new Signal("TERM"), signalHandler);
         Signal.handle(new Signal("INT"), signalHandler);
-//        Signal.handle(new Signal("HUP"), signalHandler);
     }
 
     public void startServer() throws DMCLogDriverException {

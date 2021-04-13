@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -23,7 +24,7 @@ public class Plugin {
     public static class Activate implements Serializable {
 
         @SerializedName("Implements")
-        private List<String> impl = Collections.singletonList("LogDriver");
+        private List<String> impl = Arrays.asList("LogDriver", "VolumeDriver");
 
     }
 
