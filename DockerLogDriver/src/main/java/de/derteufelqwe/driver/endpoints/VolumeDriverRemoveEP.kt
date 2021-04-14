@@ -1,28 +1,19 @@
-package de.derteufelqwe.driver.endpoints;
+package de.derteufelqwe.driver.endpoints
 
-import de.derteufelqwe.driver.messages.VolumeDriver;
+import de.derteufelqwe.driver.messages.VolumeDriver
+import java.io.Serializable
 
-import java.io.Serializable;
+class VolumeDriverRemoveEP(data: String?) : Endpoint<VolumeDriver.RRemove, VolumeDriver.Remove>(data) {
 
-public class VolumeDriverRemoveEP extends Endpoint<VolumeDriver.RRemove, VolumeDriver.Remove> {
-
-    public VolumeDriverRemoveEP(String data) {
-        super(data);
+    override fun process(request: VolumeDriver.RRemove): VolumeDriver.Remove {
+        return VolumeDriver.Remove()
     }
 
-    @Override
-    protected VolumeDriver.Remove process(VolumeDriver.RRemove request) {
-        return new VolumeDriver.Remove();
+    override fun getRequestType(): Class<out Serializable?> {
+        return VolumeDriver.RRemove::class.java
     }
 
-    @Override
-    protected Class<? extends Serializable> getRequestType() {
-        return VolumeDriver.RRemove.class;
+    override fun getResponseType(): Class<out Serializable?> {
+        return VolumeDriver.Remove::class.java
     }
-
-    @Override
-    protected Class<? extends Serializable> getResponseType() {
-        return VolumeDriver.Remove.class;
-    }
-
 }

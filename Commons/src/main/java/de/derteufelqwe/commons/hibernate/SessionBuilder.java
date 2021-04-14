@@ -7,6 +7,9 @@ import de.derteufelqwe.commons.hibernate.objects.economy.*;
 import de.derteufelqwe.commons.hibernate.objects.permissions.Permission;
 import de.derteufelqwe.commons.hibernate.objects.permissions.PermissionGroup;
 import de.derteufelqwe.commons.hibernate.objects.permissions.PlayerToPermissionGroup;
+import de.derteufelqwe.commons.hibernate.objects.volumes.Volume;
+import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFile;
+import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFolder;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -116,6 +119,9 @@ public class SessionBuilder {
         annotatedClasses.add(DBContainerHealth.class);
         annotatedClasses.add(Log.class);
         annotatedClasses.add(DBServiceHealth.class);
+        annotatedClasses.add(Volume.class);
+        annotatedClasses.add(VolumeFile.class);
+        annotatedClasses.add(VolumeFolder.class);
 
         return annotatedClasses;
     }

@@ -3,6 +3,8 @@ package de.derteufelqwe.commons;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBService;
 import de.derteufelqwe.commons.hibernate.objects.Log;
+import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFile;
+import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFolder;
 import lombok.SneakyThrows;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -19,8 +21,12 @@ public class SessionTests {
         try (Session session = sessionBuilder.openSession()) {
             Transaction tx = session.beginTransaction();
 
-//            DBService service = session.get(DBService.class, "zgm39v057p403mr4ga1jvdqkq");
-//            System.out.println(service.getRunningContainersCount());
+            VolumeFolder folder = session.get(VolumeFolder.class, 63L);
+//            System.out.println(folder.getFiles());
+
+            System.out.println(session.createNativeQuery("select * from volumefiles as f where f.parent_id = :id", VolumeFile.class)
+                    .setParameter("id", 63L)
+                    .getResultList());
 
 
             tx.commit();

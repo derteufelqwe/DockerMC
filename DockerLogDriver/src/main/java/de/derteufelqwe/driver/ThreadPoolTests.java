@@ -1,9 +1,14 @@
 package de.derteufelqwe.driver;
 
+import com.github.luben.zstd.Zstd;
+import com.github.luben.zstd.ZstdDictCompress;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.SneakyThrows;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
+import java.io.File;
 import java.util.Queue;
 import java.util.concurrent.*;
 
@@ -11,34 +16,16 @@ public class ThreadPoolTests {
 
     @SneakyThrows
     public static void main(String[] args) {
-//        BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>();
-//        ExecutorService pool;
-////        pool = new ThreadPoolExecutor(1, 3, 0, TimeUnit.MINUTES, queue);
-////        pool = Executors.newCachedThreadPool();
-//        pool = MoreExecutors.getExitingExecutorService((ThreadPoolExecutor) Executors.newCachedThreadPool(), 10, TimeUnit.SECONDS);
-//
-//        Future<?> f1 = pool.submit(new Task(1));
-//
-//        pool.submit(new Task(2));
-//
-//        pool.submit(new Task(3));
-//
-//        System.out.println("Done");
-//        TimeUnit.MILLISECONDS.sleep(100);
-//
-////        pool.shutdown();
-////        pool.shutdownNow();
-////        TimeUnit.MINUTES.sleep(10);
+        
+        final String PATH = "C:/Users/Arne/Desktop/Paper 1.16.5/world/region/r.-1.0.mca";
 
-        try {
-            throw new RuntimeException("fuck off");
+        byte[] raw = FileUtils.readFileToByteArray(new File(PATH));
 
-        } catch (Exception e) {
-            System.out.println(ExceptionUtils.getStackTrace(e));
-            e.printStackTrace();
-        }
+        byte[] compressed = Zstd.compress(raw, 5);
 
+        double percentage = Math.round(100.0 / raw.length * compressed.length * 100) / 100.0;
 
+        System.out.println("Reduced size by " + (100 - percentage) + "%.");
     }
 
     public static class Task implements Runnable {

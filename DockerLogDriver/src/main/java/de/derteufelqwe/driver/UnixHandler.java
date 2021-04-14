@@ -1,12 +1,9 @@
 package de.derteufelqwe.driver;
 
-import com.google.common.util.concurrent.MoreExecutors;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import de.derteufelqwe.driver.endpoints.*;
+import de.derteufelqwe.driver.exceptions.InvalidAPIDataException;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
@@ -14,7 +11,6 @@ import io.netty.util.CharsetUtil;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.Serializable;
-import java.util.concurrent.*;
 
 @Log4j2
 public class UnixHandler extends ChannelInboundHandlerAdapter {
@@ -106,6 +102,7 @@ public class UnixHandler extends ChannelInboundHandlerAdapter {
      */
     private void onLastHttpContent(LastHttpContent trailer) {
         this.dispatchData();
+        ctx.close();
     }
 
 
@@ -127,12 +124,17 @@ public class UnixHandler extends ChannelInboundHandlerAdapter {
      * @param endpoint
      */
     private void writeResponse(Endpoint<? extends Serializable, ? extends Serializable> endpoint) {
-        FullHttpResponse response = new DefaultFullHttpResponse(
-                HttpVersion.HTTP_1_1,
-                HttpResponseStatus.OK,
-                Unpooled.copiedBuffer(endpoint.getResponse(), CharsetUtil.UTF_8));
+        try {
+            FullHttpResponse response = new DefaultFullHttpResponse(
+                    HttpVersion.HTTP_1_1,
+                    HttpResponseStatus.OK,
+                    Unpooled.copiedBuffer(endpoint.getResponse(), CharsetUtil.UTF_8));
 
-        ctx.writeAndFlush(response);
+            ctx.writeAndFlush(response);
+
+        } catch (InvalidAPIDataException e) {
+            log.error("Invalid API data: ", e);
+        }
     }
 
 
@@ -142,6 +144,10 @@ public class UnixHandler extends ChannelInboundHandlerAdapter {
     @SuppressWarnings("unchecked")
     private void dispatchData() {
         String data = requestData.toString();
+
+        if (data.equals("")) {
+            log.error(request.uri() + " received no data");
+        }
 
         switch (request.uri()) {
             case "/Plugin.Activate":
@@ -194,12 +200,9 @@ public class UnixHandler extends ChannelInboundHandlerAdapter {
                 writeResponse(new VolumeDriverListEP(data));
                 break;
 
-
             default:
                 log.error("Received message on unknown URI {}.", request.uri());
         }
-
-        ctx.close();
     }
 
 }

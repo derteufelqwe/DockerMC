@@ -1,28 +1,19 @@
-package de.derteufelqwe.driver.endpoints;
+package de.derteufelqwe.driver.endpoints
 
-import de.derteufelqwe.driver.messages.VolumeDriver;
+import de.derteufelqwe.driver.messages.VolumeDriver
+import java.io.Serializable
 
-import java.io.Serializable;
+class VolumeDriverListEP(data: String?) : Endpoint<VolumeDriver.RList, VolumeDriver.List>(data) {
 
-public class VolumeDriverListEP extends Endpoint<VolumeDriver.RList, VolumeDriver.List> {
-
-    public VolumeDriverListEP(String data) {
-        super(data);
+    override fun process(request: VolumeDriver.RList): VolumeDriver.List {
+        return VolumeDriver.List()
     }
 
-    @Override
-    protected VolumeDriver.List process(VolumeDriver.RList request) {
-        return new VolumeDriver.List();
+    override fun getRequestType(): Class<out Serializable?> {
+        return VolumeDriver.RList::class.java
     }
 
-    @Override
-    protected Class<? extends Serializable> getRequestType() {
-        return VolumeDriver.RList.class;
+    override fun getResponseType(): Class<out Serializable?> {
+        return VolumeDriver.List::class.java
     }
-
-    @Override
-    protected Class<? extends Serializable> getResponseType() {
-        return VolumeDriver.List.class;
-    }
-
 }

@@ -1,28 +1,20 @@
-package de.derteufelqwe.driver.endpoints;
+package de.derteufelqwe.driver.endpoints
 
-import de.derteufelqwe.driver.messages.VolumeDriver;
+import de.derteufelqwe.driver.DMCLogDriver
+import de.derteufelqwe.driver.messages.VolumeDriver
+import java.io.Serializable
 
-import java.io.Serializable;
+class VolumeDriverPathEP(data: String?) : Endpoint<VolumeDriver.RPath, VolumeDriver.Path>(data) {
 
-public class VolumeDriverPathEP extends Endpoint<VolumeDriver.RPath, VolumeDriver.Path> {
-
-    public VolumeDriverPathEP(String data) {
-        super(data);
+    override fun process(request: VolumeDriver.RPath): VolumeDriver.Path {
+        return VolumeDriver.Path(DMCLogDriver.VOLUME_PATH + request.volumeName, "")
     }
 
-    @Override
-    protected VolumeDriver.Path process(VolumeDriver.RPath request) {
-        return new VolumeDriver.Path();
+    override fun getRequestType(): Class<out Serializable?> {
+        return VolumeDriver.RPath::class.java
     }
 
-    @Override
-    protected Class<? extends Serializable> getRequestType() {
-        return VolumeDriver.RPath.class;
+    override fun getResponseType(): Class<out Serializable?> {
+        return VolumeDriver.Path::class.java
     }
-
-    @Override
-    protected Class<? extends Serializable> getResponseType() {
-        return VolumeDriver.Path.class;
-    }
-
 }

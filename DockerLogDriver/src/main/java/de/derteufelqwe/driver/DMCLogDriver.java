@@ -38,9 +38,11 @@ public class DMCLogDriver {
      */
     public static final int FINISH_LOG_READ_DELAY = 2000;
 
+    public static final String VOLUME_PATH = "/home/arne/Plugin/volumes/";
+
     @Getter
     private static ExecutorService threadPool;
-    @Getter
+    // Manual getter
     private static SessionBuilder sessionBuilder;
     @Getter
     private static DatabaseWriter databaseWriter;
@@ -112,7 +114,6 @@ public class DMCLogDriver {
         }
     }
 
-
     public void shutdown() throws RuntimeException {
         log.warn("LogDriver shutting down!");
 
@@ -142,6 +143,13 @@ public class DMCLogDriver {
         databaseWriter.interrupt();
 
         log.info("Shutdown complete. Goodbye.");
+    }
+
+
+    // -----  Getter / setters  -----
+
+    public static SessionBuilder getSessionBuilder() {
+        return sessionBuilder;
     }
 
 }
