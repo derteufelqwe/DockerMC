@@ -30,9 +30,6 @@ public class VolumeFile {
     private String name;
 
     @ManyToOne
-    private Volume volume;
-
-    @ManyToOne
     @OnDelete(action = OnDeleteAction.CASCADE)  // Required otherwise no cascade happens
     private VolumeFolder parent;
 

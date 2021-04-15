@@ -3,13 +3,19 @@ package de.derteufelqwe.commons;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBService;
 import de.derteufelqwe.commons.hibernate.objects.Log;
+import de.derteufelqwe.commons.hibernate.objects.volumes.Volume;
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFile;
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFolder;
 import lombok.SneakyThrows;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
 import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 
 public class SessionTests {
 
@@ -18,19 +24,27 @@ public class SessionTests {
     @SneakyThrows
     public static void main(String[] args) {
 
+        String id = UUID.randomUUID().toString();
+
         try (Session session = sessionBuilder.openSession()) {
             Transaction tx = session.beginTransaction();
+            System.out.println("##################  Start  ##################");
 
-            VolumeFolder folder = session.get(VolumeFolder.class, 63L);
-//            System.out.println(folder.getFiles());
+            Volume volume = new Volume(id, new Timestamp(System.currentTimeMillis()));
 
-            System.out.println(session.createNativeQuery("select * from volumefiles as f where f.parent_id = :id", VolumeFile.class)
-                    .setParameter("id", 63L)
-                    .getResultList());
+            VolumeFolder folder = new VolumeFolder("/");
+            folder.setVolume(volume);
 
+            session.persist(folder);
+            session.persist(volume);
 
             tx.commit();
         }
+
+        sessionBuilder.execute(session -> {
+            Volume volume = session.get(Volume.class, id);
+            System.out.println(volume);
+        });
 
     }
 

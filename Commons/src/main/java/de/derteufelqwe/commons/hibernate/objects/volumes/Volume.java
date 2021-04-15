@@ -12,12 +12,13 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString(exclude = {"folders", "files"})
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "volumes", indexes = {
         @Index(name = "ID_IDX", columnList = "id"),
+        @Index(name = "CREATED_IDX", columnList = "created"),
 })
 public class Volume {
 
@@ -27,14 +28,8 @@ public class Volume {
 
     private Timestamp created;
 
-    @OneToMany(mappedBy = "volume", cascade = CascadeType.ALL)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private List<VolumeFolder> folders = new ArrayList<>();
-
-    @OneToMany(mappedBy = "volume", cascade = CascadeType.ALL)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private List<VolumeFile> files = new ArrayList<>();
-
+    @OneToOne(mappedBy = "volume")
+    private VolumeFolder rootFolder;
 
 
     public Volume(String id, Timestamp created) {

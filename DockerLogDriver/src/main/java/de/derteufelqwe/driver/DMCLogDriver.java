@@ -3,7 +3,7 @@ package de.derteufelqwe.driver;
 import com.google.common.util.concurrent.MoreExecutors;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
-import de.derteufelqwe.driver.exceptions.DMCLogDriverException;
+import de.derteufelqwe.driver.exceptions.DMCDriverException;
 import de.derteufelqwe.driver.workers.DatabaseWriter;
 import de.derteufelqwe.driver.workers.LogDownloadEntry;
 import io.netty.bootstrap.ServerBootstrap;
@@ -88,7 +88,7 @@ public class DMCLogDriver {
         Signal.handle(new Signal("INT"), signalHandler);
     }
 
-    public void startServer() throws DMCLogDriverException {
+    public void startServer() throws DMCDriverException {
         try {
             ServerBootstrap b = new ServerBootstrap()
                     .group(bossGroup, workerGroup)
@@ -110,7 +110,7 @@ public class DMCLogDriver {
             f.channel().closeFuture().sync();
 
         } catch (InterruptedException e2) {
-            throw new DMCLogDriverException("Netty server got interrupted.", e2);
+            throw new DMCDriverException("Netty server got interrupted.", e2);
         }
     }
 

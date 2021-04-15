@@ -6,11 +6,13 @@ import de.derteufelqwe.commons.hibernate.objects.volumes.Volume
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFile
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFolder
 import de.derteufelqwe.driver.DMCLogDriver
+import de.derteufelqwe.driver.exceptions.DMCDriverException
 import de.derteufelqwe.driver.messages.VolumeDriver
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.FileInputStream
 import java.io.Serializable
+import kotlin.jvm.Throws
 
 class VolumeDriverMountEP(data: String?) : Endpoint<VolumeDriver.RMount, VolumeDriver.Mount>(data) {
 
@@ -23,16 +25,23 @@ class VolumeDriverMountEP(data: String?) : Endpoint<VolumeDriver.RMount, VolumeD
         if (file.exists()) {
             file.deleteRecursively()
         }
+        file.mkdirs()
 
-        if (request.volumeName == null) {
-            return VolumeDriver.Mount(file.absolutePath, "Volume name cant be null")
+        val tStart = System.currentTimeMillis()
+        try {
+            request.volumeName?.let {
+                downloadFiles(file, it)
+                return VolumeDriver.Mount(file.absolutePath, "")
+            }
 
-        } else {
-            downloadFiles(file, request.volumeName!!)
+        } catch (e: Exception) {
+            log.error("Volume mount failed.", e)
+            return VolumeDriver.Mount(file.absolutePath, "Volume mount failed. Error: ${e.message}")
         }
 
+        log.debug(log.trace("Mounting volume ${request.volumeName} took ${System.currentTimeMillis() - tStart}ms."))
 
-        return VolumeDriver.Mount(file.absolutePath, "")
+        return VolumeDriver.Mount(file.absolutePath, "Volume name cant be null")
     }
 
     override fun getRequestType(): Class<out Serializable?> {
@@ -43,38 +52,34 @@ class VolumeDriverMountEP(data: String?) : Endpoint<VolumeDriver.RMount, VolumeD
         return VolumeDriver.Mount::class.java
     }
 
-
+    @Throws(DMCDriverException::class)
     private fun downloadFiles(volumePath: File, volumeName: String) {
-        volumePath.mkdirs();
-
         sessionBuilder.execute() { session ->
-            val volume = session.get(Volume::class.java, volumeName);
+            val volume = session.get(Volume::class.java, volumeName)
+                ?: throw DMCDriverException("Failed to mount volume. Volume not found.");
 
-            volume.files.forEach() {
-                saveFile(volumePath, it)
+            if (volume.rootFolder == null) {
+                return@execute
             }
 
-            volume.folders.forEach() {
-                saveFolder(volumePath, it)
-            }
-
+            saveFolder(volumePath, volume.rootFolder)
         }
-
     }
 
 
     private fun saveFile(path: File, file: VolumeFile) {
-        val output = ByteArray(file.data.size)
+        val output = ByteArray(Zstd.decompressedSize(file.data).toInt())
         Zstd.decompress(output, file.data)
 
-        val targetFile = File(file.name)
+        val targetFile = File(path, file.name)
         targetFile.createNewFile()
 
         targetFile.writeBytes(output)
     }
 
     private fun saveFolder(path: File, folder: VolumeFolder) {
-        val newPath = File(path, folder.name + "/")
+        val newPath = File(path, folder.name)
+        newPath.mkdirs()
 
         folder.files.forEach() {
             saveFile(newPath, it)

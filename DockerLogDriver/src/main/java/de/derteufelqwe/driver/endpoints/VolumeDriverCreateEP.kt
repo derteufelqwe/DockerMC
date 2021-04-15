@@ -2,6 +2,7 @@ package de.derteufelqwe.driver.endpoints
 
 import de.derteufelqwe.commons.hibernate.SessionBuilder
 import de.derteufelqwe.commons.hibernate.objects.volumes.Volume
+import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFolder
 import de.derteufelqwe.driver.DMCLogDriver
 import de.derteufelqwe.driver.messages.VolumeDriver
 import java.io.File
@@ -19,7 +20,11 @@ class VolumeDriverCreateEP(data: String?) : Endpoint<VolumeDriver.RCreate, Volum
 
         sessionBuilder.execute() { session ->
             val dbVolume = Volume(request.name, Timestamp(System.currentTimeMillis()))
+            val rootFolder = VolumeFolder("/")
+            rootFolder.volume = dbVolume
+
             session.persist(dbVolume)
+            session.persist(rootFolder)
         };
 
         println("Created volume ${request.name}")

@@ -1,11 +1,13 @@
 package de.derteufelqwe.commons.hibernate.objects.volumes;
 
 import lombok.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Index;
+import javax.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +29,8 @@ public class VolumeFolder {
     @Type(type = "text")
     private String name;
 
-    @ManyToOne
+    @OneToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Volume volume;
 
     @ManyToOne
@@ -37,7 +40,7 @@ public class VolumeFolder {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private List<VolumeFolder> folders = new ArrayList<>();
 
-    @OneToMany(mappedBy = "volume", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private List<VolumeFile> files = new ArrayList<>();
 

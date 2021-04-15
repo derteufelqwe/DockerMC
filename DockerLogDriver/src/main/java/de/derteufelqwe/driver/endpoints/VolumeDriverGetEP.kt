@@ -18,8 +18,8 @@ class VolumeDriverGetEP(data: String?) : Endpoint<VolumeDriver.RGet, VolumeDrive
 
         var volumeInDB: Boolean = sessionBuilder.execute<Boolean>() { session ->
             try {
-                session.get(Volume::class.java, request.volumeName);
-                return@execute true
+                val obj = session.get(Volume::class.java, request.volumeName);
+                return@execute obj != null
 
             } catch (e: NoResultException) {
                 return@execute false

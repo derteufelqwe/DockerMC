@@ -29,10 +29,16 @@ class VolumeDriverUnmountEP(data: String?) : Endpoint<VolumeDriver.RUnmount, Vol
         var error = "";
         val volumeRoot = File(DMCLogDriver.VOLUME_PATH + request.volumeName)
 
+        val tStart = System.currentTimeMillis()
         sessionBuilder.execute() { session ->
             try {
                 val volume = session.get(Volume::class.java, request.volumeName)
-                traverseFolder(session, volumeRoot, volume = volume)
+                if (volume.rootFolder == null) {
+                    log.error("Volume ${volume.id} has no root folder!")
+                    return@execute
+                }
+
+                traverseFolder(session, volumeRoot, volume.rootFolder)
 
             } catch (e: NoResultException) {
                 error = "Volume with name ${request.volumeName} not found"
@@ -42,6 +48,7 @@ class VolumeDriverUnmountEP(data: String?) : Endpoint<VolumeDriver.RUnmount, Vol
                 error = "Generic error ${e2.message}"
             }
         }
+        log.debug("Unmounting volume ${request.volumeName} took ${System.currentTimeMillis() - tStart}ms.")
 
         return VolumeDriver.Unmount(error)
     }
@@ -55,57 +62,55 @@ class VolumeDriverUnmountEP(data: String?) : Endpoint<VolumeDriver.RUnmount, Vol
     }
 
 
-    private fun traverseFolder(session: Session, folder: File, volume: Volume? = null, parent: VolumeFolder? = null) {
-        assert(volume != null || parent != null)
-        assert(!(volume != null && parent != null))
+    private fun traverseFolder(session: Session, folder: File, parent: VolumeFolder) {
+        cleanRemovedFiles(session, folder, parent)
 
         folder.listFiles()?.forEach { file ->
             if (file.isDirectory) {
-                val volumeFolder = getOrCreateFolder(session, file, volume, parent)
+                val volumeFolder = getOrCreateFolder(session, file, parent)
 
                 session.saveOrUpdate(volumeFolder)
-                traverseFolder(session, file, parent = volumeFolder)
+                traverseFolder(session, file, volumeFolder)
 
             } else {
-                addFileToDB(session, file, volume = volume, parent = parent)
+                addFileToDB(session, file, parent)
             }
         }
+    }
+
+    /**
+     * Removes the files from the DB, which are no longer present on the file system
+     */
+    private fun cleanRemovedFiles(session: Session, folder: File, parent: VolumeFolder) {
+        val localFiles = (folder.listFiles() ?: arrayOf<File>())
+            .mapNotNull(File::getName)
+
+        parent.files.forEach { file ->
+            if (!localFiles.contains(file.name)) {
+                session.delete(file)
+            }
+        }
+
     }
 
     private fun getOrCreateFolder(
         session: Session,
         folder: File,
-        volume: Volume? = null,
-        parent: VolumeFolder? = null
+        parent: VolumeFolder
     ): VolumeFolder {
         try {
-            if (volume != null) {
-                return DBQueries.getVolumeFolder(session, folder.name, volume)
-
-            } else if (parent != null) {
-                return DBQueries.getVolumeFolder(session, folder.name, parent)
-
-            } else {
-                throw RuntimeException("Somehow both volume and parent are null.")
-            }
+            return DBQueries.getVolumeFolder(session, folder.name, parent)
 
         } catch (e: NoResultException) {
             val volumeFolder = VolumeFolder(folder.name)
-            if (volume != null) {
-                volumeFolder.volume = volume
-            } else {
-                volumeFolder.parent = parent
-            }
+            volumeFolder.parent = parent
 
             return volumeFolder
         }
     }
 
-    private fun addFileToDB(session: Session, file: File, volume: Volume? = null, parent: VolumeFolder? = null) {
-        assert(volume != null || parent != null)
-        assert(!(volume != null && parent != null))
-
-        val volumeFile = getOrCreateFile(session, file, volume, parent)
+    private fun addFileToDB(session: Session, file: File, parent: VolumeFolder) {
+        val volumeFile = getOrCreateFile(session, file, parent)
         volumeFile.lastModified = Timestamp(System.currentTimeMillis())
 
         val fileContent = file.readBytes()
@@ -123,27 +128,14 @@ class VolumeDriverUnmountEP(data: String?) : Endpoint<VolumeDriver.RUnmount, Vol
     private fun getOrCreateFile(
         session: Session,
         file: File,
-        volume: Volume? = null,
-        parent: VolumeFolder? = null
+        parent: VolumeFolder
     ): VolumeFile {
         try {
-            if (volume != null) {
-                return DBQueries.getVolumeFile(session, file.name, volume)
-
-            } else if (parent != null) {
-                return DBQueries.getVolumeFile(session, file.name, parent)
-
-            } else {
-                throw RuntimeException("Somehow both volume and parent are null.")
-            }
+             return DBQueries.getVolumeFile(session, file.name, parent)
 
         } catch (e: NoResultException) {
             val volumeFile = VolumeFile(file.name)
-            if (volume != null) {
-                volumeFile.volume = volume
-            } else {
-                volumeFile.parent = parent
-            }
+            volumeFile.parent = parent
 
             return volumeFile
         }
