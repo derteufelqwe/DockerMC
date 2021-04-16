@@ -19,6 +19,7 @@ import java.util.List;
 @Entity
 @Table(name = "volumefolders", indexes = {
         @Index(name = "ID_IDX", columnList = "id"),
+        @Index(name = "PARENT_IDX", columnList = "parent_id"),
 })
 public class VolumeFolder {
 

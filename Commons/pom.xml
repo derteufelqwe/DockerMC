@@ -12,6 +12,10 @@
         <version>1.0</version>
     </parent>
 
+    <properties>
+        <hibernate-version>5.4.23.Final</hibernate-version>
+    </properties>
+
     <build>
         <plugins>
 <!--        Surefire: Work with tests -->
@@ -37,6 +41,7 @@
                     </execution>
                 </executions>
             </plugin>
+
         </plugins>
     </build>
 
@@ -67,14 +72,14 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>5.4.23.Final</version>
+            <version>${hibernate-version}</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-c3p0 -->
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-c3p0</artifactId>
-            <version>5.4.23.Final</version>
+            <version>${hibernate-version}</version>
         </dependency>
 
 

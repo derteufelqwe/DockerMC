@@ -80,6 +80,9 @@ public class SessionBuilder {
         properties.setProperty(Environment.PHYSICAL_NAMING_STRATEGY, "org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl");
         properties.setProperty(Environment.POOL_SIZE, "1024");
 
+        // Testing
+//        properties.setProperty(Environment.STATEMENT_BATCH_SIZE, "100");
+
         // --- Connection pool ---
         properties.setProperty("hibernate.c3p0.min_size", "5");
         properties.setProperty("hibernate.c3p0.max_size", "20");

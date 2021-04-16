@@ -19,6 +19,8 @@ import java.sql.Timestamp;
 @Table(name = "volumefiles", indexes = {
         @Index(name = "ID_IDX", columnList = "id"),
         @Index(name = "HASH_IDX", columnList = "datahash"),
+        @Index(name = "PARENT_IDX", columnList = "parent_id"),
+        @Index(name = "DATA_IDX", columnList = "data_id"),
 })
 public class VolumeFile {
 
@@ -29,15 +31,16 @@ public class VolumeFile {
     @Type(type = "text")
     private String name;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)  // Required otherwise no cascade happens
     private VolumeFolder parent;
 
     private Timestamp lastModified;
 
-    @Basic(fetch = FetchType.LAZY)
-    private byte[] data;
+    @OneToOne(mappedBy = "file")
+    private VolumeObject data;
 
+    @Basic(fetch = FetchType.LAZY)
     private byte[] dataHash;
 
 
