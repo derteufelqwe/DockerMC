@@ -10,27 +10,25 @@ import de.derteufelqwe.driver.exceptions.DMCDriverException
 import de.derteufelqwe.driver.messages.VolumeDriver
 import org.apache.logging.log4j.LogManager
 import java.io.File
-import java.io.FileInputStream
 import java.io.Serializable
+import java.security.MessageDigest
 import kotlin.jvm.Throws
 
 class VolumeDriverMountEP(data: String?) : Endpoint<VolumeDriver.RMount, VolumeDriver.Mount>(data) {
 
     private val log = LogManager.getLogger(javaClass)
     private val sessionBuilder: SessionBuilder = DMCLogDriver.getSessionBuilder();
+    private val sha256Digest = MessageDigest.getInstance("SHA-256")
 
 
     override fun process(request: VolumeDriver.RMount): VolumeDriver.Mount {
         val file = File(DMCLogDriver.VOLUME_PATH + request.volumeName + "/")
-        if (file.exists()) {
-            file.deleteRecursively()
-        }
         file.mkdirs()
 
         val tStart = System.currentTimeMillis()
         try {
             request.volumeName?.let {
-                downloadFiles(file, it)
+                traverseDBFolders(file, it)
                 return VolumeDriver.Mount(file.absolutePath, "")
             }
 
@@ -53,28 +51,29 @@ class VolumeDriverMountEP(data: String?) : Endpoint<VolumeDriver.RMount, VolumeD
     }
 
     @Throws(DMCDriverException::class)
-    private fun downloadFiles(volumePath: File, volumeName: String) {
+    private fun traverseDBFolders(volumePath: File, volumeName: String) {
         sessionBuilder.execute() { session ->
-            val volume = session.get(Volume::class.java, volumeName)
-                ?: throw DMCDriverException("Failed to mount volume. Volume not found.");
+            val volume = session.get(Volume::class.java, volumeName) ?: throw DMCDriverException("Failed to mount volume. Volume not found.");
 
-            if (volume.rootFolder == null) {
-                return@execute
+            volume.rootFolder?.let {
+                saveFolder(volumePath, it)
             }
-
-            saveFolder(volumePath, volume.rootFolder)
         }
     }
 
 
-    private fun saveFile(path: File, file: VolumeFile) {
-        val output = ByteArray(Zstd.decompressedSize(file.data).toInt())
-        Zstd.decompress(output, file.data)
-
-        val targetFile = File(path, file.name)
+    private fun saveFile(path: File, volumeFile: VolumeFile) {
+        val targetFile = File(path, volumeFile.name)
         targetFile.createNewFile()
+        val fileHash = sha256Digest.digest(targetFile.readBytes())
 
-        targetFile.writeBytes(output)
+        // Only update if the file is different from the one in the DB
+        if (!fileHash.contentEquals(volumeFile.dataHash)) {
+            val outputBuffer = ByteArray(Zstd.decompressedSize(volumeFile.data).toInt())
+            Zstd.decompress(outputBuffer, volumeFile.data)
+
+            targetFile.writeBytes(outputBuffer)
+        }
     }
 
     private fun saveFolder(path: File, folder: VolumeFolder) {

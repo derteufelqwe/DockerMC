@@ -12,7 +12,7 @@ import java.sql.Timestamp;
 
 @Getter
 @Setter
-@ToString(exclude = {"volume", "parent", "data"})
+@ToString(exclude = {"parent", "data"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity

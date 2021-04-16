@@ -1,5 +1,6 @@
 package de.derteufelqwe.driver.endpoints
 
+import de.derteufelqwe.commons.Utils
 import de.derteufelqwe.commons.hibernate.SessionBuilder
 import de.derteufelqwe.commons.hibernate.objects.volumes.Volume
 import de.derteufelqwe.driver.DMCLogDriver
@@ -15,23 +16,23 @@ class VolumeDriverGetEP(data: String?) : Endpoint<VolumeDriver.RGet, VolumeDrive
 
     override fun process(request: VolumeDriver.RGet): VolumeDriver.Get {
         val file = File(DMCLogDriver.VOLUME_PATH + request.volumeName)
+        var result = VolumeDriver.Get(null, "Volume ${request.volumeName} not found")
 
-        var volumeInDB: Boolean = sessionBuilder.execute<Boolean>() { session ->
+        sessionBuilder.execute() { session ->
             try {
-                val obj = session.get(Volume::class.java, request.volumeName);
-                return@execute obj != null
+                val vol = session.get(Volume::class.java, request.volumeName)
+                if (vol != null) {
+                    result = VolumeDriver.Get(
+                        VolumeDriver.Volume(request.volumeName, file.absolutePath, created = Utils.toISO8601(vol.created))
+                    )
+                }
 
-            } catch (e: NoResultException) {
-                return@execute false
+            } catch (_: NoResultException) {
+
             }
         }
 
-        return if (!volumeInDB) {
-            VolumeDriver.Get(null, "volume not found")
-
-        } else VolumeDriver.Get(
-            VolumeDriver.Volume(request.volumeName, file.absolutePath, null),
-            "")
+        return result
     }
 
     override fun getRequestType(): Class<out Serializable?> {

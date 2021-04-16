@@ -16,6 +16,7 @@ import java.io.Serializable
 import java.security.MessageDigest
 import java.sql.Timestamp
 import javax.persistence.NoResultException
+import kotlin.system.measureTimeMillis
 
 
 class VolumeDriverUnmountEP(data: String?) : Endpoint<VolumeDriver.RUnmount, VolumeDriver.Unmount>(data) {
@@ -23,6 +24,8 @@ class VolumeDriverUnmountEP(data: String?) : Endpoint<VolumeDriver.RUnmount, Vol
     private val log = LogManager.getLogger(javaClass)
     private val sessionBuilder: SessionBuilder = DMCLogDriver.getSessionBuilder();
     private val sha256Digest = MessageDigest.getInstance("SHA-256")
+    private var hashDuration = 0L;
+    private var getOrCreateFileDuration = 0L;
 
 
     override fun process(request: VolumeDriver.RUnmount): VolumeDriver.Unmount {
@@ -33,12 +36,13 @@ class VolumeDriverUnmountEP(data: String?) : Endpoint<VolumeDriver.RUnmount, Vol
         sessionBuilder.execute() { session ->
             try {
                 val volume = session.get(Volume::class.java, request.volumeName)
-                if (volume.rootFolder == null) {
-                    log.error("Volume ${volume.id} has no root folder!")
+
+                volume.rootFolder?.let {
+                    traverseFolder(session, volumeRoot, it)
                     return@execute
                 }
 
-                traverseFolder(session, volumeRoot, volume.rootFolder)
+                log.error("Volume ${volume.id} has no root folder!")
 
             } catch (e: NoResultException) {
                 error = "Volume with name ${request.volumeName} not found"
@@ -49,7 +53,8 @@ class VolumeDriverUnmountEP(data: String?) : Endpoint<VolumeDriver.RUnmount, Vol
             }
         }
         log.debug("Unmounting volume ${request.volumeName} took ${System.currentTimeMillis() - tStart}ms.")
-
+        log.debug("Hashing files took $hashDuration ms.")
+        log.debug("Getting files from DB took $getOrCreateFileDuration ms.")
         return VolumeDriver.Unmount(error)
     }
 
@@ -110,14 +115,21 @@ class VolumeDriverUnmountEP(data: String?) : Endpoint<VolumeDriver.RUnmount, Vol
     }
 
     private fun addFileToDB(session: Session, file: File, parent: VolumeFolder) {
-        val volumeFile = getOrCreateFile(session, file, parent)
-        volumeFile.lastModified = Timestamp(System.currentTimeMillis())
+        var volumeFile = VolumeFile()
+        getOrCreateFileDuration += measureTimeMillis {
+            volumeFile = getOrCreateFile(session, file, parent)
+        }
 
-        val fileContent = file.readBytes()
-        val dataHash = sha256Digest.digest(fileContent)
+        var fileContent = byteArrayOf()
+        var dataHash = byteArrayOf()
+        hashDuration += measureTimeMillis {
+            fileContent = file.readBytes()
+            dataHash = sha256Digest.digest(fileContent)
+        }
 
         // Only update the file if it changed
         if (!volumeFile.dataHash.contentEquals(dataHash)) {
+            volumeFile.lastModified = Timestamp(System.currentTimeMillis())
             volumeFile.dataHash = dataHash
             volumeFile.data = Zstd.compress(fileContent)
         }
@@ -131,7 +143,13 @@ class VolumeDriverUnmountEP(data: String?) : Endpoint<VolumeDriver.RUnmount, Vol
         parent: VolumeFolder
     ): VolumeFile {
         try {
-             return DBQueries.getVolumeFile(session, file.name, parent)
+            val res = DBQueries.getVolumeFile(session, file.name, parent)
+            return res
+            var vol = VolumeFile()
+            vol.id = res.id
+            vol.dataHash = res.dataHash
+
+            return vol
 
         } catch (e: NoResultException) {
             val volumeFile = VolumeFile(file.name)

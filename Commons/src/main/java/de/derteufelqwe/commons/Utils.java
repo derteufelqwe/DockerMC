@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
@@ -12,6 +13,7 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 
 public class Utils {
 
@@ -73,6 +75,12 @@ public class Utils {
         SimpleDateFormat format = new SimpleDateFormat("dd-MM-yy HH:mm:ss");
 
         return format.format(timestamp);
+    }
+
+    public static String toISO8601(Timestamp timestamp) {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S'Z'");
+
+        return df.format(timestamp);
     }
 
     public static String formatDuration(long duration) {

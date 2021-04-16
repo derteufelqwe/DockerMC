@@ -10,7 +10,6 @@ class VolumeDriver {
 
     class RCapabilities : Serializable
 
-
     data class Capabilities(
         @SerializedName("Capabilities") var capabilities: Caps = Caps(),
     ) : Serializable {
@@ -95,6 +94,7 @@ class VolumeDriver {
     data class Volume(
         @SerializedName("Name") var name: String? = null,
         @SerializedName("Mountpoint") var mountPoint: String? = null,
-        @SerializedName("Status") var status: Map<String, String>? = null
+        @SerializedName("Status") var status: Map<String, String>? = null,
+        @SerializedName("CreatedAt") var created: String? = null
     ) : Serializable
 }

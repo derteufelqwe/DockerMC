@@ -4,6 +4,7 @@ import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
+import org.jetbrains.annotations.Nullable;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -29,6 +30,7 @@ public class Volume {
     private Timestamp created;
 
     @OneToOne(mappedBy = "volume")
+    @Nullable
     private VolumeFolder rootFolder;
 
 

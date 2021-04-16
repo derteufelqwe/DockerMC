@@ -21,30 +21,13 @@ public class SessionTests {
 
     public static SessionBuilder sessionBuilder = new SessionBuilder("dockermc", "admin", "ubuntu1", 5432);
 
+
     @SneakyThrows
     public static void main(String[] args) {
+        System.out.println("############## Started #############");
 
-        String id = UUID.randomUUID().toString();
 
-        try (Session session = sessionBuilder.openSession()) {
-            Transaction tx = session.beginTransaction();
-            System.out.println("##################  Start  ##################");
 
-            Volume volume = new Volume(id, new Timestamp(System.currentTimeMillis()));
-
-            VolumeFolder folder = new VolumeFolder("/");
-            folder.setVolume(volume);
-
-            session.persist(folder);
-            session.persist(volume);
-
-            tx.commit();
-        }
-
-        sessionBuilder.execute(session -> {
-            Volume volume = session.get(Volume.class, id);
-            System.out.println(volume);
-        });
 
     }
 

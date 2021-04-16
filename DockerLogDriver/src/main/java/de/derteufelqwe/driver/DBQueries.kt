@@ -4,6 +4,7 @@ import de.derteufelqwe.commons.hibernate.objects.volumes.Volume
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFile
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFolder
 import org.hibernate.Session
+import org.omg.CORBA.Object
 import javax.persistence.NoResultException
 import kotlin.jvm.Throws
 
@@ -40,30 +41,7 @@ object DBQueries {
 
 
     /**
-     * Tries to find an existing folder for a volume and returns it
-     */
-    @Throws(NoResultException::class)
-    fun getVolumeFolder(session: Session, folderName: String, volume: Volume): VolumeFolder {
-        // language=HQL
-        val query = """
-            SELECT 
-                f
-            FROM 
-                VolumeFolder AS f
-            WHERE 
-                f.volume = :volume
-                AND f.name = :folderName
-        """.trimIndent()
-
-        return session.createQuery(query, VolumeFolder::class.java)
-            .setParameter("volume", volume)
-            .setParameter("folderName", folderName)
-            .setMaxResults(1)
-            .singleResult
-    }
-
-    /**
-     * Tries to find an existing folder for a volume and returns it
+     * Tries to find a VolumeFolder object with the name #folderName and child of #parent
      */
     @Throws(NoResultException::class)
     fun getVolumeFolder(session: Session, folderName: String, parent: VolumeFolder): VolumeFolder {
@@ -86,26 +64,9 @@ object DBQueries {
     }
 
 
-    @Throws(NoResultException::class)
-    fun getVolumeFile(session: Session, fileName: String, volume: Volume): VolumeFile {
-        // language=HQL
-        val query = """
-            SELECT 
-                f
-            FROM 
-                VolumeFile AS f
-            WHERE 
-                f.volume = :volume
-                AND f.name = :fileName
-        """.trimIndent()
-
-        return session.createQuery(query, VolumeFile::class.java)
-            .setParameter("volume", volume)
-            .setParameter("fileName", fileName)
-            .setMaxResults(1)
-            .singleResult
-    }
-
+    /**
+     * Tries to find a VolumeFile object with the name #fileName and child of #parent
+     */
     @Throws(NoResultException::class)
     fun getVolumeFile(session: Session, fileName: String, parent: VolumeFolder): VolumeFile {
         // language=HQL
@@ -124,6 +85,27 @@ object DBQueries {
             .setParameter("fileName", fileName)
             .setMaxResults(1)
             .singleResult
+
+//        return DBVolumeFileResult(res[0] as Long, res[1] as ByteArray)
+    }
+
+
+    /**
+     * Returns a list of all volumes
+     */
+    fun getAllVolumes(session: Session): List<Volume> {
+        // language=HQL
+        val query = """
+            SELECT 
+                v
+            FROM 
+                Volume AS v
+        """.trimIndent()
+
+        return session.createQuery(query, Volume::class.java)
+            .resultList
     }
 
 }
+
+data class DBVolumeFileResult(val id: Long, val dataHash: ByteArray)
