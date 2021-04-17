@@ -37,6 +37,7 @@ public class Constants {
      * DNS name of the DockerMC master node, which hosts the DB.
      */
     public static final String DMC_MASTER_DNS_NAME = "dmcmaster";
+    public static int ZSTD_COMPRESSION_LEVEL = 10;
 
     // Networking
     public static final String NETW_OVERNET_NAME = "overnet";

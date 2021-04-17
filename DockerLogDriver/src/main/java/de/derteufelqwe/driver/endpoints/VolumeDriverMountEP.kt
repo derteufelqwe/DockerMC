@@ -24,6 +24,7 @@ class VolumeDriverMountEP(data: String?) : Endpoint<VolumeDriver.RMount, VolumeD
     override fun process(request: VolumeDriver.RMount): VolumeDriver.Mount {
         val file = File(DMCLogDriver.VOLUME_PATH + request.volumeName + "/")
         file.mkdirs()
+        return VolumeDriver.Mount(file.absolutePath)
 
         val tStart = System.currentTimeMillis()
         try {
@@ -68,12 +69,12 @@ class VolumeDriverMountEP(data: String?) : Endpoint<VolumeDriver.RMount, VolumeD
         val fileHash = sha256Digest.digest(targetFile.readBytes())
 
         // Only update if the file is different from the one in the DB
-        if (!fileHash.contentEquals(volumeFile.dataHash)) {
-            val outputBuffer = ByteArray(Zstd.decompressedSize(volumeFile.data).toInt())
-            Zstd.decompress(outputBuffer, volumeFile.data)
-
-            targetFile.writeBytes(outputBuffer)
-        }
+//        if (!fileHash.contentEquals(volumeFile.dataHash)) {
+//            val outputBuffer = ByteArray(Zstd.decompressedSize(volumeFile.data.data).toInt())
+//            Zstd.decompress(outputBuffer, volumeFile.data.data)
+//
+//            targetFile.writeBytes(outputBuffer)
+//        }
     }
 
     private fun saveFolder(path: File, folder: VolumeFolder) {

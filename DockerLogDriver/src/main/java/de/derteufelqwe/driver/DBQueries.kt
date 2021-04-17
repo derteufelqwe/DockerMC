@@ -44,7 +44,7 @@ object DBQueries {
      * Tries to find a VolumeFolder object with the name #folderName and child of #parent
      */
     @Throws(NoResultException::class)
-    fun getVolumeFolder(session: Session, folderName: String, parent: VolumeFolder): VolumeFolder {
+    fun getVolumeFolders(session: Session, parent: VolumeFolder): Map<String, VolumeFolder> {
         // language=HQL
         val query = """
             SELECT 
@@ -53,22 +53,19 @@ object DBQueries {
                 VolumeFolder AS f
             WHERE 
                 f.parent = :parentFolder
-                AND f.name = :folderName
         """.trimIndent()
 
-        return session.createQuery(query, VolumeFolder::class.java)
+        val result = session.createQuery(query, VolumeFolder::class.java)
             .setParameter("parentFolder", parent)
-            .setParameter("folderName", folderName)
-            .setMaxResults(1)
-            .singleResult
+            .resultList
+
+        return result
+            .associateBy { it.name }
     }
 
 
-    /**
-     * Tries to find a VolumeFile object with the name #fileName and child of #parent
-     */
     @Throws(NoResultException::class)
-    fun getVolumeFile(session: Session, fileName: String, parent: VolumeFolder): VolumeFile {
+    fun getVolumeFiles(session: Session, parent: VolumeFolder): Map<String, VolumeFile> {
         // language=HQL
         val query = """
             SELECT 
@@ -77,16 +74,14 @@ object DBQueries {
                 VolumeFile AS f
             WHERE 
                 f.parent = :parentFolder
-                AND f.name = :fileName
         """.trimIndent()
 
-        return session.createQuery(query, VolumeFile::class.java)
+        val result = session.createQuery(query, VolumeFile::class.java)
             .setParameter("parentFolder", parent)
-            .setParameter("fileName", fileName)
-            .setMaxResults(1)
-            .singleResult
+            .resultList
 
-//        return DBVolumeFileResult(res[0] as Long, res[1] as ByteArray)
+        return result
+            .associateBy { it.name }    // Creates the map
     }
 
 
@@ -107,5 +102,3 @@ object DBQueries {
     }
 
 }
-
-data class DBVolumeFileResult(val id: Long, val dataHash: ByteArray)

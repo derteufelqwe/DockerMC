@@ -5,6 +5,10 @@ import de.derteufelqwe.commons.hibernate.objects.ContainerStats
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFile
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFolder
 import org.hibernate.Session
+import java.io.File
+import java.util.zip.Adler32
+import javax.persistence.NoResultException
+import kotlin.jvm.Throws
 import kotlin.random.Random
 import kotlin.system.measureTimeMillis
 
@@ -289,7 +293,7 @@ fun getFiles(): List<String> {
         DSC_0061.JPG
     """.trimIndent()
 
-    return names.split("\n")
+    return names.split("/n")
 }
 
 
@@ -301,6 +305,7 @@ fun getFiles(): List<String> {
  *  Big session, query only id: 317, 311, 322
  *  Small session, query only id: 700, 700, 700
  *  Query IDs, then query the objects by id: 2500
+ *  Query everything at once, lazily fetch data: 3300
  *
  * Notes:
  *  - Changing querying for volume ID instead of volume doesn't change anything
@@ -308,17 +313,26 @@ fun getFiles(): List<String> {
 
 
 fun main() {
-    val sessionBuilder = SessionBuilder("admin")
+    testDBPerformance()
+//    testHashPerformance()
+}
 
-    val files = getFiles()
+
+fun testDBPerformance() {
+    val sessionBuilder = SessionBuilder("admin")
 
     val tStart = System.currentTimeMillis()
     sessionBuilder.execute {
-        for (i in 0..1) {
-            val index = Random.nextInt(0, files.size - 1)
-            val vol = it.get(VolumeFolder::class.java, 25L)
-            val file = getVolumeFile(it, files[index], vol) as List<Any>
-            println("Size: ${(file as List<Any>).size}")
+        for (i in 0..10) {
+            val vol = it.get(VolumeFolder::class.java, 17L)
+//            val vol = it.get(VolumeFolder::class.java, 72L)
+            System.err.println("querying")
+            val files = getVolumeFiles(it, vol)
+//
+//            for (f in files) {
+//                println(f.data)
+//            }
+            val a = 0;
         }
     }
     val tEnd = System.currentTimeMillis()
@@ -327,42 +341,82 @@ fun main() {
     println("Took ${tEnd - tStart}ms")
 }
 
+fun testHashPerformance() {
+    val ITER = 1000
+    val PATH = "C:/Users/Arne/Downloads/hotswap-agent-1.4.1.jar"
 
-fun getVolumeFile(session: Session, fileName: String, parent: VolumeFolder): Any {
+
+    var file = File(PATH)
+    var time1 = 0L
+    var time2 = 0L
+
+    time1 = measureTimeMillis {
+        for (i in 0..ITER) {
+            hash1(file)
+        }
+    }
+
+    time2 = measureTimeMillis {
+        for (i in 0..ITER) {
+            hash2(file)
+        }
+    }
+
+    println("Hash1 took $time1 ms")
+    println("Hash2 took $time2 ms")
+}
+
+fun hash1(file: File): Any {
+    val blake = ove.crypto.digest.Blake2b.Digest.newInstance()
+    blake.update(file.readBytes())
+
+    return blake.digest()
+}
+
+fun hash2(file: File): Any {
+    val adler = Adler32()
+    adler.update(file.readBytes())
+
+    return adler.value
+}
+
+
+@Throws(NoResultException::class)
+fun getVolumeFiles(session: Session, parent: VolumeFolder): List<VolumeFile> {
     // language=HQL
     val query = """
-            SELECT
+        SELECT 
+            f
+        FROM 
+            VolumeFile AS f
+        WHERE 
+            f.parent = :parentFolder
+    """.trimIndent()
+
+    val result = session.createQuery(query, VolumeFile::class.java)
+        .setParameter("parentFolder", parent)
+        .resultList
+
+    return result
+}
+
+
+@Throws(NoResultException::class)
+fun getVolumeFolders(session: Session, parent: VolumeFolder): Map<String, VolumeFolder> {
+    // language=HQL
+    val query = """
+            SELECT 
                 f
-            FROM
-                VolumeFile AS f
-            WHERE
+            FROM 
+                VolumeFolder AS f
+            WHERE 
                 f.parent = :parentFolder
         """.trimIndent()
 
-    return session.createQuery(query, VolumeFile::class.java)
+    val result = session.createQuery(query, VolumeFolder::class.java)
         .setParameter("parentFolder", parent)
-//        .setParameter("fileName", fileName)
-//        .setMaxResults(1)
         .resultList
-}
 
-//fun getVolumeFile(session: Session, fileName: String, parent: VolumeFolder): Any {
-//    // language=HQL
-//    val query = """
-//            SELECT
-//                f
-//            FROM
-//                VolumeFile AS f
-//            WHERE
-//                f.parent.id = :parentFolder
-//                AND f.name = :fileName
-//        """.trimIndent()
-//
-//    return session.createQuery(query)
-//        .setParameter("parentFolder", parent.id)
-//        .setParameter("fileName", fileName)
-//        .setMaxResults(1)
-//        .resultList
-//
-////        return DBVolumeFileResult(res[0] as Long, res[1] as ByteArray)
-//}
+    return result
+        .associateBy { it.name }
+}

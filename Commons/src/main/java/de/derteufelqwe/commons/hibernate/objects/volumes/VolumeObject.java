@@ -7,26 +7,33 @@ import org.hibernate.annotations.Type;
 import org.jetbrains.annotations.Nullable;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.sql.Timestamp;
 
 @Getter
 @Setter
-@ToString
+@ToString(exclude = {"data"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "volumeobjects", indexes = {
         @Index(name = "FILE_IDX", columnList = "file_id")
 })
-public class VolumeObject {
+public class VolumeObject implements Serializable {
 
     @Id
+    private long id;
+
+    /**
+     * This construct is required, so this object gets lazily fetched by the VolumeFile object.
+     * See: https://thorben-janssen.com/hibernate-tip-lazy-loading-one-to-one/
+     */
     @OneToOne
+    @MapsId
+    @JoinColumn(name = "file_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private VolumeFile file;
 
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "data")
     private byte[] data;
 
 }

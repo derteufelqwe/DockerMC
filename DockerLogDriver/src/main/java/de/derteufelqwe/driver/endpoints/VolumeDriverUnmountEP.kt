@@ -1,14 +1,16 @@
 package de.derteufelqwe.driver.endpoints
 
 import com.github.luben.zstd.Zstd
+import de.derteufelqwe.commons.Constants
 import de.derteufelqwe.commons.hibernate.SessionBuilder
 import de.derteufelqwe.commons.hibernate.objects.volumes.Volume
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFile
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFolder
+import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeObject
 import de.derteufelqwe.driver.DBQueries
 import de.derteufelqwe.driver.DMCLogDriver
+import de.derteufelqwe.driver.Utils
 import de.derteufelqwe.driver.messages.VolumeDriver
-import lombok.extern.log4j.Log4j2
 import org.apache.logging.log4j.LogManager
 import org.hibernate.Session
 import java.io.File
@@ -26,6 +28,9 @@ class VolumeDriverUnmountEP(data: String?) : Endpoint<VolumeDriver.RUnmount, Vol
     private val sha256Digest = MessageDigest.getInstance("SHA-256")
     private var hashDuration = 0L;
     private var getOrCreateFileDuration = 0L;
+    private var indexFilesDuration = 0L;
+    private var indexFoldersDuration = 0L;
+    private var indexFilesCounter = 0
 
 
     override fun process(request: VolumeDriver.RUnmount): VolumeDriver.Unmount {
@@ -54,7 +59,10 @@ class VolumeDriverUnmountEP(data: String?) : Endpoint<VolumeDriver.RUnmount, Vol
         }
         log.debug("Unmounting volume ${request.volumeName} took ${System.currentTimeMillis() - tStart}ms.")
         log.debug("Hashing files took $hashDuration ms.")
-        log.debug("Getting files from DB took $getOrCreateFileDuration ms.")
+        log.debug("Creating new files took $getOrCreateFileDuration ms.")
+        log.debug("Getting files from DB took $indexFilesDuration ms.")
+        log.debug("Getting folders from DB took $indexFoldersDuration ms.")
+        log.debug("Indexed $indexFilesCounter times.")
         return VolumeDriver.Unmount(error)
     }
 
@@ -70,15 +78,25 @@ class VolumeDriverUnmountEP(data: String?) : Endpoint<VolumeDriver.RUnmount, Vol
     private fun traverseFolder(session: Session, folder: File, parent: VolumeFolder) {
         cleanRemovedFiles(session, folder, parent)
 
+        var availableFiles: Map<String, VolumeFile>
+        indexFilesDuration += measureTimeMillis {
+            availableFiles = DBQueries.getVolumeFiles(session, parent)
+            indexFilesCounter++
+        }
+        var availableFolders: Map<String, VolumeFolder>
+        indexFoldersDuration += measureTimeMillis {
+            availableFolders = DBQueries.getVolumeFolders(session, parent)
+        }
+
         folder.listFiles()?.forEach { file ->
             if (file.isDirectory) {
-                val volumeFolder = getOrCreateFolder(session, file, parent)
+                val volumeFolder = availableFolders.getOrElse(file.name) { createNewVolFolder(session, file, parent) }
 
                 session.saveOrUpdate(volumeFolder)
                 traverseFolder(session, file, volumeFolder)
 
             } else {
-                addFileToDB(session, file, parent)
+                addFileToDB(session, file, parent, availableFiles)
             }
         }
     }
@@ -98,65 +116,57 @@ class VolumeDriverUnmountEP(data: String?) : Endpoint<VolumeDriver.RUnmount, Vol
 
     }
 
-    private fun getOrCreateFolder(
+    private fun createNewVolFolder(
         session: Session,
         folder: File,
         parent: VolumeFolder
     ): VolumeFolder {
-        try {
-            return DBQueries.getVolumeFolder(session, folder.name, parent)
+        val volumeFolder = VolumeFolder(folder.name)
+        volumeFolder.parent = parent
 
-        } catch (e: NoResultException) {
-            val volumeFolder = VolumeFolder(folder.name)
-            volumeFolder.parent = parent
+        session.persist(volumeFolder)
 
-            return volumeFolder
-        }
+        return volumeFolder
     }
 
-    private fun addFileToDB(session: Session, file: File, parent: VolumeFolder) {
+    private fun addFileToDB(session: Session, file: File, parent: VolumeFolder, availableFiles: Map<String, VolumeFile>) {
         var volumeFile = VolumeFile()
         getOrCreateFileDuration += measureTimeMillis {
-            volumeFile = getOrCreateFile(session, file, parent)
+            volumeFile = availableFiles.getOrElse(file.name) { createNewVolFile(session, file, parent) }
         }
 
         var fileContent = byteArrayOf()
-        var dataHash = byteArrayOf()
+        var dataHash: Long
         hashDuration += measureTimeMillis {
-            fileContent = file.readBytes()
-            dataHash = sha256Digest.digest(fileContent)
+            dataHash = Utils.hashFile(file)
         }
 
+        fileContent = file.readBytes()
         // Only update the file if it changed
-        if (!volumeFile.dataHash.contentEquals(dataHash)) {
+        if (volumeFile.dataHash != dataHash) {
             volumeFile.lastModified = Timestamp(System.currentTimeMillis())
             volumeFile.dataHash = dataHash
-            volumeFile.data = Zstd.compress(fileContent)
+            volumeFile.data.data = Zstd.compress(fileContent, Constants.ZSTD_COMPRESSION_LEVEL)
         }
 
-        session.saveOrUpdate(volumeFile)
+        session.update(volumeFile)
     }
 
-    private fun getOrCreateFile(
+    private fun createNewVolFile(
         session: Session,
         file: File,
         parent: VolumeFolder
     ): VolumeFile {
-        try {
-            val res = DBQueries.getVolumeFile(session, file.name, parent)
-            return res
-            var vol = VolumeFile()
-            vol.id = res.id
-            vol.dataHash = res.dataHash
+        val volumeFile = VolumeFile(file.name)
+        volumeFile.parent = parent
+        val volData = VolumeObject()
+        volData.file = volumeFile   // Somehow both directions are required
+        volumeFile.data = volData
 
-            return vol
+        session.persist(volumeFile)
+        session.persist(volData)
 
-        } catch (e: NoResultException) {
-            val volumeFile = VolumeFile(file.name)
-            volumeFile.parent = parent
-
-            return volumeFile
-        }
+        return volumeFile
     }
 
 }

@@ -3,6 +3,10 @@ DockerMC is a docker based minecraft server management system. It's currently un
 More infos follow with its release.
 
 
+# Compilation
+- Install https://github.com/alphazero/Blake2b
+
+
 # Important notes
 1. If your service has a node container limit, and their replications are larger than the containers that fit the constraint
    (service with 3 instances, limited to 1 container per node, 2 nodes available -> 1 container can't be placed) a normal

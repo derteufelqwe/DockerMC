@@ -53,22 +53,22 @@
                 </executions>
             </plugin>
 
-            <plugin>
-                <groupId>org.hibernate.orm.tooling</groupId>
-                <artifactId>hibernate-enhance-maven-plugin</artifactId>
-                <version>5.4.23.Final</version>
-                <executions>
-                    <execution>
-                        <configuration>
-                            <failOnError>true</failOnError>
-                            <enableLazyInitialization>true</enableLazyInitialization>
-                        </configuration>
-                        <goals>
-                            <goal>enhance</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.hibernate.orm.tooling</groupId>-->
+<!--                <artifactId>hibernate-enhance-maven-plugin</artifactId>-->
+<!--                <version>5.4.23.Final</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <configuration>-->
+<!--                            <failOnError>true</failOnError>-->
+<!--                            <enableLazyInitialization>true</enableLazyInitialization>-->
+<!--                        </configuration>-->
+<!--                        <goals>-->
+<!--                            <goal>enhance</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
         </plugins>
     </build>
 
@@ -101,6 +101,11 @@
             <version>1.4.9-4</version>
         </dependency>
 
+        <dependency>
+            <groupId>ove</groupId>
+            <artifactId>ove.blake2b</artifactId>
+            <version>alpha.0</version>
+        </dependency>
 
     </dependencies>
 

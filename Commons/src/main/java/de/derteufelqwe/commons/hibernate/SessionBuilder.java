@@ -10,6 +10,7 @@ import de.derteufelqwe.commons.hibernate.objects.permissions.PlayerToPermissionG
 import de.derteufelqwe.commons.hibernate.objects.volumes.Volume;
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFile;
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFolder;
+import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeObject;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -80,8 +81,6 @@ public class SessionBuilder {
         properties.setProperty(Environment.PHYSICAL_NAMING_STRATEGY, "org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl");
         properties.setProperty(Environment.POOL_SIZE, "1024");
 
-        // Testing
-//        properties.setProperty(Environment.STATEMENT_BATCH_SIZE, "100");
 
         // --- Connection pool ---
         properties.setProperty("hibernate.c3p0.min_size", "5");
@@ -125,6 +124,7 @@ public class SessionBuilder {
         annotatedClasses.add(Volume.class);
         annotatedClasses.add(VolumeFile.class);
         annotatedClasses.add(VolumeFolder.class);
+        annotatedClasses.add(VolumeObject.class);
 
         return annotatedClasses;
     }

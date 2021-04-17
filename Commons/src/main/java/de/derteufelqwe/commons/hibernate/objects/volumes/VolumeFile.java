@@ -8,6 +8,7 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Index;
 import javax.persistence.Table;
+import java.io.Serializable;
 import java.sql.Timestamp;
 
 @Getter
@@ -20,9 +21,8 @@ import java.sql.Timestamp;
         @Index(name = "ID_IDX", columnList = "id"),
         @Index(name = "HASH_IDX", columnList = "datahash"),
         @Index(name = "PARENT_IDX", columnList = "parent_id"),
-        @Index(name = "DATA_IDX", columnList = "data_id"),
 })
-public class VolumeFile {
+public class VolumeFile implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,11 +37,14 @@ public class VolumeFile {
 
     private Timestamp lastModified;
 
-    @OneToOne(mappedBy = "file")
+    /**
+     * optional = false is required for lazy fetching.
+     * See {@link VolumeObject} for more infos
+     */
+    @OneToOne(mappedBy = "file", fetch = FetchType.LAZY, optional = false)
     private VolumeObject data;
 
-    @Basic(fetch = FetchType.LAZY)
-    private byte[] dataHash;
+    private long dataHash;
 
 
     public VolumeFile(String name) {
