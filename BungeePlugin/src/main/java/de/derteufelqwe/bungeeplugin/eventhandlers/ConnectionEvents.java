@@ -3,7 +3,6 @@ package de.derteufelqwe.bungeeplugin.eventhandlers;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import org.jetbrains.annotations.NotNull;
 import de.derteufelqwe.bungeeplugin.BungeePlugin;
 import de.derteufelqwe.bungeeplugin.redis.RedisDataManager;
 import de.derteufelqwe.bungeeplugin.utils.Utils;
@@ -16,6 +15,7 @@ import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
+import org.jetbrains.annotations.NotNull;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 

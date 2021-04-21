@@ -313,25 +313,24 @@ fun getFiles(): List<String> {
 
 
 fun main() {
-    testDBPerformance()
+//    testDBPerformance()
 //    testHashPerformance()
+    testDB()
 }
 
 
 fun testDBPerformance() {
     val sessionBuilder = SessionBuilder("admin")
 
+    val ids = generateSequence(317L) {
+        it + 1L
+    }.take(92).toList()
+
     val tStart = System.currentTimeMillis()
     sessionBuilder.execute {
-        for (i in 0..10) {
-            val vol = it.get(VolumeFolder::class.java, 17L)
-//            val vol = it.get(VolumeFolder::class.java, 72L)
-            System.err.println("querying")
+        for (id in ids) {
+            val vol = it.get(VolumeFolder::class.java, id)
             val files = getVolumeFiles(it, vol)
-//
-//            for (f in files) {
-//                println(f.data)
-//            }
             val a = 0;
         }
     }
@@ -378,6 +377,15 @@ fun hash2(file: File): Any {
     adler.update(file.readBytes())
 
     return adler.value
+}
+
+fun testDB() {
+    val sessionBuilder = SessionBuilder("admin")
+
+    sessionBuilder.execute() { session ->
+        var res = DBQueries.getAllVolumeFolders(session, session.get(VolumeFolder::class.java, 593L))
+        print("")
+    }
 }
 
 

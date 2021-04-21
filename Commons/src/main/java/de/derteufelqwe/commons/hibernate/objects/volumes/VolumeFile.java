@@ -41,7 +41,7 @@ public class VolumeFile implements Serializable {
      * optional = false is required for lazy fetching.
      * See {@link VolumeObject} for more infos
      */
-    @OneToOne(mappedBy = "file", fetch = FetchType.LAZY, optional = false)
+    @OneToOne(mappedBy = "file", fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
     private VolumeObject data;
 
     private long dataHash;

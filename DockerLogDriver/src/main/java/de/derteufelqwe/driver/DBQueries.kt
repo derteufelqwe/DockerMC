@@ -5,8 +5,13 @@ import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFile
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFolder
 import org.hibernate.Session
 import org.omg.CORBA.Object
+import java.util.*
 import javax.persistence.NoResultException
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 import kotlin.jvm.Throws
+import kotlin.system.measureTimeMillis
+import kotlin.time.measureTime
 
 object DBQueries {
 
@@ -99,6 +104,68 @@ object DBQueries {
 
         return session.createQuery(query, Volume::class.java)
             .resultList
+    }
+
+
+    /**
+     * Returns all sub VolumeFolders recursively
+     */
+    fun getAllVolumeFolders(session: Session, parent: VolumeFolder): Any {
+//        // language=SQL
+//        val query = """
+//            WITH RECURSIVE tmp(id, name, parent_id, volume_id) AS (
+//                SELECT
+//                    vf.id, vf.name, vf.parent_id, vf.volume_id
+//                FROM
+//                    volumefolders AS vf
+//                WHERE
+//                    vf.parent_id = :pid
+//                UNION ALL
+//                    SELECT
+//                           volumefolders.id, volumefolders.name, volumefolders.parent_id, volumefolders.volume_id
+//                    FROM
+//                         tmp, volumefolders
+//                    WHERE
+//                        tmp.id = volumefolders.parent_id
+//            )
+//
+//            SELECT * FROM tmp
+//        """.trimIndent()
+//
+//        val result: List<VolumeFolder> = session.createNativeQuery(query, VolumeFolder::class.java)
+//            .setParameter("pid", parent.id)
+//            .resultList as List<VolumeFolder>
+
+
+        return ""
+    }
+
+}
+
+class VolumeMapObj(val folder: VolumeFolder) {
+
+    val children = VolumeMap(folder)
+
+}
+
+class VolumeMap() : HashMap<String, VolumeMapObj>() {
+
+    constructor(folder: VolumeFolder) : this() {
+        insertToMap(this, folder)
+    }
+
+    private fun insertToMap(map: VolumeMap, folder: VolumeFolder) {
+        for (f in folder.folders) {
+            map[f.name] = VolumeMapObj(f)
+        }
+    }
+
+    fun getFolder(name: String): VolumeFolder? {
+        return this[name]?.folder
+    }
+
+    fun getChildren(name: String): VolumeMap? {
+        return this[name]?.children
     }
 
 }
