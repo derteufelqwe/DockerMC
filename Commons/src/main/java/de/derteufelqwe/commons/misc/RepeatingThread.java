@@ -1,4 +1,4 @@
-package de.derteufelqwe.nodewatcher.misc;
+package de.derteufelqwe.commons.misc;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -27,7 +27,7 @@ public abstract class RepeatingThread extends Thread {
      */
     private void interpretableSleep(long duration) throws InterruptedException {
         for (long i = 0; i < duration; i++) {
-            TimeUnit.SECONDS.sleep(1);
+            TimeUnit.MILLISECONDS.sleep(1);
 
             // Break the sleeping if the whole process gets interrupted
             if (!this.doRun.get()) {

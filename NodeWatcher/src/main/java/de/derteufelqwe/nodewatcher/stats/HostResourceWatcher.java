@@ -8,16 +8,13 @@ import de.derteufelqwe.commons.hibernate.objects.NodeStats;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 
 import de.derteufelqwe.nodewatcher.exceptions.InvalidHostResourcesException;
-import de.derteufelqwe.nodewatcher.misc.RepeatingThread;
+import de.derteufelqwe.commons.misc.RepeatingThread;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import javax.annotation.CheckForNull;
-import javax.annotation.CheckReturnValue;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.regex.Matcher;
@@ -42,7 +39,7 @@ public class HostResourceWatcher extends RepeatingThread {
 
 
     public HostResourceWatcher() {
-        super(1);
+        super(1000);
     }
 
     @Override

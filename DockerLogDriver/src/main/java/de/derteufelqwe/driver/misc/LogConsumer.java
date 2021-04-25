@@ -1,4 +1,4 @@
-package de.derteufelqwe.driver.workers;
+package de.derteufelqwe.driver.misc;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
@@ -9,7 +9,6 @@ import de.derteufelqwe.driver.exceptions.StreamClosedException;
 import de.derteufelqwe.driver.protobuf.Entry;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import org.hibernate.Session;
 
 import java.io.*;
 import java.nio.ByteBuffer;

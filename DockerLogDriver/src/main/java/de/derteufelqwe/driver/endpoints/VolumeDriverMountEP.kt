@@ -24,7 +24,17 @@ class VolumeDriverMountEP(data: String?) : Endpoint<VolumeDriver.RMount, VolumeD
     override fun process(request: VolumeDriver.RMount): VolumeDriver.Mount {
         val file = File(DMCLogDriver.VOLUME_PATH + request.volumeName + "/")
         file.mkdirs()
-        return VolumeDriver.Mount(file.absolutePath)
+        var error = ""
+        if (request.volumeName in DMCLogDriver.MOUNTED_VOLUMES) {
+            return VolumeDriver.Mount(error = "Volume ${request.volumeName} is already mounted!")
+        }
+
+
+        if (error == "") {
+            DMCLogDriver.MOUNTED_VOLUMES.add(request.volumeName)
+        }
+
+        return VolumeDriver.Mount(file.absolutePath, error)
 
         val tStart = System.currentTimeMillis()
         try {

@@ -13,7 +13,7 @@ import de.derteufelqwe.nodewatcher.DBQueries;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.executors.ContainerEventHandler;
 import de.derteufelqwe.nodewatcher.misc.NWUtils;
-import de.derteufelqwe.nodewatcher.misc.RepeatingThread;
+import de.derteufelqwe.commons.misc.RepeatingThread;
 import lombok.extern.log4j.Log4j2;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +40,7 @@ public class ServiceHealthReader extends RepeatingThread {
 
 
     public ServiceHealthReader() {
-        super(10);
+        super(10000);
     }
 
     @Override

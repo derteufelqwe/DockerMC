@@ -8,13 +8,11 @@ import de.derteufelqwe.commons.hibernate.objects.Node;
 import de.derteufelqwe.driver.DBQueries;
 import de.derteufelqwe.driver.DMCLogDriver;
 import de.derteufelqwe.driver.messages.LogDriver;
-import de.derteufelqwe.driver.workers.LogConsumer;
-import de.derteufelqwe.driver.workers.LogDownloadEntry;
+import de.derteufelqwe.driver.misc.LogConsumer;
+import de.derteufelqwe.driver.misc.LogDownloadEntry;
 import lombok.extern.log4j.Log4j2;
 import org.hibernate.Session;
-import org.hibernate.Transaction;
 
-import javax.persistence.NoResultException;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;

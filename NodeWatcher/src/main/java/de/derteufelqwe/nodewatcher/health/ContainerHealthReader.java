@@ -14,7 +14,7 @@ import de.derteufelqwe.nodewatcher.exceptions.DBContainerNotFoundException;
 import de.derteufelqwe.nodewatcher.executors.ContainerEventHandler;
 import de.derteufelqwe.nodewatcher.misc.IContainerObserver;
 import de.derteufelqwe.nodewatcher.misc.NWUtils;
-import de.derteufelqwe.nodewatcher.misc.RepeatingThread;
+import de.derteufelqwe.commons.misc.RepeatingThread;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
@@ -23,7 +23,6 @@ import org.hibernate.Transaction;
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,7 +46,7 @@ public class ContainerHealthReader extends RepeatingThread implements IContainer
 
 
     public ContainerHealthReader() {
-        super(10);
+        super(10000);
     }
 
 

@@ -1,11 +1,13 @@
 package de.derteufelqwe.driver;
 
 import com.google.common.util.concurrent.MoreExecutors;
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.driver.exceptions.DMCDriverException;
-import de.derteufelqwe.driver.workers.DatabaseWriter;
-import de.derteufelqwe.driver.workers.LogDownloadEntry;
+import de.derteufelqwe.driver.misc.DatabaseWriter;
+import de.derteufelqwe.driver.misc.LogDownloadEntry;
+import de.derteufelqwe.driver.misc.VolumeAutoSaver;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -23,7 +25,10 @@ import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.*;
 
 @Log4j2
@@ -37,21 +42,26 @@ public class DMCLogDriver {
      * Time in ms for which the LogConsumer must have not read new data before the log download is considered complete
      */
     public static final int FINISH_LOG_READ_DELAY = 2000;
-
+    /**
+     * Path where the mounted volumes are stored
+     */
     public static final String VOLUME_PATH = "/home/arne/Plugin/volumes/";
 
-    @Getter
-    private static ExecutorService threadPool;
-    // Manual getter
-    private static SessionBuilder sessionBuilder;
-    @Getter
-    private static DatabaseWriter databaseWriter;
+    /**
+     * The plugin must keep track of mounted volumes
+     */
+    public static final Set<String> MOUNTED_VOLUMES = Collections.synchronizedSet(new HashSet<>());
+
+    private static SessionBuilder sessionBuilder = new SessionBuilder("dockermc", "admin", "ubuntu1", Constants.POSTGRESDB_PORT);
+
+    private static final VolumeAutoSaver volumeAutoSaver = new VolumeAutoSaver();
+    @Getter private static ExecutorService threadPool;
+    @Getter private static DatabaseWriter databaseWriter;
     /**
      * Key:   Filename
      * Value: Container with LogConsumer and its Future
      */
-    @Getter
-    private static final Map<String, LogDownloadEntry> logfileConsumers = new ConcurrentHashMap<>();
+    @Getter private static final Map<String, LogDownloadEntry> logfileConsumers = new ConcurrentHashMap<>();
 
     public EventLoopGroup bossGroup;
     public EventLoopGroup workerGroup;
@@ -59,7 +69,6 @@ public class DMCLogDriver {
 
     public DMCLogDriver() throws RuntimeException {
         threadPool = createThreadPool();
-        sessionBuilder = new SessionBuilder("dockermc", "admin", "ubuntu1", Constants.POSTGRESDB_PORT);
         databaseWriter = new DatabaseWriter();
         databaseWriter.start();
 
@@ -89,6 +98,8 @@ public class DMCLogDriver {
     }
 
     public void startServer() throws DMCDriverException {
+        volumeAutoSaver.start();
+
         try {
             ServerBootstrap b = new ServerBootstrap()
                     .group(bossGroup, workerGroup)
@@ -141,6 +152,7 @@ public class DMCLogDriver {
 
         databaseWriter.flushAll();
         databaseWriter.interrupt();
+        volumeAutoSaver.interrupt();
 
         log.info("Shutdown complete. Goodbye.");
     }
@@ -150,6 +162,10 @@ public class DMCLogDriver {
 
     public static SessionBuilder getSessionBuilder() {
         return sessionBuilder;
+    }
+
+    public static VolumeAutoSaver getVolumeAutoSaver() {
+        return volumeAutoSaver;
     }
 
 }

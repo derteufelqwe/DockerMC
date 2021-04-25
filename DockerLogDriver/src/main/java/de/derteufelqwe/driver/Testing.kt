@@ -6,9 +6,11 @@ import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFile
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFolder
 import org.hibernate.Session
 import java.io.File
+import java.util.concurrent.LinkedBlockingQueue
 import java.util.zip.Adler32
 import javax.persistence.NoResultException
 import kotlin.jvm.Throws
+import kotlin.math.min
 import kotlin.random.Random
 import kotlin.system.measureTimeMillis
 
@@ -314,8 +316,8 @@ fun getFiles(): List<String> {
 
 fun main() {
 //    testDBPerformance()
-//    testHashPerformance()
-    testDB()
+    testHashPerformance()
+//    testDB()
 }
 
 
@@ -341,7 +343,7 @@ fun testDBPerformance() {
 }
 
 fun testHashPerformance() {
-    val ITER = 1000
+    val ITER = 100
     val PATH = "C:/Users/Arne/Downloads/hotswap-agent-1.4.1.jar"
 
 
@@ -366,10 +368,17 @@ fun testHashPerformance() {
 }
 
 fun hash1(file: File): Any {
-    val blake = ove.crypto.digest.Blake2b.Digest.newInstance()
-    blake.update(file.readBytes())
+    val adler = Adler32()
+    val input = file.inputStream()
+    val buffer = ByteArray(min(1024 * 1024 * 50, file.length()).toInt())
+    var readCount = input.read(buffer)
 
-    return blake.digest()
+    while (readCount > 0) {
+        adler.update(buffer, 0, readCount)
+        readCount = input.read(buffer)
+    }
+
+    return adler.value
 }
 
 fun hash2(file: File): Any {
@@ -379,14 +388,6 @@ fun hash2(file: File): Any {
     return adler.value
 }
 
-fun testDB() {
-    val sessionBuilder = SessionBuilder("admin")
-
-    sessionBuilder.execute() { session ->
-        var res = DBQueries.getAllVolumeFolders(session, session.get(VolumeFolder::class.java, 593L))
-        print("")
-    }
-}
 
 
 @Throws(NoResultException::class)
