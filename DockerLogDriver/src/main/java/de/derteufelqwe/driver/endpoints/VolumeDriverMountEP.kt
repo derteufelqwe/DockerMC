@@ -6,16 +6,12 @@ import de.derteufelqwe.commons.hibernate.objects.volumes.Volume
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFile
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFolder
 import de.derteufelqwe.driver.DMCLogDriver
-import de.derteufelqwe.driver.Utils
-import de.derteufelqwe.driver.exceptions.DMCDriverException
+import de.derteufelqwe.driver.misc.Utils
 import de.derteufelqwe.driver.exceptions.VolumeLoadException
 import de.derteufelqwe.driver.messages.VolumeDriver
 import org.apache.logging.log4j.LogManager
-import org.hibernate.Session
 import java.io.File
 import java.io.Serializable
-import java.security.MessageDigest
-import kotlin.jvm.Throws
 import kotlin.system.measureTimeMillis
 
 class VolumeDriverMountEP(data: String?) : Endpoint<VolumeDriver.RMount, VolumeDriver.Mount>(data) {
@@ -56,8 +52,8 @@ class VolumeDriverMountEP(data: String?) : Endpoint<VolumeDriver.RMount, VolumeD
             return VolumeDriver.Mount(error = "Volume mount failed. Error: ${e.message}")
         }
 
-        log.debug("Hashing files took ${metric.hashDuration} ms.")
-        log.debug("Saving files took ${metric.saveFilesDuration} ms.")
+        log.trace("Hashing files took ${metric.hashDuration} ms.")
+        log.trace("Saving files took ${metric.saveFilesDuration} ms.")
         log.info("Mounting volume ${request.volumeName} took ${System.currentTimeMillis() - tStart}ms.")
 
         return VolumeDriver.Mount(file.absolutePath, "")

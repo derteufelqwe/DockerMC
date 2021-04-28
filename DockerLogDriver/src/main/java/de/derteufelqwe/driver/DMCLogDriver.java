@@ -1,13 +1,11 @@
 package de.derteufelqwe.driver;
 
 import com.google.common.util.concurrent.MoreExecutors;
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
+import com.google.gson.Gson;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.driver.exceptions.DMCDriverException;
-import de.derteufelqwe.driver.misc.DatabaseWriter;
-import de.derteufelqwe.driver.misc.LogDownloadEntry;
-import de.derteufelqwe.driver.misc.VolumeAutoSaver;
+import de.derteufelqwe.driver.misc.*;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -24,7 +22,7 @@ import lombok.extern.log4j.Log4j2;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
-import java.io.File;
+import java.io.*;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -46,6 +44,10 @@ public class DMCLogDriver {
      * Path where the mounted volumes are stored
      */
     public static final String VOLUME_PATH = "/home/arne/Plugin/volumes/";
+    /**
+     * Filename of the JSON file, which stores information about downloaded volumes
+     */
+    public static final String VOLUMES_INFO_FILE_NAME = VOLUME_PATH + "localVolumes.json";
 
     /**
      * The plugin must keep track of mounted volumes
@@ -53,15 +55,20 @@ public class DMCLogDriver {
     public static final Set<String> MOUNTED_VOLUMES = Collections.synchronizedSet(new HashSet<>());
 
     private static SessionBuilder sessionBuilder = new SessionBuilder("dockermc", "admin", "ubuntu1", Constants.POSTGRESDB_PORT);
-
     private static final VolumeAutoSaver volumeAutoSaver = new VolumeAutoSaver();
-    @Getter private static ExecutorService threadPool;
-    @Getter private static DatabaseWriter databaseWriter;
+    private static final LocalVolumeRemover localVolumeRemover = new LocalVolumeRemover();
+    private static final LocalVolumes localVolumes = loadLocalVolumes();
+
+    @Getter
+    private static ExecutorService threadPool;
+    @Getter
+    private static DatabaseWriter databaseWriter;
     /**
      * Key:   Filename
      * Value: Container with LogConsumer and its Future
      */
-    @Getter private static final Map<String, LogDownloadEntry> logfileConsumers = new ConcurrentHashMap<>();
+    @Getter
+    private static final Map<String, LogDownloadEntry> logfileConsumers = new ConcurrentHashMap<>();
 
     public EventLoopGroup bossGroup;
     public EventLoopGroup workerGroup;
@@ -98,6 +105,7 @@ public class DMCLogDriver {
     }
 
     public void startServer() throws DMCDriverException {
+        localVolumeRemover.start();
         volumeAutoSaver.start();
 
         try {
@@ -125,9 +133,7 @@ public class DMCLogDriver {
         }
     }
 
-    public void shutdown() throws RuntimeException {
-        log.warn("LogDriver shutting down!");
-
+    public void stopWebserver() {
         if (workerGroup != null) {
             try {
                 workerGroup.shutdownGracefully().sync();
@@ -145,18 +151,54 @@ public class DMCLogDriver {
                 log.error("Boss group shutdown interrupted!");
             }
         }
+    }
+
+    public void shutdown() throws RuntimeException {
+        log.warn("LogDriver shutting down!");
+        stopWebserver();
 
         if (threadPool != null) {
             threadPool.shutdownNow();
         }
 
-        databaseWriter.flushAll();
         databaseWriter.interrupt();
+        databaseWriter.flushAll();
         volumeAutoSaver.interrupt();
+
+        saveLocalVolumesFile();
 
         log.info("Shutdown complete. Goodbye.");
     }
 
+    private static LocalVolumes loadLocalVolumes() {
+        Gson gson = new Gson();
+        File file = new File(VOLUMES_INFO_FILE_NAME);
+
+        try {
+            LocalVolumes localVolumes = gson.fromJson(new FileReader(file), LocalVolumes.class);
+            if (localVolumes == null || localVolumes.getVolumes() == null) {
+                return new LocalVolumes();
+            }
+            return localVolumes;
+
+        } catch (FileNotFoundException e) {
+            return new LocalVolumes();
+        }
+    }
+
+    public static void saveLocalVolumesFile() {
+        Gson gson = new Gson();
+        File file = new File(VOLUMES_INFO_FILE_NAME);
+
+        try {
+            FileWriter writer = new FileWriter(file);
+            gson.toJson(localVolumes, LocalVolumes.class, writer);
+            writer.close();
+
+        } catch (IOException e) {
+            log.error("Failed to save local volumes file.", e);
+        }
+    }
 
     // -----  Getter / setters  -----
 
@@ -168,4 +210,7 @@ public class DMCLogDriver {
         return volumeAutoSaver;
     }
 
+    public static LocalVolumes getLocalVolumes() {
+        return localVolumes;
+    }
 }

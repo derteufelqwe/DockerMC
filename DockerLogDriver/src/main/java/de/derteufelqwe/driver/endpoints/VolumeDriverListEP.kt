@@ -1,7 +1,7 @@
 package de.derteufelqwe.driver.endpoints
 
 import de.derteufelqwe.commons.hibernate.SessionBuilder
-import de.derteufelqwe.driver.DBQueries
+import de.derteufelqwe.driver.misc.DBQueries
 import de.derteufelqwe.driver.DMCLogDriver
 import de.derteufelqwe.driver.messages.VolumeDriver
 import org.apache.logging.log4j.LogManager

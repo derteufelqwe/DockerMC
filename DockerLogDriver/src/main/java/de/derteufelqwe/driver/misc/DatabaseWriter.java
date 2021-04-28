@@ -153,6 +153,5 @@ public class DatabaseWriter extends Thread {
     public void interrupt() {
         this.doRun.set(false);
         super.interrupt();
-        sessionBuilder.close();
     }
 }

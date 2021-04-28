@@ -9,21 +9,16 @@ import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFolder
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeObject
 import de.derteufelqwe.commons.misc.RepeatingThread
 import de.derteufelqwe.driver.DMCLogDriver
-import de.derteufelqwe.driver.Utils
 import de.derteufelqwe.driver.exceptions.VolumeSaveException
 import org.apache.logging.log4j.LogManager
 import org.hibernate.Session
 import java.io.File
 import java.sql.Timestamp
 import java.util.*
-import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.SynchronousQueue
 import java.util.concurrent.TimeUnit
 import javax.persistence.NoResultException
-import kotlin.collections.HashMap
 import kotlin.collections.HashSet
-import kotlin.collections.LinkedHashSet
 import kotlin.jvm.Throws
 import kotlin.system.measureTimeMillis
 
@@ -90,10 +85,10 @@ class VolumeAutoSaver : RepeatingThread(10000) {
             removeFilesFromDB(session)
         }
 
-        log.debug("Hashing files took ${metric.hashDuration} ms.")
-        log.debug("Creating new files took ${metric.getOrCreateFileDuration} ms.")
-        log.debug("Getting files from DB took ${metric.indexFilesDuration} ms.")
-        log.debug("Getting folders from DB took ${metric.indexFoldersDuration} ms.")
+        log.trace("Hashing files took ${metric.hashDuration} ms.")
+        log.trace("Creating new files took ${metric.getOrCreateFileDuration} ms.")
+        log.trace("Getting files from DB took ${metric.indexFilesDuration} ms.")
+        log.trace("Getting folders from DB took ${metric.indexFoldersDuration} ms.")
 
         log.info("Saving volume $volumeName took ${System.currentTimeMillis() - tStart}ms.")
     }

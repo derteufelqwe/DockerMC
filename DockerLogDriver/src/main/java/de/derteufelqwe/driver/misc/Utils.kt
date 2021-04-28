@@ -1,4 +1,4 @@
-package de.derteufelqwe.driver
+package de.derteufelqwe.driver.misc
 
 import java.io.File
 import java.util.zip.Adler32
@@ -8,6 +8,10 @@ object Utils {
 
     private var BUFFER_READ_SIZE = 1024 * 1024 * 50L     // 50 MB
 
+
+    /**
+     * Hashes a file in chunks of 50 MB
+     */
     fun hashFile(file: File): Long {
         val adler = Adler32()
 

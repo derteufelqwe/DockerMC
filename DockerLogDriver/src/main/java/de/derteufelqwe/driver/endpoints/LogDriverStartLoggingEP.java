@@ -5,7 +5,7 @@ import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.DBService;
 import de.derteufelqwe.commons.hibernate.objects.Node;
-import de.derteufelqwe.driver.DBQueries;
+import de.derteufelqwe.driver.misc.DBQueries;
 import de.derteufelqwe.driver.DMCLogDriver;
 import de.derteufelqwe.driver.messages.LogDriver;
 import de.derteufelqwe.driver.misc.LogConsumer;
