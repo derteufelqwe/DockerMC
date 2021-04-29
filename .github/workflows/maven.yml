@@ -4,7 +4,8 @@ name: DockerMC CI Pipeline
 #    uses: lhotari/action-upterm@v1
 
 on:
-  pull_request:
+#  pull_request:
+  push:
     branches: [ "master" ]
   workflow_dispatch:
 
@@ -40,6 +41,7 @@ jobs:
 
       # Cache dependencies
       - name: "Cache dependencies"
+        uses: actions/cache@v2
         with:
           path: |
             ~/.m2/repository
