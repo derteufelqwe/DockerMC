@@ -62,7 +62,7 @@ jobs:
 
       - name: "Load project version"
         run: |
-          version=$(cat ~/.m2/repository/dmcversion.info)
+          version="$(cat ~/.m2/repository/dmcversion.info)"
           echo "VERSION=$version" >> $GITHUB_ENV
 
 
