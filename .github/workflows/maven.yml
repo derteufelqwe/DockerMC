@@ -63,8 +63,8 @@ jobs:
       - name: "Load project version"
         run: |
           version="$(cat ~/.m2/repository/dmcversion.info)"
-          echo Version: '$version'
-          echo "VERSION=$version" >> $GITHUB_ENV
+          echo "Version: $version"
+
 
 
 #      # Compile and push docker log driver plugin
