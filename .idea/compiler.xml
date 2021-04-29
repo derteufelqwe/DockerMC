@@ -11,7 +11,7 @@
         <module name="NodeWatcher" />
         <module name="BungeePlugin" />
         <module name="Commons" />
-        <module name="DockerLogDriver" />
+        <module name="DockerPlugin" />
       </profile>
       <profile name="Annotation profile for ServerManager" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />

@@ -19,6 +19,7 @@
         <option value="$PROJECT_DIR$/pom.xml" />
         <option value="$PROJECT_DIR$/BungeePlugin/pom.xml" />
         <option value="$PROJECT_DIR$/MinecraftPlugin/pom.xml" />
+        <option value="$PROJECT_DIR$/DockerPlugin/pom.xml" />
       </list>
     </option>
   </component>

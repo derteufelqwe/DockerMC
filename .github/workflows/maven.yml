@@ -38,49 +38,57 @@ jobs:
       - name: "Install Commons"
         run: mvn install -f Commons/pom.xml --quiet
 
-      # Compile and push docker log driver plugin
-      - name: "Package LogDriver"
-        run: mvn package -f DockerLogDriver/pom.xml --quiet
-      - name: "Build and push driver image"
-        run: cd DockerLogDriver && sh buildImage.sh
-
-      # Compile and push NodeWatcher image
-      - name: "Package NodeWatcher"
-        run: mvn package -f NodeWatcher/pom.xml --quiet
-      - name: "Build and push NodeWatcher image"
-        id: docker_build
-        uses: docker/build-push-action@v2
+      # Cache dependencies
+      - name: "Cache dependencies"
         with:
-          push: true
-          context: NodeWatcher
-          tags: |
-            derteufelqwe/dockermc-nodewatcher:${{ env.VERSION }}
-            derteufelqwe/dockermc-nodewatcher:latest
-
-      # Build release binaries
-      - name: "Package Minecraft plugin"
-        run: mvn package -f MinecraftPlugin/pom.xml --quiet
-      - name: "Package BungeeCord plugin"
-        run: mvn package -f BungeePlugin/pom.xml --quiet
+          path: |
+            ~/.m2/repository
+          key: ${{ hashFiles('**/Commons/pom.xml') }}
 
 
-      # Create the releases
-      - name: "Create release (latest)"
-        uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: latest
-          prerelease: false
-          files: |
-            MinecraftPlugin/target/MinecraftPlugin-${{ env.VERSION }}.jar
-            BungeePlugin/target/BungeePlugin-${{ env.VERSION }}.jar
-
-      - name: "Create release (version)"
-        uses: marvinpinto/action-automatic-releases@latest
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: ${{ env.VERSION }}
-          prerelease: false
-          files: |
-            MinecraftPlugin/target/MinecraftPlugin-${{ env.VERSION }}.jar
-            BungeePlugin/target/BungeePlugin-${{ env.VERSION }}.jar
+#      # Compile and push docker log driver plugin
+#      - name: "Package LogDriver"
+#        run: mvn package -f DockerLogDriver/pom.xml --quiet
+#      - name: "Build and push driver image"
+#        run: cd DockerLogDriver && sh buildImage.sh
+#
+#      # Compile and push NodeWatcher image
+#      - name: "Package NodeWatcher"
+#        run: mvn package -f NodeWatcher/pom.xml --quiet
+#      - name: "Build and push NodeWatcher image"
+#        id: docker_build
+#        uses: docker/build-push-action@v2
+#        with:
+#          push: true
+#          context: NodeWatcher
+#          tags: |
+#            derteufelqwe/dockermc-nodewatcher:${{ env.VERSION }}
+#            derteufelqwe/dockermc-nodewatcher:latest
+#
+#      # Build release binaries
+#      - name: "Package Minecraft plugin"
+#        run: mvn package -f MinecraftPlugin/pom.xml --quiet
+#      - name: "Package BungeeCord plugin"
+#        run: mvn package -f BungeePlugin/pom.xml --quiet
+#
+#
+#      # Create the releases
+#      - name: "Create release (latest)"
+#        uses: "marvinpinto/action-automatic-releases@latest"
+#        with:
+#          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+#          automatic_release_tag: latest
+#          prerelease: false
+#          files: |
+#            MinecraftPlugin/target/MinecraftPlugin-${{ env.VERSION }}.jar
+#            BungeePlugin/target/BungeePlugin-${{ env.VERSION }}.jar
+#
+#      - name: "Create release (version)"
+#        uses: marvinpinto/action-automatic-releases@latest
+#        with:
+#          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+#          automatic_release_tag: ${{ env.VERSION }}
+#          prerelease: false
+#          files: |
+#            MinecraftPlugin/target/MinecraftPlugin-${{ env.VERSION }}.jar
+#            BungeePlugin/target/BungeePlugin-${{ env.VERSION }}.jar
