@@ -35,7 +35,7 @@ jobs:
 #        uses: actions/cache@v2
 #        with:
 #          path: |
-#            ~/.m2/repository
+#            ~/.m2
 #          key: ${{ hashFiles('**/Commons/pom.xml') }}-${{ hashFiles('**pom.xml') }}
 
 #          version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
@@ -44,8 +44,9 @@ jobs:
       - name: "Get project version"
 #        if: steps.cache-deps.output.cache-hit != 'true'
         run: |
+          mkdir -p ~/.m2
           version="1.0"
-          echo "VERSION=$version" >> ~/.m2/repository/dmcversion.info
+          echo "VERSION=$version" >> ~/.m2/dmcversion.info
 
       - name: "Debug"
         uses: lhotari/action-upterm@v1
@@ -62,12 +63,12 @@ jobs:
         if: steps.cache-deps.output.cache-hit != 'true'
         with:
           path: |
-            ~/.m2/repository
+            ~/.m2
           key: ${{ hashFiles('**/Commons/pom.xml') }}
 
       - name: "Load project version"
         run: |
-          version="$(cat ~/.m2/repository/dmcversion.info)"
+          version="$(cat ~/.m2/dmcversion.info)"
           echo "Version: $version"
           echo "$version" >> $GITHUB_ENV
 
