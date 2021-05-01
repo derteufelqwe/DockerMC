@@ -160,7 +160,7 @@ jobs:
       - name: "Archive MinecraftPlugin Jar"
         uses: actions/upload-artifact@v2
         with:
-          name: MinecraftPlugin.jar
+          name: MinecraftPlugin
           path: MinecraftPlugin/target/MinecraftPlugin-${{ env.VERSION }}.jar
 
   BungeeCordPlugin:
@@ -181,11 +181,47 @@ jobs:
           path: |
             ~/.m2
           key: ${{ hashFiles('**/Commons/pom.xml') }}-${{ hashFiles('**pom.xml') }}
+      - name: "Load project version"
+        run: |
+          version="$(cat ~/.m2/dmcversion.info)"
+          echo "Version: $version"
+          echo "VERSION=$version" >> $GITHUB_ENV
 
       - name: "Package BungeeCord plugin"
         run: mvn package -f BungeePlugin/pom.xml --quiet
 
+      - name: "Archive BungeePlugin Jar"
+        uses: actions/upload-artifact@v2
+        with:
+          name: BungeePlugin
+          path: BungeePlugin/target/BungeePlugin-${{ env.VERSION }}.jar
 
+  Release:
+    runs-on: ubuntu-20.04
+    needs: [ MinecraftPlugin, BungeeCordPlugin ]
+    steps:
+      # Prepare the environment
+      - name: "Load project version"
+        run: |
+          version="$(cat ~/.m2/dmcversion.info)"
+          echo "Version: $version"
+          echo "VERSION=$version" >> $GITHUB_ENV
+
+      - name: "Package BungeeCord plugin"
+        run: mvn package -f BungeePlugin/pom.xml --quiet
+
+      # Download previously generated artifacts
+      - uses: actions/download-artifact@v2
+        with:
+          name: MinecraftPlugin
+          path: .
+      - uses: actions/download-artifact@v2
+        with:
+          name: BungeePlugin
+          path: .
+
+      - name: "Debug"
+        uses: lhotari/action-upterm@v1
 
 #      # Create the releases
 #      - name: "Create release (latest)"
