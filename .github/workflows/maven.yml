@@ -48,6 +48,9 @@ jobs:
           version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
           echo "$version" >> ~/.m2/dmcversion.info
 
+      - name: "Debug"
+        uses: lhotari/action-upterm@v1
+
       - name: "Load project version"
         run: |
           version="$(cat ~/.m2/dmcversion.info)"
