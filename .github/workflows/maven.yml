@@ -148,6 +148,11 @@ jobs:
           path: |
             ~/.m2
           key: ${{ hashFiles('**/Commons/pom.xml') }}-${{ hashFiles('**pom.xml') }}
+      - name: "Load project version"
+        run: |
+          version="$(cat ~/.m2/dmcversion.info)"
+          echo "Version: $version"
+          echo "VERSION=$version" >> $GITHUB_ENV
 
       - name: "Package Minecraft plugin"
         run: mvn package -f MinecraftPlugin/pom.xml --quiet
