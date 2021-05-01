@@ -76,7 +76,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <finalName>DockerMCPlugin</finalName>
+                            <finalName>DMCPluginMC-${version}</finalName>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
 
                             <relocations>

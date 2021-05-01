@@ -1,7 +1,7 @@
 {
   "description": "DockerMC logging plugin",
   "documentation": "-",
-  "entrypoint": ["java", "-jar", "/plugin/LogDriver-1.0.jar"],
+  "entrypoint": ["java", "-jar", "/plugin/DockerPlugin.jar"],
   "interface": {
     "types": ["docker.logdriver/1.0"],
     "socket": "dmcdriver.sock"

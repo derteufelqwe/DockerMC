@@ -64,7 +64,7 @@
                 </executions>
 
                 <configuration>
-                    <finalName>BungeePlugin-1.0</finalName>
+                    <finalName>DMCPluginBC-${version}</finalName>
 <!--                        ACF-->
 <!--                    <dependencyReducedPomLocation>${project.build.directory}/dependency-reduced-pom.xml</dependencyReducedPomLocation>-->
                     <createDependencyReducedPom>false</createDependencyReducedPom>

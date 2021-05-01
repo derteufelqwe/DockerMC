@@ -52,7 +52,6 @@ jobs:
           echo "Version: $version"
           echo "VERSION=$version" >> $GITHUB_ENV
 
-
   DockerPlugin:
     runs-on: ubuntu-20.04
     needs: [Setup]
@@ -85,6 +84,7 @@ jobs:
         run: mvn package -f DockerPlugin/pom.xml --quiet
       - name: "Build and push docker plugin"
         run: cd DockerPlugin && sh buildImage.sh
+
   NodeWatcher:
     runs-on: ubuntu-20.04
     needs: [ Setup ]
@@ -226,28 +226,24 @@ jobs:
           name: BungeePlugin
           path: .
 
-      - name: "Debug"
-        uses: lhotari/action-upterm@v1
+      - name: "Create release (latest)"
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: latest
+          prerelease: false
+          files: |
+            MinecraftPlugin-${{ env.VERSION }}.jar
+            BungeePlugin-${{ env.VERSION }}.jar
 
-#      # Create the releases
-#      - name: "Create release (latest)"
-#        uses: "marvinpinto/action-automatic-releases@latest"
-#        with:
-#          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-#          automatic_release_tag: latest
-#          prerelease: false
-#          files: |
-#            MinecraftPlugin/target/MinecraftPlugin-${{ env.VERSION }}.jar
-#            BungeePlugin/target/BungeePlugin-${{ env.VERSION }}.jar
-#
-#      - name: "Create release (version)"
-#        uses: marvinpinto/action-automatic-releases@latest
-#        with:
-#          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-#          automatic_release_tag: ${{ env.VERSION }}
-#          prerelease: false
-#          files: |
-#            MinecraftPlugin/target/MinecraftPlugin-${{ env.VERSION }}.jar
-#            BungeePlugin/target/BungeePlugin-${{ env.VERSION }}.jar
+      - name: "Create release (version)"
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: ${{ env.VERSION }}
+          prerelease: false
+          files: |
+            MinecraftPlugin-${{ env.VERSION }}.jar
+            BungeePlugin-${{ env.VERSION }}.jar
 
 
