@@ -40,7 +40,7 @@ jobs:
 
       # Compile and install essentials
       - name: "Get project version"
-        if: steps.cache-deps.output.cache-hit != 'true'
+#        if: steps.cache-deps.output.cache-hit != 'true'
         run: |
           version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
           echo "VERSION=$version" >> ~/.m2/repository/dmcversion.info
