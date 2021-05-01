@@ -46,7 +46,7 @@ jobs:
         run: |
           mkdir -p ~/.m2
           version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
-          echo "$version" >> ~/.m2/dmcversion.info
+          echo "$version" > ~/.m2/dmcversion.info
 
       - name: "Debug"
         uses: lhotari/action-upterm@v1
