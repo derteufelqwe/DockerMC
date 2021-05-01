@@ -250,5 +250,3 @@ jobs:
           files: |
             DMCPluginMC-${{ env.VERSION }}.jar
             DMCPluginBC-${{ env.VERSION }}.jar
-
-
