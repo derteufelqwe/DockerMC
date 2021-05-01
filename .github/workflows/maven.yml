@@ -29,7 +29,8 @@ jobs:
 #          username: ${{ secrets.DOCKERHUB_USERNAME }}
 #          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Cache dependencies
+      ### General cache setup ###
+
       - name: "Load cached dependencies"
         id: cache-deps
         uses: actions/cache@v2
@@ -38,20 +39,20 @@ jobs:
             ~/.m2
           key: ${{ hashFiles('**/Commons/pom.xml') }}-${{ hashFiles('**pom.xml') }}
 
-      # Compile and install essentials
+
+      - name: "Install ServerManager"
+        if: steps.cache-deps.output.cache-hit != 'true'
+        run: mvn install -N --quiet
+      - name: "Install Commons"
+        if: steps.cache-deps.output.cache-hit != 'true'
+        run: mvn install -f Commons/pom.xml --quiet
+
       - name: "Get project version"
         if: steps.cache-deps.output.cache-hit != 'true'
         run: |
           mkdir -p ~/.m2
           version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
           echo "$version" >> ~/.m2/dmcversion.info
-
-#      - name: "Install ServerManager"
-#        if: steps.cache-deps.output.cache-hit != 'true'
-#        run: mvn install -N --quiet
-#      - name: "Install Commons"
-#        if: steps.cache-deps.output.cache-hit != 'true'
-#        run: mvn install -f Commons/pom.xml --quiet
 
       - name: "Cache dependencies"
         uses: actions/cache@v2
@@ -66,6 +67,7 @@ jobs:
           version="$(cat ~/.m2/dmcversion.info)"
           echo "Version: $version"
           echo "VERSION=$version" >> $GITHUB_ENV
+
 
 
 #      # Compile and push docker log driver plugin
