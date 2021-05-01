@@ -38,11 +38,12 @@ jobs:
             ~/.m2/repository
           key: ${{ hashFiles('**/Commons/pom.xml') }}-${{ hashFiles('**pom.xml') }}
 
+#          version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+
       # Compile and install essentials
       - name: "Get project version"
 #        if: steps.cache-deps.output.cache-hit != 'true'
         run: |
-#          version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
           version="1.0"
           echo "VERSION=$version" >> ~/.m2/repository/dmcversion.info
 
