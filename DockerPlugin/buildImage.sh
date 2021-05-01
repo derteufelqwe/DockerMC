@@ -17,6 +17,7 @@ else
   id=$(docker create "$BASEIMAGE")
   docker export "$id" | tar -x -C rootfs
   docker rm -vf "$id"
+  mkdir "rootfs/plugin"
 fi
 
 cp "target/DockerPlugin-$VERSION.jar" "rootfs/plugin/DockerPlugin.jar"
