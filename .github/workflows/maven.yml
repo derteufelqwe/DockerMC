@@ -30,13 +30,13 @@ jobs:
 #          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # Cache dependencies
-      - name: "Load cached dependencies"
-        id: cache-deps
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.m2/repository
-          key: ${{ hashFiles('**/Commons/pom.xml') }}-${{ hashFiles('**pom.xml') }}
+#      - name: "Load cached dependencies"
+#        id: cache-deps
+#        uses: actions/cache@v2
+#        with:
+#          path: |
+#            ~/.m2/repository
+#          key: ${{ hashFiles('**/Commons/pom.xml') }}-${{ hashFiles('**pom.xml') }}
 
 #          version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
 
