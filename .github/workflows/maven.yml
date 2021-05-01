@@ -30,26 +30,21 @@ jobs:
 #          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # Cache dependencies
-#      - name: "Load cached dependencies"
-#        id: cache-deps
-#        uses: actions/cache@v2
-#        with:
-#          path: |
-#            ~/.m2
-#          key: ${{ hashFiles('**/Commons/pom.xml') }}-${{ hashFiles('**pom.xml') }}
-
-#          version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+      - name: "Load cached dependencies"
+        id: cache-deps
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.m2
+          key: ${{ hashFiles('**/Commons/pom.xml') }}-${{ hashFiles('**pom.xml') }}
 
       # Compile and install essentials
       - name: "Get project version"
-#        if: steps.cache-deps.output.cache-hit != 'true'
+        if: steps.cache-deps.output.cache-hit != 'true'
         run: |
           mkdir -p ~/.m2
           version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
-          echo "VERSION=$version" >> ~/.m2/dmcversion.info
-
-      - name: "Debug"
-        uses: lhotari/action-upterm@v1
+          echo "$version" >> ~/.m2/dmcversion.info
 
 #      - name: "Install ServerManager"
 #        if: steps.cache-deps.output.cache-hit != 'true'
@@ -58,19 +53,19 @@ jobs:
 #        if: steps.cache-deps.output.cache-hit != 'true'
 #        run: mvn install -f Commons/pom.xml --quiet
 
-#      - name: "Cache dependencies"
-#        uses: actions/cache@v2
-#        if: steps.cache-deps.output.cache-hit != 'true'
-#        with:
-#          path: |
-#            ~/.m2
-#          key: ${{ hashFiles('**/Commons/pom.xml') }}
+      - name: "Cache dependencies"
+        uses: actions/cache@v2
+        if: steps.cache-deps.output.cache-hit != 'true'
+        with:
+          path: |
+            ~/.m2
+          key: ${{ hashFiles('**/Commons/pom.xml') }}
 
       - name: "Load project version"
         run: |
           version="$(cat ~/.m2/dmcversion.info)"
           echo "Version: $version"
-          echo "$version" >> $GITHUB_ENV
+          echo "VERSION=$version" >> $GITHUB_ENV
 
 
 #      # Compile and push docker log driver plugin
