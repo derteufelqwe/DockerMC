@@ -47,6 +47,9 @@ jobs:
           version="1.0"
           echo "VERSION=$version" >> ~/.m2/repository/dmcversion.info
 
+      - name: "Debug"
+        uses: lhotari/action-upterm@v1
+
 #      - name: "Install ServerManager"
 #        if: steps.cache-deps.output.cache-hit != 'true'
 #        run: mvn install -N --quiet
