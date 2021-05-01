@@ -201,6 +201,8 @@ jobs:
     needs: [ MinecraftPlugin, BungeeCordPlugin ]
     steps:
       # Prepare the environment
+      - name: "Clone Code"
+        uses: actions/checkout@v2
       - name: "Load cached dependencies"
         id: cache-deps
         uses: actions/cache@v2
