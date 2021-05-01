@@ -201,14 +201,18 @@ jobs:
     needs: [ MinecraftPlugin, BungeeCordPlugin ]
     steps:
       # Prepare the environment
+      - name: "Load cached dependencies"
+        id: cache-deps
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.m2
+          key: ${{ hashFiles('**/Commons/pom.xml') }}-${{ hashFiles('**pom.xml') }}
       - name: "Load project version"
         run: |
           version="$(cat ~/.m2/dmcversion.info)"
           echo "Version: $version"
           echo "VERSION=$version" >> $GITHUB_ENV
-
-      - name: "Package BungeeCord plugin"
-        run: mvn package -f BungeePlugin/pom.xml --quiet
 
       # Download previously generated artifacts
       - uses: actions/download-artifact@v2
