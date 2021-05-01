@@ -149,14 +149,14 @@ jobs:
             ~/.m2
           key: ${{ hashFiles('**/Commons/pom.xml') }}-${{ hashFiles('**pom.xml') }}
 
-        - name: "Package Minecraft plugin"
-          run: mvn package -f MinecraftPlugin/pom.xml --quiet
+      - name: "Package Minecraft plugin"
+        run: mvn package -f MinecraftPlugin/pom.xml --quiet
 
-        - name: "Archive MinecraftPlugin Jar"
-            uses: actions/upload-artifact@v2
-            with:
-              name: MinecraftPlugin.jar
-              path: MinecraftPlugin/target/MinecraftPlugin-${{ env.VERSION }}.jar
+      - name: "Archive MinecraftPlugin Jar"
+        uses: actions/upload-artifact@v2
+        with:
+          name: MinecraftPlugin.jar
+          path: MinecraftPlugin/target/MinecraftPlugin-${{ env.VERSION }}.jar
 
   BungeeCordPlugin:
     runs-on: ubuntu-20.04
