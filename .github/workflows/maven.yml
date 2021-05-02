@@ -201,9 +201,42 @@ jobs:
           name: BungeePlugin
           path: BungeePlugin/target/DMCPluginBC-${{ env.VERSION }}.jar
 
+  ServerManager:
+    runs-on: ubuntu-20.04
+    needs: [ Setup ]
+    steps:
+      # Prepare the environment
+      - name: "Clone Code"
+        uses: actions/checkout@v2
+      - name: "Setup JDK 8"
+        uses: actions/setup-java@v1
+        with:
+          java-version: 8
+      - name: "Load cached dependencies"
+        id: cache-deps
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.m2
+          key: ${{ hashFiles('**/Commons/pom.xml') }}-${{ hashFiles('**pom.xml') }}
+      - name: "Load project version"
+        run: |
+          version="$(cat ~/.m2/dmcversion.info)"
+          echo "Version: $version"
+          echo "VERSION=$version" >> $GITHUB_ENV
+
+      - name: "Package ServerManager"
+        run: mvn package -f Server/pom.xml --quiet
+
+      - name: "Archive ServerManager Jar"
+        uses: actions/upload-artifact@v2
+        with:
+          name: ServerManager
+          path: Server/target/DMCServerManager-${{ env.VERSION }}.jar
+
   Release:
     runs-on: ubuntu-20.04
-    needs: [ MinecraftPlugin, BungeeCordPlugin ]
+    needs: [ MinecraftPlugin, BungeeCordPlugin, ServerManager ]
     steps:
       # Prepare the environment
       - name: "Clone Code"
@@ -230,6 +263,10 @@ jobs:
         with:
           name: BungeePlugin
           path: .
+      - uses: actions/download-artifact@v2
+        with:
+          name: ServerManager
+          path: .
 
       - name: "Create release (latest)"
         uses: "marvinpinto/action-automatic-releases@latest"
@@ -240,6 +277,7 @@ jobs:
           files: |
             DMCPluginMC-${{ env.VERSION }}.jar
             DMCPluginBC-${{ env.VERSION }}.jar
+            DMCServerManager-${{ env.VERSION }}.jar
 
       - name: "Create release (version)"
         uses: marvinpinto/action-automatic-releases@latest
@@ -250,3 +288,4 @@ jobs:
           files: |
             DMCPluginMC-${{ env.VERSION }}.jar
             DMCPluginBC-${{ env.VERSION }}.jar
+            DMCServerManager-${{ env.VERSION }}.jar
