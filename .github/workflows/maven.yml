@@ -167,6 +167,7 @@ jobs:
         with:
           name: MinecraftPlugin
           path: MinecraftPlugin/target/DMCPluginMC-${{ env.VERSION }}.jar
+          if-no-files-found: error
 
   BungeeCordPlugin:
     runs-on: ubuntu-20.04
@@ -200,6 +201,7 @@ jobs:
         with:
           name: BungeePlugin
           path: BungeePlugin/target/DMCPluginBC-${{ env.VERSION }}.jar
+          if-no-files-found: error
 
   ServerManager:
     runs-on: ubuntu-20.04
@@ -233,6 +235,7 @@ jobs:
         with:
           name: ServerManager
           path: Server/target/DMCServerManager-${{ env.VERSION }}.jar
+          if-no-files-found: error
 
   Release:
     runs-on: ubuntu-20.04

@@ -171,16 +171,15 @@
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
-<!--        <repository>-->
-<!--            <id>destroystokyo-repo</id>-->
-<!--            <url>https://repo.destroystokyo.com/repository/maven-public/</url>-->
-<!--        </repository>-->
         <!--  Für: org.sonatype.sisu:sisu-guice:jar:noaop  -->
         <repository>
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/groups/public/</url>
         </repository>
-
+        <!--        <repository>-->
+        <!--            <id>destroystokyo-repo</id>-->
+        <!--            <url>https://repo.destroystokyo.com/repository/maven-public/</url>-->
+        <!--        </repository>-->
     </repositories>
 
     <dependencies>

@@ -40,3 +40,18 @@ Reload docker with `sudo systemctl daemon-reload` followed by `sudo systemctl re
 
 # Create Minecraft Images
 - Build a Minecraft docker image and make sure to push it to the local registry
+
+
+# Automatically enable internet sharing on boot
+Due to a bug in windows a restart will break the shared internet connection between two network adapters
+These scripts (https://mikefrobbins.com/2017/10/19/configure-internet-connection-sharing-with-powershell/) enable
+scripted recreation of the internet sharing.
+This post (https://stackoverflow.com/questions/20575257/how-do-i-run-a-powershell-script-when-the-computer-starts) shows
+how to run these scripts on startup. Example
+```
+$path = "C:\Users\myname\myscript.ps1"
+$trigger = New-JobTrigger -AtStartup -RandomDelay 00:00:30
+Register-ScheduledJob -Trigger $trigger -FilePath $path -Name NetworkShareFixer
+```
+
+You can get information on this job with `Get-Job -name NetworkShareFixer`
