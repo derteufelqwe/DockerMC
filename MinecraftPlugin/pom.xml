@@ -24,13 +24,12 @@
     <build>
         <defaultGoal>clean package</defaultGoal>
         <plugins>
+            <!--  Compiler plugin  -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.7.0</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
                     <compilerArgs>
 <!--                    Required for the ACF-->
                         <arg>-parameters</arg>
@@ -38,67 +37,30 @@
                 </configuration>
             </plugin>
 
-<!--            Display active profile in compile phase-->
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-help-plugin</artifactId>-->
-<!--                <version>3.1.0</version>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <id>show-profiles</id>-->
-<!--                        <phase>compile</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>active-profiles</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--            </plugin>-->
 
-<!--            Specify the output directory-->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.3.1</version>
-                <configuration>
-                    <outputDirectory>${outputDir}</outputDirectory>
-                </configuration>
-            </plugin>
-
-<!--            Create jar with dependencies-->
+            <!--  Shade plugin  -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <finalName>DMCPluginMC-${version}</finalName>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-
-                            <relocations>
-                                <relocation>
-                                    <pattern>com.google.common</pattern>
-                                    <shadedPattern>shaded.com.google.common</shadedPattern>
-                                    <includes>
-                                        <include>com.google.common.**</include>
-                                    </includes>
-                                </relocation>
-<!--                                    <relocation>-->
-<!--                                        <pattern>co.aikar.commands</pattern>-->
-<!--                                        <shadedPattern>de.derteufelqwe.bungeeplugin.acf</shadedPattern>-->
-<!--                                    </relocation>-->
-<!--                                    <relocation>-->
-<!--                                        <pattern>co.aikar.locales</pattern>-->
-<!--                                        <shadedPattern>de.derteufelqwe.bungeeplugin.locales</shadedPattern>-->
-<!--                                    </relocation>-->
-                            </relocations>
-                        </configuration>
-                    </execution>
-                </executions>
+                <configuration>
+                    <relocations>
+                        <relocation>
+                            <pattern>com.google.common</pattern>
+                            <shadedPattern>shaded.com.google.common</shadedPattern>
+                            <includes>
+                                <include>com.google.common.**</include>
+                            </includes>
+                        </relocation>
+                        <!--         <relocation>-->
+                        <!--             <pattern>co.aikar.commands</pattern>-->
+                        <!--             <shadedPattern>de.derteufelqwe.bungeeplugin.acf</shadedPattern>-->
+                        <!--         </relocation>-->
+                        <!--         <relocation>-->
+                        <!--             <pattern>co.aikar.locales</pattern>-->
+                        <!--             <shadedPattern>de.derteufelqwe.bungeeplugin.locales</shadedPattern>-->
+                        <!--         </relocation>-->
+                    </relocations>
+                </configuration>
             </plugin>
         </plugins>
 
@@ -110,24 +72,6 @@
         </resources>
     </build>
 
-    <repositories>
-        <repository>
-            <id>papermc-repo</id>
-            <url>https://papermc.io/repo/repository/maven-public/</url>
-        </repository>
-        <repository>
-            <id>sonatype</id>
-            <url>https://oss.sonatype.org/content/groups/public/</url>
-        </repository>
-        <repository>
-            <id>aikar</id>
-            <url>https://repo.aikar.co/content/groups/aikar/</url>
-        </repository>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-    </repositories>
 
     <dependencies>
         <dependency>
@@ -170,21 +114,30 @@
 
     <profiles>
         <profile>
-            <id>default</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <outputDir>target</outputDir>
-            </properties>
-        </profile>
-
-        <profile>
             <id>develop</id>
-            <properties>
-                <outputDir>C:/Users/Arne/Desktop/ServerManager/Minecraft</outputDir>
-                <maven.test.skip>true</maven.test.skip>
-            </properties>
+
+            <!--  Copy the shaded file to a development directory when using a development version-->
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.8</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <configuration>
+                                    <target>
+                                        <copy file="${project.basedir}/target/${shadeJarFinalName}.jar" todir="${dev.basedir}/Minecraft"/>
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 

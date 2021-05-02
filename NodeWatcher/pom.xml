@@ -11,48 +11,35 @@
 
     <artifactId>NodeWatcher</artifactId>
 
+    <properties>
+        <mainclass>de.derteufelqwe.nodewatcher.Main</mainclass>
+        <shadeJarFinalName>DMCNodeWatcher-${project.version}</shadeJarFinalName>
+    </properties>
 
     <build>
         <defaultGoal>clean package</defaultGoal>
         <plugins>
-
-            <!--  Configure manifest of jar  -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.0.0</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>de.derteufelqwe.nodewatcher.Main</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
 
             <!--  Shade plugin  -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.2.4</version>
+                <configuration>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.SF</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                </configuration>
+
                 <executions>
                     <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
                         <configuration>
-                            <finalName>NodeWatcher-1.0</finalName>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.SF</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
                             <transformers>
 <!--                             Resolves log4j plugins conflicts -->
                                 <transformer
@@ -73,13 +60,6 @@
         </plugins>
     </build>
 
-    <pluginRepositories>
-        <pluginRepository>
-            <id>oss.sonatype.org</id>
-            <name>OSS Sonatype Staging</name>
-            <url>https://oss.sonatype.org/content/groups/staging</url>
-        </pluginRepository>
-    </pluginRepositories>
 
     <dependencies>
         <!-- https://mvnrepository.com/artifact/com.github.docker-java/docker-java-core -->

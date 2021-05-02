@@ -19,83 +19,38 @@
     </modules>
 
     <properties>
+        <dev.basedir>C:/Users/Arne/Desktop/ServerManager</dev.basedir>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <kotlin.version>1.4.32</kotlin.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
+        <mainclass></mainclass>
+        <shadeJarFinalName></shadeJarFinalName>
     </properties>
 
 
+<!--    PluginManagement: Children must specifically add the plugin to use it and its configuration-->
+<!--    Plugins: Children automatically inherit these plugins -->
     <build>
-<!--    PluginManagement specifies plugins, that can be inherited by child maven modules  -->
         <pluginManagement>
             <plugins>
-                <!--  Plugin to support kotlin  -->
-                <plugin>
-                    <groupId>org.jetbrains.kotlin</groupId>
-                    <artifactId>kotlin-maven-plugin</artifactId>
-                    <version>${kotlin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>compile</id>
-                            <goals>
-                                <goal>compile</goal>
-                            </goals>
-                            <configuration>
-                                <sourceDirs>
-                                    <sourceDir>${project.basedir}/src/main/kotlin</sourceDir>
-                                    <sourceDir>${project.basedir}/src/main/java</sourceDir>
-                                </sourceDirs>
-                            </configuration>
-                        </execution>
-                        <execution>
-                            <id>test-compile</id>
-                            <goals> <goal>test-compile</goal> </goals>
-                            <configuration>
-                                <sourceDirs>
-                                    <sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
-                                    <sourceDir>${project.basedir}/src/test/java</sourceDir>
-                                </sourceDirs>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-
-                <!--  Default java compiler plugin  -->
+                <!--  Shade plugin  -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.1</version>
-                    <configuration>
-                        <source>8</source>
-                        <target>8</target>
-                    </configuration>
-                    <!-- These exclusions are required by the kotlin compiler -->
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>3.2.4</version>
                     <executions>
-                        <!-- Replacing default-compile as it is treated specially by maven -->
                         <execution>
-                            <id>default-compile</id>
-                            <phase>none</phase>
-                        </execution>
-                        <!-- Replacing default-testCompile as it is treated specially by maven -->
-                        <execution>
-                            <id>default-testCompile</id>
-                            <phase>none</phase>
-                        </execution>
-                        <execution>
-                            <id>java-compile</id>
-                            <phase>compile</phase>
+                            <phase>package</phase>
                             <goals>
-                                <goal>compile</goal>
+                                <goal>shade</goal>
                             </goals>
-                        </execution>
-                        <execution>
-                            <id>java-test-compile</id>
-                            <phase>test-compile</phase>
-                            <goals>
-                                <goal>testCompile</goal>
-                            </goals>
+                            <configuration>
+                                <outputDirectory>target</outputDirectory>
+                                <finalName>${shadeJarFinalName}</finalName>
+                                <createDependencyReducedPom>false</createDependencyReducedPom>
+                            </configuration>
                         </execution>
                     </executions>
                 </plugin>
@@ -103,20 +58,129 @@
         </pluginManagement>
 
         <plugins>
-            <!--  Kotlin compiler  -->
+            <!--  Plugin to support kotlin  -->
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirs>
+                                <sourceDir>${project.basedir}/src/main/kotlin</sourceDir>
+                                <sourceDir>${project.basedir}/src/main/java</sourceDir>
+                            </sourceDirs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>test-compile</id>
+                        <goals> <goal>test-compile</goal> </goals>
+                        <configuration>
+                            <sourceDirs>
+                                <sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
+                                <sourceDir>${project.basedir}/src/test/java</sourceDir>
+                            </sourceDirs>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
-            <!--  Java compiler  -->
+            <!--  Default java compiler plugin  -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+                <!-- These exclusions are required by the kotlin compiler -->
+                <executions>
+                    <!-- Replacing default-compile as it is treated specially by maven -->
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>none</phase>
+                    </execution>
+                    <!-- Replacing default-testCompile as it is treated specially by maven -->
+                    <execution>
+                        <id>default-testCompile</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>java-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>java-test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--  Configure manifest of jar  -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>${mainclass}</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
             </plugin>
         </plugins>
     </build>
 
+    <repositories>
+        <!--  Kotlin support-->
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>bintray.kotlin.eap</id>
+            <name>Bintray Kotlin EAP Repository</name>
+            <url>https://dl.bintray.com/kotlin/kotlin-eap</url>
+        </repository>
+        <!--  PaperMC and Waterfall-->
+        <repository>
+            <id>papermc-repo</id>
+            <url>https://papermc.io/repo/repository/maven-public/</url>
+        </repository>
+        <!--  ACF framework-->
+        <repository>
+            <id>aikar</id>
+            <url>https://repo.aikar.co/content/groups/aikar/</url>
+        </repository>
+        <!--  Minecraft Vault-->
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+<!--        <repository>-->
+<!--            <id>destroystokyo-repo</id>-->
+<!--            <url>https://repo.destroystokyo.com/repository/maven-public/</url>-->
+<!--        </repository>-->
+<!--        <repository>-->
+<!--            <id>sonatype</id>-->
+<!--            <url>https://oss.sonatype.org/content/groups/public/</url>-->
+<!--        </repository>-->
+
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -172,21 +236,9 @@
 
     </dependencies>
 
-    <repositories>
-        <repository>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>bintray.kotlin.eap</id>
-            <name>Bintray Kotlin EAP Repository</name>
-            <url>https://dl.bintray.com/kotlin/kotlin-eap</url>
-        </repository>
-    </repositories>
 
     <pluginRepositories>
+        <!--  Kotlin plugin -->
         <pluginRepository>
             <releases>
                 <enabled>true</enabled>
@@ -198,7 +250,12 @@
             <name>Bintray Kotlin EAP Repository</name>
             <url>https://dl.bintray.com/kotlin/kotlin-eap</url>
         </pluginRepository>
+        <!--  ??? -->
+        <pluginRepository>
+            <id>oss.sonatype.org</id>
+            <name>OSS Sonatype Staging</name>
+            <url>https://oss.sonatype.org/content/groups/staging</url>
+        </pluginRepository>
     </pluginRepositories>
-
 
 </project>

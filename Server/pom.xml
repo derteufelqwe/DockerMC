@@ -12,6 +12,8 @@
     </parent>
 
     <properties>
+        <mainclass>de.derteufelqwe.ServerManager.ServerManager</mainclass>
+        <shadeJarFinalName>DMCServerManager-${project.version}</shadeJarFinalName>
 <!--        <docker-java-version>3.2.5</docker-java-version>-->
         <docker-java-version>0-SNAPSHOT</docker-java-version>
         <picocli-version>4.6.1</picocli-version>
@@ -20,26 +22,11 @@
     <build>
         <defaultGoal>clean package</defaultGoal>
         <plugins>
-            <!--  Configure manifest of jar  -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.0.0</version>
-                <configuration>
-                    <outputDirectory>C:/Users/Arne/Desktop/ServerManager</outputDirectory>
-                    <archive>
-                        <manifest>
-                            <mainClass>de.derteufelqwe.ServerManager.ServerManager</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
 
             <!--  Compiler plugin  -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
                 <configuration>
                     <annotationProcessorPaths>
                         <path>
@@ -73,31 +60,17 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.1</version>
-                <executions>
-<!--                Run shade goal on package phase -->
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-
-<!--                        Exclude Files from the jar  -->
-                        <configuration>
-                            <finalName>Server-1.0</finalName>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.SF</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>
-                </executions>
+                <configuration>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.SF</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                </configuration>
             </plugin>
         </plugins>
 
@@ -199,7 +172,6 @@
             <artifactId>jansi</artifactId>
             <version>2.3.1</version>
         </dependency>
-
 
     </dependencies>
 

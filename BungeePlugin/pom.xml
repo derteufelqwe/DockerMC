@@ -18,55 +18,34 @@
     <description>BungeeCord Plugin for interaction with DockerMC</description>
 
     <properties>
-        <outputDir>target</outputDir>
+        <shadeJarFinalName>DMCPluginBC-${project.version}</shadeJarFinalName>
     </properties>
 
     <build>
         <defaultGoal>clean package</defaultGoal>
         <plugins>
 
+            <!--  Compiler Plugin-->
             <plugin>
-                <version>3.7.0</version>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
                     <compilerArgs>
-<!--                    Required for the ACF-->
+                        <!--                    Required for the ACF-->
                         <arg>-parameters</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
 
-            <!--  Change the location of the jar  -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.0.0</version>
-                <configuration>
-                    <outputDirectory>${outputDir}</outputDirectory>
-                </configuration>
-            </plugin>
-
-<!--        Shade Plugin-->
+            <!--  Shade Plugin-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
 
                 <configuration>
-                    <finalName>DMCPluginBC-${version}</finalName>
-<!--                        ACF-->
-<!--                    <dependencyReducedPomLocation>${project.build.directory}/dependency-reduced-pom.xml</dependencyReducedPomLocation>-->
+                    <!--  ACF-->
+                    <!--                    <dependencyReducedPomLocation>${project.build.directory}/dependency-reduced-pom.xml</dependencyReducedPomLocation>-->
                     <createDependencyReducedPom>false</createDependencyReducedPom>
                     <filters>
                         <filter>
@@ -85,14 +64,14 @@
                                 <include>com.google.common.**</include>
                             </includes>
                         </relocation>
-<!--                        <relocation>-->
-<!--                            <pattern>co.aikar.commands</pattern>-->
-<!--                            <shadedPattern>de.derteufelqwe.bungeeplugin.acf</shadedPattern>-->
-<!--                        </relocation>-->
-<!--                        <relocation>-->
-<!--                            <pattern>co.aikar.locales</pattern>-->
-<!--                            <shadedPattern>de.derteufelqwe.bungeeplugin.locales</shadedPattern>-->
-<!--                        </relocation>-->
+                        <!--                        <relocation>-->
+                        <!--                            <pattern>co.aikar.commands</pattern>-->
+                        <!--                            <shadedPattern>de.derteufelqwe.bungeeplugin.acf</shadedPattern>-->
+                        <!--                        </relocation>-->
+                        <!--                        <relocation>-->
+                        <!--                            <pattern>co.aikar.locales</pattern>-->
+                        <!--                            <shadedPattern>de.derteufelqwe.bungeeplugin.locales</shadedPattern>-->
+                        <!--                        </relocation>-->
                     </relocations>
                 </configuration>
             </plugin>
@@ -100,20 +79,6 @@
 
     </build>
 
-    <repositories>
-        <repository>
-            <id>sonatype</id>
-            <url>https://oss.sonatype.org/content/groups/public/</url>
-        </repository>
-        <repository>
-            <id>destroystokyo-repo</id>
-            <url>https://repo.destroystokyo.com/repository/maven-public/</url>
-        </repository>
-        <repository>
-            <id>aikar</id>
-            <url>https://repo.aikar.co/content/groups/aikar/</url>
-        </repository>
-    </repositories>
 
     <dependencies>
         <!--        DockerMCs shared code-->
@@ -207,22 +172,33 @@
 
     </dependencies>
 
+
     <profiles>
         <profile>
-            <id>default</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <outputDir>target</outputDir>
-            </properties>
-        </profile>
-
-        <profile>
             <id>develop</id>
-            <properties>
-                <outputDir>C:/Users/Arne/Desktop/ServerManager/BungeeCord</outputDir>
-            </properties>
+
+            <!--  Copy the shaded file to a development directory when using a development version-->
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.8</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <configuration>
+                                    <target>
+                                        <copy file="${project.basedir}/target/${shadeJarFinalName}.jar" todir="${dev.basedir}/BungeeCord"/>
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 

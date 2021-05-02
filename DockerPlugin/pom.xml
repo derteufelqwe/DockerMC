@@ -12,45 +12,18 @@
     <artifactId>DockerPlugin</artifactId>
 
     <properties>
-        <outputDir>target</outputDir>
+        <mainclass>de.derteufelqwe.plugin.Main</mainclass>
+        <shadeJarFinalName>DMCDockerPlugin-${project.version}</shadeJarFinalName>
     </properties>
 
 
     <build>
         <defaultGoal>clean package</defaultGoal>
         <plugins>
-            <!--  Configure manifest of jar  -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.0.0</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>de.derteufelqwe.plugin.Main</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
-
             <!--  Shade plugin  -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.4</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${outputDir}</outputDirectory>
-                            <finalName>DockerPlugin-${version}</finalName>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
@@ -89,9 +62,29 @@
     <profiles>
         <profile>
             <id>develop</id>
-            <properties>
-                <outputDir>C:/Users/Arne/Desktop/ServerManager/DockerDriver</outputDir>
-            </properties>
+
+            <!--            Copy the shaded file to a development directory when using a development version-->
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.8</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <configuration>
+                                    <target>
+                                        <copy file="${project.basedir}/target/${shadeJarFinalName}.jar" todir="${dev.basedir}/DockerDriver"/>
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 
