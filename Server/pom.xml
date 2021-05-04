@@ -14,8 +14,8 @@
     <properties>
         <mainclass>de.derteufelqwe.ServerManager.ServerManager</mainclass>
         <shadeJarFinalName>DMCServerManager-${project.version}</shadeJarFinalName>
-<!--        <docker-java-version>3.2.5</docker-java-version>-->
-        <docker-java-version>0-SNAPSHOT</docker-java-version>
+        <docker-java-version>3.2.5</docker-java-version>
+<!--        <docker-java-version>0-SNAPSHOT</docker-java-version>-->
         <picocli-version>4.6.1</picocli-version>
     </properties>
 
