@@ -35,15 +35,16 @@ public class DMCLogDriver {
     /**
      * Path to the unix socket
      */
-    public static final String SOCKET_FILE_PATH = "/run/docker/plugins/dev.sock";
+    public static final String SOCKET_FILE_PATH = "/run/docker/plugins/dmcdriver.sock";
     /**
      * Time in ms for which the LogConsumer must have not read new data before the log download is considered complete
      */
     public static final int FINISH_LOG_READ_DELAY = 2000;
+    // /home/arne/Plugin/
     /**
      * Path where the mounted volumes are stored
      */
-    public static final String VOLUME_PATH = "/home/arne/Plugin/volumes/";
+    public static final String VOLUME_PATH = "/volumes/";
     /**
      * Filename of the JSON file, which stores information about downloaded volumes
      */
@@ -84,13 +85,6 @@ public class DMCLogDriver {
     }
 
 
-    private static ExecutorService createThreadPool() {
-        return MoreExecutors.getExitingExecutorService(
-                (ThreadPoolExecutor) Executors.newCachedThreadPool(), 5, TimeUnit.SECONDS
-        );
-    }
-
-
     public void addSignalHook() {
         SignalHandler signalHandler = new SignalHandler() {
             @Override
@@ -125,7 +119,7 @@ public class DMCLogDriver {
             File socketFile = new File(SOCKET_FILE_PATH);
 
             ChannelFuture f = b.bind(new DomainSocketAddress(socketFile)).sync();
-            log.info("Bound HTTP server to socket {}.", SOCKET_FILE_PATH);
+            log.info("Bound HTTP server to socket {}.", socketFile.getAbsolutePath());
             f.channel().closeFuture().sync();
 
         } catch (InterruptedException e2) {
@@ -168,6 +162,14 @@ public class DMCLogDriver {
         saveLocalVolumesFile();
 
         log.info("Shutdown complete. Goodbye.");
+    }
+
+    // -----  Utility methods  -----
+
+    private static ExecutorService createThreadPool() {
+        return MoreExecutors.getExitingExecutorService(
+                (ThreadPoolExecutor) Executors.newCachedThreadPool(), 5, TimeUnit.SECONDS
+        );
     }
 
     private static LocalVolumes loadLocalVolumes() {

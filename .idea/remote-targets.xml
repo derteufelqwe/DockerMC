@@ -4,7 +4,7 @@
     <targets>
       <target name="root@ubuntu1:22" type="ssh/sftp">
         <config>
-          <option name="projectRootOnTarget" value="/home/arne/Plugin/intellij" />
+          <option name="projectRootOnTarget" value="/tmp/ServerManager" />
           <option name="serverName" value="root@ubuntu1:22 key" />
         </config>
         <ContributedStateBase type="JavaLanguageRuntime">

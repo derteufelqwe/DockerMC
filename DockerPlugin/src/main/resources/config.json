@@ -1,10 +1,10 @@
 {
   "description": "DockerMC logging plugin",
   "documentation": "-",
-  "entrypoint": ["java", "-jar", "/plugin/DockerPlugin.jar"],
+  "entrypoint": ["java", "-jar", "/plugin/DMCDockerPlugin.jar"],
   "interface": {
-    "types": ["docker.logdriver/1.0"],
-    "socket": "dmcdriver.sock"
+    "socket": "dmcdriver.sock",
+    "types": ["docker.logdriver/1.0", "docker.volumedriver/1.0"]
   },
   "env": [
     {

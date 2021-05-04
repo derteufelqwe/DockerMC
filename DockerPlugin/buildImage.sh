@@ -20,7 +20,7 @@ else
   mkdir "rootfs/plugin"
 fi
 
-cp "target/DockerPlugin-$VERSION.jar" "rootfs/plugin/DockerPlugin.jar"
+cp "target/DMCDockerPlugin-$VERSION.jar" "rootfs/plugin/DMCDockerPlugin.jar"
 
 echo "Building and pushing plugin (1/2)..."
 docker plugin create "$IMAGE:latest" .

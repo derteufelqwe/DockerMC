@@ -4,8 +4,8 @@ name: DockerMC CI Pipeline
 #    uses: lhotari/action-upterm@v1
 
 on:
-#  pull_request:
-  push:
+  pull_request:
+#  push:
     branches: [ "master" ]
   workflow_dispatch:
 
