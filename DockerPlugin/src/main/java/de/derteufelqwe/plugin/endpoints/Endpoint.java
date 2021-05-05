@@ -2,6 +2,7 @@ package de.derteufelqwe.plugin.endpoints;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import de.derteufelqwe.plugin.DMCLogDriver;
 import de.derteufelqwe.plugin.exceptions.InvalidAPIDataException;
 import org.jetbrains.annotations.NotNull;
 
@@ -9,7 +10,7 @@ import java.io.Serializable;
 
 public abstract class Endpoint<REQ extends Serializable, RESP extends Serializable> {
 
-    protected Gson gson = new GsonBuilder().create();
+    protected Gson gson = DMCLogDriver.GSON;
     private String data;
 
 
@@ -22,13 +23,13 @@ public abstract class Endpoint<REQ extends Serializable, RESP extends Serializab
     protected REQ parseRequest() throws InvalidAPIDataException {
         Serializable result = gson.fromJson(data, getRequestType());
         if (result == null) {
-//            try {
-//                result = getRequestType().newInstance();
-//
-//            } catch (ReflectiveOperationException e) {
-//                throw new RuntimeException(e);
-//            }
-            throw new InvalidAPIDataException("Docker engine send not data with request");
+            try {
+                result = getRequestType().newInstance();
+
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException(e);
+            }
+//            throw new InvalidAPIDataException("Docker engine send not data with request");
         }
 
         return (REQ) result;

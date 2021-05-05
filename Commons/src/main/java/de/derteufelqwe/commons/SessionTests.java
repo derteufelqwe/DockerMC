@@ -19,7 +19,7 @@ import java.util.UUID;
 
 public class SessionTests {
 
-    public static SessionBuilder sessionBuilder = new SessionBuilder("dockermc", "admin", "ubuntu1", 5432);
+//    public static SessionBuilder sessionBuilder = new SessionBuilder("dockermc", "admin", "ubuntu1", 5432);
 
 
     @SneakyThrows

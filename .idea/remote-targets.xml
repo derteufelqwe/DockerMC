@@ -9,7 +9,7 @@
         </config>
         <ContributedStateBase type="JavaLanguageRuntime">
           <config>
-            <option name="javaVersionString" value="1.8.0_282" />
+            <option name="javaVersionString" value="1.8.0_292" />
           </config>
         </ContributedStateBase>
       </target>

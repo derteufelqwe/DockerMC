@@ -2,6 +2,7 @@ package de.derteufelqwe.plugin;
 
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.plugin.exceptions.DMCDriverException;
@@ -35,7 +36,7 @@ public class DMCLogDriver {
     /**
      * Path to the unix socket
      */
-    public static final String SOCKET_FILE_PATH = "/run/docker/plugins/dmcdriver.sock";
+    public static final String SOCKET_FILE_PATH = "/run/docker/plugins/dev.sock";
     /**
      * Time in ms for which the LogConsumer must have not read new data before the log download is considered complete
      */
@@ -59,6 +60,7 @@ public class DMCLogDriver {
     private static final VolumeAutoSaver volumeAutoSaver = new VolumeAutoSaver();
     private static final LocalVolumeRemover localVolumeRemover = new LocalVolumeRemover();
     private static final LocalVolumes localVolumes = loadLocalVolumes();
+    public static final Gson GSON = buildGSON();
 
     @Getter
     private static ExecutorService threadPool;
@@ -165,6 +167,11 @@ public class DMCLogDriver {
     }
 
     // -----  Utility methods  -----
+
+    private static Gson buildGSON() {
+        return new GsonBuilder()
+                .create();
+    }
 
     private static ExecutorService createThreadPool() {
         return MoreExecutors.getExitingExecutorService(
