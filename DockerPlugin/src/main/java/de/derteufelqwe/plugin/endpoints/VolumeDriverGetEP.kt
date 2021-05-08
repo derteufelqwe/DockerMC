@@ -15,7 +15,7 @@ class VolumeDriverGetEP(data: String?) : Endpoint<VolumeDriver.RGet, VolumeDrive
 
 
     override fun process(request: VolumeDriver.RGet): VolumeDriver.Get {
-        val file = File(DMCLogDriver.VOLUME_PATH + request.volumeName)
+        val file = File(DMCLogDriver.VOLUME_PATH, request.volumeName)
         var result = VolumeDriver.Get(null, "Volume ${request.volumeName} not found")
 
         sessionBuilder.execute() { session ->

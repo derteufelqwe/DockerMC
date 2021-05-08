@@ -27,7 +27,7 @@ class VolumeDriverRemoveEP(data: String?) : Endpoint<VolumeDriver.RRemove, Volum
             }
 
         } catch (e: Exception) {
-            error = e.message ?: "Deletion failed with no error."
+            error = "Deletion failed with: " + (e.message ?: "no error.")
         }
 
         return VolumeDriver.Remove(error)

@@ -67,7 +67,7 @@ object DBQueries {
                 v = :volume
         """.trimIndent()
 
-        session.createQuery(query, Volume::class.java)
+        session.createQuery(query)
             .setParameter("volume", volume)
             .executeUpdate()
     }

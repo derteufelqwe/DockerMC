@@ -4,7 +4,7 @@
   "entrypoint": ["java", "-jar", "/plugin/DMCDockerPlugin.jar"],
   "interface": {
     "socket": "dmcdriver.sock",
-    "types": ["docker.logdriver/1.0", "docker.volumedriver/1.0"]
+    "types": ["docker.logdriver/1.0", "docker.volumedriver/2.0"]
   },
   "env": [
     {

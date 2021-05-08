@@ -40,12 +40,11 @@ public class DMCLogDriver {
     /**
      * Path to the unix socket
      */
-    public static final String SOCKET_FILE_PATH = "/run/docker/plugins/dev.sock";
+    public static final String SOCKET_FILE_PATH = "/run/docker/plugins/dmcdriver.sock";
     /**
      * Time in ms for which the LogConsumer must have not read new data before the log download is considered complete
      */
     public static final int FINISH_LOG_READ_DELAY = 2000;
-    // /home/arne/Plugin/
     /**
      * Path where the mounted volumes are stored
      */
@@ -89,6 +88,8 @@ public class DMCLogDriver {
 
         this.bossGroup = new EpollEventLoopGroup();
         this.workerGroup = new EpollEventLoopGroup();
+
+        new File(VOLUME_PATH).mkdirs(); // Create folder, otherwise errors occur
     }
 
 

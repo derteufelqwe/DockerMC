@@ -15,7 +15,7 @@ class VolumeDriverCreateEP(data: String?) : Endpoint<VolumeDriver.RCreate, Volum
 
 
     override fun process(request: VolumeDriver.RCreate): VolumeDriver.Create {
-        val file = File(DMCLogDriver.VOLUME_PATH + request.name)
+        val file = File(DMCLogDriver.VOLUME_PATH, request.name)
         file.mkdir()
 
         sessionBuilder.execute() { session ->

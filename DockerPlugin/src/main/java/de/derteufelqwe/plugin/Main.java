@@ -5,6 +5,8 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 
+import java.io.File;
+import java.util.Arrays;
 import java.util.Scanner;
 
 @Log4j2
@@ -33,6 +35,7 @@ public class Main {
         } catch (IllegalArgumentException e) {
             log.warn("Invalid log level {}. Using default level INFO.", logLevel);
         }
+
 
         DMCLogDriver driver = null;
         try {
