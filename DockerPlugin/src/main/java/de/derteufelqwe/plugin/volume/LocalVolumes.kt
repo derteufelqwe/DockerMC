@@ -1,4 +1,4 @@
-package de.derteufelqwe.plugin.misc
+package de.derteufelqwe.plugin.volume
 
 import java.io.Serializable
 import java.util.*

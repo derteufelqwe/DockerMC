@@ -53,5 +53,24 @@ object DBQueries {
             .resultList
     }
 
+
+    /**
+     * Delete a volume
+     */
+    @JvmStatic
+    fun deleteVolume(session: Session, volume: Volume) {
+        // language=HQL
+        val query = """
+            DELETE FROM
+                Volume AS v
+            WHERE 
+                v = :volume
+        """.trimIndent()
+
+        session.createQuery(query, Volume::class.java)
+            .setParameter("volume", volume)
+            .executeUpdate()
+    }
+
 }
 

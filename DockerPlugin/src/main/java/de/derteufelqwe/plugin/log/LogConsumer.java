@@ -1,4 +1,4 @@
-package de.derteufelqwe.plugin.misc;
+package de.derteufelqwe.plugin.log;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
@@ -6,6 +6,7 @@ import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.Log;
 import de.derteufelqwe.plugin.DMCLogDriver;
 import de.derteufelqwe.plugin.exceptions.StreamClosedException;
+import de.derteufelqwe.plugin.misc.DatabaseWriter;
 import de.derteufelqwe.plugin.protobuf.Entry;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;

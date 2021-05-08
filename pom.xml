@@ -171,7 +171,7 @@
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
-        <!--  Für: org.sonatype.sisu:sisu-guice:jar:noaop  -->
+        <!--  For: org.sonatype.sisu:sisu-guice:jar:noaop  -->
         <repository>
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/groups/public/</url>

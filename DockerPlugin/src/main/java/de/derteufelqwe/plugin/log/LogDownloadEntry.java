@@ -1,4 +1,4 @@
-package de.derteufelqwe.plugin.misc;
+package de.derteufelqwe.plugin.log;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

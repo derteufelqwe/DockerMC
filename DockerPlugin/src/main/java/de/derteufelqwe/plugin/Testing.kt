@@ -12,6 +12,7 @@ import kotlin.math.min
 import kotlin.system.measureTimeMillis
 
 
+
 fun getFiles(): List<String> {
     val names = """
         DSC_0199.JPG

@@ -8,8 +8,8 @@ import de.derteufelqwe.commons.hibernate.objects.Node;
 import de.derteufelqwe.plugin.misc.DBQueries;
 import de.derteufelqwe.plugin.DMCLogDriver;
 import de.derteufelqwe.plugin.messages.LogDriver;
-import de.derteufelqwe.plugin.misc.LogConsumer;
-import de.derteufelqwe.plugin.misc.LogDownloadEntry;
+import de.derteufelqwe.plugin.log.LogConsumer;
+import de.derteufelqwe.plugin.log.LogDownloadEntry;
 import lombok.extern.log4j.Log4j2;
 import org.hibernate.Session;
 

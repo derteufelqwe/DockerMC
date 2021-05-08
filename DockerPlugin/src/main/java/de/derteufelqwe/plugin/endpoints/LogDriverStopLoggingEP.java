@@ -1,7 +1,7 @@
 package de.derteufelqwe.plugin.endpoints;
 
 import de.derteufelqwe.plugin.DMCLogDriver;
-import de.derteufelqwe.plugin.misc.LogDownloadEntry;
+import de.derteufelqwe.plugin.log.LogDownloadEntry;
 import de.derteufelqwe.plugin.messages.LogDriver;
 import lombok.extern.log4j.Log4j2;
 

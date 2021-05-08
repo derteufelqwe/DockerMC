@@ -1,4 +1,4 @@
-package de.derteufelqwe.plugin.misc
+package de.derteufelqwe.plugin.volume
 
 import de.derteufelqwe.commons.misc.RepeatingThread
 import de.derteufelqwe.plugin.DMCLogDriver

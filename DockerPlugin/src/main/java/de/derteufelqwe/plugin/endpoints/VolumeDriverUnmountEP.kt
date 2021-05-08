@@ -3,7 +3,7 @@ package de.derteufelqwe.plugin.endpoints
 import de.derteufelqwe.plugin.DMCLogDriver
 import de.derteufelqwe.plugin.exceptions.VolumeSaveException
 import de.derteufelqwe.plugin.messages.VolumeDriver
-import de.derteufelqwe.plugin.misc.VolumeInfo
+import de.derteufelqwe.plugin.volume.VolumeInfo
 import org.apache.logging.log4j.LogManager
 import java.io.Serializable
 

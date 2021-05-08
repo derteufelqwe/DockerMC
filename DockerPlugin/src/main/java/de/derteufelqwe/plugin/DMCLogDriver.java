@@ -6,7 +6,11 @@ import com.google.gson.GsonBuilder;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.plugin.exceptions.DMCDriverException;
+import de.derteufelqwe.plugin.log.LogDownloadEntry;
 import de.derteufelqwe.plugin.misc.*;
+import de.derteufelqwe.plugin.volume.LocalVolumeRemover;
+import de.derteufelqwe.plugin.volume.LocalVolumes;
+import de.derteufelqwe.plugin.volume.VolumeAutoSaver;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -51,12 +55,13 @@ public class DMCLogDriver {
      */
     public static final String VOLUMES_INFO_FILE_NAME = VOLUME_PATH + "localVolumes.json";
 
+
     /**
      * The plugin must keep track of mounted volumes
      */
     public static final Set<String> MOUNTED_VOLUMES = Collections.synchronizedSet(new HashSet<>());
 
-    private static SessionBuilder sessionBuilder = new SessionBuilder("dockermc", "admin", "ubuntu1", Constants.POSTGRESDB_PORT);
+    private final static SessionBuilder sessionBuilder = new SessionBuilder("dockermc", "admin", "ubuntu1", Constants.POSTGRESDB_PORT);
     private static final VolumeAutoSaver volumeAutoSaver = new VolumeAutoSaver();
     private static final LocalVolumeRemover localVolumeRemover = new LocalVolumeRemover();
     private static final LocalVolumes localVolumes = loadLocalVolumes();
