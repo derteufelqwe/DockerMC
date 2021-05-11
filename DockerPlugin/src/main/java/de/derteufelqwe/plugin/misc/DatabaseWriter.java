@@ -1,37 +1,49 @@
 package de.derteufelqwe.plugin.misc;
 
-import de.derteufelqwe.commons.hibernate.LocalSessionRunnable;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.Log;
+import de.derteufelqwe.commons.hibernate.objects.NWContainer;
+import de.derteufelqwe.commons.misc.RepeatingThread;
 import de.derteufelqwe.plugin.DMCLogDriver;
 import lombok.extern.log4j.Log4j2;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.TransactionException;
 
+import javax.persistence.NoResultException;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
  */
 @Log4j2
-public class DatabaseWriter extends Thread {
+public class DatabaseWriter extends RepeatingThread {
 
-    private SessionBuilder sessionBuilder = DMCLogDriver.getSessionBuilder();
+    private final SessionBuilder sessionBuilder = DMCLogDriver.getSessionBuilder();
 
     private final AtomicBoolean useQueue1 = new AtomicBoolean(true);
-    private AtomicBoolean doRun = new AtomicBoolean(true);
 
-    private Queue<Log> logQueue1 = new ConcurrentLinkedQueue<>();
-    private Queue<Log> logQueue2 = new ConcurrentLinkedQueue<>();
+    private final Queue<Log> logQueue1 = new ConcurrentLinkedQueue<>();
+    private final Queue<Log> logQueue2 = new ConcurrentLinkedQueue<>();
 
 
     public DatabaseWriter() {
+        super(5000);
+    }
 
+
+    @Override
+    public void repeatedRun() {
+        this.flushCurrent();
+    }
+
+    @Override
+    public synchronized void start() {
+        super.start();
+        log.info("Started DatabaseWriter thread.");
     }
 
 
@@ -63,10 +75,10 @@ public class DatabaseWriter extends Thread {
     }
 
     private void persistException(Session session, Log log) {
-        session.persist(log);
+        persistLog(session, log);
 
         for (Log stacktrace : log.getStacktrace()) {
-            session.persist(stacktrace);
+            persistLog(session, stacktrace);
         }
 
         if (log.getCausedBy() != null) {
@@ -74,9 +86,10 @@ public class DatabaseWriter extends Thread {
         }
     }
 
+
     /**
      * Flushes the current queue.
-     * If the transaction commit fails the lost log entries get re-added to the queue
+     * If the transaction commit fails the lost log entries get re-added to the queue.
      *
      * @param queue
      */
@@ -84,41 +97,35 @@ public class DatabaseWriter extends Thread {
         List<Log> backup = new LinkedList<>(queue);
 
         try {
-            new LocalSessionRunnable(sessionBuilder) {
-                @Override
-                protected void exec(Session session) {
-                    Map<String, DBContainer> containerCache = new HashMap<>();
-                    Log log = queue.poll();
+            sessionBuilder.execute(session -> {
+                Map<String, DBContainer> dbContainerCache = new HashMap<>();
+                Map<String, NWContainer> nwContainerCache = new HashMap<>();
+                Log dbLog = queue.poll();
 
-                    while (log != null) {
-                        // Replace the dummy container instance with an actual hibernate reference object
-                        String containerID = log.getContainer().getId();
-                        DBContainer dbContainer = containerCache.putIfAbsent(containerID, session.getReference(DBContainer.class, containerID));
-                        log.setContainer(dbContainer);
+                while (dbLog != null) {
+                    // Replace the dummy container instance with an actual hibernate reference object
+                    if (dbLog.getContainer() != null) {
+                        String containerID = dbLog.getContainer().getId();
+                        DBContainer dbContainer = getFromCache(DBContainer.class, dbContainerCache, session, containerID);
+                        dbLog.setContainer(dbContainer);
 
-                        session.persist(log);
-                        log = queue.poll();
+                    } else if (dbLog.getNwContainer() != null) {
+                        String containerID = dbLog.getNwContainer().getId();
+                        NWContainer nwContainer = getFromCache(NWContainer.class, nwContainerCache, session, containerID);
+                        dbLog.setNwContainer(nwContainer);
+
+                    } else {
+                        log.error("Tried to save log entry, which is mapped to no container.");
                     }
+
+                    session.persist(dbLog);
+                    dbLog = queue.poll();
                 }
-            }.run();
+            });
 
-            // Re-add the entries to the queue if the transaction commit failed
         } catch (TransactionException e1) {
+            // Re-add the entries to the queue if the transaction commit failed
             queue.addAll(backup);
-        }
-    }
-
-    @Override
-    public void run() {
-        while (doRun.get() && !this.isInterrupted()) {
-            this.flushCurrent();
-
-            try {
-                TimeUnit.SECONDS.sleep(5);
-
-            } catch (InterruptedException e1) {
-                log.error("Database writer sleep interrupted. Exiting.");
-            }
         }
     }
 
@@ -142,16 +149,57 @@ public class DatabaseWriter extends Thread {
         flushCurrent();
     }
 
-    @Override
-    public synchronized void start() {
-        super.start();
-        log.info("Started DatabaseWriter thread.");
+    // -----  Utility methods  -----
+
+    /**
+     * Tries to get a value from the provided cache or generates it if not present
+     *
+     * @param type
+     * @param cache
+     * @param session
+     * @param containerID
+     * @param <T>
+     * @return
+     */
+    private <T> T getFromCache(Class<T> type, Map<String, T> cache, Session session, String containerID) {
+        try {
+            return cache.putIfAbsent(containerID, session.getReference(type, containerID));
+
+        } catch (NoResultException e) {
+            cache.put(containerID, null);
+            return null;
+        }
     }
 
+    /**
+     * Saves a log entry to the DB and replaces the dummy references to the container
+     *
+     * @param session
+     * @param dbLog
+     */
+    private void persistLog(Session session, Log dbLog) {
+        // Replace the dummy container instance with an actual hibernate reference object
+        String containerID = null;
+        try {
+            if (dbLog.getContainer() != null) {
+                containerID = dbLog.getContainer().getId();
+                DBContainer dbContainer = session.getReference(DBContainer.class, containerID);
+                dbLog.setContainer(dbContainer);
 
-    @Override
-    public void interrupt() {
-        this.doRun.set(false);
-        super.interrupt();
+            } else if (dbLog.getNwContainer() != null) {
+                containerID = dbLog.getNwContainer().getId();
+                NWContainer nwContainer = session.getReference(NWContainer.class, containerID);
+                dbLog.setNwContainer(nwContainer);
+
+            } else {
+                log.error("Tried to save log entry, which is mapped to no container.");
+            }
+
+            session.persist(dbLog);
+
+        } catch (NoResultException e) {
+            log.error("Failed to save log entry. Container {} not found.", containerID);
+        }
     }
+
 }

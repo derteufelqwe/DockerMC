@@ -7,7 +7,9 @@ import javax.persistence.NoResultException
 object DBQueries {
 
     /**
-     * Checks if a container id exists in the DB
+     * Checks if a container id exists in the DB.
+     * This is required instead of a simple 'session.get(...)' because the alternative method might not fail if the id
+     * is not in the DB
      */
     @Suppress("UNCHECKED_CAST")
     @JvmStatic

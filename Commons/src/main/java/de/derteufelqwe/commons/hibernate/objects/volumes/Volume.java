@@ -27,11 +27,15 @@ public class Volume {
     @Type(type = "text")
     private String id;
 
-    private Timestamp created;
-
     @OneToOne(mappedBy = "volume")
     @Nullable
     private VolumeFolder rootFolder;
+
+    private Timestamp created;
+
+    private Timestamp lastMounted;
+
+    private Timestamp lastUnmounted;
 
 
     public Volume(String id, Timestamp created) {

@@ -24,22 +24,13 @@ public class Main {
 
     @SneakyThrows
     public static void main(String[] args) {
-        String logLevel = System.getProperty("LOG_LEVEL");
-        logLevel = logLevel != null ? logLevel.toUpperCase() : "";
-
-        try {
-            Level level = Level.valueOf(logLevel);
-            Configurator.setAllLevels("de.derteufelqwe", level);
-            log.info("Changed log level to {}.", level);
-
-        } catch (IllegalArgumentException e) {
-            log.warn("Invalid log level {}. Using default level INFO.", logLevel);
-        }
-
+        parseLogLevel();
 
         DMCLogDriver driver = null;
         try {
-            driver = new DMCLogDriver();
+//            String dbHost = parseDBHost();
+//            String dbPassword = parseDBPassword();
+            driver = new DMCLogDriver("ubuntu1", "admin");
             driver.addSignalHook();
             startStopper(driver);
             driver.startServer();
@@ -65,6 +56,41 @@ public class Main {
                 dmcLogDriver.shutdown();
             }
         }).start();
+    }
+
+
+    private static void parseLogLevel() {
+        String logLevel = System.getProperty("LOG_LEVEL");
+        logLevel = logLevel != null ? logLevel.toUpperCase() : "";
+
+        try {
+            Level level = Level.valueOf(logLevel);
+            Configurator.setAllLevels("de.derteufelqwe", level);
+            log.info("Changed log level to {}.", level);
+
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid log level '{}'. Using default level INFO.", logLevel);
+        }
+    }
+
+    private static String parseDBHost() {
+        String dbHost = System.getProperty("DB_HOST");
+        log.debug(System.getProperties());
+        log.info("Host: {}", dbHost);
+        if (dbHost == null || dbHost.equals("")) {
+            throw new IllegalArgumentException("DB_HOST not set.");
+        }
+
+        return dbHost;
+    }
+
+    private static String parseDBPassword() {
+        String dbPassword = System.getProperty("DB_PASSWORD");
+        if (dbPassword == null || dbPassword.equals("")) {
+            throw new IllegalArgumentException("DB_PASSWORD not set.");
+        }
+
+        return dbPassword;
     }
 
 }

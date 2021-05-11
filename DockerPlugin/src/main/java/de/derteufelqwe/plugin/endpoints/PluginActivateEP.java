@@ -12,6 +12,11 @@ public class PluginActivateEP extends Endpoint<Plugin.RActivate, Plugin.Activate
 
 
     @Override
+    protected Plugin.Activate process(Plugin.RActivate request) {
+        return new Plugin.Activate();
+    }
+
+    @Override
     protected Class<? extends Serializable> getRequestType() {
         return Plugin.RActivate.class;
     }
@@ -21,8 +26,4 @@ public class PluginActivateEP extends Endpoint<Plugin.RActivate, Plugin.Activate
         return Plugin.Activate.class;
     }
 
-    @Override
-    protected Plugin.Activate process(Plugin.RActivate request) {
-        return new Plugin.Activate();
-    }
 }

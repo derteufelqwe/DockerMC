@@ -164,6 +164,10 @@ public class ServiceTemplate extends DockerObjTemplate {
     protected Map<String, String> getContainerLabels() {
         Map<String, String> labels = new HashMap<>();
 
+        labels.put("SERVICE_ID", "{{ .Service.ID }}");
+        labels.put("NODE_ID", "{{ .Node.ID }}");
+        labels.put("TASK_NAME", "{{ .Task.Name }}");
+
         return labels;
     }
 

@@ -4,6 +4,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.Log;
+import de.derteufelqwe.commons.hibernate.objects.NWContainer;
 import de.derteufelqwe.plugin.DMCLogDriver;
 import de.derteufelqwe.plugin.exceptions.StreamClosedException;
 import de.derteufelqwe.plugin.misc.DatabaseWriter;
@@ -25,9 +26,9 @@ public class LogConsumer implements Runnable {
     private final Pattern RE_EXCEPTION_CAUSED = Pattern.compile("^Caused by: ([\\w|\\d|\\.|\\_]+(Exception|Error)): ([^\\n]+)");
     private final Pattern RE_STACKTRACE = Pattern.compile("^\\s+(at .+|\\.\\.\\. \\d+ more)");
 
-    private final SessionBuilder sessionBuilder = DMCLogDriver.getSessionBuilder();
     private final DatabaseWriter databaseWriter = DMCLogDriver.getDatabaseWriter();
 
+    private final Type type;
     private final String fileName;
     private final String containerID;
 
@@ -42,15 +43,16 @@ public class LogConsumer implements Runnable {
     private long lastLogTime = 0;
 
 
-    public LogConsumer(String fileName, String container) {
+    public LogConsumer(String fileName, String container, Type type) {
         this.fileName = fileName;
         this.containerID = container;
+        this.type = type;
     }
 
     /**
      * Important note:
-     *  The Log-entry gets populated with a fake DBContainer instance, which must be replaced with a database reference
-     *  before saving to the database.
+     *  The Log-entry gets populated with a fake DBContainer or NWContainer instances, which must be replaced with a
+     *  database reference before saving.
      */
     @Override
     public void run() {
@@ -71,12 +73,17 @@ public class LogConsumer implements Runnable {
 
                     Log dbLog = new Log(
                             message,
-                            this.getPatchedLogTimestamp(logEntry.getTimeNano(), message),
-                            new DBContainer(containerID),
+                            this.getPatchedLogTimestamp(logEntry.getTimeNano()),
                             parseSource(logEntry.getSource())
                     );
 
-                    if (this.parseForExceptions(dbLog, message)) {
+                    if (type == Type.NODE_WATCHER) {
+                        dbLog.setNwContainer(new NWContainer(containerID));
+                    } else if (type == Type.NORMAL) {
+                        dbLog.setContainer(new DBContainer(containerID));
+                    }
+
+                    if (this.parseForExceptions(dbLog, message, containerID, type)) {
                         continue;
                     }
 
@@ -182,7 +189,7 @@ public class LogConsumer implements Runnable {
      * @param logTime
      * @return
      */
-    private Timestamp getPatchedLogTimestamp(long logTime, String message) {
+    private Timestamp getPatchedLogTimestamp(long logTime) {
         long diff = lastLogTime - logTime;
         lastLogTime = logTime;
 
@@ -203,7 +210,7 @@ public class LogConsumer implements Runnable {
      * @param message
      * @return true if data was found and it should NOT be submitted to the DB atm.
      */
-    private boolean parseForExceptions(Log dbLog, String message) {
+    private boolean parseForExceptions(Log dbLog, String message, String containerID, Type type) {
         try {
             // Find the start of an exception
             Matcher mException = RE_EXCEPTION.matcher(message);
@@ -226,7 +233,7 @@ public class LogConsumer implements Runnable {
                 }
             }
 
-            // Find caused by if required
+            // Find 'caused by' if required
             if (rootExceptionLog != null) {
                 Matcher mCaused = RE_EXCEPTION_CAUSED.matcher(message);
                 if (mCaused.matches()) {
@@ -256,4 +263,12 @@ public class LogConsumer implements Runnable {
         return false;
     }
 
+
+    /**
+     * Type of container where the log comes from
+     */
+    public enum Type {
+        NORMAL,
+        NODE_WATCHER
+    }
 }

@@ -1,5 +1,6 @@
 package de.derteufelqwe.ServerManager.setup.infrastructure;
 
+import com.github.dockerjava.api.model.Driver;
 import com.github.dockerjava.api.model.Mount;
 import com.github.dockerjava.api.model.SwarmNode;
 import de.derteufelqwe.ServerManager.Docker;
@@ -71,5 +72,12 @@ public class NodeWatcherService extends ServiceTemplate {
         envs.add("HOSTNAME={{ .Node.Hostname }}");
 
         return envs;
+    }
+
+    @Override
+    protected Driver getLogDriver() {
+        return new Driver()
+                .withName(Constants.LOG_DRIVER_PLUGIN_NAME);
+//                .withName("dmcdriver");
     }
 }

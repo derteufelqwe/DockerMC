@@ -12,6 +12,18 @@
       "description": "Set log level to output for plugin logs",
       "value": "INFO",
       "settable": ["value"]
+    },
+    {
+      "name": "DB_HOST",
+      "description": "The host where the main Postgres DB is found. IP or better a hostname.",
+      "value": "",
+      "settable": ["value"]
+    },
+    {
+      "name": "DB_PASSWORD",
+      "description": "Password for the main Postgres DB",
+      "value": "",
+      "settable": ["value"]
     }
   ],
   "network": {

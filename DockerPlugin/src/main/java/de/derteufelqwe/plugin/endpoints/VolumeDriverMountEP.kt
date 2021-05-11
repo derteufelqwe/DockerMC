@@ -6,12 +6,13 @@ import de.derteufelqwe.commons.hibernate.objects.volumes.Volume
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFile
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFolder
 import de.derteufelqwe.plugin.DMCLogDriver
-import de.derteufelqwe.plugin.misc.Utils
 import de.derteufelqwe.plugin.exceptions.VolumeLoadException
 import de.derteufelqwe.plugin.messages.VolumeDriver
+import de.derteufelqwe.plugin.misc.Utils
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.Serializable
+import java.sql.Timestamp
 import kotlin.system.measureTimeMillis
 
 class VolumeDriverMountEP(data: String?) : Endpoint<VolumeDriver.RMount, VolumeDriver.Mount>(data) {
@@ -51,6 +52,8 @@ class VolumeDriverMountEP(data: String?) : Endpoint<VolumeDriver.RMount, VolumeD
 
             return VolumeDriver.Mount(error = "Volume mount failed. Error: ${e.message}")
         }
+
+        updateVolumeMountTimestamp(volumeName)
 
         log.trace("Hashing files took ${metric.hashDuration} ms.")
         log.trace("Saving files took ${metric.saveFilesDuration} ms.")
@@ -98,6 +101,20 @@ class VolumeDriverMountEP(data: String?) : Endpoint<VolumeDriver.RMount, VolumeD
 
         folder.folders.forEach() {
             saveFolder(newPath, it, metric)
+        }
+    }
+
+    private fun updateVolumeMountTimestamp(volumeName: String) {
+        sessionBuilder.execute { session ->
+            val volume = session.get(Volume::class.java, volumeName);
+            if (volume == null) {
+                log.error("Failed to set volumes mount time. Volume $volumeName not found.")
+                return@execute
+            }
+
+            volume.lastMounted = Timestamp(System.currentTimeMillis())
+
+            session.update(volume)
         }
     }
 

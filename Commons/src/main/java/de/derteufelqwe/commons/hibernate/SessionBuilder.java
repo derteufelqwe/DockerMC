@@ -125,6 +125,7 @@ public class SessionBuilder {
         annotatedClasses.add(VolumeFile.class);
         annotatedClasses.add(VolumeFolder.class);
         annotatedClasses.add(VolumeObject.class);
+        annotatedClasses.add(NWContainer.class);
 
         return annotatedClasses;
     }
@@ -183,6 +184,16 @@ public class SessionBuilder {
             }
 
         }
+    }
+
+    /**
+     * Executes a simple query to check if the connection is available
+     * @return
+     */
+    public void ping() {
+        this.execute(session -> {
+            session.createNativeQuery("SELECT 1").getResultList();
+        });
     }
 
     public void close() {

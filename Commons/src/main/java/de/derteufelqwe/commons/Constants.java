@@ -26,7 +26,7 @@ public class Constants {
     // Miscellaneous values
     public static final String CONFIG_PATH = WORKDIR + "server/configs/";
     public static final String DATA_PATH = WORKDIR + "/server/internal/data/";
-    public static final String LOG_DRIVER_PLUGIN_NAME = "derteufelqwe/dockermc-log-driver:latest";
+    public static final String LOG_DRIVER_PLUGIN_NAME = "derteufelqwe/dockermc-drivers:latest";
     /**
      * Possible values: "true", "false"
      * Indicates that a master node should (not) be responsible for reading nodes and service events

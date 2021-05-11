@@ -24,7 +24,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.4</version>
                 <configuration>
                     <filters>
                         <filter>
@@ -41,7 +40,7 @@
                     <execution>
                         <configuration>
                             <transformers>
-<!--                             Resolves log4j plugins conflicts -->
+<!--                             Resolves log4j plugin conflicts -->
                                 <transformer
                                         implementation="com.github.edwgiz.maven_shade_plugin.log4j2_cache_transformer.PluginsCacheFileTransformer">
                                 </transformer>
@@ -57,6 +56,7 @@
                     </dependency>
                 </dependencies>
             </plugin>
+
         </plugins>
     </build>
 

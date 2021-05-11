@@ -4,6 +4,7 @@ import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
+import org.jetbrains.annotations.Nullable;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -38,6 +39,10 @@ public class Log {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private DBContainer container;
 
+    @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private NWContainer nwContainer;
+
     @Enumerated(EnumType.ORDINAL)
     private Source source;
 
@@ -61,10 +66,9 @@ public class Log {
     private List<Log> stacktrace = new ArrayList<>();   // Default required
 
 
-    public Log(String log, Timestamp timestamp, DBContainer container, Source source) {
+    public Log(String log, Timestamp timestamp, Source source) {
         this.log = log;
         this.timestamp = timestamp;
-        this.container = container;
         this.source = source;
     }
 

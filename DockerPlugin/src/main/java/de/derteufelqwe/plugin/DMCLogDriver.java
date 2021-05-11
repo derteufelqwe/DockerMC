@@ -7,7 +7,7 @@ import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.plugin.exceptions.DMCDriverException;
 import de.derteufelqwe.plugin.log.LogDownloadEntry;
-import de.derteufelqwe.plugin.misc.*;
+import de.derteufelqwe.plugin.misc.DatabaseWriter;
 import de.derteufelqwe.plugin.volume.LocalVolumeRemover;
 import de.derteufelqwe.plugin.volume.LocalVolumes;
 import de.derteufelqwe.plugin.volume.VolumeAutoSaver;
@@ -22,7 +22,6 @@ import io.netty.channel.unix.DomainSocketAddress;
 import io.netty.channel.unix.UnixChannel;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
-import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
@@ -54,37 +53,34 @@ public class DMCLogDriver {
      */
     public static final String VOLUMES_INFO_FILE_NAME = VOLUME_PATH + "localVolumes.json";
 
-
     /**
      * The plugin must keep track of mounted volumes
      */
     public static final Set<String> MOUNTED_VOLUMES = Collections.synchronizedSet(new HashSet<>());
 
-    private final static SessionBuilder sessionBuilder = new SessionBuilder("dockermc", "admin", "ubuntu1", Constants.POSTGRESDB_PORT);
-    private static final VolumeAutoSaver volumeAutoSaver = new VolumeAutoSaver();
+    private static SessionBuilder sessionBuilder;
+    private static VolumeAutoSaver volumeAutoSaver;
+    private static ExecutorService threadPool;
     private static final LocalVolumeRemover localVolumeRemover = new LocalVolumeRemover();
     private static final LocalVolumes localVolumes = loadLocalVolumes();
     public static final Gson GSON = buildGSON();
-
-    @Getter
-    private static ExecutorService threadPool;
-    @Getter
     private static DatabaseWriter databaseWriter;
     /**
      * Key:   Filename
      * Value: Container with LogConsumer and its Future
      */
-    @Getter
     private static final Map<String, LogDownloadEntry> logfileConsumers = new ConcurrentHashMap<>();
 
     public EventLoopGroup bossGroup;
     public EventLoopGroup workerGroup;
 
 
-    public DMCLogDriver() throws RuntimeException {
+    public DMCLogDriver(String dbHost, String dbPassword) throws RuntimeException {
+        sessionBuilder = new SessionBuilder("dockermc", dbPassword, dbHost, Constants.POSTGRESDB_PORT);
         threadPool = createThreadPool();
         databaseWriter = new DatabaseWriter();
         databaseWriter.start();
+        volumeAutoSaver = new VolumeAutoSaver();
 
         this.bossGroup = new EpollEventLoopGroup();
         this.workerGroup = new EpollEventLoopGroup();
@@ -109,6 +105,16 @@ public class DMCLogDriver {
     public void startServer() throws DMCDriverException {
         localVolumeRemover.start();
         volumeAutoSaver.start();
+
+        // Check if the DB is available
+        try {
+            sessionBuilder.ping();
+            log.info("Connection to DB working.");
+
+        } catch (Exception e) {
+            log.error("Failed to connect to the DB. Are your credentials correct?: ", e);
+            return;
+        }
 
         try {
             ServerBootstrap b = new ServerBootstrap()
@@ -227,5 +233,17 @@ public class DMCLogDriver {
 
     public static LocalVolumes getLocalVolumes() {
         return localVolumes;
+    }
+
+    public static ExecutorService getThreadPool() {
+        return threadPool;
+    }
+
+    public static DatabaseWriter getDatabaseWriter() {
+        return databaseWriter;
+    }
+
+    public static Map<String, LogDownloadEntry> getLogfileConsumers() {
+        return logfileConsumers;
     }
 }

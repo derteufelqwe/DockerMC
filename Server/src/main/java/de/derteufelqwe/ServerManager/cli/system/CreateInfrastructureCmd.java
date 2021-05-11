@@ -6,7 +6,7 @@ import de.derteufelqwe.ServerManager.utils.Utils;
 import lombok.extern.log4j.Log4j2;
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "createInfrastructure", aliases = {"createInfra"}, description = "Creates the required infrastructure for DockerMC")
+@CommandLine.Command(name = "createInfrastructure", aliases = {"startInfra"}, description = "Creates the required infrastructure for DockerMC")
 @Log4j2
 public class CreateInfrastructureCmd implements Runnable {
 
