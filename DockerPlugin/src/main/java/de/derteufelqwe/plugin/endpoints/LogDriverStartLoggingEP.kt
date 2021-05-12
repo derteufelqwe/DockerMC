@@ -39,7 +39,7 @@ class LogDriverStartLoggingEP(data: String?) : Endpoint<RStartLogging, StartLogg
             this.addNodeWatcherContainerToDB(request.info)
 
         } else {
-            injectContainerToDB(request.info)
+//            injectContainerToDB(request.info)
             if (!awaitContainerInDB(containerID)) {
                 return StartLogging("Failed to find container $containerID in the DB after $CONTAINER_DB_AWAIT_TIMEOUT ms.")
             }

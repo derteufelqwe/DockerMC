@@ -32,6 +32,8 @@ data class NWContainer(
 
     var startTime: Timestamp? = null,
 
+    var stopTime: Timestamp? = null,
+
     @OneToMany(mappedBy = "nwContainer", fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @OrderBy("timestamp asc")

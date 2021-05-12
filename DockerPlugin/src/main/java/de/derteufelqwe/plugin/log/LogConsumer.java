@@ -1,7 +1,6 @@
 package de.derteufelqwe.plugin.log;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.Log;
 import de.derteufelqwe.commons.hibernate.objects.NWContainer;
@@ -25,12 +24,13 @@ public class LogConsumer implements Runnable {
     private final Pattern RE_EXCEPTION = Pattern.compile("^([\\w|\\d|\\.|\\_]+(Exception|Error)): ([^\\n]+)");
     private final Pattern RE_EXCEPTION_CAUSED = Pattern.compile("^Caused by: ([\\w|\\d|\\.|\\_]+(Exception|Error)): ([^\\n]+)");
     private final Pattern RE_STACKTRACE = Pattern.compile("^\\s+(at .+|\\.\\.\\. \\d+ more)");
+    private final Pattern RE_ANSI_ESCAPE_CODES = Pattern.compile("(?:\\x1B[@-Z\\\\-_]|[\\x80-\\x9A\\x9C-\\x9F]|(?:\\x1B\\[|\\x9B)[0-?]*[ -/]*[@-~])");
 
     private final DatabaseWriter databaseWriter = DMCLogDriver.getDatabaseWriter();
 
     private final Type type;
     private final String fileName;
-    private final String containerID;
+    @Getter private final String containerID;
 
     /**
      * The timestamp, when the last data from the FIFO stream was read
@@ -72,7 +72,7 @@ public class LogConsumer implements Runnable {
                     }
 
                     Log dbLog = new Log(
-                            message,
+                            RE_ANSI_ESCAPE_CODES.matcher(message).replaceAll(""),
                             this.getPatchedLogTimestamp(logEntry.getTimeNano()),
                             parseSource(logEntry.getSource())
                     );
@@ -83,7 +83,7 @@ public class LogConsumer implements Runnable {
                         dbLog.setContainer(new DBContainer(containerID));
                     }
 
-                    if (this.parseForExceptions(dbLog, message, containerID, type)) {
+                    if (this.parseForExceptions(dbLog, message)) {
                         continue;
                     }
 
@@ -210,7 +210,7 @@ public class LogConsumer implements Runnable {
      * @param message
      * @return true if data was found and it should NOT be submitted to the DB atm.
      */
-    private boolean parseForExceptions(Log dbLog, String message, String containerID, Type type) {
+    private boolean parseForExceptions(Log dbLog, String message) {
         try {
             // Find the start of an exception
             Matcher mException = RE_EXCEPTION.matcher(message);
