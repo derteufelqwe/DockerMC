@@ -30,7 +30,7 @@ public class PersistentServerPool extends ServerPool {
 
     @Override
     protected Map<String, String> getContainerLabels() {
-        Map<String, String> containerLabels = de.derteufelqwe.commons.Utils.quickLabel(Constants.ContainerType.MINECRAFT_PERSISTENT);
+        Map<String, String> containerLabels = Utils.quickLabel(Constants.ContainerType.MINECRAFT_PERSISTENT);
 
         return containerLabels;
     }

@@ -10,9 +10,9 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>Commons</module>
         <module>Server</module>
         <module>BungeePlugin</module>
-        <module>Commons</module>
         <module>NodeWatcher</module>
         <module>MinecraftPlugin</module>
         <module>DockerPlugin</module>
@@ -23,7 +23,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <kotlin.version>1.4.32</kotlin.version>
+        <kotlin.version>1.5.0</kotlin.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <mainclass></mainclass>
         <shadeJarFinalName></shadeJarFinalName>
@@ -71,8 +71,8 @@
                         </goals>
                         <configuration>
                             <sourceDirs>
-                                <sourceDir>${project.basedir}/src/main/kotlin</sourceDir>
-                                <sourceDir>${project.basedir}/src/main/java</sourceDir>
+                                <sourceDir>${project.basedir}/${project.artifactId}/src/main/kotlin</sourceDir>
+                                <sourceDir>${project.basedir}/${project.artifactId}/src/main/java</sourceDir>
                             </sourceDirs>
                         </configuration>
                     </execution>
@@ -81,8 +81,8 @@
                         <goals> <goal>test-compile</goal> </goals>
                         <configuration>
                             <sourceDirs>
-                                <sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
-                                <sourceDir>${project.basedir}/src/test/java</sourceDir>
+                                <sourceDir>${project.basedir}/${project.artifactId}/src/test/kotlin</sourceDir>
+                                <sourceDir>${project.basedir}/${project.artifactId}/src/test/java</sourceDir>
                             </sourceDirs>
                         </configuration>
                     </execution>

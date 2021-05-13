@@ -168,27 +168,6 @@ public class InfrastructureSetup {
         return response;
     }
 
-    public ServiceStopResponse stopPostgresContainer() {
-        ServiceStopResponse response = new ServiceStopResponse("PostgresDatabase", Constants.ContainerType.POSTGRES_DB);
-
-        if (this.postgresDBContainer.find().isFound()) {
-            DockerObjTemplate.DestroyResponse destroyResponse = this.postgresDBContainer.destroy();
-
-            if (destroyResponse.isDestroyed()) {
-                response.setResult(ServiceStop.OK);
-
-            } else {
-                response.setResult(ServiceStop.FAILED_GENERIC);
-                response.setAdditionalInfos(destroyResponse.getServiceID());
-            }
-
-        } else {
-            response.setResult(ServiceStop.NOT_RUNNING);
-        }
-
-        return response;
-    }
-
     public ServiceStopResponse stopNodeWatcherService() {
         ServiceStopResponse response = new ServiceStopResponse("NodeWatcher", Constants.ContainerType.NODE_WATCHER);
 

@@ -6,16 +6,14 @@
 
     <groupId>MinecraftPlugin</groupId>
     <artifactId>MinecraftPlugin</artifactId>
-
     <name>MinecraftPlugin</name>
+    <description>Minecraft Plugin to support DockerMC</description>
 
     <parent>
         <groupId>de.derteufelqwe.ServerManager</groupId>
         <artifactId>ServerManager</artifactId>
         <version>1.0</version>
     </parent>
-
-    <description>Essentials for DockerMC</description>
 
     <properties>
         <shadeJarFinalName>DMCPluginMC-${project.version}</shadeJarFinalName>
