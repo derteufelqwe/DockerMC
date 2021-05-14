@@ -12,9 +12,8 @@ import java.sql.Timestamp;
 @ToString
 @Entity(name = "container_stats")
 @Table(name = "container_stats", indexes = {
-        @Index(name = "ID_IDX", columnList = "id"),
-        @Index(name = "CONTAINER_IDX", columnList = "container_id"),
-        @Index(name = "TIMESTAMP_IDX", columnList = "timestamp"),
+        @Index(name = "contstats_CONTAINER_IDX", columnList = "container_id"),
+        @Index(name = "contstats_TIMESTAMP_IDX", columnList = "timestamp"),
 })
 public class ContainerStats {
 

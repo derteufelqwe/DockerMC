@@ -145,10 +145,6 @@ public class UnixHandler extends ChannelInboundHandlerAdapter {
     private void dispatchData() {
         String data = requestData.toString();
 
-        if (data.equals("")) {
-            log.warn(request.uri() + " received no data");
-        }
-
         switch (request.uri()) {
             case "/Plugin.Activate":
                 writeResponse(new PluginActivateEP(data));

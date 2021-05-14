@@ -18,9 +18,8 @@ import javax.persistence.*;
 @Table(name = "player_banks", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"player_uuid", "bank_name"})
 }, indexes = {
-        @Index(name = "ID_IDX", columnList = "id"),
-        @Index(name = "PLAYER_IDX", columnList = "player_uuid"),
-        @Index(name = "BANK_IDX", columnList = "bank_name"),
+        @Index(name = "playertobank_PLAYER_IDX", columnList = "player_uuid"),
+        @Index(name = "playertobank_BANK_IDX", columnList = "bank_name"),
 })
 
 public class PlayerToBank {

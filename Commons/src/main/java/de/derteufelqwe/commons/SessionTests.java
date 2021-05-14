@@ -1,12 +1,13 @@
 package de.derteufelqwe.commons;
 
+import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import lombok.SneakyThrows;
 
 import java.io.File;
 
 public class SessionTests {
 
-//    public static SessionBuilder sessionBuilder = new SessionBuilder("dockermc", "admin", "ubuntu1", 5432);
+    public static SessionBuilder sessionBuilder = new SessionBuilder("admin", "ubuntu1");
 
 
     @SneakyThrows

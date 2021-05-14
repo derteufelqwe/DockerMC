@@ -18,9 +18,8 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @Entity(name = "player_transactions")
 @Table(name = "player_transactions", indexes = {
-        @Index(name = "ID_IDX", columnList = "id"),
-        @Index(name = "FROM_IDX", columnList = "from_uuid"),
-        @Index(name = "TO_IDX", columnList = "to_uuid"),
+        @Index(name = "playertrans_FROM_IDX", columnList = "from_uuid"),
+        @Index(name = "playertrans_TO_IDX", columnList = "to_uuid"),
 })
 public class PlayerTransaction {
 

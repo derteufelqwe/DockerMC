@@ -16,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "nodes", indexes = {
-        @Index(name = "ID_IDX", columnList = "id"),
+        @Index(name = "node_NAME_IDX", columnList = "NAME"),
 })
 public class Node {
 

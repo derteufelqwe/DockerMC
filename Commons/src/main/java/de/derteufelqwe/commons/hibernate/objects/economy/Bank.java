@@ -20,8 +20,8 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Entity
 @Table(name = "banks", indexes = {
-        @Index(name = "NAME_IDX", columnList = "name"),
-        @Index(name = "OWNER_IDX", columnList = "owner_uuid"),
+        @Index(name = "banks_NAME_IDX", columnList = "name"),
+        @Index(name = "banks_OWNER_IDX", columnList = "owner_uuid"),
 })
 public class Bank {
 

@@ -15,9 +15,8 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @Entity(name = "container_healths")
 @Table(name = "container_healths", indexes = {
-        @Index(name = "ID_IDX", columnList = "id"),
-        @Index(name = "CONTAINER_ID", columnList = "container_id"),
-        @Index(name = "TIMESTAMP_IDX", columnList = "timestamp"),
+        @Index(name = "conthealth_CONTAINER_ID", columnList = "container_id"),
+        @Index(name = "conthealth_TIMESTAMP_IDX", columnList = "timestamp"),
 })
 public class DBContainerHealth {
 

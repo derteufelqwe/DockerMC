@@ -17,10 +17,9 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "containers", indexes = {
-        @Index(name = "ID_IDX", columnList = "id"),
-        @Index(name = "NAME_IDX", columnList = "name"),
-        @Index(name = "NODE_IDX", columnList = "node_id"),
-        @Index(name = "SERVICE_IDX", columnList = "service_id"),
+        @Index(name = "container_NAME_IDX", columnList = "name"),
+        @Index(name = "container_NODE_IDX", columnList = "node_id"),
+        @Index(name = "container_SERVICE_IDX", columnList = "service_id"),
 })
 public class DBContainer {
 

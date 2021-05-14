@@ -16,11 +16,10 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @Entity(name = "player_bans")
 @Table(name = "player_bans", indexes = {
-        @Index(name = "ID_IDX", columnList = "id"),
-        @Index(name = "BANNED_PLAYER_IDX", columnList = "bannedplayer_uuid"),
-        @Index(name = "BANNED_BY_IDX", columnList = "bannedby_uuid"),
-        @Index(name = "UNBANNED_BY_IDX", columnList = "unbannedby_uuid"),
-        @Index(name = "BANNED_UNTIL_IDX", columnList = "banneduntil"),
+        @Index(name = "pban_BANNED_PLAYER_IDX", columnList = "bannedplayer_uuid"),
+        @Index(name = "pban_BANNED_BY_IDX", columnList = "bannedby_uuid"),
+        @Index(name = "pban_UNBANNED_BY_IDX", columnList = "unbannedby_uuid"),
+        @Index(name = "pban_BANNED_UNTIL_IDX", columnList = "banneduntil"),
 })
 public class PlayerBan {
 

@@ -19,10 +19,9 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @Entity
 @Table(name = "player_logins", indexes = {
-        @Index(name = "ID_IDX", columnList = "id"),
-        @Index(name = "PLAYER_IDX", columnList = "player_uuid"),
-        @Index(name = "SERVICE_IDX", columnList = "service_id"),
-        @Index(name = "TIMESTAMP_IDX", columnList = "jointime"),
+        @Index(name = "plogin_PLAYER_IDX", columnList = "player_uuid"),
+        @Index(name = "plogin_SERVICE_IDX", columnList = "service_id"),
+        @Index(name = "plogin_TIMESTAMP_IDX", columnList = "jointime"),
 })
 public class PlayerLogin {
 

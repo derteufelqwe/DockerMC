@@ -20,8 +20,7 @@ import java.util.Map;
         @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 })
 @Table(name = "notifications", indexes = {
-        @Index(name = "ID_IDX", columnList = "id"),
-        @Index(name = "TYPE_IDX", columnList = "type"),
+        @Index(name = "notif_TYPE_IDX", columnList = "type"),
 })
 public class Notification {
 

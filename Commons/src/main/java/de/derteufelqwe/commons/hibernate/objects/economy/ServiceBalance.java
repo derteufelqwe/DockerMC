@@ -18,9 +18,8 @@ import javax.persistence.*;
 @AllArgsConstructor
 @Entity(name = "service_balance")
 @Table(name = "service_balance", indexes = {
-        @Index(name = "ID_IDX", columnList = "id"),
-        @Index(name = "PLAYER_IDX", columnList = "player_uuid"),
-        @Index(name = "SERVICE_IDX", columnList = "service_id"),
+        @Index(name = "servicebalance_PLAYER_IDX", columnList = "player_uuid"),
+        @Index(name = "servicebalance_SERVICE_IDX", columnList = "service_id"),
 })
 public class ServiceBalance {
 

@@ -49,11 +49,16 @@ public class Main {
     private static void startStopper(DMCLogDriver dmcLogDriver) {
         log.warn("[DEBUG FEATURE] System stopper enabled");
         new Thread(() -> {
-            Scanner scanner = new Scanner(System.in);
-            String input = scanner.next();
-            if (input.equals("stop")) {
-                log.warn("RECEIVED STOP COMMAND.");
-                dmcLogDriver.shutdown();
+            try {
+                Scanner scanner = new Scanner(System.in);
+                String input = scanner.next();
+                if (input.equals("stop")) {
+                    log.warn("RECEIVED STOP COMMAND.");
+                    dmcLogDriver.shutdown();
+                }
+
+            } catch (Exception e) {
+                log.debug("Failed to start system stopper.");
             }
         }).start();
     }

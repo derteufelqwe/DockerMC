@@ -18,8 +18,11 @@ import java.util.List;
 @AllArgsConstructor
 @Entity(name = "logs")
 @Table(name = "logs", indexes = {
-        @Index(name = "ID_IDX", columnList = "id"),
-        @Index(name = "TIMESTAMP_IDX", columnList = "timestamp"),
+        @Index(name = "logs_TIMESTAMP_IDX", columnList = "timestamp"),
+        @Index(name = "logs_CAUSEDBY_IDX", columnList = "causedby_id"),
+        @Index(name = "logs_EXCEPTION_IDX", columnList = "exception_id"),
+        @Index(name = "logs_CONTAINER_IDX", columnList = "container_id"),
+        @Index(name = "logs_NWCONTAINER_IDX", columnList = "nwcontainer_id"),
 })
 public class Log {
 

@@ -30,8 +30,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "players", indexes = {
-        @Index(name = "ID_INDEX", columnList = "uuid"),
-        @Index(name = "NAME_INDEX", columnList = "name"),
+        @Index(name = "player_NAME_INDEX", columnList = "name"),
 })
 public class DBPlayer {
 

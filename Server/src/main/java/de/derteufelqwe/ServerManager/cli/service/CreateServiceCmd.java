@@ -58,6 +58,9 @@ public class CreateServiceCmd implements Runnable {
             }
         }
 
+        // Remove lost services
+        commons.removeLostServices();
+
         // Update everything at default
         if (all) {
             if (commons.createAllMCServers(force)) {

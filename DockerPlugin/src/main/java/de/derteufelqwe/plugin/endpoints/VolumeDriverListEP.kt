@@ -1,6 +1,7 @@
 package de.derteufelqwe.plugin.endpoints
 
 import de.derteufelqwe.commons.hibernate.SessionBuilder
+import de.derteufelqwe.commons.hibernate.objects.volumes.Volume
 import de.derteufelqwe.plugin.misc.DBQueries
 import de.derteufelqwe.plugin.DMCLogDriver
 import de.derteufelqwe.plugin.messages.VolumeDriver
@@ -14,7 +15,10 @@ class VolumeDriverListEP(data: String?) : Endpoint<VolumeDriver.RList, VolumeDri
 
 
     override fun process(request: VolumeDriver.RList): VolumeDriver.List {
-        val volumes = sessionBuilder.execute(DBQueries::getAllVolumes)
+        // This call somehow can't be a method reference as this will cause weired kotlin NoSuchMethodExceptions
+        val volumes = sessionBuilder.execute<List<Volume>> { session ->
+            return@execute DBQueries.getAllVolumes(session)
+        }
 
         val resultList = volumes
             .map { VolumeDriver.Volume(it.id, it.rootFolder?.name) }

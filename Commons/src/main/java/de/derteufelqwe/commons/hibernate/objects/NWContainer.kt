@@ -15,8 +15,7 @@ import javax.persistence.*
 @Table(
     name = "nw_containers",
     indexes = [
-        Index(name = "ID_IDX", columnList = "id"),
-        Index(name = "NAME_IDX", columnList = "name"),
+        Index(name = "nwcontainer_NAME_IDX", columnList = "name"),
     ]
 )
 data class NWContainer(

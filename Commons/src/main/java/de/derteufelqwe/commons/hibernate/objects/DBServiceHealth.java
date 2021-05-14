@@ -15,10 +15,9 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name = "service_healths", indexes = {
-        @Index(name = "TASK_IDX", columnList = "taskid"),
-        @Index(name = "TIMESTAMP_IDX", columnList = "createdtimestamp"),
-        @Index(name = "SERVICE_IDX", columnList = "service_id"),
-        @Index(name = "NODE_IDX", columnList = "node_id"),
+        @Index(name = "servhealth_TIMESTAMP_IDX", columnList = "createdtimestamp"),
+        @Index(name = "servhealth_SERVICE_IDX", columnList = "service_id"),
+        @Index(name = "servhealth_NODE_IDX", columnList = "node_id"),
 })
 public class DBServiceHealth {
 

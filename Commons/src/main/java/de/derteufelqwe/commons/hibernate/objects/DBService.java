@@ -18,8 +18,8 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "services", indexes = {
-        @Index(name = "ID_IDX", columnList = "id"),
-        @Index(name = "NAME_IDX", columnList = "name"),
+        @Index(name = "service_NAME_IDX", columnList = "name"),
+        @Index(name = "service_ACTIVE_IDX", columnList = "active"),
 })
 public class DBService {
 

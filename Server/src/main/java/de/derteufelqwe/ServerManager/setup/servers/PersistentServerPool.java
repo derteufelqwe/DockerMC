@@ -79,20 +79,5 @@ public class PersistentServerPool extends ServerPool {
         return mounts;
     }
 
-
-    public static void main(String[] args) {
-        MainConfig mainConfig = new MainConfig();
-        mainConfig.setAPIVersion("1.40");
-        mainConfig.setUseTLSVerify(false);
-        Docker docker = new Docker("tcp", "ubuntu1", 2375, mainConfig);
-
-        PersistentServerPool pool = new PersistentServerPool(
-                "Persist", "testmc", "512M", 1F, 1,
-                new ServiceConstraints(Collections.singletonList("kulkf9nq5m8s3vlsu35go0wlz"), null, null, 0), 20
-        );
-        pool.init(docker);
-
-        System.out.println(pool.create());
-    }
 }
 

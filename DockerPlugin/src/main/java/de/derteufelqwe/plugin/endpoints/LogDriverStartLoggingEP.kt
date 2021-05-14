@@ -38,7 +38,7 @@ class LogDriverStartLoggingEP(data: String?) : Endpoint<RStartLogging, StartLogg
             this.addNodeWatcherContainerToDB(request.info)
 
         } else {
-            injectContainerToDB(request.info)
+//            injectContainerToDB(request.info)
             if (!awaitContainerInDB(containerID)) {
                 return StartLogging("Failed to find container $containerID in the DB after $CONTAINER_DB_AWAIT_TIMEOUT ms.")
             }
@@ -94,7 +94,11 @@ class LogDriverStartLoggingEP(data: String?) : Endpoint<RStartLogging, StartLogg
     }
 
     private fun addNodeWatcherContainerToDB(infos: RStartLogging.Info) {
-        sessionBuilder.execute { session ->
+        val added = sessionBuilder.execute<Boolean> { session ->
+            if (session.get(NWContainer::class.java, infos.containerID) != null) {
+                return@execute false
+            }
+
             val nwContainer = NWContainer(
                 id = infos.containerID,
                 name = infos.containerName.substring(1),
@@ -103,9 +107,12 @@ class LogDriverStartLoggingEP(data: String?) : Endpoint<RStartLogging, StartLogg
             )
 
             session.persist(nwContainer)
+            return@execute true
         }
 
-        log.info("Added NWContainer ${infos.containerID} to DB")
+        if (added) {
+            log.info("Added NWContainer ${infos.containerID} to DB")
+        }
     }
 
     private fun extractContainerType(infos: RStartLogging.Info?): LogConsumer.Type {

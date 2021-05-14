@@ -90,6 +90,7 @@ public class DatabaseWriter extends RepeatingThread {
     /**
      * Flushes the current queue.
      * If the transaction commit fails the lost log entries get re-added to the queue.
+     * Repeated querying of the same containers does not cause a performance drop, since hibernate caches the queries session wide
      *
      * @param queue
      */
@@ -98,20 +99,18 @@ public class DatabaseWriter extends RepeatingThread {
 
         try {
             sessionBuilder.execute(session -> {
-                Map<String, DBContainer> dbContainerCache = new HashMap<>();
-                Map<String, NWContainer> nwContainerCache = new HashMap<>();
                 Log dbLog = queue.poll();
 
                 while (dbLog != null) {
                     // Replace the dummy container instance with an actual hibernate reference object
                     if (dbLog.getContainer() != null) {
                         String containerID = dbLog.getContainer().getId();
-                        DBContainer dbContainer = getFromCache(DBContainer.class, dbContainerCache, session, containerID);
+                        DBContainer dbContainer = session.getReference(DBContainer.class, containerID);
                         dbLog.setContainer(dbContainer);
 
                     } else if (dbLog.getNwContainer() != null) {
                         String containerID = dbLog.getNwContainer().getId();
-                        NWContainer nwContainer = getFromCache(NWContainer.class, nwContainerCache, session, containerID);
+                        NWContainer nwContainer = session.getReference(NWContainer.class, containerID);
                         dbLog.setNwContainer(nwContainer);
 
                     } else {
@@ -124,6 +123,7 @@ public class DatabaseWriter extends RepeatingThread {
             });
 
         } catch (TransactionException e1) {
+            log.error("DB log flushing transaction failed.", e1);
             // Re-add the entries to the queue if the transaction commit failed
             queue.addAll(backup);
         }
@@ -150,26 +150,6 @@ public class DatabaseWriter extends RepeatingThread {
     }
 
     // -----  Utility methods  -----
-
-    /**
-     * Tries to get a value from the provided cache or generates it if not present
-     *
-     * @param type
-     * @param cache
-     * @param session
-     * @param containerID
-     * @param <T>
-     * @return
-     */
-    private <T> T getFromCache(Class<T> type, Map<String, T> cache, Session session, String containerID) {
-        try {
-            return cache.putIfAbsent(containerID, session.getReference(type, containerID));
-
-        } catch (NoResultException e) {
-            cache.put(containerID, null);
-            return null;
-        }
-    }
 
     /**
      * Saves a log entry to the DB and replaces the dummy references to the container

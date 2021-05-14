@@ -29,7 +29,6 @@ public abstract class Endpoint<REQ extends Serializable, RESP extends Serializab
             } catch (ReflectiveOperationException e) {
                 throw new RuntimeException(e);
             }
-//            throw new InvalidAPIDataException("Docker engine send not data with request");
         }
 
         return (REQ) result;
