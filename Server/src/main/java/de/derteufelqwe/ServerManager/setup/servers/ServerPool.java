@@ -15,7 +15,7 @@ import java.util.Map;
 
 
 /**
- * Represents Minecraft server pools, which provide a fixed number of server instances with VOLITILE data.
+ * Represents Minecraft server pools, which provide a fixed number of server instances with VOLATILE (world) data.
  */
 @Data
 @NoArgsConstructor

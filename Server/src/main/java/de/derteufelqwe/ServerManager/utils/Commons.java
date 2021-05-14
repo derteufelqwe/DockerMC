@@ -6,10 +6,15 @@ import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.config.ConfigChecker;
 import de.derteufelqwe.ServerManager.config.ServersConfig;
 import de.derteufelqwe.ServerManager.exceptions.InvalidConfigException;
-import de.derteufelqwe.ServerManager.setup.*;
-import de.derteufelqwe.ServerManager.setup.configUpdate.BungeePoolUpdater;
-import de.derteufelqwe.ServerManager.setup.configUpdate.LobbyPoolUpdater;
-import de.derteufelqwe.ServerManager.setup.configUpdate.MinecraftPoolUpdater;
+import de.derteufelqwe.ServerManager.setup.InfrastructureSetup;
+import de.derteufelqwe.ServerManager.setup.LostServiceFinder;
+import de.derteufelqwe.ServerManager.setup.ServiceCreateResponse;
+import de.derteufelqwe.ServerManager.setup.ServiceStopResponse;
+import de.derteufelqwe.ServerManager.setup.configUpdate.BungeePoolCreator;
+import de.derteufelqwe.ServerManager.setup.configUpdate.LobbyPoolCreator;
+import de.derteufelqwe.ServerManager.setup.configUpdate.MinecraftPoolCreator;
+import de.derteufelqwe.ServerManager.setup.configUpdate.PersistentMinecraftPoolCreator;
+import de.derteufelqwe.ServerManager.setup.servers.PersistentServerPool;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
@@ -273,25 +278,34 @@ public class Commons {
 
     // -----  Minecraft server setup  -----
 
-    /**
-     * Creates all the servers specified in the InfrastructureConfig.yml.
-     * Identifies and stops lost services.
-     */
-    public boolean createAllMCServers(boolean force) {
+    public void removeLostServices() {
         LostServiceFinder cleaner = new LostServiceFinder(docker);
         List<Service> lostServices = cleaner.findLostServices();
         ServersConfig serversConfig = this.serversConfig.get();
+        ServersConfig serversConfigOld = ServerManager.getServerConfigOld().get();
 
         for (Service lostService : lostServices) {
             log.warn("Removing lost service {} ({}).", lostService.getSpec().getName(), lostService.getId());
 
             docker.getDocker().removeServiceCmd(lostService.getId()).exec();
             String serviceName = lostService.getSpec().getLabels().get("ServerName");
-            serversConfig.getPoolServers().removeIf(
-                    p -> p.getName().equals(serviceName)
-            );
+
+            serversConfig.getPoolServers().removeIf(p -> p.getName().equals(serviceName));
+            serversConfig.getPersistentServerPool().removeIf(p -> p.getName().equals(serviceName));
+            serversConfigOld.getPoolServers().removeIf(p -> p.getName().equals(serviceName));
+            serversConfigOld.getPersistentServerPool().removeIf(p -> p.getName().equals(serviceName));
         }
 
+        this.serversConfig.get();
+        ServerManager.getServerConfigOld().save();
+    }
+
+    /**
+     * Creates all the servers specified in the InfrastructureConfig.yml.
+     * Identifies and stops lost services.
+     */
+    public boolean createAllMCServers(boolean force) {
+        this.removeLostServices();
 
         if (!createBungeeServer(force))
             return false;
@@ -302,17 +316,12 @@ public class Commons {
         if (!createAllPoolServers(force))
             return false;
 
+        if (!createAllPersistentPoolServers(force))
+            return false;
+
         return true;
     }
 
-    /**
-     * Default server creation method
-     *
-     * @return
-     */
-    public boolean createAllMCServers() {
-        return createAllMCServers(false);
-    }
 
     /**
      * Creates or updates the BungeeCord service
@@ -321,13 +330,13 @@ public class Commons {
      * @return
      */
     public boolean createBungeeServer(boolean force) {
-        ServiceUpdateResponse response = new BungeePoolUpdater(docker).update(force);
+        ServiceCreateResponse response = new BungeePoolCreator(docker).createOrUpdate(force);
 
         switch (response.getResult()) {
             case CREATED:
                 log.info("BungeeCord-Pool created successfully.");
                 break;
-            case NOT_REQUIRED:
+            case RUNNING:
                 log.info("BungeeCord-Pool already running and up-to-date.");
                 break;
             case NOT_CONFIGURED:
@@ -358,13 +367,13 @@ public class Commons {
      * @return
      */
     public boolean createLobbyServer(boolean force) {
-        ServiceUpdateResponse response = new LobbyPoolUpdater(docker, jedisPool).update(force);
+        ServiceCreateResponse response = new LobbyPoolCreator(docker, jedisPool).createOrUpdate(force);
 
         switch (response.getResult()) {
             case CREATED:
                 log.info("LobbyServer-Pool created successfully.");
                 break;
-            case NOT_REQUIRED:
+            case RUNNING:
                 log.info("LobbyServer-Pool already running and up-to-date.");
                 break;
             case NOT_CONFIGURED:
@@ -416,13 +425,13 @@ public class Commons {
     }
 
     public boolean createPoolServer(ServerPool pool, boolean force) {
-        ServiceUpdateResponse response = new MinecraftPoolUpdater(docker, pool).update(force);
+        ServiceCreateResponse response = new MinecraftPoolCreator(docker, pool).createOrUpdate(force);
 
         switch (response.getResult()) {
             case CREATED:
                 log.info("Minecraft-Pool {} created successfully.", pool.getName());
                 break;
-            case NOT_REQUIRED:
+            case RUNNING:
                 log.info("Minecraft-Pool {} already running and up-to-date.", pool.getName());
                 break;
             case NOT_CONFIGURED:
@@ -438,6 +447,61 @@ public class Commons {
 
             default:
                 throw new NotImplementedException("Result " + response.getResult() + " not implemented.");
+        }
+
+        return true;
+    }
+
+    public boolean createPersistentPoolServer(String serverName, boolean force) {
+        PersistentServerPool serverPool = null;
+        for (PersistentServerPool pool : serversConfig.get().getPersistentServerPool()) {
+            if (pool.getName().equals(serverName)) {
+                serverPool = pool;
+                break;
+            }
+        }
+
+        if (serverPool == null) {
+            log.warn("Persistent pool server {} not found.", serverName);
+            return false;
+        }
+
+        return this.createPersistentPoolServer(serverPool, force);
+    }
+
+    public boolean createPersistentPoolServer(PersistentServerPool pool, boolean force) {
+        ServiceCreateResponse response = new PersistentMinecraftPoolCreator(docker, pool).createOrUpdate(force);
+
+        switch (response.getResult()) {
+            case CREATED:
+                log.info("Persistent minecraft-Pool {} created successfully.", pool.getName());
+                break;
+            case RUNNING:
+                log.info("Persistent minecraft-Pool {} already running and up-to-date.", pool.getName());
+                break;
+            case NOT_CONFIGURED:
+                log.error("Persistent minecraft-Pool {} not configured.", pool.getName());
+                break;
+            case UPDATED:
+                log.info("Persistent minecraft-Pool {} updating.", pool.getName());
+                break;
+            case FAILED_GENERIC:
+                log.error("Failed to create the persistent minecraft-Pool {}. ServiceId: {}",
+                        pool.getName(), response.getServiceId());
+                return false;
+
+            default:
+                throw new NotImplementedException("Result " + response.getResult() + " not implemented.");
+        }
+
+        return true;
+    }
+
+    public boolean createAllPersistentPoolServers(boolean force) {
+        ServersConfig serversConfig = this.serversConfig.get();
+
+        for (PersistentServerPool pool : serversConfig.getPersistentServerPool()) {
+            this.createPersistentPoolServer(pool, force);
         }
 
         return true;

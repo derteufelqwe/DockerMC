@@ -9,10 +9,7 @@ import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.Utils;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +25,10 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 public class PersistentServerPool extends ServerPool {
 
+    /**
+     * Can be 'global' or 'local'
+     */
+    private String volumeDriver;
 
     public PersistentServerPool(String name, String image, String ramLimit, float cpuLimit, int replications, ServiceConstraints constraints, int softPlayerLimit) {
         super(name, image, ramLimit, cpuLimit, replications, constraints, softPlayerLimit);
@@ -58,13 +59,18 @@ public class PersistentServerPool extends ServerPool {
     protected List<Mount> getMountVolumes() {
         List<Mount> mounts = super.getMountVolumes();
 
+        String driverName = null;
+        if (volumeDriver.equals("global")) {
+            driverName = Constants.DOCKER_DRIVER_PLUGIN_NAME;
+        }
+
         Mount mount = new Mount()
                 .withSource(String.format("%s-{{ .Task.Slot }}", this.name))
                 .withTarget("/server")
                 .withType(MountType.VOLUME)
                 .withVolumeOptions(new VolumeOptions()
                         .withDriverConfig(new Driver()
-                                .withName(Constants.DOCKER_DRIVER_PLUGIN_NAME)
+                                .withName(driverName)
                         )
                 );
 

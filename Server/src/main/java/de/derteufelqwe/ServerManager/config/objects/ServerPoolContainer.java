@@ -1,7 +1,6 @@
 package de.derteufelqwe.ServerManager.config.objects;
 
 
-import de.derteufelqwe.ServerManager.config.ServersConfig;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import lombok.Data;
 import lombok.NoArgsConstructor;

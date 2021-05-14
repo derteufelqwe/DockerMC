@@ -1,6 +1,7 @@
 package de.derteufelqwe.ServerManager.cli;
 
 
+import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.cli.service.CreateServiceCmd;
 import de.derteufelqwe.ServerManager.cli.service.ListServicesCmd;
 import de.derteufelqwe.ServerManager.cli.service.ServiceDetailsCmd;

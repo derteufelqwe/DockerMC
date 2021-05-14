@@ -24,10 +24,11 @@ public class Constants {
     }
 
     // Miscellaneous values
-    public static final String CONFIG_PATH = WORKDIR + "server/configs/";
-    public static final String DATA_PATH = WORKDIR + "/server/internal/data/";
+    public static final String CONFIG_PATH = WORKDIR + "configs/";
+    public static final String DATA_PATH = WORKDIR + "/internal/data/";
     public static final String DOCKER_DRIVER_PLUGIN_NAME = "derteufelqwe/dockermc-drivers:latest";
     /**
+     * This is a key, which can be used to label a docker node
      * Possible values: "true", "false"
      * Indicates that a master node should (not) be responsible for reading nodes and service events
      */
@@ -46,15 +47,15 @@ public class Constants {
     // Docker image building
     public static final String IMAGE_MINECRAFT_PATH = WORKDIR + "images/minecraft/";
     public static final String IMAGE_BUNGEE_PATH = WORKDIR + "images/bungeecord";
-    public static final String DOCKERFILE_MINECRAFT_PATH = WORKDIR + "server/dockerfiles/minecraft.dfile";
-    public static final String DOCKERFILE_BUNGEE_PATH = WORKDIR + "server/dockerfiles/bungee.dfile";
+    public static final String DOCKERFILE_MINECRAFT_PATH = WORKDIR + "internal/dockerfiles/minecraft.dfile";
+    public static final String DOCKERFILE_BUNGEE_PATH = WORKDIR + "internal/dockerfiles/bungee.dfile";
     public static final String DOCKER_IMAGE_TYPE_TAG = "DockerMCImageType";
 
     // -----  Registry  -----
     public static final String REGISTRY_CONTAINER_NAME = "Registry";
     public static final int REGISTY_CONTAINER_DEFAULT_PORT = 5000;
     // Path to the Registry Certificate and key
-    private static final String REGISTRY_CERT_PATH = "server/internal/security/registry-certs/";
+    private static final String REGISTRY_CERT_PATH = "internal/security/registry-certs/";
     /**
      * Normal registry certs path that can be a windows or linux path depending on where the program was executed.
      */

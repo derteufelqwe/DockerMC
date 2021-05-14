@@ -11,6 +11,5 @@ public enum ServiceStart {
     NOT_CONFIGURED,     // Config missing
     FAILED_GENERIC,      // Generic failure
     UPDATED,            // Updated
-    NOT_REQUIRED,       // Update not required
     DESTROYED          // Got destroyed
 }

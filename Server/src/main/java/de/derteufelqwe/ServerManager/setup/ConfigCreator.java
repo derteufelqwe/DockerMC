@@ -10,27 +10,28 @@ import de.derteufelqwe.ServerManager.setup.templates.ServiceTemplate;
 import de.derteufelqwe.commons.Constants;
 import org.jetbrains.annotations.Nullable;
 
-public class ConfigCreator<CFG extends ServiceTemplate> {
+public abstract class ConfigCreator<CFG extends ServiceTemplate> {
 
-    private MainConfig mainConfig = ServerManager.getMainConfig().get();
-    @Nullable private CFG poolConfig;
+    private final MainConfig mainConfig = ServerManager.getMainConfig().get();
+    @Nullable protected CFG poolConfig;
     @Nullable private CFG oldPoolConfig;
-    private Docker docker;
-    private Constants.ContainerType containerType;
+    private final Docker docker;
+    private final Constants.ContainerType containerType;
     private ServiceCreateResponse response;
-    private ConfigUpdater<CFG> configUpdater;
-    private int parallelUpdateCount = 0;
+    private final int parallelUpdateCount = getParallelUpdateCount();
 
 
-    public ConfigCreator(@Nullable CFG poolConfig, CFG oldPoolConfig, Docker docker, Constants.ContainerType containerType, int parallelUpdateCount,
-                         ConfigUpdater<CFG> configUpdater) {
+    public ConfigCreator(@Nullable CFG poolConfig, CFG oldPoolConfig, Docker docker, Constants.ContainerType containerType) {
         this.poolConfig = poolConfig;
         this.oldPoolConfig = oldPoolConfig;
         this.docker = docker;
         this.containerType = containerType;
-        this.parallelUpdateCount = parallelUpdateCount
-        this.configUpdater = configUpdater;
     }
+
+
+    protected abstract void updateOldConfigFile(CFG newConfig);
+
+    protected abstract int getParallelUpdateCount();
 
 
     public ServiceCreateResponse createOrUpdate(boolean force) {
@@ -109,8 +110,8 @@ public class ConfigCreator<CFG extends ServiceTemplate> {
     }
 
     protected void onServiceCreated(DockerObjTemplate.CreateResponse createResponse) {
-        response.setResult(ServiceStart.OK);
-        this.configUpdater.updateConfigFile((CFG) poolConfig.clone());
+        response.setResult(ServiceStart.CREATED);
+        this.updateOldConfigFile((CFG) poolConfig.clone());
     }
 
     protected void onServiceNotCreated(DockerObjTemplate.CreateResponse createResponse) {
@@ -158,7 +159,7 @@ public class ConfigCreator<CFG extends ServiceTemplate> {
 
             if (destroyResponse.isDestroyed()) {
                 response.setResult(ServiceStart.DESTROYED);
-                this.configUpdater.updateConfigFile(null);
+                this.updateOldConfigFile(null);
 
             } else {
                 response.setResult(ServiceStart.FAILED_GENERIC);
@@ -178,18 +179,18 @@ public class ConfigCreator<CFG extends ServiceTemplate> {
             // Update the service
         } else {
             this.updateDockerService(poolConfig.getServiceSpec(), findResponse.getServiceID());
-            this.configUpdater.updateConfigFile((CFG) poolConfig.clone());
+            this.updateOldConfigFile((CFG) poolConfig.clone());
         }
     }
 
-    public void onServicesEqual(boolean force) {
+    private void onServicesEqual(boolean force) {
         poolConfig.init(docker);
 
         DockerObjTemplate.FindResponse findResponse = poolConfig.find();
         response.setServiceId(findResponse.getServiceID());
 
         if (findResponse.isFound()) {
-            response.setResult(ServiceStart.NOT_REQUIRED);
+            response.setResult(ServiceStart.RUNNING);
 
             // Force update even if nothing happened to update the version of the image
             if (force) {

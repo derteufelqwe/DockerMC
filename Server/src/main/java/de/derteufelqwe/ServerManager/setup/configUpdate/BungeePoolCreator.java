@@ -1,28 +1,35 @@
 package de.derteufelqwe.ServerManager.setup.configUpdate;
 
 import de.derteufelqwe.ServerManager.Docker;
+import de.derteufelqwe.ServerManager.ServerManager;
+import de.derteufelqwe.ServerManager.config.MainConfig;
+import de.derteufelqwe.ServerManager.config.ServersConfig;
+import de.derteufelqwe.ServerManager.setup.ConfigCreator;
 import de.derteufelqwe.ServerManager.setup.servers.BungeePool;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.config.Config;
 
-class BungeePoolCreator extends DMCServiceCreator<BungeePool> {
+public class BungeePoolCreator extends ConfigCreator<BungeePool> {
 
     public BungeePoolCreator(Docker docker) {
-        super(docker);
+        super(
+                ServerManager.getServerConfig().get().getBungeePool(),
+                ServerManager.getServerConfigOld().get().getBungeePool(),
+                docker,
+                Constants.ContainerType.BUNGEE
+        );
     }
 
     @Override
-    protected BungeePool getConfigObject() {
-        return this.serversConfig.getBungeePool();
+    protected void updateOldConfigFile(BungeePool newConfig) {
+        Config<ServersConfig> serversConfig = ServerManager.getServerConfigOld();
+        serversConfig.get().setBungeePool(newConfig);
+        serversConfig.save();
     }
 
     @Override
-    protected Constants.ContainerType getContainerType() {
-        return Constants.ContainerType.BUNGEE_POOL;
+    protected int getParallelUpdateCount() {
+        MainConfig mainConfig = ServerManager.getMainConfig().get();
+        return mainConfig.getBungeePoolParallelUpdates();
     }
-
-    @Override
-    protected void updateSystemConfig(BungeePool newData) {
-        this.oldServersConfig.setBungeePool(newData);
-    }
-
 }

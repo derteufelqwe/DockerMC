@@ -53,6 +53,7 @@ public class ServerManager {
      *  - Track Registry ssl certificate age
      *  - Refactor the server creation / update methods
      *  - Prevent volume driver from saving files that are already in the DB
+     *  - Make sure server pool entries get removed from the server_old.yml file
      */
 
     /*
@@ -67,13 +68,18 @@ public class ServerManager {
     @Getter
     public static final Config<ServersConfig> serverConfig = new Config<>(new DefaultYamlConverter(), new DefaultGsonProvider(), Constants.CONFIG_PATH + "/servers.yml", new ServersConfig());
     @Getter
-    public static final Config<OldServersConfig> serverConfigOld = new Config<>(new DefaultYamlConverter(), new DefaultGsonProvider(), Constants.DATA_PATH + "/servers_old.yml", new OldServersConfig());
+    public static final Config<ServersConfig> serverConfigOld = new Config<>(new DefaultYamlConverter(), new DefaultGsonProvider(), Constants.DATA_PATH + "/servers_old.yml", new ServersConfig());
 
-    @Getter private static SessionBuilder sessionBuilder;
-    @Getter private static Docker docker;
-    @Getter private static Commons commons;
-    @Getter private static DockerRegistryAPI registryAPI;
-    @Getter private static RedisPool redisPool;
+    @Getter
+    private static SessionBuilder sessionBuilder;
+    @Getter
+    private static Docker docker;
+    @Getter
+    private static Commons commons;
+    @Getter
+    private static DockerRegistryAPI registryAPI;
+    @Getter
+    private static RedisPool redisPool;
 
 
     public static void main(String[] args) {

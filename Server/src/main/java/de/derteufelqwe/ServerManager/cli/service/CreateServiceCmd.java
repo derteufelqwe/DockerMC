@@ -32,11 +32,17 @@ public class CreateServiceCmd implements Runnable {
     private boolean createLobby = false;
     @CommandLine.Option(names = {"-p", "--pool"}, description = "Create a pool service")
     private List<String> poolNames = new ArrayList<>();
+    @CommandLine.Option(names = {"-pp", "--p-pool"}, description = "Create a persistent pool service")
+    private List<String> persistentPoolNames = new ArrayList<>();
+    @CommandLine.Option(names = {"-ap", "--all-pools"}, description = "Create a all pool service")
+    private boolean createAllPools = false;
+    @CommandLine.Option(names = {"-app", "--all-p-pools"}, description = "Create a all persistent pool service")
+    private boolean createAllPersistentPools = false;
 
 
     @Override
     public void run() {
-        if (Utils.allFalse(all, createBungee, createLobby) && poolNames.size() == 0) {
+        if (Utils.allFalse(all, createBungee, createLobby, createAllPools, createAllPersistentPools) && poolNames.size() == 0 && persistentPoolNames.size() == 0) {
             System.out.println(new CommandLine(this).getUsageMessage());
             return;
         }
@@ -71,9 +77,24 @@ public class CreateServiceCmd implements Runnable {
         if (createLobby)
             commons.createLobbyServer(force);
 
-        for (String poolName : poolNames) {
-            commons.createPoolServer(poolName, force);
+        if (createAllPools) {
+            commons.createAllPoolServers(force);
+
+        } else {
+            for (String poolName : poolNames) {
+                commons.createPoolServer(poolName, force);
+            }
         }
+
+        if (createAllPersistentPools) {
+            commons.createAllPersistentPoolServers(force);
+
+        } else {
+            for (String poolName : persistentPoolNames) {
+                commons.createPersistentPoolServer(poolName, force);
+            }
+        }
+
     }
 
 }

@@ -1,12 +1,6 @@
 package de.derteufelqwe.ServerManager.setup.servers;
 
 import com.github.dockerjava.api.model.Driver;
-import de.derteufelqwe.ServerManager.ServerManager;
-import de.derteufelqwe.ServerManager.config.ServersConfig;
-import de.derteufelqwe.ServerManager.setup.ConfigCreator;
-import de.derteufelqwe.ServerManager.setup.IConfigFileBased;
-import de.derteufelqwe.ServerManager.setup.ServiceCreateResponse;
-import de.derteufelqwe.ServerManager.setup.ServiceUpdateResponse;
 import de.derteufelqwe.ServerManager.setup.templates.ExposableServiceTemplate;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
 import de.derteufelqwe.commons.Constants;
@@ -28,16 +22,10 @@ import java.util.Map;
 @NoArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class BungeePool extends ExposableServiceTemplate implements IConfigFileBased<BungeePool> {
+public class BungeePool extends ExposableServiceTemplate {
 
     public BungeePool(String name, String image, String ramLimit, float cpuLimit, int replications, ServiceConstraints constraints, int port) {
         super(name, image, ramLimit, cpuLimit, replications, constraints, port);
-    }
-
-    @Override
-    public ServiceCreateResponse createOrUpdate(boolean force) {
-        ServersConfig serversConfig = ServerManager.getServerConfig().get();
-        ConfigCreator<BungeePool> creator = new ConfigCreator<>()
     }
 
 // -----  Creation methods  -----

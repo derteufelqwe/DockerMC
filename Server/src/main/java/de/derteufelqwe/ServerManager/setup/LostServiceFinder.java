@@ -4,6 +4,7 @@ import com.github.dockerjava.api.model.Service;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.config.ServersConfig;
+import de.derteufelqwe.ServerManager.setup.servers.PersistentServerPool;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.Utils;
@@ -31,11 +32,11 @@ public class LostServiceFinder {
      * Returns all running docker services, which have the required labels.
      */
     private List<Service> getRelevantServices() {
-        Map<String, String> labels1 = de.derteufelqwe.commons.Utils.quickLabel(Constants.ContainerType.BUNGEE_POOL);
-        Map<String, String> labels2 = de.derteufelqwe.commons.Utils.quickLabel(Constants.ContainerType.MINECRAFT_POOL);
+        Map<String, String> labels1 = Utils.quickLabel(Constants.ContainerType.BUNGEE_POOL);
+        Map<String, String> labels2 = Utils.quickLabel(Constants.ContainerType.MINECRAFT_POOL);
         Map<String, String> labels3 = Utils.quickLabel(Constants.ContainerType.MINECRAFT_POOL_PERSISTENT);
 
-        List<Service> existingServices = this.docker.getDocker().listServicesCmd().withLabelFilter(labels1).exec();
+        List<Service> existingServices = new ArrayList<>();
 
         existingServices.addAll(this.docker.getDocker().listServicesCmd().withLabelFilter(labels1).exec());
         existingServices.addAll(this.docker.getDocker().listServicesCmd().withLabelFilter(labels2).exec());
@@ -62,6 +63,10 @@ public class LostServiceFinder {
             names.add(pool.getName());
         }
 
+        for (PersistentServerPool pool : this.serversConfig.getPersistentServerPool()) {
+            names.add(pool.getName());
+        }
+
         return names;
     }
 
@@ -72,11 +77,7 @@ public class LostServiceFinder {
         List<Service> existingServices = this.getRelevantServices();
         List<String> configuredServicesNames = this.getConfiguredServiceNames();
 
-        for (Service service : new ArrayList<>(existingServices)) {
-            if (configuredServicesNames.contains(service.getSpec().getName())) {
-                existingServices.remove(service);
-            }
-        }
+        existingServices.removeIf(service -> configuredServicesNames.contains(service.getSpec().getName()));
 
         return existingServices;
     }

@@ -6,16 +6,19 @@ import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.config.ServersConfig;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.setup.ConfigCreator;
+import de.derteufelqwe.ServerManager.setup.servers.PersistentServerPool;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MinecraftPoolCreator extends ConfigCreator<ServerPool> {
+public class PersistentMinecraftPoolCreator extends ConfigCreator<PersistentServerPool> {
 
-    public MinecraftPoolCreator(Docker docker, ServerPool serverPool) {
+    public PersistentMinecraftPoolCreator(Docker docker, PersistentServerPool serverPool) {
         super(
                 serverPool,
                 getOldConfig(serverPool.getName()),
@@ -24,8 +27,8 @@ public class MinecraftPoolCreator extends ConfigCreator<ServerPool> {
         );
     }
 
-    private static ServerPool getOldConfig(String name) {
-        List<ServerPool> relevantPools = ServerManager.getServerConfigOld().get().getPoolServers().stream()
+    private static PersistentServerPool getOldConfig(String name) {
+        List<PersistentServerPool> relevantPools = ServerManager.getServerConfigOld().get().getPersistentServerPool().stream()
                 .filter(p -> p.getName().equals(name))
                 .collect(Collectors.toList());
 
@@ -41,9 +44,9 @@ public class MinecraftPoolCreator extends ConfigCreator<ServerPool> {
     }
 
     @Override
-    protected void updateOldConfigFile(ServerPool newConfig) {
+    protected void updateOldConfigFile(PersistentServerPool newConfig) {
         Config<ServersConfig> serversConfig = ServerManager.getServerConfigOld();
-        serversConfig.get().getPoolServers().add(newConfig);
+        serversConfig.get().getPersistentServerPool().add(newConfig);
         serversConfig.save();
     }
 
