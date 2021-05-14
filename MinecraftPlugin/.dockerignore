@@ -8,5 +8,4 @@ src/
 # Target
 target/classes/
 target/generated-sources/
-target/MinecraftPlugin-1.0-shaded.jar
-target/original-MinecraftPlugin-1.0.jar
+target/original-DMCPluginMC-1.0.jar

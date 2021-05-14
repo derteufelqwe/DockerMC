@@ -6,13 +6,11 @@ target
 
 # BungeePlugin
 BungeePlugin/target
-BungeePlugin/docker/modules
-BungeePlugin/docker/plugins
-BungeePlugin/docker/waterfall.jar
+BungeePlugin/docker
 
 # MinecraftPlugin
-MinecraftPlugin/target
-MinecraftPlugin/docker/server
+MinecraftPlugin/target/
+MinecraftPlugin/docker
 
 # Commons
 Commons/target

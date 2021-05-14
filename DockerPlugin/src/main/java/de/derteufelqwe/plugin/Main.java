@@ -30,6 +30,7 @@ public class Main {
         try {
 //            String dbHost = parseDBHost();
 //            String dbPassword = parseDBPassword();
+
             driver = new DMCLogDriver("ubuntu1", "admin");
             driver.addSignalHook();
             startStopper(driver);
@@ -45,7 +46,6 @@ public class Main {
         }
     }
 
-
     private static void startStopper(DMCLogDriver dmcLogDriver) {
         log.warn("[DEBUG FEATURE] System stopper enabled");
         new Thread(() -> {
@@ -60,7 +60,7 @@ public class Main {
 
 
     private static void parseLogLevel() {
-        String logLevel = System.getProperty("LOG_LEVEL");
+        String logLevel = System.getenv("LOG_LEVEL");
         logLevel = logLevel != null ? logLevel.toUpperCase() : "";
 
         try {
@@ -74,9 +74,7 @@ public class Main {
     }
 
     private static String parseDBHost() {
-        String dbHost = System.getProperty("DB_HOST");
-        log.debug(System.getProperties());
-        log.info("Host: {}", dbHost);
+        String dbHost = System.getenv("DB_HOST");
         if (dbHost == null || dbHost.equals("")) {
             throw new IllegalArgumentException("DB_HOST not set.");
         }
@@ -85,7 +83,7 @@ public class Main {
     }
 
     private static String parseDBPassword() {
-        String dbPassword = System.getProperty("DB_PASSWORD");
+        String dbPassword = System.getenv("DB_PASSWORD");
         if (dbPassword == null || dbPassword.equals("")) {
             throw new IllegalArgumentException("DB_PASSWORD not set.");
         }

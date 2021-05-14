@@ -26,7 +26,9 @@ public class DockerNetwTemplate {
     @Exclude
     protected Docker docker;
 
-    // Network name
+    /**
+     * Name of the network in docker
+     */
     protected String name;
 
     public DockerNetwTemplate(String name) {

@@ -21,13 +21,21 @@ public abstract class DockerObjTemplate implements Cloneable {
     @Exclude
     protected Docker docker;
 
-    // Name
+    /**
+     * Name of the docker object
+     */
     protected String name;
-    // Image
+    /**
+     * Image to use
+     */
     protected String image;
-    // RAM limit per task, like 2G or 512M
+    /**
+     * RAM limit per task, like 2G or 512M
+     */
     protected String ramLimit;
-    // CPU limit per task like 1
+    /**
+     * CPU limit per task like 1
+     */
     protected float cpuLimit;
 
 
@@ -79,10 +87,10 @@ public abstract class DockerObjTemplate implements Cloneable {
     public void valid() throws InvalidConfigException {
         // Name
         if (this.name == null) {
-            throw new InvalidConfigException("ServerName can't be null.");
+            throw new InvalidConfigException("Name can't be null.");
         }
         if (this.name.contains(" ")) {
-            throw new InvalidConfigException("ServerName can't container whitespaces.");
+            throw new InvalidConfigException("Name can't container whitespaces.");
         }
 
         // Image

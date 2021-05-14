@@ -1,7 +1,6 @@
 package de.derteufelqwe.plugin.endpoints
 
 import de.derteufelqwe.commons.Constants
-import de.derteufelqwe.commons.hibernate.LocalSessionRunnable
 import de.derteufelqwe.commons.hibernate.objects.DBContainer
 import de.derteufelqwe.commons.hibernate.objects.DBService
 import de.derteufelqwe.commons.hibernate.objects.NWContainer
@@ -39,7 +38,7 @@ class LogDriverStartLoggingEP(data: String?) : Endpoint<RStartLogging, StartLogg
             this.addNodeWatcherContainerToDB(request.info)
 
         } else {
-//            injectContainerToDB(request.info)
+            injectContainerToDB(request.info)
             if (!awaitContainerInDB(containerID)) {
                 return StartLogging("Failed to find container $containerID in the DB after $CONTAINER_DB_AWAIT_TIMEOUT ms.")
             }

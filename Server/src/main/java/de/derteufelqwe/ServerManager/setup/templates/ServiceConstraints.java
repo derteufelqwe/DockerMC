@@ -77,10 +77,6 @@ public class ServiceConstraints implements Cloneable {
         return constraintList;
     }
 
-    public int getNodeLimit() {
-        return nodeLimit;
-    }
-
 
     /**
      * Custom clone implementation to clone the lists.

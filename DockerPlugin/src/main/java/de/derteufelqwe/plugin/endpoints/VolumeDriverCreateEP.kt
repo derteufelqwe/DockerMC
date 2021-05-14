@@ -5,12 +5,14 @@ import de.derteufelqwe.commons.hibernate.objects.volumes.Volume
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFolder
 import de.derteufelqwe.plugin.DMCLogDriver
 import de.derteufelqwe.plugin.messages.VolumeDriver
+import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.Serializable
 import java.sql.Timestamp
 
 class VolumeDriverCreateEP(data: String?) : Endpoint<VolumeDriver.RCreate, VolumeDriver.Create>(data) {
 
+    private val log = LogManager.getLogger(javaClass)
     private val sessionBuilder: SessionBuilder = DMCLogDriver.getSessionBuilder();
 
 
@@ -18,7 +20,7 @@ class VolumeDriverCreateEP(data: String?) : Endpoint<VolumeDriver.RCreate, Volum
         val file = File(DMCLogDriver.VOLUME_PATH, request.name)
         file.mkdir()
 
-        sessionBuilder.execute() { session ->
+        sessionBuilder.execute { session ->
             val dbVolume = Volume(request.name, Timestamp(System.currentTimeMillis()))
             val rootFolder = VolumeFolder("/")
             rootFolder.volume = dbVolume
@@ -27,7 +29,7 @@ class VolumeDriverCreateEP(data: String?) : Endpoint<VolumeDriver.RCreate, Volum
             session.persist(rootFolder)
         };
 
-        println("Created volume ${request.name}")
+        log.info("Created volume ${request.name}")
         return VolumeDriver.Create()
     }
 

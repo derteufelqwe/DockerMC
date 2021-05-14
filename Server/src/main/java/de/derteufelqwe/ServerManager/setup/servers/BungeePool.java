@@ -1,15 +1,16 @@
 package de.derteufelqwe.ServerManager.setup.servers;
 
 import com.github.dockerjava.api.model.Driver;
-import com.github.dockerjava.api.model.Mount;
-import com.github.dockerjava.api.model.NetworkAttachmentConfig;
 import de.derteufelqwe.ServerManager.ServerManager;
-import de.derteufelqwe.ServerManager.config.MainConfig;
+import de.derteufelqwe.ServerManager.config.ServersConfig;
+import de.derteufelqwe.ServerManager.setup.ConfigCreator;
+import de.derteufelqwe.ServerManager.setup.IConfigFileBased;
+import de.derteufelqwe.ServerManager.setup.ServiceCreateResponse;
+import de.derteufelqwe.ServerManager.setup.ServiceUpdateResponse;
 import de.derteufelqwe.ServerManager.setup.templates.ExposableServiceTemplate;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.Utils;
-import de.derteufelqwe.commons.config.Config;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -27,14 +28,19 @@ import java.util.Map;
 @NoArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class BungeePool extends ExposableServiceTemplate {
+public class BungeePool extends ExposableServiceTemplate implements IConfigFileBased<BungeePool> {
 
     public BungeePool(String name, String image, String ramLimit, float cpuLimit, int replications, ServiceConstraints constraints, int port) {
         super(name, image, ramLimit, cpuLimit, replications, constraints, port);
     }
 
+    @Override
+    public ServiceCreateResponse createOrUpdate(boolean force) {
+        ServersConfig serversConfig = ServerManager.getServerConfig().get();
+        ConfigCreator<BungeePool> creator = new ConfigCreator<>()
+    }
 
-    // -----  Creation methods  -----
+// -----  Creation methods  -----
 
     @Override
     protected Map<String, String> getContainerLabels() {
@@ -66,7 +72,7 @@ public class BungeePool extends ExposableServiceTemplate {
     @Override
     protected Driver getLogDriver() {
         return new Driver()
-                .withName(Constants.LOG_DRIVER_PLUGIN_NAME);
+                .withName(Constants.DOCKER_DRIVER_PLUGIN_NAME);
     }
 
 }

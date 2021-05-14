@@ -13,10 +13,7 @@ import de.derteufelqwe.commons.config.annotations.Exclude;
 import lombok.*;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -35,9 +32,13 @@ public class ServiceTemplate extends DockerObjTemplate {
     @Exclude
     protected AuthConfig authConfig;
 
-    // Amount of replicas
+    /**
+     * Amount of replicas
+     */
     protected int replications;
-    // Constraints where to place the servers. Can be null if it doesn't matter.
+    /**
+     * Constraints where to place the servers. Can be null if it doesn't matter.
+     */
     @Nullable
     protected ServiceConstraints constraints;
 
@@ -52,12 +53,12 @@ public class ServiceTemplate extends DockerObjTemplate {
     @Override
     public FindResponse find() {
         List<Service> services = this.docker.getDocker().listServicesCmd()
-                .withLabelFilter(this.getServiceLabels())
+                .withNameFilter(Collections.singletonList(this.getName()))
                 .exec();
 
         if (services.size() > 1) {
-            throw new FatalDockerMCError("Found multiple services %s for %s.",
-                    services.stream().map(Service::getId).collect(Collectors.joining(", ")), this.name);
+            throw new FatalDockerMCError("Found multiple services %s named %s.",
+                    services.stream().map(Service::getId).collect(Collectors.toList()), this.name);
 
         } else if (services.size() == 1) {
             return new DockerObjTemplate.FindResponse(true, services.get(0).getId());
@@ -135,9 +136,11 @@ public class ServiceTemplate extends DockerObjTemplate {
     /**
      * Waits x seconds for docker to do its magic
      */
-    @SneakyThrows
     private void waitForProcessing() {
-        TimeUnit.MILLISECONDS.sleep(500);
+        try {
+            TimeUnit.MILLISECONDS.sleep(500);
+
+        } catch (InterruptedException ignored) { }
     }
 
     // -----  Creation methods  -----
@@ -182,7 +185,6 @@ public class ServiceTemplate extends DockerObjTemplate {
         envs.add("SERVICE_ID={{ .Service.ID }}");
         envs.add("NODE_ID={{ .Node.ID }}");
         envs.add("TASK_NAME={{ .Task.Name }}");
-//        envs.add("TASK_SLOT={{ .Task.Slot }}");
 
         return envs;
     }
@@ -194,10 +196,16 @@ public class ServiceTemplate extends DockerObjTemplate {
         return new ArrayList<>();
     }
 
+    /**
+     * The name of the docker image to use
+     */
     protected String getImageName() {
         return "registry.swarm/" + this.image;
     }
 
+    /**
+     * A list of mounted volumes
+     */
     protected List<Mount> getMountVolumes() {
         return new ArrayList<>();
     }
@@ -317,6 +325,9 @@ public class ServiceTemplate extends DockerObjTemplate {
         return endpointSpec;
     }
 
+    /**
+     * Name of the service in docker
+     */
     protected String getServiceName() {
         return this.name;
     }
@@ -373,4 +384,5 @@ public class ServiceTemplate extends DockerObjTemplate {
 
         return serviceTemplate;
     }
+
 }

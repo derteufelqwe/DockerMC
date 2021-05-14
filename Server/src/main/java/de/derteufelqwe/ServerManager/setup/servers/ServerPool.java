@@ -1,7 +1,6 @@
 package de.derteufelqwe.ServerManager.setup.servers;
 
 import com.github.dockerjava.api.model.Driver;
-import com.github.dockerjava.api.model.Mount;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceTemplate;
 import de.derteufelqwe.commons.Constants;
@@ -69,7 +68,7 @@ public class ServerPool extends ServiceTemplate {
     @Override
     protected Driver getLogDriver() {
         return new Driver()
-                .withName(Constants.LOG_DRIVER_PLUGIN_NAME);
+                .withName(Constants.DOCKER_DRIVER_PLUGIN_NAME);
     }
 
 

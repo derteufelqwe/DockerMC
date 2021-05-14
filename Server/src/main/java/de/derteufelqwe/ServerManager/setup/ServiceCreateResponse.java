@@ -14,6 +14,7 @@ public class ServiceCreateResponse {
     private ServiceStart result;
     private String serviceId;
     private String additionalInfos = "";
+    private boolean updated = false;
 
     public ServiceCreateResponse(String serviceName, Constants.ContainerType type, ServiceStart result) {
         this.serviceName = serviceName;

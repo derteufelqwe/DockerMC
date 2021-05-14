@@ -15,7 +15,6 @@ public class InfrastructureSetup {
     private OvernetNetwork overnetNetwork = new OvernetNetwork();
     private RegistryCertificates registryCertificates;
     private RegistryContainer registryContainer = new RegistryContainer();
-    private PostgresDBContainer postgresDBContainer = new PostgresDBContainer();
     private NodeWatcherService nodeWatcherService = new NodeWatcherService();
     private RedisContainer redisContainer = new RedisContainer();
 
@@ -25,7 +24,6 @@ public class InfrastructureSetup {
         this.overnetNetwork.init(docker);
         this.registryCertificates = new RegistryCertificates(docker);
         this.registryContainer.init(docker);
-        this.postgresDBContainer.init(docker);
         this.nodeWatcherService.init(docker);
         this.redisContainer.init(docker);
     }

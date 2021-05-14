@@ -11,34 +11,24 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Utils {
 
-    // Regex to split String respecting quotes. Source: https://stackoverflow.com/questions/18893390/splitting-on-comma-outside-quotes
-    private static Pattern SPLIT_REGEX = Pattern.compile("\\s(?=(?:[^\\\"]*\\\"[^\\\"]*\\\")*[^\\\"]*$)");
-
-
-    public static List<String> splitArgString(String argString) {
-        List<String> splits = Arrays.asList(SPLIT_REGEX.split(argString));
-
-        splits = splits.stream()
-                .map(e -> e.replace("\"", ""))
-                .collect(Collectors.toList());
-
-
-        return splits;
-    }
+    private static Pattern RE_SPLIT_RAM_VALUE = Pattern.compile("(\\d+)([B|b|K|k|M|m|G|g])");
 
     /**
      * Converts a String like 512M to the amount of bytes.
      */
-    public static long convertMemoryString(String memoryString) {
-        String memString = memoryString.toUpperCase();
-        int len = memString.length();
-        String memChar = memString.substring(len - 1, len);
-        int memVal = Integer.parseInt(memString.substring(0, len - 1));
+    public static long convertMemoryString(String memoryString) throws NumberFormatException {
+        Matcher m = RE_SPLIT_RAM_VALUE.matcher(memoryString);
+        if (!m.matches()) {
+            throw new NumberFormatException("Number '" + memoryString + "'is no valid memory value.");
+        }
+        int memVal = Integer.parseInt(m.group(1));
+        String memChar = m.group(2).toUpperCase();
 
         switch (memChar) {
             case "B":

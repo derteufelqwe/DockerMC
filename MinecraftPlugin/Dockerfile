@@ -9,11 +9,11 @@ EXPOSE 8001
 
 WORKDIR /server
 
-HEALTHCHECK --interval=10s --start-period=30s --retries=3 --timeout=5s CMD java -cp "plugins/DockerMCPlugin.jar" "de.derteufelqwe.commons.PingServer" localhost 25565
+HEALTHCHECK --interval=10s --start-period=30s --retries=3 --timeout=5s CMD java -cp "plugins/DMCPluginMC.jar" "de.derteufelqwe.commons.PingServer" localhost 25565
 
-VOLUME "/server/world"
+#VOLUME "/server/world"
 
-COPY docker/server /server
-COPY target/DockerMCPlugin.jar /server/plugins
+COPY docker /server
+COPY target/DMCPluginMC-1.0.jar /server/plugins/DMCPluginMC.jar
 
 CMD ["java", "-Xmx20G", "-XX:HotswapAgent=core", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005", "-jar", "papermc.jar" ]
