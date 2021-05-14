@@ -43,6 +43,9 @@ public abstract class RepeatingThread extends Thread {
             try {
                 this.repeatedRun();
 
+            } catch (Exception e) {
+                this.onException(e);
+
             } finally {
                 try {
                     this.interpretableSleep(interval);
@@ -61,6 +64,10 @@ public abstract class RepeatingThread extends Thread {
      * Called when an interrupted exception breaks the sleeping process.
      */
     public void onInterruptedException(InterruptedException exception) {
+
+    }
+
+    public void onException(Exception e) {
 
     }
 

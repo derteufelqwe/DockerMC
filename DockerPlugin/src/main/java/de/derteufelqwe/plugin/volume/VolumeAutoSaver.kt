@@ -10,6 +10,7 @@ import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeObject
 import de.derteufelqwe.commons.misc.RepeatingThread
 import de.derteufelqwe.plugin.DMCLogDriver
 import de.derteufelqwe.plugin.exceptions.VolumeSaveException
+import de.derteufelqwe.plugin.misc.DatabaseWriter
 import de.derteufelqwe.plugin.misc.Utils
 import org.apache.logging.log4j.LogManager
 import org.hibernate.Session
@@ -19,8 +20,6 @@ import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import javax.persistence.NoResultException
-import kotlin.collections.HashSet
-import kotlin.jvm.Throws
 import kotlin.system.measureTimeMillis
 
 /**
@@ -48,6 +47,9 @@ class VolumeAutoSaver : RepeatingThread(10000) {
         }
     }
 
+    override fun onException(e: java.lang.Exception?) {
+        log.error("Volume saver thread threw an exception.", e)
+    }
 
     /**
      * Saves a volume to the DB

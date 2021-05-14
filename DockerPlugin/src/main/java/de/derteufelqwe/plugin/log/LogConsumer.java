@@ -10,10 +10,15 @@ import de.derteufelqwe.plugin.misc.DatabaseWriter;
 import de.derteufelqwe.plugin.protobuf.Entry;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,6 +46,10 @@ public class LogConsumer implements Runnable {
     private Log rootExceptionLog = null;
     private Log exceptionLog = null;
     private long lastLogTime = 0;
+    /**
+     * Stores corresponding partial log messages until all of them were received
+     */
+    private Map<String, List<Entry.LogEntry>> partialLogStore = new HashMap<>();
 
 
     public LogConsumer(String fileName, String container, Type type) {
@@ -66,9 +75,12 @@ public class LogConsumer implements Runnable {
                     Entry.LogEntry logEntry = this.readLogMessage(is, msgLength);
                     String message = logEntry.getLine().toStringUtf8();
 
+                    // Only continue if it's not a partial message or if all parts of the partial message got received
                     if (logEntry.hasPartialLogMetadata()) {
-                        log.error("Found partial log metadata");
-                        log.error(logEntry);
+                        message = processPartialLogMessage(logEntry);
+                        if (message == null) {
+                            continue;
+                        }
                     }
 
                     Log dbLog = new Log(
@@ -261,6 +273,34 @@ public class LogConsumer implements Runnable {
         }
 
         return false;
+    }
+
+    /**
+     * Processes log messages, which got split into multiple pieces and combines them into one if all of them were sent
+     *
+     * @param logEntry
+     * @return null if not finished, the full message otherwise
+     */
+    private String processPartialLogMessage(Entry.LogEntry logEntry) {
+        Entry.PartialLogEntryMetadata partial = logEntry.getPartialLogMetadata();
+        List<Entry.LogEntry> logEntries = this.partialLogStore.computeIfAbsent(partial.getId(), (k) -> new ArrayList<>());
+        logEntries.add(logEntry);
+
+        // Not the last message yet
+        if (!partial.getLast()) {
+            return null;
+        }
+
+        logEntries.sort((e1, e2) -> {
+            return Integer.compare(e1.getPartialLogMetadata().getOrdinal(), e2.getPartialLogMetadata().getOrdinal());
+        });
+
+        StringBuilder sb = new StringBuilder();
+        logEntries.forEach(e -> sb.append(e.getLine().toStringUtf8()));
+
+        this.partialLogStore.remove(partial.getId());
+
+        return sb.toString();
     }
 
 

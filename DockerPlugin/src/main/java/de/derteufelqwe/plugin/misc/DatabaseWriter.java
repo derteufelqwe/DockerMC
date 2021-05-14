@@ -6,11 +6,13 @@ import de.derteufelqwe.commons.hibernate.objects.Log;
 import de.derteufelqwe.commons.hibernate.objects.NWContainer;
 import de.derteufelqwe.commons.misc.RepeatingThread;
 import de.derteufelqwe.plugin.DMCLogDriver;
+import javassist.NotFoundException;
 import lombok.extern.log4j.Log4j2;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.TransactionException;
 
+import javax.persistence.EntityNotFoundException;
 import javax.persistence.NoResultException;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -28,6 +30,7 @@ public class DatabaseWriter extends RepeatingThread {
 
     private final Queue<Log> logQueue1 = new ConcurrentLinkedQueue<>();
     private final Queue<Log> logQueue2 = new ConcurrentLinkedQueue<>();
+    private short failedTransactionCommitCounter = 0;
 
 
     public DatabaseWriter() {
@@ -44,6 +47,11 @@ public class DatabaseWriter extends RepeatingThread {
     public synchronized void start() {
         super.start();
         log.info("Started DatabaseWriter thread.");
+    }
+
+    @Override
+    public void onException(Exception e) {
+        log.error("Database Writer thread threw an exception.", e);
     }
 
 
@@ -99,34 +107,52 @@ public class DatabaseWriter extends RepeatingThread {
 
         try {
             sessionBuilder.execute(session -> {
-                Log dbLog = queue.poll();
+                Log dbLog;
 
-                while (dbLog != null) {
-                    // Replace the dummy container instance with an actual hibernate reference object
-                    if (dbLog.getContainer() != null) {
-                        String containerID = dbLog.getContainer().getId();
-                        DBContainer dbContainer = session.getReference(DBContainer.class, containerID);
-                        dbLog.setContainer(dbContainer);
+                while (true) {
+                    dbLog = queue.poll();
+                    if (dbLog == null)
+                        break;
 
-                    } else if (dbLog.getNwContainer() != null) {
-                        String containerID = dbLog.getNwContainer().getId();
-                        NWContainer nwContainer = session.getReference(NWContainer.class, containerID);
-                        dbLog.setNwContainer(nwContainer);
+                    String containerID = "";
+                    try {
+                        // Replace the dummy container instance with an actual hibernate reference object
+                        if (dbLog.getContainer() != null) {
+                            containerID = dbLog.getContainer().getId();
+                            DBContainer dbContainer = session.getReference(DBContainer.class, containerID);
+                            dbLog.setContainer(dbContainer);
 
-                    } else {
-                        log.error("Tried to save log entry, which is mapped to no container.");
+                        } else if (dbLog.getNwContainer() != null) {
+                            containerID = dbLog.getNwContainer().getId();
+                            NWContainer nwContainer = session.getReference(NWContainer.class, containerID);
+                            dbLog.setNwContainer(nwContainer);
+
+                        } else {
+                            log.error("Tried to save log entry, which is mapped to no container.");
+                        }
+
+                    } catch (EntityNotFoundException e) {
+                        log.error("Failed to save log. (NW)Container {} not found.", containerID);
                     }
 
                     session.persist(dbLog);
-                    dbLog = queue.poll();
                 }
             });
 
         } catch (TransactionException e1) {
             log.error("DB log flushing transaction failed.", e1);
-            // Re-add the entries to the queue if the transaction commit failed
-            queue.addAll(backup);
+            this.failedTransactionCommitCounter++;
+            if (failedTransactionCommitCounter < 3) {
+                // Re-add the entries to the queue if the transaction commit failed
+                queue.addAll(backup);
+
+            } else {
+                log.error("Flushing logs failed 3 times. Discarding {} logs.", backup.size());
+                this.failedTransactionCommitCounter = 0;
+            }
         }
+
+        this.failedTransactionCommitCounter = 0;
     }
 
     private void flushCurrent() {
