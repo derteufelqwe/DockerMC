@@ -1,15 +1,9 @@
 package de.derteufelqwe.ServerManager.cli.service;
 
-import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.exception.NotFoundException;
-import com.github.dockerjava.api.model.Service;
-import com.github.dockerjava.api.model.ServiceModeConfig;
-import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.tablebuilder.Column;
 import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
 import de.derteufelqwe.ServerManager.utils.ServiceHealthAnalyzer;
-import de.derteufelqwe.ServerManager.utils.ServiceHealthReader;
 import de.derteufelqwe.commons.hibernate.LocalSessionRunnable;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBService;
@@ -19,7 +13,6 @@ import org.hibernate.Session;
 import picocli.CommandLine;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -63,11 +56,12 @@ public class ServiceDetailsCmd implements Runnable {
                 tableBuilder.addToColumn(1, dbService.getName());
 
                 tableBuilder.addToColumn(0, "Replicas");
-                tableBuilder.addToColumn(1, String.format("%s/%s", dbService.getRunningContainersCount(), dbService.getReplicas()));
+                tableBuilder.addToColumn(1, String.format("%s/%s (%s starting)", dbService.getRunningContainersCount(), dbService.getReplicas(), dbService.getStartingContainersCount()));
 
                 tableBuilder.addToColumn(0, "Health");
                 if (dbService.isActive()) {
-                    List<DBServiceHealth> healths = new ServiceHealthAnalyzer(session, dbService.getId()).analyze(errorDuration.getSeconds() * 1000);
+                    List<DBServiceHealth> healths = new ServiceHealthAnalyzer(session, dbService.getId())
+                            .analyze((int) errorDuration.getSeconds());
                     if (healths.size() == 0) {
                         tableBuilder.addToColumn(1, "(Healthy)");
 

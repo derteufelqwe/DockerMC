@@ -46,6 +46,7 @@ public class PersistentMinecraftPoolCreator extends ConfigCreator<PersistentServ
     @Override
     protected void updateOldConfigFile(PersistentServerPool newConfig) {
         Config<ServersConfig> serversConfig = ServerManager.getServerConfigOld();
+        serversConfig.get().getPersistentServerPool().removeIf(p -> p.getName().equals(newConfig.getName()));
         serversConfig.get().getPersistentServerPool().add(newConfig);
         serversConfig.save();
     }

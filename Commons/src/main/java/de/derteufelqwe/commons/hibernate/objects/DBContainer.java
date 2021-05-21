@@ -86,6 +86,12 @@ public class DBContainer {
         this.id = id;
     }
 
+    public DBContainer(String id, String name, String image) {
+        this.id = id;
+        this.name = name;
+        this.image = image;
+    }
+
     public DBContainer(String id, String image, String name, String taskId, short taskSlot,
                        Node node, DBService service) {
         this.id = id;

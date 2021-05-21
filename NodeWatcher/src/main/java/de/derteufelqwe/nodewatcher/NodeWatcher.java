@@ -20,7 +20,6 @@ import de.derteufelqwe.nodewatcher.stats.HostResourceWatcher;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.CheckForNull;
 import java.util.Collections;
@@ -134,8 +133,8 @@ public class NodeWatcher {
      */
     private void startContainerWatcher() {
         this.containerEventHandler = new ContainerEventHandler();
-        containerEventHandler.addOberserv(this.containerResourceWatcher);
-        containerEventHandler.addOberserv(this.containerHealthReader);
+        containerEventHandler.addObserver(this.containerResourceWatcher);
+        containerEventHandler.addObserver(this.containerHealthReader);
 
         dockerClient.eventsCmd()
                 .withLabelFilter(Constants.DOCKER_IDENTIFIER_MAP)
@@ -157,7 +156,6 @@ public class NodeWatcher {
      */
     private void startContainerResourceWatcher() {
         this.containerResourceWatcher = new ContainerResourceWatcher();
-        this.containerResourceWatcher.init();
     }
 
     /**
@@ -173,7 +171,6 @@ public class NodeWatcher {
      */
     private void startContainerHealthReader() {
         this.containerHealthReader = new ContainerHealthReader();
-        this.containerHealthReader.init();
         this.containerHealthReader.start();
     }
 

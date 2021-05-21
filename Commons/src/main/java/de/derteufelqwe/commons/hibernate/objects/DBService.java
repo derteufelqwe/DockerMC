@@ -75,6 +75,10 @@ public class DBService {
     @Basic(fetch = FetchType.LAZY)
     private int runningContainersCount;
 
+    @Formula("(SELECT COUNT(*) FROM containers AS c LEFT JOIN service_healths as sh on c.taskid = sh.taskid WHERE c.service_id = id AND c.stoptime IS NULL AND c.starttime IS NOT NULL AND sh.taskstate != 'RUNNING')")
+    @Basic(fetch = FetchType.LAZY)
+    private int startingContainersCount;
+
 
     public boolean isHealthy() {
         return this.replicas == runningContainersCount;

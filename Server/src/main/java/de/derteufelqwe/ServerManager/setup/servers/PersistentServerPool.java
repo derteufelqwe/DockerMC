@@ -10,10 +10,9 @@ import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.Utils;
 import lombok.*;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -29,6 +28,7 @@ public class PersistentServerPool extends ServerPool {
      * Can be 'global' or 'local'
      */
     private String volumeDriver;
+    private List<String> folders = new ArrayList<>();
 
     public PersistentServerPool(String name, String image, String ramLimit, float cpuLimit, int replications, ServiceConstraints constraints, int softPlayerLimit) {
         super(name, image, ramLimit, cpuLimit, replications, constraints, softPlayerLimit);
@@ -64,19 +64,37 @@ public class PersistentServerPool extends ServerPool {
             driverName = Constants.DOCKER_DRIVER_PLUGIN_NAME;
         }
 
+        for (String folder : folders) {
+            mounts.add(createMount(folder, driverName));
+        }
+
+        return mounts;
+    }
+
+    private Mount createMount(String folderName, @Nullable String driver) {
+        // This is required so that you can change the volume driver of a service and don't create a volume name conflict
+        String volumeNameAppend = "l";
+        if (driver != null) {
+            volumeNameAppend = "g";
+        }
+
+        String fullName = String.format("%s-{{ .Task.Slot }}-%s", this.name, volumeNameAppend);
+
+        Map<String, String> options = new HashMap<>();
+        options.put("GroupName", fullName);
+
         Mount mount = new Mount()
-                .withSource(String.format("%s-{{ .Task.Slot }}", this.name))
-                .withTarget("/server")
+                .withSource(String.format("%s-%s", fullName, folderName))    // Full volume name
+                .withTarget("/server/" + folderName)
                 .withType(MountType.VOLUME)
                 .withVolumeOptions(new VolumeOptions()
                         .withDriverConfig(new Driver()
-                                .withName(driverName)
+                                .withOptions(options)
+                                .withName(driver)
                         )
                 );
 
-        mounts.add(mount);
-
-        return mounts;
+        return mount;
     }
 
 }

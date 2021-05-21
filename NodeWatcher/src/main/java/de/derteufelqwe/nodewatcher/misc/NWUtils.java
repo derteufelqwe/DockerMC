@@ -87,7 +87,9 @@ public class NWUtils {
                 .filter(c -> c.getLabels() != null)
                 .filter(c ->
                         c.getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY).equals(Constants.ContainerType.BUNGEE.name()) ||
-                        c.getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY).equals(Constants.ContainerType.MINECRAFT.name()))
+                        c.getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY).equals(Constants.ContainerType.MINECRAFT.name()) ||
+                        c.getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY).equals(Constants.ContainerType.MINECRAFT_PERSISTENT.name())
+                )
                 .collect(Collectors.toList());
     }
 
@@ -104,7 +106,9 @@ public class NWUtils {
                 .filter(s -> s.getSpec().getLabels() != null)
                 .filter(s ->
                         s.getSpec().getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY).equals(Constants.ContainerType.BUNGEE_POOL.name()) ||
-                        s.getSpec().getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY).equals(Constants.ContainerType.MINECRAFT_POOL.name()))
+                        s.getSpec().getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY).equals(Constants.ContainerType.MINECRAFT_POOL.name()) ||
+                        s.getSpec().getLabels().get(Constants.CONTAINER_IDENTIFIER_KEY).equals(Constants.ContainerType.MINECRAFT_POOL_PERSISTENT.name())
+                )
                 .collect(Collectors.toList());
     }
 

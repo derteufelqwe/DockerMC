@@ -37,9 +37,11 @@ public class DBContainerHealth {
     private short exitCode;
 
 
-    public DBContainerHealth(Timestamp timestamp, DBContainer container, String message, int exitCode) {
+    public DBContainerHealth(Timestamp timestamp, DBContainer container, String message, short exitCode) {
         this.timestamp = timestamp;
         this.container = container;
+        this.message = message;
+        this.exitCode = exitCode;
     }
 
 

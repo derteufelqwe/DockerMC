@@ -4,9 +4,12 @@ import de.derteufelqwe.commons.hibernate.objects.DBContainer
 import de.derteufelqwe.commons.hibernate.objects.DBService
 import de.derteufelqwe.commons.hibernate.objects.DBServiceHealth
 import de.derteufelqwe.commons.hibernate.objects.Node
+import org.apache.commons.lang.time.DateUtils
 import org.hibernate.Session
 import org.intellij.lang.annotations.Language
+import java.sql.Date
 import java.sql.Timestamp
+import java.util.*
 import javax.persistence.NoResultException
 
 /**
@@ -19,7 +22,7 @@ object DBQueries {
      */
     @Suppress("UNCHECKED_CAST")
     @JvmStatic
-    fun getLatestServiceErrors(session: Session, serviceID: String, latestTimestamp: Timestamp): List<String> {
+    fun getLatestServiceErrors(session: Session, serviceID: String, newerThanSeconds: Int): List<String> {
         /**
          * Explanation of the WHEREs:
          *  3. Only show recent errors. Otherwise they wouldn't time out
@@ -32,15 +35,16 @@ object DBQueries {
             FROM 
                 DBServiceHealth AS sh 
             WHERE 
-                sh.service.id=:sid 
+                sh.service.id = :sid 
                 AND sh.taskState != :tstate1 
-                AND sh.createdTimestamp >= :ts
+                AND sh.createdTimestamp >= :ts1
                 OR (sh.taskState = :tstate2 AND sh.error != '')
         """.trimIndent()
 
         return session.createQuery(query)
                 .setParameter("sid", serviceID)
-                .setParameter("ts", latestTimestamp)
+                .setParameter("ts1", DateUtils.addMinutes(Date(), -newerThanSeconds))
+//                .setParameter("ts2", Date())
                 .setParameter("tstate1", DBServiceHealth.TaskState.RUNNING)
                 .setParameter("tstate2", DBServiceHealth.TaskState.PENDING)
                 .resultList as List<String>;

@@ -18,10 +18,6 @@ import java.util.concurrent.TimeUnit
 
 
 class LogDriverStartLoggingEP(data: String?) : Endpoint<RStartLogging, StartLogging>(data) {
-    /**
-     * Time in ms to wait for the container to appear in the DB
-     */
-    private val CONTAINER_DB_AWAIT_TIMEOUT = 20000
 
     private val sessionBuilder = DMCLogDriver.getSessionBuilder()
     private val log = LogManager.getLogger(javaClass)
@@ -32,16 +28,13 @@ class LogDriverStartLoggingEP(data: String?) : Endpoint<RStartLogging, StartLogg
     override fun process(request: RStartLogging): StartLogging {
         val file = request.file
         val containerID = request.info.containerID
-        val containerType = extractContainerType(request?.info)
+        val containerType = extractContainerType(request.info)
 
         if (containerType == LogConsumer.Type.NODE_WATCHER) {
             this.addNodeWatcherContainerToDB(request.info)
 
         } else {
-//            injectContainerToDB(request.info)
-            if (!awaitContainerInDB(containerID)) {
-                return StartLogging("Failed to find container $containerID in the DB after $CONTAINER_DB_AWAIT_TIMEOUT ms.")
-            }
+            this.addContainerToDB(request.info)
         }
 
         val logConsumer = LogConsumer(file, containerID, containerType)
@@ -66,31 +59,18 @@ class LogDriverStartLoggingEP(data: String?) : Endpoint<RStartLogging, StartLogg
         return StartLogging::class.java
     }
 
-    /**
-     * Polls the DB for the container to have an entry in it
-     *
-     * @param containerID
-     */
-    private fun awaitContainerInDB(containerID: String): Boolean {
-        val tStart = System.currentTimeMillis()
+    private fun addContainerToDB(infos: RStartLogging.Info) {
+        sessionBuilder.execute { session ->
+            val dbContainer = DBContainer(
+                infos.containerID,
+                infos.containerName.substring(1),
+                infos.containerImageName
+            )
 
-        return sessionBuilder.execute<Boolean> { session: Session ->
-            while (System.currentTimeMillis() - tStart < CONTAINER_DB_AWAIT_TIMEOUT) {
-                if (checkIfContainerExists(session, containerID)) {
-                    return@execute true
-                }
-//                if (session.get(DBContainer::class.java, containerID) != null) {
-//                    return@execute true;
-//                }
-
-                try {
-                    TimeUnit.MILLISECONDS.sleep(250)
-                } catch (e: InterruptedException) {
-                    return@execute false
-                }
-            }
-            false
+            session.saveOrUpdate(dbContainer);
         }
+
+        log.debug("Added Container ${infos.containerID} to DB")
     }
 
     private fun addNodeWatcherContainerToDB(infos: RStartLogging.Info) {
@@ -133,29 +113,6 @@ class LogDriverStartLoggingEP(data: String?) : Endpoint<RStartLogging, StartLogg
         }
 
         return null;
-    }
-
-
-    /**
-     * DEBUG ONLY!
-     * Adds the container to the DB. This is useful when the container doesn't get added by the NodeWatcher because it's
-     * a non dockermc test container.
-     *
-     * @param info
-     */
-    private fun injectContainerToDB(info: RStartLogging.Info) {
-        sessionBuilder.execute { session ->
-            val node = session.get(Node::class.java, "asdfasdf")
-            val dbService = session.get(DBService::class.java, "debugserviceid")
-            val dbContainer = DBContainer(info.containerID)
-
-            dbContainer.name = info.containerName
-            dbContainer.node = node
-            dbContainer.service = dbService
-            session.persist(dbContainer)
-
-            log.warn("DEBUG FEATURE: Injected container to DB.")
-        }
     }
 
 }

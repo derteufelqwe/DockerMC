@@ -50,7 +50,7 @@ public class PingServer {
             }
 
         } catch (Exception e1) {
-            System.out.println("Exception: " + e1.getMessage());
+            System.out.println("HealthException: " + e1.getMessage());
             System.exit(101);
         }
     }

@@ -217,18 +217,16 @@ public class ServiceEventHandler implements ResultCallback<Event> {
 
         Set<String> dbExistingIDs = new HashSet<>();
 
-        new LocalSessionRunnable(sessionBuilder) {
-            @Override
-            protected void exec(Session session) {
-                List<DBService> dbServices = session.createQuery(
-                        "SELECT s FROM DBService AS s WHERE s.active=true",
-                        DBService.class).getResultList();
+        sessionBuilder.execute(session -> {
+            List<DBService> dbServices = session.createQuery(
+                    "SELECT s FROM DBService AS s WHERE s.active = true",
+                    DBService.class).getResultList();
 
-                for (DBService dbService : dbServices) {
-                    dbExistingIDs.add(dbService.getId());
-                }
+            for (DBService dbService : dbServices) {
+                dbExistingIDs.add(dbService.getId());
             }
-        }.run();
+        });
+
 
         // Created the services, which are not present in the database
         for (String id : serviceIDs) {

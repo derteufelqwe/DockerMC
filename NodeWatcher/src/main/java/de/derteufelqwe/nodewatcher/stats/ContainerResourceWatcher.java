@@ -51,17 +51,5 @@ public class ContainerResourceWatcher implements IContainerObserver {
     }
 
 
-    /**
-     * Start the stats collection for all running containers
-     */
-    public void init() {
-        Set<String> runningContainers = NWUtils.getLocallyRunningContainersFromDB(sessionBuilder);
-        for (String id : runningContainers) {
-            this.startContainerStat(id);
-        }
-
-        logger.info("Initialized with {} containers.", runningContainers.size());
-    }
-
 
 }

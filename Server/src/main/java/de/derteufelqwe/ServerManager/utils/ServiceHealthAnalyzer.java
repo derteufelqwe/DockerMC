@@ -20,8 +20,13 @@ public class ServiceHealthAnalyzer {
     }
 
 
-    public List<DBServiceHealth> analyze(long timewindow) {
-        List<String> latestErrors = DBQueries.getLatestServiceErrors(session, serviceID, new Timestamp(System.currentTimeMillis() - timewindow));
+    /**
+     *
+     * @param timewindow in seconds
+     * @return
+     */
+    public List<DBServiceHealth> analyze(int timewindow) {
+        List<String> latestErrors = DBQueries.getLatestServiceErrors(session, serviceID, timewindow);
         List<DBServiceHealth> healths = new ArrayList<>();
 
         for (String error : latestErrors) {

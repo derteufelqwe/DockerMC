@@ -67,9 +67,11 @@ public class LogDriverStopLoggingEP extends Endpoint<LogDriver.RStopLogging, Log
      * @param containerID
      */
     private void finishNWContainerInDB(String containerID) {
+        log.info("Finishing container {} in DB.", containerID);
         sessionBuilder.execute(session -> {
             NWContainer nwContainer = session.get(NWContainer.class, containerID);
             if (nwContainer == null) {
+                log.info("Container not found");
                 return;
             }
 

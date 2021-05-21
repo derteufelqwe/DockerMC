@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class RepeatingThread extends Thread {
 
-    private int interval;   // In seconds
+    private int interval;   // In milliseconds
     private AtomicBoolean doRun = new AtomicBoolean(true);
 
 
@@ -68,7 +68,8 @@ public abstract class RepeatingThread extends Thread {
     }
 
     public void onException(Exception e) {
-
+        System.err.println("Exception in repeating thread");
+        e.printStackTrace(System.err);
     }
 
 }

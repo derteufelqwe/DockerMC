@@ -34,8 +34,9 @@ import java.util.regex.Pattern;
  */
 public class ContainerHealthReader extends RepeatingThread implements IContainerObserver {
 
-    private final Pattern RE_CLEAN_CURL = Pattern.compile("(.+% Total +% Received +% Xferd +Average +Speed +Time +Time +Time +Current .+curl: \\(\\d+\\) )(.+)");
-    private final int FETCH_INTERVAL = 12;  // in seconds
+    // DOTALL flag is required so the regex can match over multiple lines
+    private final Pattern RE_CLEAN_CURL = Pattern.compile("((.+)?% Total +% Received +% Xferd +Average +Speed +Time +Time +Time +Current.+(curl:.+))", Pattern.DOTALL);
+    private final Pattern RE_STRIP_MSG = Pattern.compile("^[ \\t\\n]+|[ \\t\\n]+$");
 
     private Logger logger = LogManager.getLogger(getClass().getName());
     private final SessionBuilder sessionBuilder = NodeWatcher.getSessionBuilder();
@@ -69,45 +70,33 @@ public class ContainerHealthReader extends RepeatingThread implements IContainer
 
     @Override
     public void repeatedRun() {
-        try {
-            synchronized (this.runningContainers) {
-                logger.debug("Updating healths for {} containers.", this.runningContainers.size());
-                for (String id : new HashSet<>(this.runningContainers)) {
+        synchronized (this.runningContainers) {
+            logger.debug("Updating healths for {} containers.", this.runningContainers.size());
+            for (String id : new HashSet<>(this.runningContainers)) {
 
-                    try {
-                        this.fetchContainerHealth(id);
+                try {
+                    this.fetchContainerHealth(id);
 
-                        // Container not found in DB
-                    } catch (DBContainerNotFoundException e1) {
-                        logger.error(e1.getMessage());
-                        this.runningContainers.remove(id);
+                    // Container not found in DB
+                } catch (DBContainerNotFoundException e1) {
+                    logger.error(e1.getMessage());
+                    this.runningContainers.remove(id);
 
-                        // Container not found on host
-                    } catch (NotFoundException e2) {
-                        logger.error("Container {} not found on host.", id);
-                        this.runningContainers.remove(id);
-                    }
-
+                    // Container not found on host
+                } catch (NotFoundException e2) {
+                    logger.error("Container {} not found on host.", id);
+                    this.runningContainers.remove(id);
                 }
+
             }
-
-        } catch (Exception e2) {
-            logger.error("Caught exception: {}.", e2.getMessage());
-            e2.printStackTrace(System.err);
-            CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e2, NodeWatcher.getMetaData());
-
         }
     }
 
-
-    public void init() {
-        synchronized (this.runningContainers) {
-            this.runningContainers.clear();
-            NWUtils.getLocallyRunningContainersFromDB(sessionBuilder)
-                    .forEach(this::onNewContainer);
-        }
-
-        logger.info("Initialized with {} containers.", runningContainers.size());
+    @Override
+    public void onException(Exception e) {
+        logger.error("Caught exception: {}.", e.getMessage());
+        e.printStackTrace(System.err);
+        CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e, NodeWatcher.getMetaData());
     }
 
 
@@ -116,43 +105,40 @@ public class ContainerHealthReader extends RepeatingThread implements IContainer
     }
 
     private void fetchContainerHealth(String containerID) {
-        InspectContainerResponse response = dockerClient.inspectContainerCmd(containerID).exec();
-        HealthState healthState = response.getState().getHealth();
-        if (healthState == null) {  // Container not started yet
-            return;
-        }
+        try {
 
-        try (Session session = sessionBuilder.openSession()) {
-            DBContainer container = session.get(DBContainer.class, containerID);
+            InspectContainerResponse response = dockerClient.inspectContainerCmd(containerID).exec();
+            HealthState healthState = response.getState().getHealth();
+            if (healthState == null) {  // Container not started yet
+                return;
+            }
 
-            for (HealthStateLog log : healthState.getLog()) {
-                Timestamp timestamp = NWUtils.parseDockerTimestamp(log.getStart());
+            sessionBuilder.execute(session -> {
+                DBContainer container = session.get(DBContainer.class, containerID);
 
-                // Only add health logs, which are newer than the latest logs
-                if (container.getContainerHealths() != null && container.getContainerHealths().size() > 0) {
-                    Timestamp oldTimestamp = container.getContainerHealths().get(0).getTimestamp();
-                    if (oldTimestamp.equals(timestamp) || oldTimestamp.after(timestamp)) {
-                        continue;
+                for (HealthStateLog log : healthState.getLog()) {
+                    Timestamp timestamp = NWUtils.parseDockerTimestamp(log.getStart());
+
+                    // Only add health logs, which are newer than the latest logs
+                    if (container.getContainerHealths() != null && container.getContainerHealths().size() > 0) {
+                        Timestamp oldTimestamp = container.getContainerHealths().get(0).getTimestamp();
+                        if (oldTimestamp.equals(timestamp) || oldTimestamp.after(timestamp)) {
+                            continue;
+                        }
                     }
-                }
 
-                Transaction tx = session.beginTransaction();
-                try {
                     DBContainerHealth health = new DBContainerHealth(
                             timestamp,
                             container,
                             this.cleanLogMessage(log.getOutput()),
                             (short) ((long) log.getExitCodeLong())
                     );
-
                     session.persist(health);
-                    tx.commit();
-
-                } catch (Exception e) {
-                    tx.rollback();
-                    throw e;
                 }
-            }
+            });
+
+        } catch (NotFoundException e) {
+            // Container not found on the host maybe because its task is long finished and it only needs to be finished in the DB
         }
     }
 
@@ -163,11 +149,16 @@ public class ContainerHealthReader extends RepeatingThread implements IContainer
      * @return
      */
     private String cleanLogMessage(String message) {
-        Matcher m = RE_CLEAN_CURL.matcher(message);
-
+        Matcher m1 = RE_CLEAN_CURL.matcher(message);
         // Remove irrelevant curl text
-        if (m.matches()) {
-            message = m.group(2);
+        if (m1.matches()) {
+            message = m1.group(3);
+        }
+
+        Matcher m2 = RE_STRIP_MSG.matcher(message);
+        // Strip the string
+        if (m2.find()) {
+            message = m2.replaceAll("");
         }
 
         return message;

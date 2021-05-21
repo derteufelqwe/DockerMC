@@ -57,8 +57,13 @@ public class ContainerEventHandler implements ResultCallback<Event> {
     public void onStart(Closeable closeable) {
         try {
             List<Container> containers = NWUtils.getRelevantMCBCContainers(dockerClient);
-            this.gatherStartedContainers(containers);
             this.completeStoppedContainers(containers);
+            this.gatherStartedContainers(containers);
+
+            // Notify the observers so they can start their tasks for the running jobs
+            for (Container container : containers) {
+                observers.forEach(o -> o.onNewContainer(container.getId()));
+            }
 
         } catch (Exception e) {
             log.error("Initialization failed.", e);
@@ -71,10 +76,6 @@ public class ContainerEventHandler implements ResultCallback<Event> {
     public void onNext(Event object) {
         try {
             switch (object.getStatus()) {
-                case "create":
-                    this.onContainerCreate(object);
-                    break;
-
                 case "start":
                     this.onContainerStart(object);
                     break;
@@ -95,8 +96,7 @@ public class ContainerEventHandler implements ResultCallback<Event> {
 
     @Override
     public void onError(Throwable throwable) {
-        log.error("Uncaught exception occurred in the ContainerWatcher.");
-        log.error(throwable.getMessage());
+        log.error("Uncaught exception occurred in the ContainerWatcher.", throwable);
     }
 
     @Override
@@ -118,17 +118,16 @@ public class ContainerEventHandler implements ResultCallback<Event> {
     private void gatherStartedContainers(List<Container> relevantContainers) {
         final Set<String> toCreateContainerIDs = new HashSet<>();
 
-        new LocalSessionRunnable(sessionBuilder) {
-            @Override
-            protected void exec(Session session) {
-                for (Container container : relevantContainers) {
-                    DBContainer dbContainer = session.get(DBContainer.class, container.getId());
-                    if (dbContainer == null) {
-                        toCreateContainerIDs.add(container.getId());
-                    }
+        sessionBuilder.execute(session -> {
+            for (Container container : relevantContainers) {
+                DBContainer dbContainer = session.get(DBContainer.class, container.getId());
+
+                if (dbContainer == null) {
+                    toCreateContainerIDs.add(container.getId());
                 }
             }
-        }.run();
+        });
+
 
         // Create the DB entries for the unknown containers
         for (String id : toCreateContainerIDs) {
@@ -146,56 +145,44 @@ public class ContainerEventHandler implements ResultCallback<Event> {
                 .map(Container::getId)
                 .collect(Collectors.toList());
 
-        for (String containerID : existingDBContainerIDs) {
-            // Only process not running containers
-            if (runningContainerIDs.contains(containerID)) {
-                continue;
-            }
 
-            new LocalSessionRunnable(sessionBuilder) {
-                @Override
-                protected void exec(Session session) {
-                    DBContainer dbContainer = session.get(DBContainer.class, containerID);
-                    if (dbContainer == null) {
-                        log.error("Failed to find container object for {}.", containerID);
-                        return;
-                    }
+        sessionBuilder.execute(session -> {
+            for (String containerID : existingDBContainerIDs) {
+                // Only process not running containers
+                if (runningContainerIDs.contains(containerID)) {
+                    continue;
+                }
 
-                    try {
-                        InspectContainerResponse response = dockerClient.inspectContainerCmd(containerID).exec();
-                        completeDBContainer(
-                                containerID,
-                                NWUtils.parseDockerTimestamp(response.getState().getFinishedAt()),
-                                response.getState().getExitCodeLong().shortValue()
-                        );
+                DBContainer dbContainer = session.get(DBContainer.class, containerID);
+                if (dbContainer == null) {
+                    log.error("Failed to find container object for {}.", containerID);
+                    return;
+                }
+
+                try {
+                    InspectContainerResponse response = dockerClient.inspectContainerCmd(containerID).exec();
+                    completeDBContainer(session,
+                            containerID,
+                            NWUtils.parseDockerTimestamp(response.getState().getFinishedAt()),
+                            response.getState().getExitCodeLong().shortValue()
+                    );
 
                     // Container was deleted while the NodeWatcher was offline
-                    } catch (NotFoundException e) {
-                        completeDBContainer(containerID, new Timestamp(System.currentTimeMillis()), (short) 51);
-                    }
+                } catch (NotFoundException e) {
+                    completeDBContainer(session, containerID, new Timestamp(System.currentTimeMillis()), (short) 51);
                 }
-            }.run();
-        }
-
+            }
+        });
     }
 
-    public void addOberserv(IContainerObserver observer) {
+    public void addObserver(IContainerObserver observer) {
         this.observers.add(observer);
     }
 
     // -----  Event handler methods  -----
 
-    /**
-     * Saves a container to the database when its started
-     *
-     * @param event
-     */
-    private void onContainerCreate(Event event) {
-        this.createDBContainer(event.getId());
-    }
-
     private void onContainerStart(Event event) {
-        this.extendDBContainer(event.getId());
+        this.createDBContainer(event.getId());
     }
 
     /**
@@ -205,12 +192,11 @@ public class ContainerEventHandler implements ResultCallback<Event> {
      */
     private void onContainerDie(Event event) {
         EventActor actor = event.getActor();
-        Short exitCode = null;
-        if (actor != null) {
-            exitCode = this.getContainerExitCode(event.getActor().getAttributes());
-        }
+        Short exitCode = actor == null ? 131 : this.getContainerExitCode(event.getActor().getAttributes());
 
-        this.completeDBContainer(event.getId(), new Timestamp(event.getTime() * 1000), exitCode);
+        sessionBuilder.execute(session -> {
+            this.completeDBContainer(session, event.getId(), new Timestamp(event.getTime() * 1000), exitCode);
+        });
     }
 
     /**
@@ -225,40 +211,34 @@ public class ContainerEventHandler implements ResultCallback<Event> {
         String taskId = this.getContainerTaskId(cont);
         short taskSlot = this.getTaskSlot(cont);
 
-
-        try (Session session = this.sessionBuilder.openSession()) {
-            Transaction tx = session.beginTransaction();
-
-            try {
-                DBService dbService = session.get(DBService.class, serviceId);
-                if (dbService == null) {
-                    throw new InvalidSystemStateException("Service %s not found.", serviceId);
-                }
-
-                Node node = session.get(Node.class, nodeId);
-                if (node == null) {
-                    throw new InvalidSystemStateException("Node %s not found.", nodeId);
-                }
-
-                DBContainer container = new DBContainer(
-                        id,
-                        cont.getConfig().getImage(),
-                        cont.getName().substring(1),
-                        taskId,
-                        taskSlot,
-                        node,
-                        dbService
-                );
-
-                // SaveOrUpdate is required when restarting a stopped container. Otherwise a unique constraint violation would be thrown
-                session.persist(container);
-
-            } finally {
-                tx.commit();
+        sessionBuilder.execute(session -> {
+            DBService dbService = session.get(DBService.class, serviceId);
+            if (dbService == null) {
+                throw new InvalidSystemStateException("Service %s not found.", serviceId);
             }
 
+            Node node = session.get(Node.class, nodeId);
+            if (node == null) {
+                throw new InvalidSystemStateException("Node %s not found.", nodeId);
+            }
+
+            DBContainer container = new DBContainer(
+                    id,
+                    cont.getConfig().getImage(),
+                    cont.getName().substring(1),
+                    taskId,
+                    taskSlot,
+                    node,
+                    dbService
+            );
+            container.setStartTime(NWUtils.parseDockerTimestamp(cont.getState().getStartedAt()));
+            container.setIp(cont.getNetworkSettings().getNetworks().get(Constants.NETW_OVERNET_NAME).getIpAddress());
+
+            // SaveOrUpdate is required when restarting a stopped container. Otherwise a unique constraint violation would be thrown
+            session.saveOrUpdate(container);
             log.info("Created container entry {}.", id);
-        }
+        });
+
 
         // Notify observers
         for (IContainerObserver observer : this.observers) {
@@ -267,57 +247,23 @@ public class ContainerEventHandler implements ResultCallback<Event> {
     }
 
     /**
-     * Adds information to an existing db container, which is only available when it started
-     * @param id
-     */
-    private void extendDBContainer(String id) {
-        InspectContainerResponse container = dockerClient.inspectContainerCmd(id).exec();
-
-        new LocalSessionRunnable(sessionBuilder) {
-            @Override
-            protected void exec(Session session) {
-                DBContainer dbContainer = session.get(DBContainer.class, container.getId());
-                if (dbContainer == null) {
-                    throw new InvalidSystemStateException("Container %s not found.", container.getId());
-                }
-
-                dbContainer.setStartTime(NWUtils.parseDockerTimestamp(container.getState().getStartedAt()));
-                dbContainer.setIp(container.getNetworkSettings().getNetworks().get(Constants.NETW_OVERNET_NAME).getIpAddress());
-
-                session.update(dbContainer);
-            }
-        }.run();
-
-        log.info("Modified container entry {}.", id);
-    }
-
-    /**
      * "Completes" a container in the database. This means that its stop timestamp and exit code are added
      *
      * @param id
      */
-    private void completeDBContainer(String id, Timestamp stopTime, Short exitCode) {
-        try (Session session = this.sessionBuilder.openSession()) {
-            Transaction tx = session.beginTransaction();
-
-            try {
-                DBContainer container = session.get(DBContainer.class, id);
-                if (container == null) {
-                    log.error("Stopped Container with id {} not found!", id);
-                    return;
-                }
-
-                container.setStopTime(stopTime);
-                container.setExitcode(exitCode);
-
-                session.update(container);
-                log.info("Finished container entry {}.", id);
-
-            } finally {
-                tx.commit();
-            }
-
+    private void completeDBContainer(Session session, String id, Timestamp stopTime, Short exitCode) {
+        DBContainer container = session.get(DBContainer.class, id);
+        if (container == null) {
+            log.error("Stopped Container with id {} not found!", id);
+            return;
         }
+
+        container.setStopTime(stopTime);
+        container.setExitcode(exitCode);
+
+        session.update(container);
+        log.info("Finished container entry {}.", id);
+
 
         // Notify observers
         for (IContainerObserver observer : this.observers) {

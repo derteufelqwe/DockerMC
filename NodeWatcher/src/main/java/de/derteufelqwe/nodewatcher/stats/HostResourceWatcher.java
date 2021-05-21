@@ -50,39 +50,34 @@ public class HostResourceWatcher extends RepeatingThread {
 
     @Override
     public void repeatedRun() {
-        try (Session session = sessionBuilder.openSession()) {
+        sessionBuilder.execute(session -> {
             try {
-                Transaction tx = session.beginTransaction();
-
-                try {
-                    Node node = session.get(Node.class, swarmNodeId);
-                    if (node == null) {
-                        log.error("Failed to get node for id '{}' .", swarmNodeId);
-                        return;
-                    }
-
-                    int ramUsage = this.getRamUsage(node.getMaxRAM());
-                    double cpuUsage = this.getCpuUsagePercent();
-
-                    NodeStats nodeStats = new NodeStats(node, new Timestamp(new Date().getTime()), (float) cpuUsage, ramUsage);
-                    session.persist(nodeStats);
-
-                } catch (InvalidHostResourcesException e1) {
-                    if (!isWindows) {
-                        log.error("Reading hosts hardware resources failed with: {}", e1.getMessage());
-                    }
-
-                } finally {
-                    tx.commit();
+                Node node = session.get(Node.class, swarmNodeId);
+                if (node == null) {
+                    log.error("Failed to get node for id '{}' .", swarmNodeId);
+                    return;
                 }
 
-            } catch (Exception e2) {
-                log.error("HostResourceWatcher caught exception.", e2);
-                CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e2, NodeWatcher.getMetaData());
+                int ramUsage = this.getRamUsage(node.getMaxRAM());
+                double cpuUsage = this.getCpuUsagePercent();
+
+                NodeStats nodeStats = new NodeStats(node, new Timestamp(new Date().getTime()), (float) cpuUsage, ramUsage);
+                session.persist(nodeStats);
+
+            } catch (InvalidHostResourcesException e1) {
+                if (!isWindows) {
+                    log.error("Reading hosts hardware resources failed with: {}", e1.getMessage());
+                }
             }
-        }
+        });
     }
 
+    @Override
+    public void onException(Exception e) {
+        super.onException(e);
+        log.error("HostResourceWatcher caught exception.", e);
+        CommonsAPI.getInstance().createExceptionNotification(sessionBuilder, e, NodeWatcher.getMetaData());
+    }
 
     // -----  Utility methods  -----
 
