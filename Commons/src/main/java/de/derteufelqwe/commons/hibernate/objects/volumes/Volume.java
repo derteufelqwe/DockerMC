@@ -37,6 +37,13 @@ public class Volume {
 
     private Timestamp lastUnmounted;
 
+    /**
+     * A service task might need to mount multiple folders, so it needs multiple volumes. These volumes are connected through
+     * the groupName, which is the base name of the service task
+     */
+    @Type(type = "text")
+    private String groupName;
+
 
     public Volume(String id, Timestamp created) {
         this.id = id;

@@ -1,5 +1,6 @@
 package de.derteufelqwe.plugin.endpoints
 
+import de.derteufelqwe.commons.Constants
 import de.derteufelqwe.commons.hibernate.SessionBuilder
 import de.derteufelqwe.commons.hibernate.objects.volumes.Volume
 import de.derteufelqwe.commons.hibernate.objects.volumes.VolumeFolder
@@ -22,6 +23,7 @@ class VolumeDriverCreateEP(data: String?) : Endpoint<VolumeDriver.RCreate, Volum
 
         sessionBuilder.execute { session ->
             val dbVolume = Volume(request.name, Timestamp(System.currentTimeMillis()))
+            dbVolume.groupName = request.opts.getOrDefault(Constants.VOLUME_GROUPNAME_KEY, "NO_GROUP_NAME_SUPPLIED")
             val rootFolder = VolumeFolder("/")
             rootFolder.volume = dbVolume
 

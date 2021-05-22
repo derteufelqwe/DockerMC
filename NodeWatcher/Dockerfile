@@ -5,6 +5,8 @@ LABEL DockerMCType="Utility"
 
 WORKDIR /nodewatcher
 
-COPY target/DMCNodeWatcher-1.0.jar /nodewatcher
+#HEALTHCHECK --interval=10s --start-period=20s --retries=3 --timeout=10s CMD curl -f http://localhost:8001/health || exit 101
 
-CMD ["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5001", "-jar", "DMCNodeWatcher-1.0.jar"]
+COPY target/DMCNodeWatcher-1.0.jar /nodewatcher/DMCNodeWatcher.jar
+
+CMD ["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5001", "-jar", "DMCNodeWatcher.jar"]

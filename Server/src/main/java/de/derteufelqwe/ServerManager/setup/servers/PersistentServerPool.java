@@ -81,7 +81,7 @@ public class PersistentServerPool extends ServerPool {
         String fullName = String.format("%s-{{ .Task.Slot }}-%s", this.name, volumeNameAppend);
 
         Map<String, String> options = new HashMap<>();
-        options.put("GroupName", fullName);
+        options.put(Constants.VOLUME_GROUPNAME_KEY, String.format("%s-{{ .Task.Slot }}", this.name));
 
         Mount mount = new Mount()
                 .withSource(String.format("%s-%s", fullName, folderName))    // Full volume name

@@ -122,7 +122,7 @@ public class ContainerEventHandler implements ResultCallback<Event> {
             for (Container container : relevantContainers) {
                 DBContainer dbContainer = session.get(DBContainer.class, container.getId());
 
-                if (dbContainer == null) {
+                if (dbContainer == null || dbContainer.getStartTime() == null) {
                     toCreateContainerIDs.add(container.getId());
                 }
             }

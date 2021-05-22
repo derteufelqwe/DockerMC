@@ -5,13 +5,10 @@ LABEL DockerMCType="Minecraft"
 
 STOPSIGNAL SIGINT
 EXPOSE 25565
-EXPOSE 8001
 
 WORKDIR /server
 
 HEALTHCHECK --interval=10s --start-period=30s --retries=3 --timeout=5s CMD java -cp "plugins/DMCPluginMC.jar" "de.derteufelqwe.commons.PingServer" localhost 25565
-
-#VOLUME "/server/world"
 
 COPY docker /server
 COPY target/DMCPluginMC-1.0.jar /server/plugins/DMCPluginMC.jar

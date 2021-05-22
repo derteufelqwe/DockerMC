@@ -5,6 +5,7 @@ import com.github.dockerjava.api.model.*;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.Utils;
 import de.derteufelqwe.commons.exceptions.DockerMCException;
+import de.derteufelqwe.commons.health.HealthCheck;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.misc.ServiceMetaData;
 import de.derteufelqwe.nodewatcher.exceptions.InvalidSystemStateException;
@@ -47,6 +48,7 @@ public class NodeWatcher {
     @Getter private static ServiceMetaData metaData = new ServiceMetaData();
 
     private DockerClient dockerClient;
+    private HealthCheck healthCheck = new HealthCheck();
 
     // --- Executors ---
     private NodeEventHandler nodeEventHandler;
@@ -205,6 +207,7 @@ public class NodeWatcher {
         this.startContainerWatcher();   // Start last, since most watchers need its events
         this.startTimedPermissionWatcher();
 
+        this.healthCheck.start();
         log.info("NodeWatcher started successfully.");
     }
 
@@ -229,6 +232,7 @@ public class NodeWatcher {
 
         dockerClient.close();
         sessionBuilder.close();
+        this.healthCheck.stop();
     }
 
     /**
