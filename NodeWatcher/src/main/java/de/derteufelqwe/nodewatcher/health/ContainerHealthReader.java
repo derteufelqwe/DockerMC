@@ -9,16 +9,14 @@ import de.derteufelqwe.commons.CommonsAPI;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.DBContainer;
 import de.derteufelqwe.commons.hibernate.objects.DBContainerHealth;
+import de.derteufelqwe.commons.misc.RepeatingThread;
 import de.derteufelqwe.nodewatcher.NodeWatcher;
 import de.derteufelqwe.nodewatcher.exceptions.DBContainerNotFoundException;
 import de.derteufelqwe.nodewatcher.executors.ContainerEventHandler;
 import de.derteufelqwe.nodewatcher.misc.IContainerObserver;
 import de.derteufelqwe.nodewatcher.misc.NWUtils;
-import de.derteufelqwe.commons.misc.RepeatingThread;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 
 import java.sql.Timestamp;
 import java.util.HashSet;
@@ -74,7 +72,6 @@ public class ContainerHealthReader extends RepeatingThread implements IContainer
         synchronized (this.runningContainers) {
             logger.debug("Updating healths for {} containers.", this.runningContainers.size());
             for (String id : new HashSet<>(this.runningContainers)) {
-
                 try {
                     this.fetchContainerHealth(id);
 
@@ -107,7 +104,6 @@ public class ContainerHealthReader extends RepeatingThread implements IContainer
 
     private void fetchContainerHealth(String containerID) {
         try {
-
             InspectContainerResponse response = dockerClient.inspectContainerCmd(containerID).exec();
             HealthState healthState = response.getState().getHealth();
             if (healthState == null) {  // Container not started yet
@@ -118,7 +114,7 @@ public class ContainerHealthReader extends RepeatingThread implements IContainer
                 DBContainer container = session.get(DBContainer.class, containerID);
 
                 for (HealthStateLog log : healthState.getLog()) {
-                    Timestamp timestamp = NWUtils.parseDockerTimestamp(log.getStart());
+                    Timestamp timestamp = NWUtils.parseTimezonedTimestamp(log.getStart());
 
                     // Only add health logs, which are newer than the latest logs
                     if (container.getContainerHealths() != null && container.getContainerHealths().size() > 0) {

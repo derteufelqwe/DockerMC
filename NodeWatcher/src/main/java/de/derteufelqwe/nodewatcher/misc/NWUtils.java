@@ -19,6 +19,11 @@ import javax.annotation.CheckForNull;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -74,6 +79,30 @@ public class NWUtils {
             throw new DockerAPIIncompleteException(e, "Docker object returned unparsable timestamp '%s'.", timeString);
         }
     }
+
+
+    @NotNull
+    public static Timestamp parseTimezonedTimestamp(String timeString) {
+        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                .appendPattern("yyyy-MM-dd'T'HH:mm:ss")
+                .optionalStart()
+                // optional decimal point followed by 1 to 6 digits
+                .appendPattern(".")
+                .appendFraction(ChronoField.NANO_OF_SECOND, 3, 9, false)
+                .optionalEnd()
+                // not optional timezone
+                .appendPattern("XXX")
+                .toFormatter();
+        TemporalAccessor dateTime = formatter.parse(timeString);
+        Instant i = Instant.from(dateTime);
+
+        double time = i.getEpochSecond() * 1000 + i.getNano() / 1000000.0;
+        Timestamp t = new Timestamp((long) time);
+        t.setNanos(i.getNano());
+
+        return t;
+    }
+
 
     /**
      * Returns a list of Minecraft and BungeeCord containers currently running or created

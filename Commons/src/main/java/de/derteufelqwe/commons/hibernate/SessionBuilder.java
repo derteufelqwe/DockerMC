@@ -81,6 +81,7 @@ public class SessionBuilder {
         properties.setProperty(Environment.PHYSICAL_NAMING_STRATEGY, "org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl");
         properties.setProperty(Environment.POOL_SIZE, "1024");
 
+        properties.setProperty(Environment.JDBC_TIME_ZONE, "UTC");
 
         // --- Connection pool ---
         properties.setProperty("hibernate.c3p0.min_size", "5");
