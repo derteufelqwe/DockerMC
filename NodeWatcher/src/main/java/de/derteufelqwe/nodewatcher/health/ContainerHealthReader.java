@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
  */
 public class ContainerHealthReader extends RepeatingThread implements IContainerObserver {
 
-    // DOTALL flag is required so the regex can match over multiple lines
+    // 'DOTALL' flag is required so the regex can match over multiple lines
     @Deprecated
     private final Pattern RE_CLEAN_CURL = Pattern.compile("(.+)?% Total +% Received +% Xferd +Average +Speed +Time +Time +Time +Current.+(curl:.+)", Pattern.DOTALL);
     private final Pattern RE_STRIP_MSG = Pattern.compile("^[ \\t\\n]+|[ \\t\\n]+$");

@@ -14,5 +14,11 @@
       <jdbc-url>jdbc:h2:$USER_HOME$/AppData/Local/Temp/dmctest/test4;AUTO_SERVER=TRUE</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="PostgreSQL DB Container" uuid="ae6d5b43-3162-49b1-84eb-8a4c3da20c2a">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://ubuntu1:4444/dockermc</jdbc-url>
+    </data-source>
   </component>
 </project>

@@ -24,4 +24,5 @@ Server/server/internal/security/registry-certs/*
 Server/server/internal/workdirs/dns/*
 
 # Tools
-Tools
+Tools/RedisCli
+Tools/protoc.exe

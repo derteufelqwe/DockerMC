@@ -42,6 +42,7 @@ public class Docker {
     private DockerClient docker;
 
 
+
     public Docker(String protocol, String host, int port, MainConfig config) {
         this.mainConfig = config;
         DockerClientConfig clientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()

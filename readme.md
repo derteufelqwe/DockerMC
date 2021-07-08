@@ -12,3 +12,7 @@ More infos follow with its release.
  
 
 
+# Running the tests
+1. Install sysbox (https://github.com/nestybox/sysbox/blob/master/docs/user-guide/install-package.md)
+Uninstalling: https://github.com/nestybox/sysbox/blob/master/docs/developers-guide/build.md
+   

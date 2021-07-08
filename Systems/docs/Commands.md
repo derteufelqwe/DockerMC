@@ -12,6 +12,9 @@
 ### Create user with password
 ``psql> CREATE USER <name> WITH PASSWORD <password>``
 
+### Create superuser with password
+``CREATE ROLE <username> WITH LOGIN SUPERUSER PASSWORD <password>;``
+
 ### Change listening ip
 Edit
 ``/etc/postgresql/12/main/postgresql.conf``
