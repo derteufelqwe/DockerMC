@@ -21,6 +21,7 @@ public class CliCommands implements Runnable {
     private LineReader lineReader;
 
     public CliCommands() {
+
     }
 
     public void run() {

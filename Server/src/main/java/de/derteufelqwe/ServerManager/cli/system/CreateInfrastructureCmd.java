@@ -1,5 +1,6 @@
 package de.derteufelqwe.ServerManager.cli.system;
 
+import com.google.inject.Inject;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.utils.Commons;
 import de.derteufelqwe.ServerManager.utils.Utils;
@@ -10,7 +11,7 @@ import picocli.CommandLine;
 @Log4j2
 public class CreateInfrastructureCmd implements Runnable {
 
-    private final Commons commons = ServerManager.getCommons();
+    @Inject private Commons commons;
 
     @CommandLine.Option(names = {"-a", "--all"}, description = "Creates all parts of the infrastructure")
     private boolean all = false;

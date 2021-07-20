@@ -1,5 +1,6 @@
 package de.derteufelqwe.ServerManager.cli.service;
 
+import com.google.inject.Inject;
 import de.derteufelqwe.ServerManager.DBQueries;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
@@ -27,9 +28,9 @@ import java.util.List;
 @Log4j2
 public class ListServicesCmd implements Runnable {
 
-    private Docker docker = ServerManager.getDocker();
-    private SessionBuilder sessionBuilder = ServerManager.getSessionBuilder();
-    private JedisPool jedisPool = ServerManager.getRedisPool().getJedisPool();
+    @Inject private Docker docker;
+    @Inject private SessionBuilder sessionBuilder;
+    @Inject private JedisPool jedisPool;
 
 
     @CommandLine.Option(names = {"-a", "--all"}, description = "Also show removed services")

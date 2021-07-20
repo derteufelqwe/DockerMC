@@ -1,5 +1,10 @@
 package de.derteufelqwe.ServerManager;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.TypeLiteral;
+import com.google.inject.name.Names;
 import de.derteufelqwe.ServerManager.cli.CliCommands;
 import de.derteufelqwe.ServerManager.cli.converters.DurationConverter;
 import de.derteufelqwe.ServerManager.config.MainConfig;
@@ -16,6 +21,7 @@ import de.derteufelqwe.commons.redis.RedisPool;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.fusesource.jansi.AnsiConsole;
+import org.hibernate.service.spi.InjectService;
 import org.jline.console.SystemRegistry;
 import org.jline.console.impl.Builtins;
 import org.jline.console.impl.SystemRegistryImpl;
@@ -70,41 +76,43 @@ public class ServerManager {
     @Getter
     public static final Config<ServersConfig> serverConfigOld = new Config<>(new DefaultYamlConverter(), new DefaultGsonProvider(), Constants.DATA_PATH + "/servers_old.yml", new ServersConfig());
 
-    @Getter
-    private static SessionBuilder sessionBuilder;
-    @Getter
-    private static Docker docker;
-    @Getter
-    private static Commons commons;
-    @Getter
-    private static DockerRegistryAPI registryAPI;
-    @Getter
-    private static RedisPool redisPool;
+
+    private static final Injector injector = Guice.createInjector(new DMCGuiceModule());
 
 
     public static void main(String[] args) {
-        mainConfig.load();
-        serverConfigOld.load();
-        serverConfig.load();
-        log.info("Connecting to the database...");
-        sessionBuilder = new SessionBuilder(Constants.DB_DMC_USER, "admin", Constants.DMC_MASTER_DNS_NAME);
+        injector.getInstance(Key.get(new TypeLiteral<Config<MainConfig>>() {})).load();
+        injector.getInstance(Key.get(new TypeLiteral<Config<ServersConfig>>() {}, Names.named("current"))).load();
+        injector.getInstance(Key.get(new TypeLiteral<Config<ServersConfig>>() {}, Names.named("old"))).load();
+
         log.info("Connecting to the docker engine...");
-        docker = new Docker("tcp", "ubuntu1", 2375, mainConfig.get());
-        registryAPI = new DockerRegistryAPI("https://" + Constants.REGISTRY_URL, mainConfig.get().getRegistryUsername(), mainConfig.get().getRegistryPassword());
-        redisPool = new RedisPool("ubuntu1");
-        commons = new Commons();
+        injector.getInstance(Docker.class).getDocker().pingCmd().exec();
+
+        log.info("Connecting to the database...");
+        injector.getInstance(SessionBuilder.class).ping();
+
 
         try {
             startCLI();
 
         } finally {
             try {
-                docker.close();
+                injector.getInstance(Docker.class).close();
 
             } catch (IOException e) {
-                log.error("Closing docker connection failed.", e);
+                log.error("Failed to close connection to docker engine!", e);
             }
-            sessionBuilder.close();
+
+            try {
+                injector.getInstance(SessionBuilder.class).close();
+
+            } catch (Exception e) {
+                log.error("Failed to close connection to database!", e);
+            }
+
+            injector.getInstance(Key.get(new TypeLiteral<Config<MainConfig>>() {})).save();
+            injector.getInstance(Key.get(new TypeLiteral<Config<ServersConfig>>() {}, Names.named("current"))).save();
+            injector.getInstance(Key.get(new TypeLiteral<Config<ServersConfig>>() {}, Names.named("old"))).save();
         }
     }
 
@@ -121,7 +129,7 @@ public class ServerManager {
 
             // Set up picocli commands
             CliCommands commands = new CliCommands();
-            PicocliCommands.PicocliCommandsFactory factory = new PicocliCommands.PicocliCommandsFactory();
+            PicocliCommands.PicocliCommandsFactory factory = new PicocliCommands.PicocliCommandsFactory(new GuiceFactory(injector));
             // Or, if you have your own factory, you can chain them like this:
             // MyCustomFactory customFactory = createCustomFactory(); // your application custom factory
             // PicocliCommandsFactory factory = new PicocliCommandsFactory(customFactory); // chain the factories

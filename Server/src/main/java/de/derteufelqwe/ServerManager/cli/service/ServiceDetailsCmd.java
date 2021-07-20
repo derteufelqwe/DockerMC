@@ -1,5 +1,6 @@
 package de.derteufelqwe.ServerManager.cli.service;
 
+import com.google.inject.Inject;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.tablebuilder.Column;
 import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 @Log4j2
 public class ServiceDetailsCmd implements Runnable {
 
-    private SessionBuilder sessionBuilder = ServerManager.getSessionBuilder();
+    @Inject private SessionBuilder sessionBuilder;
 
 
     @CommandLine.Parameters(description = "ID of the service to get details about")

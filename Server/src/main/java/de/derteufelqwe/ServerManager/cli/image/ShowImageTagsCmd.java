@@ -1,5 +1,6 @@
 package de.derteufelqwe.ServerManager.cli.image;
 
+import com.google.inject.Inject;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.registry.DockerRegistryAPI;
 import de.derteufelqwe.ServerManager.registry.RegistryAPIException;
@@ -14,7 +15,7 @@ import picocli.CommandLine;
 @Log4j2
 public class ShowImageTagsCmd implements Runnable {
 
-    private DockerRegistryAPI registryAPI = ServerManager.getRegistryAPI();
+    @Inject private DockerRegistryAPI registryAPI;
 
 
     @CommandLine.Parameters(description = "Name of the image")

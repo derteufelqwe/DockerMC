@@ -76,7 +76,7 @@ public class DMCLogDriver {
 
 
     public DMCLogDriver(String dbHost, String dbPassword) throws RuntimeException {
-        sessionBuilder = new SessionBuilder("dockermc", dbPassword, dbHost, Constants.POSTGRESDB_PORT);
+        sessionBuilder = new SessionBuilder(dbPassword, dbHost);
         threadPool = createThreadPool();
         databaseWriter = new DatabaseWriter();
         databaseWriter.start();

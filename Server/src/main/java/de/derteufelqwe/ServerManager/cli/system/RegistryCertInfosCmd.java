@@ -1,5 +1,6 @@
 package de.derteufelqwe.ServerManager.cli.system;
 
+import com.google.inject.Inject;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.utils.Commons;
 import de.derteufelqwe.commons.Constants;
@@ -18,7 +19,7 @@ import java.util.Date;
 @Log4j2
 public class RegistryCertInfosCmd implements Runnable {
 
-    private final Commons commons = ServerManager.getCommons();
+    @Inject private Commons commons;
 
     @Override
     public void run() {

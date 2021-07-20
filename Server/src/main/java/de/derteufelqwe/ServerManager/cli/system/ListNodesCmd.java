@@ -1,11 +1,14 @@
 package de.derteufelqwe.ServerManager.cli.system;
 
 import com.github.dockerjava.api.model.Info;
+import com.google.inject.Inject;
 import de.derteufelqwe.ServerManager.DBQueries;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
+import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.tablebuilder.Column;
 import de.derteufelqwe.ServerManager.tablebuilder.TableBuilder;
+import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.hibernate.LocalSessionRunnable;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.commons.hibernate.objects.Node;
@@ -20,8 +23,12 @@ import java.util.List;
 @Log4j2
 public class ListNodesCmd implements Runnable {
 
-    private final Docker docker = ServerManager.getDocker();
-    private final SessionBuilder sessionBuilder = ServerManager.getSessionBuilder();
+    @Inject
+    private Docker docker;
+    @Inject
+    private SessionBuilder sessionBuilder;
+    @Inject
+    private Config<MainConfig> mainCfg;
 
 
     @CommandLine.Option(names = {"-a", "--all"}, description = "Also show removed nodes")

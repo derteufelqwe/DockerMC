@@ -1,5 +1,6 @@
 package de.derteufelqwe.ServerManager.cli.server;
 
+import com.google.inject.Inject;
 import de.derteufelqwe.ServerManager.DBQueries;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.tablebuilder.Column;
@@ -17,7 +18,8 @@ import java.util.List;
 @Log4j2
 public class ListContainersCmd implements Runnable {
 
-    private final SessionBuilder sessionBuilder = ServerManager.getSessionBuilder();
+    @Inject private SessionBuilder sessionBuilder;
+
 
     @CommandLine.Option(names = {"-a", "--all"}, description = "Also show stopped containers")
     private boolean showAll = false;

@@ -1,5 +1,6 @@
 package de.derteufelqwe.ServerManager.cli.server;
 
+import com.google.inject.Inject;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.commons.Constants;
 import lombok.extern.log4j.Log4j2;
@@ -12,7 +13,7 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 @Log4j2
 public class GetLobbyServerCmd implements Runnable {
 
-    private JedisPool jedisPool = ServerManager.getRedisPool().getJedisPool();
+    @Inject private JedisPool jedisPool;
 
     @Override
     public void run() {

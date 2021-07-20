@@ -4,6 +4,7 @@ import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.exception.DockerClientException;
 import com.github.dockerjava.api.model.AuthConfig;
 import com.google.gson.Gson;
+import com.google.inject.Inject;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.callbacks.ImageBuildCallback;
@@ -32,8 +33,8 @@ public class BuildImageCmd implements Runnable {
     private final Pattern RE_IMAGE_TAG = Pattern.compile("[a-z0-9]+(?:[a-z0-9]+)*");
 
 
-    private Docker docker = ServerManager.getDocker();
-    private Config<MainConfig> mainConfig = ServerManager.getMainConfig();
+    @Inject private Docker docker;
+    @Inject private Config<MainConfig> mainConfig;
     private Gson gson = new Gson();
 
 

@@ -2,6 +2,7 @@ package de.derteufelqwe.ServerManager.cli.image;
 
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.WaitContainerResultCallback;
+import com.google.inject.Inject;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.config.MainConfig;
@@ -28,9 +29,9 @@ import java.util.stream.Collectors;
 @Log4j2
 public class DeleteImageCmd implements Runnable {
 
-    private Docker docker = ServerManager.getDocker();
-    private DockerRegistryAPI registryAPI = ServerManager.getRegistryAPI();
-    private Config<MainConfig> mainConfig = ServerManager.getMainConfig();
+    @Inject private Docker docker;
+    @Inject private DockerRegistryAPI registryAPI;
+    @Inject private Config<MainConfig> mainConfig;
 
 
     @CommandLine.Option(names = {"-t", "--tag"}, description = "Tags to remove")

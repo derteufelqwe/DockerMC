@@ -2,6 +2,7 @@ package de.derteufelqwe.ServerManager.cli.system;
 
 import com.github.dockerjava.api.model.Swarm;
 import com.github.dockerjava.api.model.SwarmInfo;
+import com.google.inject.Inject;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import lombok.extern.log4j.Log4j2;
@@ -11,7 +12,8 @@ import picocli.CommandLine;
 @Log4j2
 public class JoinNodeCmd implements Runnable {
 
-    private final Docker docker = ServerManager.getDocker();
+    @Inject
+    private Docker docker;
 
     @CommandLine.Option(names = {"-q", "--quiet"}, description = "Only displays the required command")
     private boolean quiet = false;

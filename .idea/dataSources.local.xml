@@ -41,7 +41,7 @@
       </database-info>
       <case-sensitivity plain-identifiers="lower" quoted-identifiers="exact" />
       <secret-storage>master_key</secret-storage>
-      <user-name>dmcadmin</user-name>
+      <user-name>dockermc</user-name>
       <schema-mapping>
         <introspection-scope>
           <node kind="database" qname="@">

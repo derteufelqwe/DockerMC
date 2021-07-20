@@ -28,10 +28,10 @@ public class Main {
 
         DMCLogDriver driver = null;
         try {
-//            String dbHost = parseDBHost();
-//            String dbPassword = parseDBPassword();
+            String dbHost = parseDBHost();
+            String dbPassword = parseDBPassword();
 
-            driver = new DMCLogDriver("ubuntu1", "admin");
+            driver = new DMCLogDriver(dbHost, dbPassword);
             driver.addSignalHook();
             startStopper(driver);
             driver.startServer();
@@ -81,7 +81,8 @@ public class Main {
     private static String parseDBHost() {
         String dbHost = System.getenv("DB_HOST");
         if (dbHost == null || dbHost.equals("")) {
-            throw new IllegalArgumentException("DB_HOST not set.");
+            log.warn("DB_HOST not set. Using localhost instead");
+            return "127.0.0.1";
         }
 
         return dbHost;

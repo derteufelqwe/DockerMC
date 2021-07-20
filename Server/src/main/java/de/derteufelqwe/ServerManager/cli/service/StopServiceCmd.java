@@ -1,5 +1,6 @@
 package de.derteufelqwe.ServerManager.cli.service;
 
+import com.google.inject.Inject;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.cli.ServiceCmd;
@@ -15,9 +16,9 @@ import java.util.List;
 @Log4j2
 public class StopServiceCmd implements Runnable {
 
-    private Docker docker = ServerManager.getDocker();
-    private SessionBuilder sessionBuilder = ServerManager.getSessionBuilder();
-    private Commons commons = ServerManager.getCommons();
+    @Inject private Docker docker;
+    @Inject private SessionBuilder sessionBuilder;
+    @Inject private Commons commons;
 
     @CommandLine.ParentCommand
     private ServiceCmd parent;

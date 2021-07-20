@@ -14,7 +14,7 @@ public class Config<A> {
     private String fileName;
 
     private A instance;
-
+    
 
     public Config(YamlConverter converter, GsonProvider gsonProvider, String fileName, A instance) {
         this.converter = converter;

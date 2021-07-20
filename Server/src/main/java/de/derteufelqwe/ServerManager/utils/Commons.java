@@ -1,6 +1,8 @@
 package de.derteufelqwe.ServerManager.utils;
 
 import com.github.dockerjava.api.model.Service;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.config.ConfigChecker;
@@ -32,11 +34,18 @@ import java.util.List;
 @Log4j2
 public class Commons {
 
-    private final Docker docker = ServerManager.getDocker();
-    private final Config<ServersConfig> serversConfig = ServerManager.getServerConfig();
-    private final SessionBuilder sessionBuilder = ServerManager.getSessionBuilder();
-    private final JedisPool jedisPool = ServerManager.getRedisPool().getJedisPool();
+    private Config<ServersConfig> serversConfig;
+    private Docker docker;
+    private JedisPool jedisPool;
+    private SessionBuilder sessionBuilder;
 
+
+    public Commons(Config<ServersConfig> serversConfig, Docker docker, JedisPool jedisPool, SessionBuilder sessionBuilder) {
+        this.serversConfig = serversConfig;
+        this.docker = docker;
+        this.jedisPool = jedisPool;
+        this.sessionBuilder = sessionBuilder;
+    }
 
     /**
      * Reloads the minecraft servers

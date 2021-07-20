@@ -1,6 +1,7 @@
 package de.derteufelqwe.ServerManager.cli.system;
 
 import com.github.dockerjava.api.exception.NotFoundException;
+import com.google.inject.Inject;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.cli.SystemCmd;
@@ -16,8 +17,8 @@ import picocli.CommandLine;
 @Log4j2
 public class ClearDataCommand implements Runnable {
 
-    private final Docker docker = ServerManager.getDocker();
-    private final Commons commons = ServerManager.getCommons();
+    @Inject private Docker docker;
+    @Inject private Commons commons;
 
     @CommandLine.ParentCommand
     private SystemCmd parent;
