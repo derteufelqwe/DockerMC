@@ -1,9 +1,11 @@
 package de.derteufelqwe.ServerManager.setup;
 
 import de.derteufelqwe.ServerManager.Docker;
+import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.setup.infrastructure.*;
 import de.derteufelqwe.ServerManager.setup.templates.DockerObjTemplate;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.config.Config;
 
 /**
  * Class to create the default infrastructure
@@ -19,13 +21,13 @@ public class InfrastructureSetup {
     private RedisContainer redisContainer = new RedisContainer();
 
 
-    public InfrastructureSetup(Docker docker) {
+    public InfrastructureSetup(Docker docker, Config<MainConfig> mainConfig) {
         this.docker = docker;
         this.overnetNetwork.init(docker);
-        this.registryCertificates = new RegistryCertificates(docker);
-        this.registryContainer.init(docker);
-        this.nodeWatcherService.init(docker);
-        this.redisContainer.init(docker);
+        this.registryCertificates = new RegistryCertificates(docker, mainConfig.get());
+        this.registryContainer.init(docker, mainConfig);
+        this.nodeWatcherService.init(docker, mainConfig);
+        this.redisContainer.init(docker, mainConfig);
     }
 
     // -----  Infrastructure setup  -----

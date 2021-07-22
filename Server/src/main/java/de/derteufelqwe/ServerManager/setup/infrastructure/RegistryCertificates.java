@@ -27,12 +27,13 @@ import java.util.concurrent.TimeUnit;
 @Log4j2
 public class RegistryCertificates {
 
-    private MainConfig mainConfig = ServerManager.mainConfig.get();
+    private MainConfig mainConfig;
     private Docker docker;
 
 
-    public RegistryCertificates(Docker docker) {
+    public RegistryCertificates(Docker docker, MainConfig mainConfig) {
         this.docker = docker;
+        this.mainConfig = mainConfig;
     }
 
 

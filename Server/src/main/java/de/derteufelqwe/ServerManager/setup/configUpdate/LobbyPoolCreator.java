@@ -1,5 +1,7 @@
 package de.derteufelqwe.ServerManager.setup.configUpdate;
 
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.config.MainConfig;
@@ -18,10 +20,14 @@ public class LobbyPoolCreator extends ConfigCreator<ServerPool> {
 
     private JedisPool jedisPool;
 
-    public LobbyPoolCreator(Docker docker, JedisPool jedisPool) {
-        super(
-                ServerManager.getServerConfig().get().getLobbyPool(),
-                ServerManager.getServerConfigOld().get().getLobbyPool(),
+    @Inject
+    public LobbyPoolCreator(Docker docker, Config<MainConfig> mainConfig, @Named("current") Config<ServersConfig> serversConfig,
+                             @Named("old") Config<ServersConfig> serversConfigOld, JedisPool jedisPool) {
+        super(mainConfig,
+                serversConfig,
+                serversConfigOld,
+                serversConfig.get().getLobbyPool(),
+                serversConfigOld.get().getLobbyPool(),
                 docker,
                 Constants.ContainerType.MINECRAFT
         );
@@ -30,15 +36,13 @@ public class LobbyPoolCreator extends ConfigCreator<ServerPool> {
 
     @Override
     protected void updateOldConfigFile(ServerPool newConfig) {
-        Config<ServersConfig> serversConfig = ServerManager.getServerConfigOld();
-        serversConfig.get().setLobbyPool(newConfig);
-        serversConfig.save();
+        serversConfigOld.get().setLobbyPool(newConfig);
+        serversConfigOld.save();
     }
 
     @Override
     protected int getParallelUpdateCount() {
-        MainConfig mainConfig = ServerManager.getMainConfig().get();
-        return mainConfig.getLobbyPoolParallelUpdates();
+        return mainConfig.get().getLobbyPoolParallelUpdates();
     }
 
     @Override

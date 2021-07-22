@@ -69,13 +69,6 @@ public class ServerManager {
      *  102: Invalid server config file
      */
 
-    @Getter
-    public static final Config<MainConfig> mainConfig = new Config<>(new DefaultYamlConverter(), new DefaultGsonProvider(), Constants.CONFIG_PATH + "/main.yml", new MainConfig());
-    @Getter
-    public static final Config<ServersConfig> serverConfig = new Config<>(new DefaultYamlConverter(), new DefaultGsonProvider(), Constants.CONFIG_PATH + "/servers.yml", new ServersConfig());
-    @Getter
-    public static final Config<ServersConfig> serverConfigOld = new Config<>(new DefaultYamlConverter(), new DefaultGsonProvider(), Constants.DATA_PATH + "/servers_old.yml", new ServersConfig());
-
 
     private static final Injector injector = Guice.createInjector(new DMCGuiceModule());
 

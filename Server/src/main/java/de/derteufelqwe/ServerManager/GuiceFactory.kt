@@ -103,8 +103,10 @@ class DMCGuiceModule : AbstractModule() {
 
     @Provides
     @Singleton
-    fun provideCommons(@Named("current") serversConfig: Config<ServersConfig>, docker: Docker, jedisPool: JedisPool, sessionBuilder: SessionBuilder): Commons {
-        return Commons(serversConfig, docker, jedisPool, sessionBuilder)
+    fun provideCommons(mainConfig: Config<MainConfig>, @Named("old")serversConfigOld: Config<ServersConfig>,
+                       @Named("current") serversConfig: Config<ServersConfig>, docker: Docker, jedisPool: JedisPool,
+                       sessionBuilder: SessionBuilder): Commons {
+        return Commons(mainConfig, serversConfig, serversConfigOld, docker, jedisPool, sessionBuilder)
     }
 
 }

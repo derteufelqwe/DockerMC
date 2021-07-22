@@ -8,6 +8,7 @@ import de.derteufelqwe.ServerManager.setup.servers.PersistentServerPool;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.Utils;
+import de.derteufelqwe.commons.config.Config;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,10 +22,11 @@ import java.util.Map;
 public class LostServiceFinder {
 
     private Docker docker;
-    private ServersConfig serversConfig = ServerManager.serverConfig.get();
+    private ServersConfig serversConfig;
 
-    public LostServiceFinder(Docker docker) {
+    public LostServiceFinder(Docker docker, Config<ServersConfig> serversConfig) {
         this.docker = docker;
+        this.serversConfig = serversConfig.get();
     }
 
 

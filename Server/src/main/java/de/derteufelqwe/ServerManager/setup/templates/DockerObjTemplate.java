@@ -1,9 +1,11 @@
 package de.derteufelqwe.ServerManager.setup.templates;
 
 import de.derteufelqwe.ServerManager.Docker;
+import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.utils.Utils;
 import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.exceptions.InvalidConfigException;
+import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.config.annotations.Exclude;
 import lombok.*;
 
@@ -20,6 +22,11 @@ public abstract class DockerObjTemplate implements Cloneable {
     @Setter(AccessLevel.NONE)
     @Exclude
     protected Docker docker;
+
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    @Exclude
+    protected Config<MainConfig> mainConfig;
 
     /**
      * Name of the docker object
@@ -54,8 +61,9 @@ public abstract class DockerObjTemplate implements Cloneable {
      *
      * @param docker Docker instance to set
      */
-    public void init(Docker docker) {
+    public void init(Docker docker, Config<MainConfig> mainConfig) {
         this.docker = docker;
+        this.mainConfig = mainConfig;
     }
 
     /**

@@ -4,24 +4,35 @@ import com.github.dockerjava.api.model.*;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.config.MainConfig;
+import de.derteufelqwe.ServerManager.config.ServersConfig;
 import de.derteufelqwe.ServerManager.setup.templates.DockerObjTemplate;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceTemplate;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.config.Config;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class ConfigCreator<CFG extends ServiceTemplate> {
 
-    private final MainConfig mainConfig = ServerManager.getMainConfig().get();
+    // Config objects
+    protected Config<MainConfig> mainConfig;
+    protected Config<ServersConfig> serversConfig;
+    protected Config<ServersConfig> serversConfigOld;
     @Nullable protected CFG poolConfig;
-    @Nullable private CFG oldPoolConfig;
+    @Nullable protected CFG oldPoolConfig;
+
+
     private final Docker docker;
     private final Constants.ContainerType containerType;
     private ServiceCreateResponse response;
     private final int parallelUpdateCount = getParallelUpdateCount();
 
 
-    public ConfigCreator(@Nullable CFG poolConfig, CFG oldPoolConfig, Docker docker, Constants.ContainerType containerType) {
+    public ConfigCreator(Config<MainConfig> mainConfig, Config<ServersConfig> serversConfig, Config<ServersConfig> serversConfigOld,
+                         @Nullable CFG poolConfig, @Nullable CFG oldPoolConfig, Docker docker, Constants.ContainerType containerType) {
+        this.mainConfig = mainConfig;
+        this.serversConfig = serversConfig;
+        this.serversConfigOld = serversConfigOld;
         this.poolConfig = poolConfig;
         this.oldPoolConfig = oldPoolConfig;
         this.docker = docker;
@@ -76,7 +87,7 @@ public abstract class ConfigCreator<CFG extends ServiceTemplate> {
             return response;
         }
 
-        poolConfig.init(docker);
+        poolConfig.init(docker, mainConfig);
         response.setServiceName(poolConfig.getName());
 
         DockerObjTemplate.FindResponse findResponse = poolConfig.find();
@@ -146,12 +157,12 @@ public abstract class ConfigCreator<CFG extends ServiceTemplate> {
     }
 
     private void onServiceToCreate() {
-        poolConfig.init(docker);
+        poolConfig.init(docker, mainConfig);
         this.createService();
     }
 
     private void onServiceToDestroy() {
-        poolConfig.init(docker);
+        poolConfig.init(docker, mainConfig);
 
         if (oldPoolConfig.find().isFound()) {
             DockerObjTemplate.DestroyResponse destroyResponse = oldPoolConfig.destroy();
@@ -168,7 +179,7 @@ public abstract class ConfigCreator<CFG extends ServiceTemplate> {
     }
 
     private void onServiceToUpdate() {
-        poolConfig.init(docker);
+        poolConfig.init(docker, mainConfig);
 
         DockerObjTemplate.FindResponse findResponse = poolConfig.find();
 
@@ -184,7 +195,7 @@ public abstract class ConfigCreator<CFG extends ServiceTemplate> {
     }
 
     private void onServicesEqual(boolean force) {
-        poolConfig.init(docker);
+        poolConfig.init(docker, mainConfig);
 
         DockerObjTemplate.FindResponse findResponse = poolConfig.find();
         response.setServiceId(findResponse.getServiceID());
@@ -223,7 +234,7 @@ public abstract class ConfigCreator<CFG extends ServiceTemplate> {
      * The config can force a
      */
     private UpdateOrder getUpdateOrder() {
-        if (mainConfig.isForceStopFirst())
+        if (mainConfig.get().isForceStopFirst())
             return UpdateOrder.STOP_FIRST;
 
         ServiceConstraints constraints = poolConfig.getConstraints();

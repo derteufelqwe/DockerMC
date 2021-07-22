@@ -6,6 +6,7 @@ import com.google.inject.name.Named;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.config.ConfigChecker;
+import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.config.ServersConfig;
 import de.derteufelqwe.ServerManager.exceptions.InvalidConfigException;
 import de.derteufelqwe.ServerManager.setup.InfrastructureSetup;
@@ -34,14 +35,19 @@ import java.util.List;
 @Log4j2
 public class Commons {
 
+    private Config<MainConfig> mainConfig;
     private Config<ServersConfig> serversConfig;
+    private Config<ServersConfig> serversConfigOld;
     private Docker docker;
     private JedisPool jedisPool;
     private SessionBuilder sessionBuilder;
 
 
-    public Commons(Config<ServersConfig> serversConfig, Docker docker, JedisPool jedisPool, SessionBuilder sessionBuilder) {
+    public Commons(Config<MainConfig> mainConfig, Config<ServersConfig> serversConfig,
+            Config<ServersConfig> serversConfigOld, Docker docker, JedisPool jedisPool, SessionBuilder sessionBuilder) {
+        this.mainConfig = mainConfig;
         this.serversConfig = serversConfig;
+        this.serversConfigOld = serversConfigOld;
         this.docker = docker;
         this.jedisPool = jedisPool;
         this.sessionBuilder = sessionBuilder;
@@ -91,7 +97,7 @@ public class Commons {
     }
 
     public boolean createOvernetNetwork() {
-        InfrastructureSetup setup = new InfrastructureSetup(docker);
+        InfrastructureSetup setup = new InfrastructureSetup(docker, mainConfig);
         ServiceCreateResponse response = setup.createOvernetNetwork();
 
         switch (response.getResult()) {
@@ -113,7 +119,7 @@ public class Commons {
     }
 
     public boolean createRegistryCertificates() {
-        InfrastructureSetup setup = new InfrastructureSetup(docker);
+        InfrastructureSetup setup = new InfrastructureSetup(docker, mainConfig);
         ServiceCreateResponse response = setup.createRegistryCerts();
 
         switch (response.getResult()) {
@@ -135,7 +141,7 @@ public class Commons {
     }
 
     public boolean createRegistryContainer() {
-        InfrastructureSetup setup = new InfrastructureSetup(docker);
+        InfrastructureSetup setup = new InfrastructureSetup(docker, mainConfig);
         ServiceCreateResponse response = setup.createRegistryContainer();
 
         switch (response.getResult()) {
@@ -158,7 +164,7 @@ public class Commons {
     }
 
     public boolean createRedisContainer() {
-        InfrastructureSetup setup = new InfrastructureSetup(docker);
+        InfrastructureSetup setup = new InfrastructureSetup(docker, mainConfig);
         ServiceCreateResponse response = setup.createRedisContainer();
 
         switch (response.getResult()) {
@@ -181,7 +187,7 @@ public class Commons {
     }
 
     public boolean createNodeWatcherService() {
-        InfrastructureSetup setup = new InfrastructureSetup(docker);
+        InfrastructureSetup setup = new InfrastructureSetup(docker, mainConfig);
         ServiceCreateResponse response = setup.createNodeWatcherService();
 
         switch (response.getResult()) {
@@ -217,7 +223,7 @@ public class Commons {
     }
 
     public boolean stopRegistryContainer() {
-        InfrastructureSetup setup = new InfrastructureSetup(docker);
+        InfrastructureSetup setup = new InfrastructureSetup(docker, mainConfig);
         ServiceStopResponse response = setup.stopRegistryContainer();
 
         switch (response.getResult()) {
@@ -240,7 +246,7 @@ public class Commons {
     }
 
     public boolean stopNodeWatcherService() {
-        InfrastructureSetup setup = new InfrastructureSetup(docker);
+        InfrastructureSetup setup = new InfrastructureSetup(docker, mainConfig);
         ServiceStopResponse response = setup.stopNodeWatcherService();
 
         switch (response.getResult()) {
@@ -263,7 +269,7 @@ public class Commons {
     }
 
     public boolean stopRedisContainer() {
-        InfrastructureSetup setup = new InfrastructureSetup(docker);
+        InfrastructureSetup setup = new InfrastructureSetup(docker, mainConfig);
         ServiceStopResponse response = setup.stopRedisContainer();
 
         switch (response.getResult()) {
@@ -288,10 +294,10 @@ public class Commons {
     // -----  Minecraft server setup  -----
 
     public void removeLostServices() {
-        LostServiceFinder cleaner = new LostServiceFinder(docker);
+        LostServiceFinder cleaner = new LostServiceFinder(docker, serversConfig);
         List<Service> lostServices = cleaner.findLostServices();
         ServersConfig serversConfig = this.serversConfig.get();
-        ServersConfig serversConfigOld = ServerManager.getServerConfigOld().get();
+        ServersConfig serversConfigOld = this.serversConfigOld.get();
 
         for (Service lostService : lostServices) {
             log.warn("Removing lost service {} ({}).", lostService.getSpec().getName(), lostService.getId());
@@ -306,7 +312,7 @@ public class Commons {
         }
 
         this.serversConfig.get();
-        ServerManager.getServerConfigOld().save();
+        this.serversConfigOld.save();
     }
 
     /**
@@ -339,7 +345,7 @@ public class Commons {
      * @return
      */
     public boolean createBungeeServer(boolean force) {
-        ServiceCreateResponse response = new BungeePoolCreator(docker).createOrUpdate(force);
+        ServiceCreateResponse response = new BungeePoolCreator(docker, mainConfig, serversConfig, serversConfigOld).createOrUpdate(force);
 
         switch (response.getResult()) {
             case CREATED:
@@ -376,7 +382,7 @@ public class Commons {
      * @return
      */
     public boolean createLobbyServer(boolean force) {
-        ServiceCreateResponse response = new LobbyPoolCreator(docker, jedisPool).createOrUpdate(force);
+        ServiceCreateResponse response = new LobbyPoolCreator(docker, mainConfig, serversConfig, serversConfigOld, jedisPool).createOrUpdate(force);
 
         switch (response.getResult()) {
             case CREATED:
@@ -434,7 +440,7 @@ public class Commons {
     }
 
     public boolean createPoolServer(ServerPool pool, boolean force) {
-        ServiceCreateResponse response = new MinecraftPoolCreator(docker, pool).createOrUpdate(force);
+        ServiceCreateResponse response = new MinecraftPoolCreator(docker, pool, mainConfig, serversConfig, serversConfigOld).createOrUpdate(force);
 
         switch (response.getResult()) {
             case CREATED:
@@ -479,7 +485,7 @@ public class Commons {
     }
 
     public boolean createPersistentPoolServer(PersistentServerPool pool, boolean force) {
-        ServiceCreateResponse response = new PersistentMinecraftPoolCreator(docker, pool).createOrUpdate(force);
+        ServiceCreateResponse response = new PersistentMinecraftPoolCreator(docker, pool, mainConfig, serversConfig, serversConfigOld).createOrUpdate(force);
 
         switch (response.getResult()) {
             case CREATED:

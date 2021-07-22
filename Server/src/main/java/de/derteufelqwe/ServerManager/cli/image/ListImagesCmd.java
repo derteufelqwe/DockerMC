@@ -1,5 +1,6 @@
 package de.derteufelqwe.ServerManager.cli.image;
 
+import com.google.inject.Inject;
 import de.derteufelqwe.ServerManager.ServerManager;
 import de.derteufelqwe.ServerManager.registry.DockerRegistryAPI;
 import de.derteufelqwe.ServerManager.registry.objects.Catalog;
@@ -16,7 +17,7 @@ import java.util.List;
 @Log4j2
 public class ListImagesCmd implements Runnable {
 
-    private DockerRegistryAPI registryAPI = ServerManager.getRegistryAPI();
+    @Inject private DockerRegistryAPI registryAPI;
 
 
     @CommandLine.Option(names = {"-nb", "--no-bungee"}, description = "Hide BungeeCord images")

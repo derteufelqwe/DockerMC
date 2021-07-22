@@ -9,6 +9,7 @@ import de.derteufelqwe.ServerManager.exceptions.FatalDockerMCError;
 import de.derteufelqwe.ServerManager.exceptions.InvalidConfigException;
 import de.derteufelqwe.ServerManager.utils.Utils;
 import de.derteufelqwe.commons.Constants;
+import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.config.annotations.Exclude;
 import lombok.*;
 
@@ -123,14 +124,13 @@ public class ServiceTemplate extends DockerObjTemplate {
      *
      * @param docker Docker instance to add
      */
-    public void init(Docker docker) {
-        super.init(docker);
+    public void init(Docker docker, Config<MainConfig> mainConfig) {
+        super.init(docker, mainConfig);
 
         // Authconfig must be set here so the deserialized class has this information too
-        MainConfig mainConfig = ServerManager.mainConfig.get();
         this.authConfig = new AuthConfig()
-                .withUsername(mainConfig.getRegistryUsername())
-                .withPassword(mainConfig.getRegistryPassword());
+                .withUsername(mainConfig.get().getRegistryUsername())
+                .withPassword(mainConfig.get().getRegistryPassword());
     }
 
     /**
@@ -366,7 +366,7 @@ public class ServiceTemplate extends DockerObjTemplate {
         List<String> hosts = new ArrayList<>();
 
         // The real IP of the master node of DockerMC, which is used to access the DB
-        hosts.add(String.format("%s %s", ServerManager.mainConfig.get().getDockerMasterIP(), Constants.DMC_MASTER_DNS_NAME));
+        hosts.add(String.format("%s %s", mainConfig.get().getDockerMasterIP(), Constants.DMC_MASTER_DNS_NAME));
 
         return hosts;
     }

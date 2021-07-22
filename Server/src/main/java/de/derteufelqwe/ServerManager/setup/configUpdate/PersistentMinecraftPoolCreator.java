@@ -18,17 +18,20 @@ import java.util.stream.Collectors;
 
 public class PersistentMinecraftPoolCreator extends ConfigCreator<PersistentServerPool> {
 
-    public PersistentMinecraftPoolCreator(Docker docker, PersistentServerPool serverPool) {
-        super(
+    public PersistentMinecraftPoolCreator(Docker docker, PersistentServerPool serverPool, Config<MainConfig> mainConfig, Config<ServersConfig> serversConfig,
+                                Config<ServersConfig> serversConfigOld) {
+        super(mainConfig,
+                serversConfig,
+                serversConfigOld,
                 serverPool,
-                getOldConfig(serverPool.getName()),
+                getOldConfig(serverPool.getName(), serversConfigOld.get()),
                 docker,
-                Constants.ContainerType.MINECRAFT
+                Constants.ContainerType.MINECRAFT_PERSISTENT
         );
     }
 
-    private static PersistentServerPool getOldConfig(String name) {
-        List<PersistentServerPool> relevantPools = ServerManager.getServerConfigOld().get().getPersistentServerPool().stream()
+    private static PersistentServerPool getOldConfig(String name, ServersConfig serversConfigOld) {
+        List<PersistentServerPool> relevantPools = serversConfigOld.getPersistentServerPool().stream()
                 .filter(p -> p.getName().equals(name))
                 .collect(Collectors.toList());
 
@@ -45,15 +48,13 @@ public class PersistentMinecraftPoolCreator extends ConfigCreator<PersistentServ
 
     @Override
     protected void updateOldConfigFile(PersistentServerPool newConfig) {
-        Config<ServersConfig> serversConfig = ServerManager.getServerConfigOld();
-        serversConfig.get().getPersistentServerPool().removeIf(p -> p.getName().equals(newConfig.getName()));
-        serversConfig.get().getPersistentServerPool().add(newConfig);
-        serversConfig.save();
+        serversConfigOld.get().getPersistentServerPool().removeIf(p -> p.getName().equals(newConfig.getName()));
+        serversConfigOld.get().getPersistentServerPool().add(newConfig);
+        serversConfigOld.save();
     }
 
     @Override
     protected int getParallelUpdateCount() {
-        MainConfig mainConfig = ServerManager.getMainConfig().get();
-        return mainConfig.getPoolParallelUpdates();
+        return mainConfig.get().getPoolParallelUpdates();
     }
 }
