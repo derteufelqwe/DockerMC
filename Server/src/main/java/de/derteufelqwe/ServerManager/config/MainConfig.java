@@ -20,10 +20,11 @@ public class MainConfig {
     @Comment("Docker-API version")
     private String APIVersion = "1.40";
 
+    // ToDo: Change back to private when kotlin works together with lombok
     @Comment("Username for the registry")
-    private String registryUsername = "admin";
+    public String registryUsername = "admin";
     @Comment("Password for the registry")
-    private String registryPassword = "root";
+    public String registryPassword = "root";
 
     @Comment("Configuration for the registry certificate")
     private CertificateCfg registryCerCfg = new CertificateCfg();

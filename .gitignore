@@ -26,3 +26,5 @@ Server/server/internal/workdirs/dns/*
 # Tools
 Tools/RedisCli
 Tools/protoc.exe
+Tools/testing/binaryimage/bungeeserver
+Tools/testing/binaryimage/minecraftserver

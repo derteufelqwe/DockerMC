@@ -3,7 +3,8 @@ FROM nestybox/alpine-docker
 ### Install java ###
 
 RUN apk update \
-    && apk add openjdk8
+    && apk add openjdk8 \
+    && apk add bash
 
 ### Install postgres ###
 EXPOSE 5432
@@ -38,10 +39,30 @@ USER root
 ### Setup docker related stuff ###
 EXPOSE 2375
 WORKDIR "/"
+
 ADD start.sh start.sh
+ADD startdocker.sh /
+ADD stopdocker.sh /
+
+RUN chmod +x /startdocker.sh \
+    && chmod +x /stopdocker.sh
 
 ### Configure DockerMC related stuff ###
+RUN /startdocker.sh \
+    && docker pull registry:latest \
+    && docker pull redis:latest \
+    && docker pull frapsoft/openssl:latest \
+    && docker pull xmartlabs/htpasswd:latest \
+    && docker pull openjdk:8-jre-alpine \
+    && /stopdocker.sh
 
 
+RUN /startdocker.sh \
+    && docker swarm init \
+    && /stopdocker.sh
 
-CMD ["sh", "start.sh"]
+
+### Run configuration ###
+ENTRYPOINT ["sh", "start.sh"]
+
+CMD ["sleep", "infinity"]

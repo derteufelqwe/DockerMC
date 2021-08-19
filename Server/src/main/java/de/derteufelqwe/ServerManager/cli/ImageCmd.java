@@ -1,6 +1,8 @@
 package de.derteufelqwe.ServerManager.cli;
 
 
+import com.google.inject.Inject;
+import de.derteufelqwe.ServerManager.Testing;
 import de.derteufelqwe.ServerManager.cli.image.BuildImageCmd;
 import de.derteufelqwe.ServerManager.cli.image.DeleteImageCmd;
 import de.derteufelqwe.ServerManager.cli.image.ListImagesCmd;

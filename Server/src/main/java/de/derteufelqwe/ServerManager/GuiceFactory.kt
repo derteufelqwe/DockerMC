@@ -27,15 +27,11 @@ class GuiceFactory(private val injector: Injector) : IFactory {
     }
 }
 
-class DMCGuiceModule : AbstractModule() {
-
-    override fun configure() {
-
-    }
+open class DMCGuiceModule : AbstractModule() {
 
     @Provides
     @Singleton
-    fun provideMainConfig(): Config<MainConfig> {
+    open fun provideMainConfig(): Config<MainConfig> {
         return Config(
             DefaultYamlConverter(),
             DefaultGsonProvider(),
@@ -47,7 +43,7 @@ class DMCGuiceModule : AbstractModule() {
     @Provides
     @Singleton
     @Named("current")
-    fun provideServerConfig(): Config<ServersConfig> {
+    open fun provideServerConfig(): Config<ServersConfig> {
         return Config(
             DefaultYamlConverter(),
             DefaultGsonProvider(),
@@ -59,7 +55,7 @@ class DMCGuiceModule : AbstractModule() {
     @Provides
     @Singleton
     @Named("old")
-    fun provideServerConfigOld(): Config<ServersConfig> {
+    open fun provideServerConfigOld(): Config<ServersConfig> {
         return Config(
             DefaultYamlConverter(),
             DefaultGsonProvider(),
@@ -70,30 +66,30 @@ class DMCGuiceModule : AbstractModule() {
 
     @Provides
     @Singleton
-    fun provideDocker(mainConfig: Config<MainConfig>): Docker {
+    open fun provideDocker(mainConfig: Config<MainConfig>): Docker {
         return Docker("tcp", "ubuntu1", 2375, mainConfig.get())
     }
 
     @Provides
     @Singleton
-    fun provideSessionBuilder(): SessionBuilder {
+    open fun provideSessionBuilder(): SessionBuilder {
         return SessionBuilder(Constants.DB_DMC_USER, "admin", Constants.DMC_MASTER_DNS_NAME)
     }
 
     @Provides
     @Singleton
-    fun provideRedisPool(): RedisPool {
+    open fun provideRedisPool(): RedisPool {
         return RedisPool("ubuntu1")
     }
 
     @Provides
-    fun provideJedisPool(redisPool: RedisPool): JedisPool {
+    open fun provideJedisPool(redisPool: RedisPool): JedisPool {
         return redisPool.jedisPool
     }
 
     @Provides
     @Singleton
-    fun provideRegistryApi(mainConfig: Config<MainConfig>): DockerRegistryAPI {
+    open fun provideRegistryApi(mainConfig: Config<MainConfig>): DockerRegistryAPI {
         return DockerRegistryAPI(
             "https://" + Constants.REGISTRY_URL,
             mainConfig.get().registryUsername,
@@ -103,7 +99,7 @@ class DMCGuiceModule : AbstractModule() {
 
     @Provides
     @Singleton
-    fun provideCommons(mainConfig: Config<MainConfig>, @Named("old")serversConfigOld: Config<ServersConfig>,
+    open fun provideCommons(mainConfig: Config<MainConfig>, @Named("old")serversConfigOld: Config<ServersConfig>,
                        @Named("current") serversConfig: Config<ServersConfig>, docker: Docker, jedisPool: JedisPool,
                        sessionBuilder: SessionBuilder): Commons {
         return Commons(mainConfig, serversConfig, serversConfigOld, docker, jedisPool, sessionBuilder)

@@ -3,7 +3,7 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="3cfce34f-821b-44cb-ac9e-85f25f2209c1" name="Ubuntu1" url="http://ubuntu1">
-        <fileTransfer rootFolder="/home/arne/driver" accessType="SFTP" host="ubuntu1" port="22" sshConfigId="2d25887c-f31a-4e1c-b42e-6c33226efd10" sshConfig="arne@ubuntu1:22 password">
+        <fileTransfer rootFolder="/home/arne" accessType="SFTP" host="ubuntu1" port="22" sshConfigId="2d25887c-f31a-4e1c-b42e-6c33226efd10" sshConfig="arne@ubuntu1:22 password">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>

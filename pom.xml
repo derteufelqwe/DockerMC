@@ -23,15 +23,15 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <kotlin.version>1.5.20</kotlin.version>
+        <kotlin.version>1.5.21</kotlin.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <mainclass></mainclass>
         <shadeJarFinalName></shadeJarFinalName>
     </properties>
 
 
-<!--    PluginManagement: Children must specifically add the plugin to use it and its configuration-->
-<!--    Plugins: Children automatically inherit these plugins -->
+    <!--    PluginManagement: Children must specifically add the plugin to use it and its configuration-->
+    <!--    Plugins: Children automatically inherit these plugins -->
     <build>
         <pluginManagement>
             <plugins>
@@ -83,7 +83,9 @@
                     </execution>
                     <execution>
                         <id>test-compile</id>
-                        <goals> <goal>test-compile</goal> </goals>
+                        <goals>
+                            <goal>test-compile</goal>
+                        </goals>
                         <configuration>
                             <sourceDirs>
                                 <sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
@@ -239,7 +241,7 @@
             <version>20.1.0</version>
         </dependency>
 
-<!--        ##### Test dependencies #####-->
+        <!--        ##### Test dependencies #####-->
 
         <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
         <dependency>
