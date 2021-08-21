@@ -96,7 +96,7 @@ class DockerInDockerTest {
     }
 
 
-//    @Test
+    @Test
     fun testDocker() {
         val injector = Guice.createInjector(DMCTestGuiceModule(dockerPort = dockerPort, postgresPort = postgresPort))
 //        // Set up picocli commands
@@ -135,7 +135,7 @@ class DockerInDockerTest {
         println("Done")
     }
 
-//    @Test
+    @Test
     fun testServerCreation() {
         val mainConfig = MainConfig()
             mainConfig.poolParallelUpdates = 1
@@ -185,6 +185,9 @@ class DMCTestGuiceModule(
 
     var folder = createTempDirectory()
 
+    override fun configure() {
+
+    }
 
     @Provides
     @Singleton

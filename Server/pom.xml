@@ -126,13 +126,6 @@
             <version>1.25</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.jcraft/jsch -->
-        <dependency>
-            <groupId>com.jcraft</groupId>
-            <artifactId>jsch</artifactId>
-            <version>0.1.55</version>
-        </dependency>
-
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-collections4 -->
         <dependency>
             <groupId>org.apache.commons</groupId>

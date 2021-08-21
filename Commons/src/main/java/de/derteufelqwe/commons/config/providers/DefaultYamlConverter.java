@@ -76,16 +76,9 @@ public class DefaultYamlConverter implements YamlConverter {
 
     }
 
-    @Override
-    public void dumpJson(Object toSerialize, File file) throws IOException {
-        String data = this.dumpJson(toSerialize);
-
-        FileUtils.writeStringToFile(file, data, "UTF-8");
-    }
 
     @Override
     public JsonElement loadJson(String yamlData) {
-
         try {
             // For complex data types
             return gson.toJsonTree(yaml.loadAs(yamlData, Map.class));
@@ -94,13 +87,6 @@ public class DefaultYamlConverter implements YamlConverter {
             // For primary data types like Strings
             return gson.toJsonTree(yaml.load(yamlData));
         }
-    }
-
-    @Override
-    public JsonElement loadJson(File file) throws IOException {
-        String data = FileUtils.readFileToString(file, "UTF-8");
-
-        return this.loadJson(data);
     }
 
 

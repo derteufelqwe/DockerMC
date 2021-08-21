@@ -3,15 +3,18 @@ package de.derteufelqwe.commons.config;
 import com.google.gson.Gson;
 import de.derteufelqwe.commons.config.providers.GsonProvider;
 import de.derteufelqwe.commons.config.providers.YamlConverter;
+import de.derteufelqwe.commons.misc.VFile;
+import org.apache.commons.io.IOUtils;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 public class Config<A> {
 
     private YamlConverter converter;
     private Gson gson;
-    private String fileName;
+    private VFile file;
 
     private A instance;
     
@@ -19,8 +22,21 @@ public class Config<A> {
     public Config(YamlConverter converter, GsonProvider gsonProvider, String fileName, A instance) {
         this.converter = converter;
         this.gson = gsonProvider.getGson();
-        this.fileName = fileName;
         this.instance = instance;
+        this.file = new VFile(fileName);
+
+        if (file.getParentFile() != null)
+            file.getParentFile().mkdirs();
+    }
+
+    public Config(VFile file, YamlConverter converter, GsonProvider gsonProvider, A instance) {
+        this.file = file;
+        this.converter = converter;
+        this.gson = gsonProvider.getGson();
+        this.instance = instance;
+
+        if (file.getParentFile() != null)
+            file.getParentFile().mkdirs();
     }
 
 
@@ -32,20 +48,15 @@ public class Config<A> {
         this.instance = instance;
     }
 
-    private File getFile() {
-        File file = new File(fileName);
-        if (file.getParentFile() != null)
-            file.getParentFile().mkdirs();
-
-        return file;
-    }
 
     public void load() {
-        File file = getFile();
-
         try {
             if (!file.createNewFile()) {
-                this.instance = gson.fromJson(converter.loadJson(file), (Class<A>) this.instance.getClass());
+                InputStream is = file.getInputStream();
+                String data = IOUtils.toString(is, Charset.defaultCharset());
+                is.close();
+
+                this.instance = gson.fromJson(converter.loadJson(data), (Class<A>) this.instance.getClass());
 
             } else {
                 this.save();
@@ -58,10 +69,11 @@ public class Config<A> {
     }
 
     public void save() {
-        File file = getFile();
-
         try {
-            converter.dumpJson(instance, file);
+            String data = converter.dumpJson(instance);
+            OutputStream os = file.getOutputStream();
+            os.write(data.getBytes(StandardCharsets.UTF_8));
+            os.close();
 
         } catch (IOException e) {
             e.printStackTrace();

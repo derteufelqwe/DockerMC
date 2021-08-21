@@ -7,21 +7,15 @@ import java.util.Map;
 import java.util.UUID;
 
 public class Constants {
-
+    // System.getProperty("user.dir").replace("\\", "/") + "/";
     /**
      * If true indicates that this is running on windows but connected to docker on linux
      */
     public static final boolean DEBUG = true;
 
-    public static final String WORKDIR = System.getProperty("user.dir").replace("\\", "/") + "/";
+    public static String WORKDIR = "";
     public static String WORKDIR_LNX = WORKDIR;
 
-    // If DEBUG manually set the workdir to the server folder on linux. This is required so that docker can mount correctly
-    static {
-        if (DEBUG) {
-            WORKDIR_LNX = "/home/arne/ServerManager/Server/";
-        }
-    }
 
     // Miscellaneous values
     public static final String CONFIG_PATH = WORKDIR + "configs/";
