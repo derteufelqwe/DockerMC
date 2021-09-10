@@ -1,13 +1,13 @@
 FROM dockermctest-base
 
+EXPOSE 5001
+
+### General setup ###
 RUN mkdir /dockermc \
     && mkdir /plugin
 
 ADD start.sh /start.sh
-# Add the compiled files
-ADD "build/DMCDockerPlugin.jar" "/plugin"
-ADD "build/DMCServerManager.jar" "/dockermc"
-
+ADD server.sh /server.sh
 
 ### Build the BungeeCord image ###
 ADD bungeeserver /tmp
@@ -28,5 +28,9 @@ RUN /startdocker.sh \
     && docker build -t registry.swarm/dockermc-minecraft:testing /tmp/minecraftserver \
     && /stopdocker.sh
 
+
+### Add the server jars ###
+ADD "build/DMCDockerPlugin.jar" "/plugin"
+ADD "build/DMCServerManager.jar" "/dockermc"
 
 # Entrypoint / Cmd inherited from parent

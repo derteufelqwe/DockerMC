@@ -13,14 +13,12 @@ import com.google.inject.Guice
 import com.google.inject.Provides
 import com.google.inject.Singleton
 import com.google.inject.name.Named
-import de.derteufelqwe.ServerManager.DMCGuiceModule
 import de.derteufelqwe.ServerManager.Docker
 import de.derteufelqwe.ServerManager.GuiceFactory
 import de.derteufelqwe.ServerManager.cli.CliCommands
 import de.derteufelqwe.ServerManager.cli.converters.DurationConverter
 import de.derteufelqwe.ServerManager.config.MainConfig
 import de.derteufelqwe.ServerManager.config.ServersConfig
-import de.derteufelqwe.ServerManager.config.objects.CertificateCfg
 import de.derteufelqwe.ServerManager.registry.DockerRegistryAPI
 import de.derteufelqwe.ServerManager.setup.servers.BungeePool
 import de.derteufelqwe.ServerManager.utils.Commons
@@ -30,10 +28,13 @@ import de.derteufelqwe.commons.config.providers.DefaultGsonProvider
 import de.derteufelqwe.commons.config.providers.DefaultYamlConverter
 import de.derteufelqwe.commons.hibernate.SessionBuilder
 import de.derteufelqwe.commons.redis.RedisPool
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import de.derteufelqwe.junitDocker.DockerRunner
+import de.derteufelqwe.junitDocker.util.*
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.core.Logger
+import org.apache.logging.log4j.core.layout.PatternLayout
+import org.junit.Test
+import org.junit.runner.RunWith
 import picocli.CommandLine
 import picocli.shell.jline3.PicocliCommands
 import redis.clients.jedis.JedisPool
@@ -47,7 +48,9 @@ private val IMAGE_NAME = "dockermctest-full:latest"
 private val HOSTNAME = "ubuntu1"
 
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@RunWith(DockerRunner::class)
+@RequiredClasses([DMCTestGuiceModule::class, PrintAppender::class])
+@RemoteJUnitConfig(reuseContainer = false)
 class DockerInDockerTest {
 
     private lateinit var localDocker: DockerClient
@@ -57,18 +60,20 @@ class DockerInDockerTest {
     private var postgresPort = -1
 
 
-    @BeforeAll
+    //    @Before
     fun startUp() {
         this.localDocker = getDocker(HOSTNAME, 2375)
 
         // Create the docker container to run the tests in
         val container = localDocker.createContainerCmd(IMAGE_NAME)
-            .withHostConfig(HostConfig()
-                .withRuntime("sysbox-runc")
-                .withPortBindings(
-                    PortBinding(Ports.Binding.empty(), ExposedPort.tcp(2375)),
-                    PortBinding(Ports.Binding.empty(), ExposedPort.tcp(5432))
-                ))
+            .withHostConfig(
+                HostConfig()
+                    .withRuntime("sysbox-runc")
+                    .withPortBindings(
+                        PortBinding(Ports.Binding.empty(), ExposedPort.tcp(2375)),
+                        PortBinding(Ports.Binding.empty(), ExposedPort.tcp(5432))
+                    )
+            )
             .exec()
 
         localDocker.startContainerCmd(container.id).exec()
@@ -85,7 +90,7 @@ class DockerInDockerTest {
         println("Connected to docker engine in '$containerID:$dockerPort'.")
     }
 
-    @AfterAll
+    //    @AfterAll
     fun tearDown() {
 
         docker.close()
@@ -96,9 +101,39 @@ class DockerInDockerTest {
     }
 
 
+    companion object {
+        @ContainerProvider
+        @JvmStatic
+        fun containerProvider(): ContainerInfo {
+            return ContainerInfo("ubuntu1", 49169, 49168)
+        }
+
+        @ContainerDestroyer
+        @JvmStatic
+        fun containerDestroyer(info: ContainerInfo) {
+            println("")
+        }
+
+    }
+
+
     @Test
+    fun testSimple() {
+        println("Testing")
+//        val injector = Guice.createInjector(DMCTestGuiceModule(dockerPort = dockerPort, postgresPort = postgresPort))
+//        println("Done")
+    }
+
+    @Test
+    fun testSimple2() {
+        println("Testing2")
+//        val injector = Guice.createInjector(DMCTestGuiceModule(dockerPort = dockerPort, postgresPort = postgresPort))
+//        println("Done")
+    }
+
+    //    @Test
     fun testDocker() {
-        val injector = Guice.createInjector(DMCTestGuiceModule(dockerPort = dockerPort, postgresPort = postgresPort))
+        val injector = Guice.createInjector(DMCTestGuiceModule())
 //        // Set up picocli commands
         val commands = CliCommands()
         val factory = PicocliCommands.PicocliCommandsFactory(GuiceFactory(injector))
@@ -109,42 +144,55 @@ class DockerInDockerTest {
         cmd.out = PrintWriter(sw)
 
 //        val exitCode = cmd.execute("system", "listNodes")
-        val exitCode = cmd.execute("system", "createInfrastructure", "-a")
+        val exitCode = cmd.execute("system", "createInfrastructure", "-n")
         println("Done")
     }
 
     @Test
     fun testSetupSystem() {
         val mainConfig = MainConfig()
+        // Registry config
         mainConfig.registryCerCfg.countryCode = "DE"
         mainConfig.registryCerCfg.state = "BE"
         mainConfig.registryCerCfg.city = "City"
         mainConfig.registryCerCfg.organizationName = "TestOrg"
         mainConfig.registryCerCfg.email = "test@test.de"
 
-        val injector = Guice.createInjector(DMCTestGuiceModule(dockerPort = dockerPort, postgresPort = postgresPort, mainConfig = mainConfig))
-        val commands = CliCommands()
-        val factory = PicocliCommands.PicocliCommandsFactory(GuiceFactory(injector))
-        val cmd = CommandLine(commands, factory)
-        cmd.registerConverter(Duration::class.java, DurationConverter())
+        val injector = Guice.createInjector(
+            DMCTestGuiceModule(
+                mainConfig = mainConfig
+            )
+        )
 
-        val sw = StringWriter()
-        cmd.out = PrintWriter(sw)
 
-        val exitCode = cmd.execute("system", "createInfrastructure", "-a")
+        val logger = LogManager.getRootLogger() as Logger
+        val pa = PrintAppender(
+            PatternLayout.newBuilder()
+                .withPattern("%d{ISO8601} [%-5level] %msg%n%throwable")
+                .build()
+        )
+        pa.start()
+        logger.addAppender(pa)
+
+        val commons = injector.getInstance(Commons::class.java)
+        commons.createOvernetNetwork()
+
         println("Done")
     }
 
-    @Test
+    //    @Test
     fun testServerCreation() {
         val mainConfig = MainConfig()
-            mainConfig.poolParallelUpdates = 1
-            mainConfig.bungeePoolParallelUpdates = 1
+        mainConfig.poolParallelUpdates = 1
+        mainConfig.bungeePoolParallelUpdates = 1
         val serversConfig = ServersConfig()
         serversConfig.bungeePool = BungeePool("testbungee", "dockermc-bungee:testing", "1G", 1.0f, 2, null, 25577)
 
-        val injector = Guice.createInjector(DMCTestGuiceModule(mainConfig = mainConfig, serversConfig = serversConfig,
-            dockerPort = dockerPort, postgresPort = postgresPort))
+        val injector = Guice.createInjector(
+            DMCTestGuiceModule(
+                mainConfig = mainConfig, serversConfig = serversConfig,
+            )
+        )
 
         val commons = injector.getInstance(Commons::class.java).createBungeeServer(false)
 
@@ -179,8 +227,6 @@ class DMCTestGuiceModule(
     val mainConfig: MainConfig = MainConfig(),
     val serversConfig: ServersConfig = ServersConfig(),
     val serversConfigOld: ServersConfig = ServersConfig(),
-    val dockerPort: Int,
-    val postgresPort: Int,
 ) : AbstractModule() {
 
     var folder = createTempDirectory()
@@ -227,19 +273,19 @@ class DMCTestGuiceModule(
     @Provides
     @Singleton
     fun provideDocker(mainConfig: Config<MainConfig>): Docker {
-        return Docker("tcp", "ubuntu1", dockerPort, mainConfig.get())
+        return Docker("tcp", "localhost", 2375, mainConfig.get())
     }
 
     @Provides
     @Singleton
     fun provideSessionBuilder(): SessionBuilder {
-        return SessionBuilder(Constants.DB_DMC_USER, "admin", HOSTNAME, postgresPort)
+        return SessionBuilder(Constants.DB_DMC_USER, "admin", "localhost", Constants.POSTGRESDB_PORT)
     }
 
     @Provides
     @Singleton
     fun provideRedisPool(): RedisPool {
-        return RedisPool("ubuntu1")
+        return RedisPool("localhost")
     }
 
     @Provides
@@ -259,9 +305,11 @@ class DMCTestGuiceModule(
 
     @Provides
     @Singleton
-    fun provideCommons(mainConfig: Config<MainConfig>, @Named("old")serversConfigOld: Config<ServersConfig>,
-                            @Named("current") serversConfig: Config<ServersConfig>, docker: Docker, jedisPool: JedisPool,
-                            sessionBuilder: SessionBuilder): Commons {
+    fun provideCommons(
+        mainConfig: Config<MainConfig>, @Named("old") serversConfigOld: Config<ServersConfig>,
+        @Named("current") serversConfig: Config<ServersConfig>, docker: Docker, jedisPool: JedisPool,
+        sessionBuilder: SessionBuilder
+    ): Commons {
         return Commons(mainConfig, serversConfig, serversConfigOld, docker, jedisPool, sessionBuilder)
     }
 

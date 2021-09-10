@@ -14,13 +14,15 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.junit.jupiter.api.*;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+//@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SerializationTests {
 
     private ServerMock server;
@@ -35,7 +37,7 @@ class SerializationTests {
         return (T) this.gson.fromJson(this.converter.loadJson(data), clazz);
     }
 
-    @BeforeAll
+    @BeforeClass
     public void setUp() {
         server = MockBukkit.mock();
         server.addSimpleWorld("world");
@@ -96,7 +98,7 @@ class SerializationTests {
 
         LocationContainer newContainer = this.deserialize(data, LocationContainer.class);
 
-        Assertions.assertEquals(container, newContainer);
+        assertEquals(container, newContainer);
     }
 
     @Test
@@ -115,7 +117,7 @@ class SerializationTests {
 
     }
 
-    @AfterAll
+    @AfterClass
     public void tearDown() {
         MockBukkit.unload();
     }

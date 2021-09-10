@@ -28,3 +28,4 @@ Tools/RedisCli
 Tools/protoc.exe
 Tools/testing/binaryimage/bungeeserver
 Tools/testing/binaryimage/minecraftserver
+Tools/testing/binaryimage/build

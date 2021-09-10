@@ -1,9 +1,9 @@
 package de.derteufelqwe.ServerManager;
 
 import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.assertNotEquals;
 
 class ServiceConstraintsTest {
 

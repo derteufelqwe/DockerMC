@@ -1,17 +1,17 @@
 package de.derteufelqwe.ServerManager
 
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.jcraft.jsch.*
-import de.derteufelqwe.ServerManager.config.MainConfig
-import de.derteufelqwe.commons.config.Config
-import de.derteufelqwe.commons.config.providers.DefaultGsonProvider
-import de.derteufelqwe.commons.config.providers.DefaultYamlConverter
-import de.derteufelqwe.commons.misc.RemoteFile
-import de.derteufelqwe.commons.misc.VFile
-import java.io.*
-import java.nio.CharBuffer
+import com.jcraft.jsch.ChannelSftp
+import com.jcraft.jsch.JSch
+import com.jcraft.jsch.UserInfo
+import de.derteufelqwe.junitDocker.JUnitService
+import sun.rmi.server.UnicastRef
+import sun.rmi.transport.LiveRef
+import sun.rmi.transport.tcp.TCPEndpoint
+import java.lang.reflect.Proxy
 import java.nio.charset.Charset
+import java.rmi.registry.LocateRegistry
+import java.rmi.server.RemoteObject
+import kotlin.system.measureTimeMillis
 
 
 fun test() {
@@ -60,14 +60,37 @@ fun test() {
 
 
 fun main() {
+    val port = 49183
+    val registry = LocateRegistry.getRegistry("192.168.137.101", port)
 
-    val file = RemoteFile("ubuntu1", "arne", "admin", "/home/arne/config.yml")
-    val cfg = Config(file, DefaultYamlConverter(), DefaultGsonProvider(), MainConfig())
+    val t1 = measureTimeMillis {
+        val service = registry.lookup("JUnitTestService") as JUnitService
+    }
 
-    cfg.save()
+    val t2 = measureTimeMillis {
+        val service = registry.lookup("JUnitTestService") as JUnitService
+    }
 
-    file.cleanup()
-    println("Done")
+    println("Took $t1 ms and $t2 ms.")
+
+    // This massacre reflects into the proxy object and changes the return port for the RMI calls.
+//    val refF = RemoteObject::class.java.getDeclaredField("ref")
+//    refF.isAccessible = true
+//    val ref = refF.get(Proxy.getInvocationHandler(service)) as UnicastRef
+//    val liveRef = ref.liveRef
+//
+//    val epF = LiveRef::class.java.getDeclaredField("ep")
+//    epF.isAccessible = true
+//
+//    val endpoint = epF.get(liveRef) as TCPEndpoint
+//    val portF = TCPEndpoint::class.java.getDeclaredField("port")
+//    portF.isAccessible = true
+//    portF.setInt(endpoint, port)
+//
+//    val hostF = TCPEndpoint::class.java.getDeclaredField("host")
+//    hostF.isAccessible = true
+//    hostF.set(endpoint, "ubuntu1")
+
 }
 
 

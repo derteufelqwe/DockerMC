@@ -3,11 +3,12 @@ package de.derteufelqwe.ServerManager.setup.servers;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceConstraints;
 import de.derteufelqwe.ServerManager.setup.templates.ServiceTemplate;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.lang.reflect.Field;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 class ServerPoolTest {
 

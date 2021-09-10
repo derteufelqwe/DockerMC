@@ -2,15 +2,16 @@ package de.derteufelqwe.commons.hibernate.objects;
 
 import de.derteufelqwe.commons.hibernate.TestSessionBuilder;
 import org.hibernate.Session;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import java.util.Properties;
 import java.util.UUID;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+//@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TestTest {
 
     private EntityManagerFactory factory;
@@ -22,7 +23,7 @@ public class TestTest {
     private UUID playerId = UUID.randomUUID();
 
 
-    @BeforeAll
+    @BeforeClass
     public void begin() {
         Properties prop = new TestSessionBuilder().getProp();
         factory = Persistence.createEntityManagerFactory("Test1", prop);

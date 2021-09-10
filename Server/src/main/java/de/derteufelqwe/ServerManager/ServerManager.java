@@ -8,20 +8,18 @@ import com.google.inject.name.Names;
 import de.derteufelqwe.ServerManager.cli.CliCommands;
 import de.derteufelqwe.ServerManager.cli.converters.DurationConverter;
 import de.derteufelqwe.ServerManager.config.MainConfig;
-import de.derteufelqwe.ServerManager.config.OldServersConfig;
 import de.derteufelqwe.ServerManager.config.ServersConfig;
-import de.derteufelqwe.ServerManager.registry.DockerRegistryAPI;
-import de.derteufelqwe.ServerManager.utils.Commons;
-import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
-import de.derteufelqwe.commons.config.providers.DefaultGsonProvider;
-import de.derteufelqwe.commons.config.providers.DefaultYamlConverter;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
-import de.derteufelqwe.commons.redis.RedisPool;
-import lombok.Getter;
+import de.derteufelqwe.junitDocker.JUnitDockerServer;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Layout;
+import org.apache.logging.log4j.core.Logger;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.DefaultConfiguration;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.fusesource.jansi.AnsiConsole;
-import org.hibernate.service.spi.InjectService;
 import org.jline.console.SystemRegistry;
 import org.jline.console.impl.Builtins;
 import org.jline.console.impl.SystemRegistryImpl;
@@ -36,6 +34,7 @@ import picocli.CommandLine;
 import picocli.shell.jline3.PicocliCommands;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -74,9 +73,15 @@ public class ServerManager {
 
 
     public static void main(String[] args) {
-        injector.getInstance(Key.get(new TypeLiteral<Config<MainConfig>>() {})).load();
-        injector.getInstance(Key.get(new TypeLiteral<Config<ServersConfig>>() {}, Names.named("current"))).load();
-        injector.getInstance(Key.get(new TypeLiteral<Config<ServersConfig>>() {}, Names.named("old"))).load();
+        new JUnitDockerServer(1099).startAndAwait();
+
+
+        injector.getInstance(Key.get(new TypeLiteral<Config<MainConfig>>() {
+        })).load();
+        injector.getInstance(Key.get(new TypeLiteral<Config<ServersConfig>>() {
+        }, Names.named("current"))).load();
+        injector.getInstance(Key.get(new TypeLiteral<Config<ServersConfig>>() {
+        }, Names.named("old"))).load();
 
         log.info("Connecting to the docker engine...");
         injector.getInstance(Docker.class).getDocker().pingCmd().exec();
@@ -103,9 +108,12 @@ public class ServerManager {
                 log.error("Failed to close connection to database!", e);
             }
 
-            injector.getInstance(Key.get(new TypeLiteral<Config<MainConfig>>() {})).save();
-            injector.getInstance(Key.get(new TypeLiteral<Config<ServersConfig>>() {}, Names.named("current"))).save();
-            injector.getInstance(Key.get(new TypeLiteral<Config<ServersConfig>>() {}, Names.named("old"))).save();
+            injector.getInstance(Key.get(new TypeLiteral<Config<MainConfig>>() {
+            })).save();
+            injector.getInstance(Key.get(new TypeLiteral<Config<ServersConfig>>() {
+            }, Names.named("current"))).save();
+            injector.getInstance(Key.get(new TypeLiteral<Config<ServersConfig>>() {
+            }, Names.named("old"))).save();
         }
     }
 
@@ -179,5 +187,6 @@ public class ServerManager {
             AnsiConsole.systemUninstall();
         }
     }
+
 
 }

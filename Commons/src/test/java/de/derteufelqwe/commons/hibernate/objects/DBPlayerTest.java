@@ -5,17 +5,17 @@ import de.derteufelqwe.commons.hibernate.objects.permissions.Permission;
 import de.derteufelqwe.commons.hibernate.objects.permissions.PermissionGroup;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+//@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DBPlayerTest {
 
     private final UUID player1Id = UUID.randomUUID();
@@ -26,7 +26,7 @@ class DBPlayerTest {
     private TestSessionBuilder sessionBuilder;
 
 
-    @BeforeAll
+    @BeforeClass
     public void setup() {
         this.sessionBuilder = new TestSessionBuilder();
 

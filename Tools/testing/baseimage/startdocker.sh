@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "Trying to stop docker first."
+./stopdocker.sh
+
 echo "Starting docker daemon"
 dockerd --tls=false -H "tcp://0.0.0.0:2375" -H "unix:///var/run/docker.sock" > /var/log/dockerd.log 2>&1 &
 

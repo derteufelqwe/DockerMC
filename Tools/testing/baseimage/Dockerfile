@@ -1,12 +1,14 @@
 FROM nestybox/alpine-docker
 
-### Install java ###
 
+### Install dependencies ###
 RUN apk update \
     && apk add openjdk8 \
-    && apk add bash
+    && apk add bash \
+    && apk add maven
 
-### Install postgres ###
+
+### Install postgresql ###
 EXPOSE 5432
 
 RUN apk add postgresql
@@ -36,7 +38,7 @@ RUN pg_ctl start -D /var/lib/postgresql/data \
 USER root
 
 
-### Setup docker related stuff ###
+### Setup docker control ###
 EXPOSE 2375
 WORKDIR "/"
 
@@ -47,7 +49,8 @@ ADD stopdocker.sh /
 RUN chmod +x /startdocker.sh \
     && chmod +x /stopdocker.sh
 
-### Configure DockerMC related stuff ###
+
+### Setup docker ###
 RUN /startdocker.sh \
     && docker pull registry:latest \
     && docker pull redis:latest \
@@ -56,10 +59,12 @@ RUN /startdocker.sh \
     && docker pull openjdk:8-jre-alpine \
     && /stopdocker.sh
 
-
 RUN /startdocker.sh \
     && docker swarm init \
     && /stopdocker.sh
+
+
+### Configure DockerMC related stuff ###
 
 
 ### Run configuration ###
