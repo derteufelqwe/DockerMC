@@ -49,7 +49,7 @@ private val HOSTNAME = "ubuntu1"
 
 
 @RunWith(DockerRunner::class)
-@RequiredClasses([DMCTestGuiceModule::class, PrintAppender::class])
+@RequiredClasses([DMCTestGuiceModule::class, PrintAppender::class, TestUtils::class])
 @RemoteJUnitConfig(reuseContainer = false)
 class DockerInDockerTest {
 
@@ -62,7 +62,7 @@ class DockerInDockerTest {
 
     //    @Before
     fun startUp() {
-        this.localDocker = getDocker(HOSTNAME, 2375)
+        this.localDocker = TestUtils.getDocker(HOSTNAME, 2375)
 
         // Create the docker container to run the tests in
         val container = localDocker.createContainerCmd(IMAGE_NAME)
@@ -84,7 +84,7 @@ class DockerInDockerTest {
         dockerPort = inspectResp.networkSettings.ports.bindings[ExposedPort.tcp(2375)]!![0].hostPortSpec.toInt()
         postgresPort = inspectResp.networkSettings.ports.bindings[ExposedPort.tcp(5432)]!![0].hostPortSpec.toInt()
 
-        docker = getDocker(HOSTNAME, dockerPort)
+        docker = TestUtils.getDocker(HOSTNAME, dockerPort)
         docker.pingCmd().exec()
 
         println("Connected to docker engine in '$containerID:$dockerPort'.")
@@ -102,14 +102,14 @@ class DockerInDockerTest {
 
 
     companion object {
-        @ContainerProvider
         @JvmStatic
+        @ContainerProvider
         fun containerProvider(): ContainerInfo {
-            return ContainerInfo("ubuntu1", 49169, 49168)
+            return ContainerInfo("ubuntu1", "", 49173, 49171)
         }
 
-        @ContainerDestroyer
         @JvmStatic
+        @ContainerDestroyer
         fun containerDestroyer(info: ContainerInfo) {
             println("")
         }
@@ -120,15 +120,11 @@ class DockerInDockerTest {
     @Test
     fun testSimple() {
         println("Testing")
-//        val injector = Guice.createInjector(DMCTestGuiceModule(dockerPort = dockerPort, postgresPort = postgresPort))
-//        println("Done")
     }
 
     @Test
     fun testSimple2() {
         println("Testing2")
-//        val injector = Guice.createInjector(DMCTestGuiceModule(dockerPort = dockerPort, postgresPort = postgresPort))
-//        println("Done")
     }
 
     //    @Test
@@ -164,15 +160,7 @@ class DockerInDockerTest {
             )
         )
 
-
-        val logger = LogManager.getRootLogger() as Logger
-        val pa = PrintAppender(
-            PatternLayout.newBuilder()
-                .withPattern("%d{ISO8601} [%-5level] %msg%n%throwable")
-                .build()
-        )
-        pa.start()
-        logger.addAppender(pa)
+        TestUtils.injectLogger()
 
         val commons = injector.getInstance(Commons::class.java)
         commons.createOvernetNetwork()
@@ -198,119 +186,5 @@ class DockerInDockerTest {
 
     }
 
-
-    // -----  Utility methods  -----
-
-    fun getDocker(host: String, port: Int): DockerClient {
-        val clientConfig: DockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
-            .withDockerHost(String.format("%s://%s:%s", "tcp", host, port))
-            .withDockerTlsVerify(false)
-            .withApiVersion("1.41")
-            .build()
-
-        val httpClient: DockerHttpClient = ApacheDockerHttpClient.Builder()
-            .dockerHost(clientConfig.dockerHost)
-            .sslConfig(clientConfig.sslConfig)
-            .build()
-
-        return DockerClientImpl.getInstance(clientConfig, httpClient)
-    }
-
-
-}
-
-
-/**
- * A custom version of the DMCGuiceModule, which overrides the providers, which access external resources
- */
-class DMCTestGuiceModule(
-    val mainConfig: MainConfig = MainConfig(),
-    val serversConfig: ServersConfig = ServersConfig(),
-    val serversConfigOld: ServersConfig = ServersConfig(),
-) : AbstractModule() {
-
-    var folder = createTempDirectory()
-
-    override fun configure() {
-
-    }
-
-    @Provides
-    @Singleton
-    fun provideMainConfig(): Config<MainConfig> {
-        return Config(
-            DefaultYamlConverter(),
-            DefaultGsonProvider(),
-            Constants.CONFIG_PATH + "/main.yml",
-            mainConfig
-        )
-    }
-
-    @Provides
-    @Singleton
-    @Named("current")
-    fun provideServerConfig(): Config<ServersConfig> {
-        return Config(
-            DefaultYamlConverter(),
-            DefaultGsonProvider(),
-            Constants.CONFIG_PATH + "/servers.yml",
-            serversConfig
-        )
-    }
-
-    @Provides
-    @Singleton
-    @Named("old")
-    fun provideServerConfigOld(): Config<ServersConfig> {
-        return Config(
-            DefaultYamlConverter(),
-            DefaultGsonProvider(),
-            Constants.DATA_PATH + "/servers_old.yml",
-            serversConfigOld
-        )
-    }
-
-    @Provides
-    @Singleton
-    fun provideDocker(mainConfig: Config<MainConfig>): Docker {
-        return Docker("tcp", "localhost", 2375, mainConfig.get())
-    }
-
-    @Provides
-    @Singleton
-    fun provideSessionBuilder(): SessionBuilder {
-        return SessionBuilder(Constants.DB_DMC_USER, "admin", "localhost", Constants.POSTGRESDB_PORT)
-    }
-
-    @Provides
-    @Singleton
-    fun provideRedisPool(): RedisPool {
-        return RedisPool("localhost")
-    }
-
-    @Provides
-    fun provideJedisPool(redisPool: RedisPool): JedisPool {
-        return redisPool.jedisPool
-    }
-
-    @Provides
-    @Singleton
-    fun provideRegistryApi(mainConfig: Config<MainConfig>): DockerRegistryAPI {
-        return DockerRegistryAPI(
-            "https://" + Constants.REGISTRY_URL,
-            mainConfig.get().registryUsername,
-            mainConfig.get().registryPassword
-        )
-    }
-
-    @Provides
-    @Singleton
-    fun provideCommons(
-        mainConfig: Config<MainConfig>, @Named("old") serversConfigOld: Config<ServersConfig>,
-        @Named("current") serversConfig: Config<ServersConfig>, docker: Docker, jedisPool: JedisPool,
-        sessionBuilder: SessionBuilder
-    ): Commons {
-        return Commons(mainConfig, serversConfig, serversConfigOld, docker, jedisPool, sessionBuilder)
-    }
 
 }

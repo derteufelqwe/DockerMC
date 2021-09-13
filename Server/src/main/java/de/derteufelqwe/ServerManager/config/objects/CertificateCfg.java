@@ -1,11 +1,13 @@
 package de.derteufelqwe.ServerManager.config.objects;
 
 import de.derteufelqwe.commons.config.annotations.Comment;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class CertificateCfg {
 
     @Comment("Country Code, 2 letters (e.g. DE or UK")
