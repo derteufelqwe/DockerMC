@@ -6,7 +6,7 @@ EXPOSE 5001
 RUN mkdir /dockermc \
     && mkdir /plugin
 
-ADD start.sh /start.sh
+ADD entrypoint.sh /entrypoint.sh
 ADD server.sh /server.sh
 
 ### Build the BungeeCord image ###

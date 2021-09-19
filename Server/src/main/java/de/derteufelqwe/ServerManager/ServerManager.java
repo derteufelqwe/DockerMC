@@ -4,21 +4,16 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
-import com.google.inject.name.Names;
 import de.derteufelqwe.ServerManager.cli.CliCommands;
 import de.derteufelqwe.ServerManager.cli.converters.DurationConverter;
 import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.config.ServersConfig;
+import de.derteufelqwe.ServerManager.utils.NewConfig;
+import de.derteufelqwe.ServerManager.utils.OldConfig;
 import de.derteufelqwe.commons.config.Config;
 import de.derteufelqwe.commons.hibernate.SessionBuilder;
 import de.derteufelqwe.junitDocker.JUnitDockerServer;
 import lombok.extern.log4j.Log4j2;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.Layout;
-import org.apache.logging.log4j.core.Logger;
-import org.apache.logging.log4j.core.appender.ConsoleAppender;
-import org.apache.logging.log4j.core.config.DefaultConfiguration;
-import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.fusesource.jansi.AnsiConsole;
 import org.jline.console.SystemRegistry;
 import org.jline.console.impl.Builtins;
@@ -34,7 +29,6 @@ import picocli.CommandLine;
 import picocli.shell.jline3.PicocliCommands;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -73,15 +67,18 @@ public class ServerManager {
 
 
     public static void main(String[] args) {
-        new JUnitDockerServer(1099).startAndAwait();
-
+        if (args.length == 1 && args[0].equals("testserver")) {
+            System.out.println("Starting test RMI server.");
+            new JUnitDockerServer(1099).startAndAwait();
+            return;
+        }
 
         injector.getInstance(Key.get(new TypeLiteral<Config<MainConfig>>() {
         })).load();
         injector.getInstance(Key.get(new TypeLiteral<Config<ServersConfig>>() {
-        }, Names.named("current"))).load();
+        }, NewConfig.class)).load();
         injector.getInstance(Key.get(new TypeLiteral<Config<ServersConfig>>() {
-        }, Names.named("old"))).load();
+        }, OldConfig.class)).load();
 
         log.info("Connecting to the docker engine...");
         injector.getInstance(Docker.class).getDocker().pingCmd().exec();
@@ -111,9 +108,9 @@ public class ServerManager {
             injector.getInstance(Key.get(new TypeLiteral<Config<MainConfig>>() {
             })).save();
             injector.getInstance(Key.get(new TypeLiteral<Config<ServersConfig>>() {
-            }, Names.named("current"))).save();
+            }, NewConfig.class)).save();
             injector.getInstance(Key.get(new TypeLiteral<Config<ServersConfig>>() {
-            }, Names.named("old"))).save();
+            }, OldConfig.class)).save();
         }
     }
 

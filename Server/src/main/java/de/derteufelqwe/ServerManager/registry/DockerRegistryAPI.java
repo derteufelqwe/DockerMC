@@ -86,7 +86,7 @@ public class DockerRegistryAPI {
         try {
             KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
             keyStore.load(null, null);
-            keyStore.setCertificateEntry(this.url, new X509CertImpl(new FileInputStream(Constants.REGISTRY_CERT_PATH_1 + Constants.REGISTRY_CERT_NAME)));
+            keyStore.setCertificateEntry(this.url, new X509CertImpl(new FileInputStream(Constants.REGISTRY_CERT_PATH + Constants.REGISTRY_CERT_NAME)));
             return keyStore;
 
         } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {

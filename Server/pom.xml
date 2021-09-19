@@ -188,6 +188,21 @@
 <!--            <scope>test</scope>-->
         </dependency>
 
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>org.bouncycastle</groupId>-->
+<!--            <artifactId>bcprov-jdk15on</artifactId>-->
+<!--            <version>1.69</version>-->
+<!--        </dependency>-->
+
+        <dependency>
+            <!-- Required to create the htpasswd file -->
+            <groupId>com.password4j</groupId>
+            <artifactId>password4j</artifactId>
+            <version>1.5.3</version>
+        </dependency>
+
+
     </dependencies>
 
 

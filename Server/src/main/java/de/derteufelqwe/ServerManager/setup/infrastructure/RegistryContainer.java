@@ -1,6 +1,9 @@
 package de.derteufelqwe.ServerManager.setup.infrastructure;
 
-import com.github.dockerjava.api.model.*;
+import com.github.dockerjava.api.model.Bind;
+import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.api.model.RestartPolicy;
+import com.github.dockerjava.api.model.Volume;
 import de.derteufelqwe.ServerManager.setup.templates.ExposableContainerTemplate;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.Utils;
@@ -21,15 +24,12 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 public class RegistryContainer extends ExposableContainerTemplate {
 
-    /**
-     * Remove this Constructor from access. Use the constructor below instead
-     */
-    public RegistryContainer(String name, String image, String ramLimit, float cpuLimit) {
-        super(name, image, ramLimit, cpuLimit, 443);
-    }
 
-    public RegistryContainer() {
+    private String certBindPath = "";
+
+    public RegistryContainer(String certBindPath) {
         super(Constants.REGISTRY_CONTAINER_NAME, Constants.Images.REGISTRY.image(), "1G", 2.0F, 443);
+        this.certBindPath = certBindPath;
     }
 
     // -----  Creation methods  -----
@@ -38,14 +38,15 @@ public class RegistryContainer extends ExposableContainerTemplate {
     protected List<Bind> getBindMounts() {
         List<Bind> mounts = super.getBindMounts();
 
+        // ToDo: Make dynamic
         mounts.add(
                 new Bind(Constants.REGISTRY_VOLUME_NAME, new Volume("/var/lib/registry"), false)
         );
         mounts.add(
-                new Bind(Constants.REGISTRY_CERT_PATH_2, new Volume("/auth"))
+                new Bind(certBindPath, new Volume("/auth"))
         );
         mounts.add(
-                new Bind(Constants.REGISTRY_CERT_PATH_2, new Volume("/certs"))
+                new Bind(certBindPath, new Volume("/certs"))
         );
 
         return mounts;
@@ -79,8 +80,6 @@ public class RegistryContainer extends ExposableContainerTemplate {
         return Constants.REGISTY_CONTAINER_DEFAULT_PORT;
     }
 
-
-
     @Override
     protected List<String> getNetworks() {
         List<String> networks = super.getNetworks();
@@ -90,4 +89,9 @@ public class RegistryContainer extends ExposableContainerTemplate {
         return networks;
     }
 
+    @Override
+    protected HostConfig getHostConfig() {
+        return super.getHostConfig()
+                .withRestartPolicy(RestartPolicy.unlessStoppedRestart());
+    }
 }

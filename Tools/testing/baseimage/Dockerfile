@@ -3,15 +3,15 @@ FROM nestybox/alpine-docker
 
 ### Install dependencies ###
 RUN apk update \
+    && apk add postgresql \
     && apk add openjdk8 \
     && apk add bash \
-    && apk add maven
+    && apk add maven \
+    && apk add openssl
 
 
 ### Install postgresql ###
 EXPOSE 5432
-
-RUN apk add postgresql
 
 RUN mkdir /run/postgresql \
     && chown postgres:postgres /run/postgresql
@@ -29,26 +29,26 @@ RUN initdb -D data \
 
 ADD postgresql.conf /var/lib/postgresql/data/postgresql.conf
 
-# Configure the database
-RUN pg_ctl start -D /var/lib/postgresql/data \
+# Configure the database (can't use start / stop scripts here cause they try to change to postgres user but this part is already run as postgres user)
+RUN pg_ctl start -D "/var/lib/postgresql/data" \
     && psql -c "CREATE ROLE dockermc WITH LOGIN SUPERUSER PASSWORD 'admin';" \
     && psql -c "CREATE DATABASE dockermc;" \
-    && pg_ctl stop -D /var/lib/postgresql/data
+    && pg_ctl stop -D "/var/lib/postgresql/data"
 
 USER root
+
+
+### Add and configure local files ###
+ADD . /
+RUN chmod +x /startdocker.sh \
+    && chmod +x /stopdocker.sh \
+    && chmod +x /startpostgres.sh \
+    && chmod +x /stoppostgres.sh
 
 
 ### Setup docker control ###
 EXPOSE 2375
 WORKDIR "/"
-
-ADD start.sh start.sh
-ADD startdocker.sh /
-ADD stopdocker.sh /
-
-RUN chmod +x /startdocker.sh \
-    && chmod +x /stopdocker.sh
-
 
 ### Setup docker ###
 RUN /startdocker.sh \
@@ -68,6 +68,6 @@ RUN /startdocker.sh \
 
 
 ### Run configuration ###
-ENTRYPOINT ["sh", "start.sh"]
+ENTRYPOINT ["sh", "entrypoint.sh"]
 
 CMD ["sleep", "infinity"]

@@ -87,7 +87,7 @@ public class HostResourceWatcher extends RepeatingThread {
      * @return
      */
     private int getRamUsage(int maxRam) throws InvalidHostResourcesException {
-        String output = Utils.executeCommandOnHost(new String[]{"cat", "/proc/meminfo"});
+        String output = Utils.executeCommandOnHost("cat", "/proc/meminfo");
         Matcher m = RE_MEM_FREE.matcher(output);
 
         if (m.find()) {
@@ -110,7 +110,7 @@ public class HostResourceWatcher extends RepeatingThread {
      */
     @CheckForNull
     private CpuLoadData getCpuData() {
-        String output = Utils.executeCommandOnHost(new String[]{"cat", "/proc/stat"});
+        String output = Utils.executeCommandOnHost("cat", "/proc/stat");
         Matcher m = RE_CPU_USAGE.matcher(output);
 
         if (m.find()) {

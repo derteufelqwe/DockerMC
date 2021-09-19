@@ -24,7 +24,7 @@ public class RegistryCertInfosCmd implements Runnable {
     @Override
     public void run() {
         try {
-            File certFile = new File(Constants.REGISTRY_CERT_PATH_1 + Constants.REGISTRY_CERT_NAME);
+            File certFile = new File(Constants.REGISTRY_CERT_PATH + Constants.REGISTRY_CERT_NAME);
             X509Certificate certificate = new X509CertImpl(new FileInputStream(certFile));
 
             log.info("SSL certificate information:");

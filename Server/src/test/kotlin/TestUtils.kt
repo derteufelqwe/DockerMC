@@ -12,7 +12,8 @@ import de.derteufelqwe.ServerManager.Docker
 import de.derteufelqwe.ServerManager.config.MainConfig
 import de.derteufelqwe.ServerManager.config.ServersConfig
 import de.derteufelqwe.ServerManager.registry.DockerRegistryAPI
-import de.derteufelqwe.ServerManager.utils.Commons
+import de.derteufelqwe.ServerManager.setup.InfrastructureSetup
+import de.derteufelqwe.ServerManager.utils.*
 import de.derteufelqwe.commons.Constants
 import de.derteufelqwe.commons.config.Config
 import de.derteufelqwe.commons.config.providers.DefaultGsonProvider
@@ -117,10 +118,9 @@ class DMCTestGuiceModule(
     val serversConfigOld: ServersConfig = ServersConfig(),
 ) : AbstractModule() {
 
-    var folder = createTempDirectory()
-
     override fun configure() {
-
+        bind(InfrastructureSetup::class.java)
+        bind(Commons::class.java).asEagerSingleton()
     }
 
     @Provides
@@ -136,7 +136,7 @@ class DMCTestGuiceModule(
 
     @Provides
     @Singleton
-    @Named("current")
+    @NewConfig
     fun provideServerConfig(): Config<ServersConfig> {
         return Config(
             DefaultYamlConverter(),
@@ -148,7 +148,7 @@ class DMCTestGuiceModule(
 
     @Provides
     @Singleton
-    @Named("old")
+    @OldConfig
     fun provideServerConfigOld(): Config<ServersConfig> {
         return Config(
             DefaultYamlConverter(),
@@ -156,6 +156,12 @@ class DMCTestGuiceModule(
             Constants.DATA_PATH + "/servers_old.yml",
             serversConfigOld
         )
+    }
+
+    @Provides
+    @DevProperties
+    fun provideDevConfig(): Properties {
+        return Properties()
     }
 
     @Provides
@@ -192,13 +198,9 @@ class DMCTestGuiceModule(
     }
 
     @Provides
-    @Singleton
-    fun provideCommons(
-        mainConfig: Config<MainConfig>, @Named("old") serversConfigOld: Config<ServersConfig>,
-        @Named("current") serversConfig: Config<ServersConfig>, docker: Docker, jedisPool: JedisPool,
-        sessionBuilder: SessionBuilder
-    ): Commons {
-        return Commons(mainConfig, serversConfig, serversConfigOld, docker, jedisPool, sessionBuilder)
+    @RegistryCertPath
+    fun provideRegistryCertPath(@DevProperties devProps: Properties): String {
+        return Constants.REGISTRY_CERT_PATH
     }
 
 }

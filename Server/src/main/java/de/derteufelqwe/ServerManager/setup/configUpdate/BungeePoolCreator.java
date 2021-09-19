@@ -8,14 +8,16 @@ import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.config.ServersConfig;
 import de.derteufelqwe.ServerManager.setup.ConfigCreator;
 import de.derteufelqwe.ServerManager.setup.servers.BungeePool;
+import de.derteufelqwe.ServerManager.utils.NewConfig;
+import de.derteufelqwe.ServerManager.utils.OldConfig;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 
 public class BungeePoolCreator extends ConfigCreator<BungeePool> {
 
     @Inject
-    public BungeePoolCreator(Docker docker, Config<MainConfig> mainConfig, @Named("current") Config<ServersConfig> serversConfig,
-                             @Named("old") Config<ServersConfig> serversConfigOld) {
+    public BungeePoolCreator(Docker docker, Config<MainConfig> mainConfig, @NewConfig Config<ServersConfig> serversConfig,
+                             @OldConfig Config<ServersConfig> serversConfigOld) {
         super(mainConfig,
                 serversConfig,
                 serversConfigOld,

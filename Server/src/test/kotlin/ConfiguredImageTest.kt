@@ -40,7 +40,7 @@ class ConfiguredImageTest {
                         )
                 )
                 .withExposedPorts(ExposedPort.tcp(1099), ExposedPort.tcp(9876))
-                .withCmd("java", "-jar", "dockermc/DMCServerManager.jar")
+                .withCmd("java", "-jar", "dockermc/DMCServerManager.jar", "testserver")
                 .exec()
 
             docker.startContainerCmd(container.id).exec()
@@ -84,8 +84,11 @@ class ConfiguredImageTest {
 
             // --- Package the container ---
 
-            val imageID = docker.commitCmd(info.containerID).exec()
-            docker.tagImageCmd(imageID, TestConstants.IMAGE_NAME_CONFIGURED, config.imageTagConfigured)
+            val imageID = docker.commitCmd(info.containerID)
+                .withRepository(TestConstants.IMAGE_NAME_CONFIGURED)
+                .withTag(config.imageTagConfigured)
+                .exec()
+//            docker.tagImageCmd(imageID, TestConstants.IMAGE_NAME_CONFIGURED, config.imageTagConfigured)
 
             println("Created configured test image ${imageID.substring(7)} (${TestConstants.IMAGE_NAME_CONFIGURED}:${config.imageTagConfigured}).")
         }

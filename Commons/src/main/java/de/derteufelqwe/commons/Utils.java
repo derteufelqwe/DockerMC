@@ -23,10 +23,10 @@ public class Utils {
      * @param commands
      * @return
      */
-    public static String executeCommandOnHost(String[] commands) {
-        Runtime runtim = Runtime.getRuntime();
+    public static String executeCommandOnHost(String... commands) {
+        Runtime runtime = Runtime.getRuntime();
         try {
-            Process process = runtim.exec(commands);
+            Process process = runtime.exec(commands);
 
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
             BufferedReader stdErr = new BufferedReader(new InputStreamReader(process.getErrorStream()));
@@ -34,6 +34,10 @@ public class Utils {
             StringBuilder output = new StringBuilder();
             String s = null;
             while ((s = stdInput.readLine()) != null) {
+                output.append(s);
+                output.append("\n");
+            }
+            while ((s = stdErr.readLine()) != null) {
                 output.append(s);
                 output.append("\n");
             }

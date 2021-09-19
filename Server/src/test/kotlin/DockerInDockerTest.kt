@@ -3,45 +3,23 @@ import com.github.dockerjava.api.model.ExposedPort
 import com.github.dockerjava.api.model.HostConfig
 import com.github.dockerjava.api.model.PortBinding
 import com.github.dockerjava.api.model.Ports
-import com.github.dockerjava.core.DefaultDockerClientConfig
-import com.github.dockerjava.core.DockerClientConfig
-import com.github.dockerjava.core.DockerClientImpl
-import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
-import com.github.dockerjava.transport.DockerHttpClient
-import com.google.inject.AbstractModule
 import com.google.inject.Guice
-import com.google.inject.Provides
-import com.google.inject.Singleton
-import com.google.inject.name.Named
-import de.derteufelqwe.ServerManager.Docker
 import de.derteufelqwe.ServerManager.GuiceFactory
 import de.derteufelqwe.ServerManager.cli.CliCommands
 import de.derteufelqwe.ServerManager.cli.converters.DurationConverter
 import de.derteufelqwe.ServerManager.config.MainConfig
 import de.derteufelqwe.ServerManager.config.ServersConfig
-import de.derteufelqwe.ServerManager.registry.DockerRegistryAPI
 import de.derteufelqwe.ServerManager.setup.servers.BungeePool
 import de.derteufelqwe.ServerManager.utils.Commons
-import de.derteufelqwe.commons.Constants
-import de.derteufelqwe.commons.config.Config
-import de.derteufelqwe.commons.config.providers.DefaultGsonProvider
-import de.derteufelqwe.commons.config.providers.DefaultYamlConverter
-import de.derteufelqwe.commons.hibernate.SessionBuilder
-import de.derteufelqwe.commons.redis.RedisPool
 import de.derteufelqwe.junitDocker.DockerRunner
 import de.derteufelqwe.junitDocker.util.*
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.core.Logger
-import org.apache.logging.log4j.core.layout.PatternLayout
 import org.junit.Test
 import org.junit.runner.RunWith
 import picocli.CommandLine
 import picocli.shell.jline3.PicocliCommands
-import redis.clients.jedis.JedisPool
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.time.Duration
-import kotlin.io.path.createTempDirectory
 
 
 private val IMAGE_NAME = "dockermctest-full:latest"

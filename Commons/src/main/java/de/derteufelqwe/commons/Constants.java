@@ -7,15 +7,8 @@ import java.util.Map;
 import java.util.UUID;
 
 public class Constants {
-    // System.getProperty("user.dir").replace("\\", "/") + "/";
-    /**
-     * If true indicates that this is running on windows but connected to docker on linux
-     */
-    public static final boolean DEBUG = true;
 
-    public static String WORKDIR = "";
-    public static String WORKDIR_LNX = WORKDIR;
-
+    public static String WORKDIR = System.getProperty("user.dir").replace("\\", "/") + "/";
 
     // Miscellaneous values
     public static final String CONFIG_PATH = WORKDIR + "configs/";
@@ -53,15 +46,8 @@ public class Constants {
     public static final String REGISTRY_CONTAINER_NAME = "Registry";
     public static final int REGISTY_CONTAINER_DEFAULT_PORT = 5000;
     // Path to the Registry Certificate and key
-    private static final String REGISTRY_CERT_PATH = "internal/security/registry-certs/";
-    /**
-     * Normal registry certs path that can be a windows or linux path depending on where the program was executed.
-     */
-    public static final String REGISTRY_CERT_PATH_1 = WORKDIR + REGISTRY_CERT_PATH;
-    /**
-     * Special registry certs path, which is always a linux path. This is required for the docker mounts
-     */
-    public static final String REGISTRY_CERT_PATH_2 = WORKDIR_LNX + REGISTRY_CERT_PATH;
+    public static final String RAW_REGISTRY_CERT_PATH = "internal/security/registry-certs/";
+    public static final String REGISTRY_CERT_PATH = WORKDIR + RAW_REGISTRY_CERT_PATH;
     public static final String REGISTRY_CERT_NAME  = "ca.crt";
     public static final String REGISTRY_KEY_NAME  = "ca.key";
     public static final String REGISTRY_HTPASSWD_NAME = "htpasswd";

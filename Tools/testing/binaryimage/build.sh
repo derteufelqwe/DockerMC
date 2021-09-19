@@ -2,7 +2,14 @@
 #  Working directory must be the project root!
 #
 
-set -e  # Exit when any command fails
+error_trap() {
+  echo "Error raised on line $1. Examine log output for more information"
+  read -p "pause"
+  rm -R "$THISFOLDER/build"
+  exit
+}
+trap 'error_trap $LINENO' ERR
+
 
 # Change the working directory to the project root
 cd "$(dirname $0)/../../.."
@@ -43,7 +50,7 @@ fi
 
 
 # Install the commons module
-#mvn --projects Commons --also-make clean install
+mvn --projects Commons --also-make clean install
 
 # Package the subprojects
 #mvn --projects NodeWatcher,DockerPlugin,Server,BungeePlugin,MinecraftPlugin --also-make package
@@ -62,8 +69,6 @@ cp "Server/src/main/resources/dockerfiles/minecraft.dfile"  "$THISFOLDER/build"
 
 # Build the image
 docker "$DOCKER_ARGS" build -t "dockermctest-full" "$THISFOLDER/"
-
-#read -p "pause"
 
 # Cleanup
 rm -R "$THISFOLDER/build"

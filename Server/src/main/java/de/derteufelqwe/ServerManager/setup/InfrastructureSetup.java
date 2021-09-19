@@ -1,9 +1,11 @@
 package de.derteufelqwe.ServerManager.setup;
 
+import com.google.inject.Inject;
 import de.derteufelqwe.ServerManager.Docker;
 import de.derteufelqwe.ServerManager.config.MainConfig;
 import de.derteufelqwe.ServerManager.setup.infrastructure.*;
 import de.derteufelqwe.ServerManager.setup.templates.DockerObjTemplate;
+import de.derteufelqwe.ServerManager.utils.RegistryCertPath;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 
@@ -12,19 +14,18 @@ import de.derteufelqwe.commons.config.Config;
  */
 public class InfrastructureSetup {
 
-    private Docker docker;
-
     private OvernetNetwork overnetNetwork = new OvernetNetwork();
     private RegistryCertificates registryCertificates;
-    private RegistryContainer registryContainer = new RegistryContainer();
+    private RegistryContainer registryContainer;
     private NodeWatcherService nodeWatcherService = new NodeWatcherService();
     private RedisContainer redisContainer = new RedisContainer();
 
 
-    public InfrastructureSetup(Docker docker, Config<MainConfig> mainConfig) {
-        this.docker = docker;
+    @Inject
+    public InfrastructureSetup(Docker docker, Config<MainConfig> mainConfig, @RegistryCertPath String certBindPath) {
         this.overnetNetwork.init(docker);
-        this.registryCertificates = new RegistryCertificates(docker, mainConfig.get());
+        this.registryCertificates = new RegistryCertificates(mainConfig.get());
+        this.registryContainer = new RegistryContainer(certBindPath);
         this.registryContainer.init(docker, mainConfig);
         this.nodeWatcherService.init(docker, mainConfig);
         this.redisContainer.init(docker, mainConfig);
@@ -61,16 +62,15 @@ public class InfrastructureSetup {
     public ServiceCreateResponse createRegistryCerts() {
         ServiceCreateResponse response = new ServiceCreateResponse("RegistryCerts", Constants.ContainerType.REGISTRY_CERTS_GEN);
 
-        if (!this.registryCertificates.find().isFound()) {
-            DockerObjTemplate.CreateResponse createResponse = this.registryCertificates.create();
-            response.setServiceId(createResponse.getServiceID());
+        if (!this.registryCertificates.find().filesExist()) {
+            RegistryCertificates.RegistryCertFiles files = this.registryCertificates.create();
+            response.setServiceId("RegistryCertificates");
 
-            if (this.registryCertificates.find().isFound()) {
+            if (files.filesExist()) {
                 response.setResult(ServiceStart.OK);
 
             } else {
                 response.setResult(ServiceStart.FAILED_GENERIC);
-                response.setAdditionalInfos(createResponse.getMessage());
             }
         } else {
             response.setResult(ServiceStart.RUNNING);

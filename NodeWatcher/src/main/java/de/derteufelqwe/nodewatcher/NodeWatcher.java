@@ -309,7 +309,7 @@ public class NodeWatcher {
      * @return
      */
     private Integer getMaxHostMemory() throws InvalidSystemStateException {
-        String output = Utils.executeCommandOnHost(new String[]{"cat", "/proc/meminfo"});
+        String output = Utils.executeCommandOnHost("cat", "/proc/meminfo");
         Matcher m = RE_MEM_TOTAL.matcher(output);
 
         if (m.find()) {

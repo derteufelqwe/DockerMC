@@ -1,6 +1,7 @@
 # Server preparation
 - Setup as many Linux Servers as you want. They need to be able to communicate with eachother
 - The servers need fixed IPs
+- Openssh cli installed
 
 # DNS Setup
 - Add each host to each machine to `/etc/hosts` like this `<server_ip>  <hostname>`

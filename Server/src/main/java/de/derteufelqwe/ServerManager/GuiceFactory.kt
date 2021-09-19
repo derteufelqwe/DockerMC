@@ -8,7 +8,8 @@ import com.google.inject.name.Named
 import de.derteufelqwe.ServerManager.config.MainConfig
 import de.derteufelqwe.ServerManager.config.ServersConfig
 import de.derteufelqwe.ServerManager.registry.DockerRegistryAPI
-import de.derteufelqwe.ServerManager.utils.Commons
+import de.derteufelqwe.ServerManager.setup.InfrastructureSetup
+import de.derteufelqwe.ServerManager.utils.*
 import de.derteufelqwe.commons.Constants
 import de.derteufelqwe.commons.config.Config
 import de.derteufelqwe.commons.config.providers.DefaultGsonProvider
@@ -17,6 +18,7 @@ import de.derteufelqwe.commons.hibernate.SessionBuilder
 import de.derteufelqwe.commons.redis.RedisPool
 import picocli.CommandLine.IFactory
 import redis.clients.jedis.JedisPool
+import java.util.*
 
 
 class GuiceFactory(private val injector: Injector) : IFactory {
@@ -28,6 +30,11 @@ class GuiceFactory(private val injector: Injector) : IFactory {
 }
 
 open class DMCGuiceModule : AbstractModule() {
+
+    override fun configure() {
+        bind(InfrastructureSetup::class.java)
+        bind(Commons::class.java).asEagerSingleton()
+    }
 
     @Provides
     @Singleton
@@ -42,7 +49,7 @@ open class DMCGuiceModule : AbstractModule() {
 
     @Provides
     @Singleton
-    @Named("current")
+    @NewConfig
     open fun provideServerConfig(): Config<ServersConfig> {
         return Config(
             DefaultYamlConverter(),
@@ -54,7 +61,7 @@ open class DMCGuiceModule : AbstractModule() {
 
     @Provides
     @Singleton
-    @Named("old")
+    @OldConfig
     open fun provideServerConfigOld(): Config<ServersConfig> {
         return Config(
             DefaultYamlConverter(),
@@ -62,6 +69,16 @@ open class DMCGuiceModule : AbstractModule() {
             Constants.DATA_PATH + "/servers_old.yml",
             ServersConfig()
         )
+    }
+
+    @Provides
+    @DevProperties
+    open fun provideDevConfig(): Properties {
+        if (DevConfig.exists()) {
+            return DevConfig.read()
+        }
+
+        return Properties()
     }
 
     @Provides
@@ -98,11 +115,15 @@ open class DMCGuiceModule : AbstractModule() {
     }
 
     @Provides
-    @Singleton
-    open fun provideCommons(mainConfig: Config<MainConfig>, @Named("old")serversConfigOld: Config<ServersConfig>,
-                       @Named("current") serversConfig: Config<ServersConfig>, docker: Docker, jedisPool: JedisPool,
-                       sessionBuilder: SessionBuilder): Commons {
-        return Commons(mainConfig, serversConfig, serversConfigOld, docker, jedisPool, sessionBuilder)
+    @RegistryCertPath
+    fun provideRegistryCertPath(@DevProperties devProps: Properties): String {
+        val cfg = devProps.getProperty(DevConfig.REGISTRY_CERT_OVERRIDE)
+        if (cfg != null && cfg != "") {
+            return cfg + "/" + Constants.RAW_REGISTRY_CERT_PATH
+        }
+
+        return Constants.REGISTRY_CERT_PATH
     }
+
 
 }

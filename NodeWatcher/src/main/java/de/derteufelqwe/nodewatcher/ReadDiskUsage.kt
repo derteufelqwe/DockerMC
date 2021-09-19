@@ -7,8 +7,8 @@ val RE_FIND_PART = Pattern.compile("^(.+)\\s+part\\s+(.+)", Pattern.MULTILINE)
 val PATTERN_RE_FIND_USAGE = "(\\/dev\\/%s)\\s+(\\d+)\\s+(\\d+)\\s+(\\d+)\\s+\\d+%%\\s+(.+)"
 
 fun main() {
-    val lsblk = Utils.executeCommandOnHost(arrayOf("lsblk", "-io", "KNAME,TYPE,SIZE,MODEL"))
-    val df = Utils.executeCommandOnHost(arrayOf("df"))
+    val lsblk = Utils.executeCommandOnHost("lsblk", "-io", "KNAME,TYPE,SIZE,MODEL")
+    val df = Utils.executeCommandOnHost("df")
 
     val partitions = mutableListOf<Partition>()
     val m1 = RE_FIND_PART.matcher(lsblk)

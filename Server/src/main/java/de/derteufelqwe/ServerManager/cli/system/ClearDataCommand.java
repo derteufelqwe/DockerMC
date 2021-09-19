@@ -10,6 +10,7 @@ import de.derteufelqwe.ServerManager.setup.infrastructure.RedisContainer;
 import de.derteufelqwe.ServerManager.setup.infrastructure.RegistryCertificates;
 import de.derteufelqwe.ServerManager.setup.infrastructure.RegistryContainer;
 import de.derteufelqwe.ServerManager.utils.Commons;
+import de.derteufelqwe.ServerManager.utils.RegistryCertPath;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import lombok.extern.log4j.Log4j2;
@@ -22,6 +23,7 @@ public class ClearDataCommand implements Runnable {
     @Inject private Docker docker;
     @Inject private Commons commons;
     @Inject private Config<MainConfig> mainConfig;
+    @Inject @RegistryCertPath private String regCertPath;
 
     @CommandLine.ParentCommand
     private SystemCmd parent;
@@ -38,7 +40,7 @@ public class ClearDataCommand implements Runnable {
         }
 
         // Check if the containers are stopped
-        RegistryContainer registryContainer = new RegistryContainer();
+        RegistryContainer registryContainer = new RegistryContainer(regCertPath);
         registryContainer.init(docker, mainConfig);
         if (registryContainer.find().isFound()) {
             log.error("Registry must be stopped for full data deletion!");
@@ -52,8 +54,8 @@ public class ClearDataCommand implements Runnable {
             return;
         }
 
-        RegistryCertificates certificates = new RegistryCertificates(docker, mainConfig.get());
-        if (certificates.find().isFound()) {
+        RegistryCertificates certificates = new RegistryCertificates(mainConfig.get());
+        if (certificates.find().filesExist()) {
             certificates.destroy();
         }
 

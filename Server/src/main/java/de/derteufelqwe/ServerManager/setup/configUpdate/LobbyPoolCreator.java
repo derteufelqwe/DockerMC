@@ -11,6 +11,8 @@ import de.derteufelqwe.ServerManager.setup.ServiceCreateResponse;
 import de.derteufelqwe.ServerManager.setup.ServiceStart;
 import de.derteufelqwe.ServerManager.setup.servers.BungeePool;
 import de.derteufelqwe.ServerManager.setup.servers.ServerPool;
+import de.derteufelqwe.ServerManager.utils.NewConfig;
+import de.derteufelqwe.ServerManager.utils.OldConfig;
 import de.derteufelqwe.commons.Constants;
 import de.derteufelqwe.commons.config.Config;
 import redis.clients.jedis.Jedis;
@@ -21,8 +23,8 @@ public class LobbyPoolCreator extends ConfigCreator<ServerPool> {
     private JedisPool jedisPool;
 
     @Inject
-    public LobbyPoolCreator(Docker docker, Config<MainConfig> mainConfig, @Named("current") Config<ServersConfig> serversConfig,
-                             @Named("old") Config<ServersConfig> serversConfigOld, JedisPool jedisPool) {
+    public LobbyPoolCreator(Docker docker, Config<MainConfig> mainConfig, @NewConfig Config<ServersConfig> serversConfig,
+                            @OldConfig Config<ServersConfig> serversConfigOld, JedisPool jedisPool) {
         super(mainConfig,
                 serversConfig,
                 serversConfigOld,
