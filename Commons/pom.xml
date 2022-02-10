@@ -13,7 +13,7 @@
     </parent>
 
     <properties>
-        <hibernate-version>5.4.23.Final</hibernate-version>
+        <hibernate-version>5.4.24.Final</hibernate-version>
     </properties>
 
     <build>
